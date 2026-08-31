@@ -279,6 +279,6 @@ def _done(table: str) -> int:
         "captures": 3,
         "decisions": 3,
         "proposal_sets": 1,
-        "route_operations": 1,
+        "route_operations": 2,
         "space_operations": 1,
     }[table]

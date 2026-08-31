@@ -78,10 +78,22 @@ class CaptureFault(StrEnum):
     AFTER_REVIEW_PUBLICATION_WRITE = "after_review_publication_write"
 
 
+class PortabilityFault(StrEnum):
+    AFTER_STAGE_CREATED = "after_stage_created"
+    AFTER_PORTABLE_FILE = "after_portable_file"
+    AFTER_MANIFEST = "after_manifest"
+    AFTER_PROFILE = "after_profile"
+    AFTER_MATERIALIZATION = "after_materialization"
+    AFTER_INDEX = "after_index"
+    AFTER_READY = "after_ready"
+    BEFORE_PROMOTION = "before_promotion"
+    AFTER_PROMOTION = "after_promotion"
+
+
 class InjectedFault(RuntimeError):
     """Synthetic process interruption at one named durable boundary."""
 
-    def __init__(self, point: CaptureFault) -> None:
+    def __init__(self, point: CaptureFault | PortabilityFault) -> None:
         self.point = point
         super().__init__(point.value)
 
@@ -207,9 +219,7 @@ class EventPayload:
         }
 
     def search_text(self) -> str:
-        return " ".join(
-            (self.event_type, self.occurrence_at or "", *(_pairs(self.attributes)))
-        )
+        return " ".join((self.event_type, self.occurrence_at or "", *(_pairs(self.attributes))))
 
 
 @dataclass(frozen=True, slots=True)
@@ -370,15 +380,57 @@ class RetrievalResult:
 
 
 @dataclass(frozen=True, slots=True)
+class PortabilityReceipt:
+    """Bounded public outcome for one Portable Brain operation."""
+
+    status: str
+    portable_files: int
+    captures: int
+    batches: int
+    blobs: int
+    history_records: int
+    index_generation: int | None = None
+    duplicate: bool = False
+
+    def __post_init__(self) -> None:
+        if self.status not in {"validated", "exported", "imported", "rebuilt"}:
+            raise ValueError("invalid portability receipt status")
+        for value in (
+            self.portable_files,
+            self.captures,
+            self.batches,
+            self.blobs,
+            self.history_records,
+        ):
+            if type(value) is not int or value < 0:
+                raise ValueError("invalid portability receipt count")
+        if self.index_generation is not None and (
+            type(self.index_generation) is not int or self.index_generation < 1
+        ):
+            raise ValueError("invalid portability index generation")
+
+
+@dataclass(frozen=True, slots=True)
 class LocalEngineContext:
     """Engine-owned values supplied by a deployment profile compiler."""
 
     root: Path
+    root_identity: tuple[int, int]
     tenant_id: str
     owner_actor_id: str
     owner_role_claim: Mapping[str, object]
     provider_mode: ProviderMode
     starter_spaces: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.root, Path)
+            or not self.root.is_absolute()
+            or not isinstance(self.root_identity, tuple)
+            or len(self.root_identity) != 2
+            or any(type(value) is not int or value < 0 for value in self.root_identity)
+        ):
+            raise ValueError("invalid local root identity")
 
 
 @dataclass(frozen=True, slots=True)
@@ -516,9 +568,7 @@ class CaptureSubmission:
         }:
             raise ValueError("invalid source origin")
         object.__setattr__(self, "source_origin", source_origin)
-        source_reference = _text(
-            self.source_reference, field="source reference", maximum=_MAX_TEXT
-        )
+        source_reference = _text(self.source_reference, field="source reference", maximum=_MAX_TEXT)
         object.__setattr__(self, "source_reference", source_reference)
         if not isinstance(self.provenance, Provenance):
             raise ValueError("invalid provenance")
@@ -539,9 +589,7 @@ class CaptureSubmission:
             _portable_id(self.space_id, "space")
         intent = _intent(self.intent)
         object.__setattr__(self, "intent", intent)
-        capture_why = _optional_text(
-            self.capture_why, field="capture reason", maximum=_MAX_REASON
-        )
+        capture_why = _optional_text(self.capture_why, field="capture reason", maximum=_MAX_REASON)
         try:
             capture_why_origin = CaptureWhyOrigin(self.capture_why_origin)
         except (TypeError, ValueError) as error:
@@ -849,6 +897,18 @@ class RetrievalTask(Protocol):
     def scoped(self, *, allowed_space_ids: frozenset[str]) -> ScopedRetrievalTask: ...
 
 
+class PortabilityTask(Protocol):
+    def validate(self, source: Path) -> PortabilityReceipt: ...
+
+    def export(self, destination: Path, *, export_id: str) -> PortabilityReceipt: ...
+
+    def import_clean(
+        self, source: Path, destination: Path, *, import_id: str
+    ) -> PortabilityReceipt: ...
+
+    def rebuild_index(self) -> PortabilityReceipt: ...
+
+
 @dataclass(frozen=True, slots=True)
 class EngineTaskSet:
     """The public task identities exposed by one opened local engine root."""
@@ -858,6 +918,7 @@ class EngineTaskSet:
     inbox: InboxSpaceTask
     review: ReviewTask
     retrieval: RetrievalTask
+    portability: PortabilityTask
 
     @property
     def spaces(self) -> InboxSpaceTask:

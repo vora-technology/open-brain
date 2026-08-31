@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS space_operations (
 CREATE TABLE IF NOT EXISTS route_operations (
     delivery_id TEXT PRIMARY KEY,
     request_sha256 TEXT NOT NULL,
+    route_id TEXT NOT NULL UNIQUE,
+    supersedes_route_id TEXT,
     capture_id TEXT NOT NULL,
     space_id TEXT NOT NULL,
     receipt_id TEXT NOT NULL UNIQUE,
@@ -133,6 +135,7 @@ class _LocalStore:
         try:
             connection.executescript(_SCHEMA)
             _add_capture_submission_columns(connection)
+            _add_route_operation_columns(connection)
         finally:
             connection.close()
 
@@ -140,6 +143,7 @@ class _LocalStore:
         return connect_database(
             root=self.root,
             database_name=".open-brain/state/phase1.sqlite3",
+            expected_root_identity=self.profile.root_identity,
         )
 
     @contextmanager
@@ -168,3 +172,37 @@ def _add_capture_submission_columns(connection: sqlite3.Connection) -> None:
     ):
         if name not in existing:
             connection.execute(f"ALTER TABLE captures ADD COLUMN {name} {declaration}")
+
+
+def _add_route_operation_columns(connection: sqlite3.Connection) -> None:
+    existing = {
+        str(row["name"]) for row in connection.execute("PRAGMA table_info(route_operations)")
+    }
+    if "route_id" not in existing:
+        connection.execute("ALTER TABLE route_operations ADD COLUMN route_id TEXT")
+    if "supersedes_route_id" not in existing:
+        connection.execute("ALTER TABLE route_operations ADD COLUMN supersedes_route_id TEXT")
+    latest_by_capture: dict[str, str] = {}
+    rows = tuple(
+        connection.execute(
+            "SELECT rowid, * FROM route_operations ORDER BY capture_id, recorded_at, rowid"
+        )
+    )
+    for row in rows:
+        capture_id = str(row["capture_id"])
+        route_id = row["route_id"]
+        if route_id is None:
+            receipt_id = str(row["receipt_id"])
+            route_id = "route_" + receipt_id.removeprefix("receipt_")
+            connection.execute(
+                """
+                UPDATE route_operations
+                SET route_id = ?, supersedes_route_id = ?, stage = 0
+                WHERE rowid = ?
+                """,
+                (route_id, latest_by_capture.get(capture_id), row["rowid"]),
+            )
+        latest_by_capture[capture_id] = str(route_id)
+    connection.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS route_identity_idx ON route_operations (route_id)"
+    )

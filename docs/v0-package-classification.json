@@ -676,6 +676,13 @@
       "api": "public",
       "roles": []
     },
+    "engine/materializer.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "store"
+      ]
+    },
     "engine/local.py": {
       "owner": "engine",
       "api": "internal",
@@ -694,6 +701,27 @@
       "owner": "engine",
       "api": "internal",
       "roles": []
+    },
+    "engine/portable_index.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "store"
+      ]
+    },
+    "engine/portability.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "store"
+      ]
+    },
+    "engine/portability_ports.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "store"
+      ]
     },
     "engine/retrieval.py": {
       "owner": "engine",
@@ -1536,6 +1564,13 @@
       ]
     },
     "storage/sqlite.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "store"
+      ]
+    },
+    "storage/staging.py": {
       "owner": "engine",
       "api": "internal",
       "roles": [

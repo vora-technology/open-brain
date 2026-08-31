@@ -20,7 +20,8 @@ from open_brain.portable import (
     portable_canonical_json_bytes,
     validate_portable_root,
 )
-from open_brain.storage.markdown import parse_markdown
+from open_brain.portable.v1 import validate_portable_write
+from open_brain.storage.markdown import parse_markdown, render_markdown
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_ROOT = REPOSITORY_ROOT / "schemas/portable-brain/v1"
@@ -36,6 +37,8 @@ ACTION_PROPOSAL = "proposal_123e4567-e89b-42d3-a456-426614174018"
 PAGE_DECISION = "decision_123e4567-e89b-42d3-a456-426614174009"
 ACTION_DECISION = "decision_123e4567-e89b-42d3-a456-426614174019"
 PAGE_ID = "page_123e4567-e89b-42d3-a456-426614174005"
+ROUTED_CAPTURE = "capture_123e4567-e89b-42d3-a456-426614174101"
+ROUTE_ID = "route_123e4567-e89b-42d3-a456-426614174012"
 BLOB_BYTES = b"Synthetic Portable Brain blob.\n"
 BLOB_DIGEST = sha256(BLOB_BYTES).hexdigest()
 
@@ -87,13 +90,15 @@ def _receipt(
     subject_id: str,
     payload: Mapping[str, object],
     suffix: str,
+    *,
+    recorded_at: str = "2026-08-30T12:00:00Z",
 ) -> dict[str, object]:
     receipt_payload = dict(payload)
     return {
         "kind": kind,
         "payload": receipt_payload,
         "receipt_id": f"receipt_123e4567-e89b-42d3-a456-426614174{suffix}",
-        "recorded_at": "2026-08-30T12:00:00Z",
+        "recorded_at": recorded_at,
         "sha256": sha256(portable_canonical_json_bytes(receipt_payload)).hexdigest(),
         "subject_id": subject_id,
     }
@@ -288,6 +293,12 @@ def _page_bytes() -> bytes:
     ).encode()
 
 
+def _page_bytes_with(**updates: object) -> bytes:
+    frontmatter = _page_frontmatter()
+    frontmatter.update(updates)
+    return render_markdown(fields=frontmatter, body="# Synthetic\n").encode()
+
+
 def _terminal_payload(
     *,
     decision_id: str,
@@ -355,7 +366,7 @@ def _publication() -> dict[str, object]:
         "page_id": PAGE_ID,
         "publication_id": "publication_123e4567-e89b-42d3-a456-42661417400a",
         "published_bytes_base64": base64.b64encode(published_bytes).decode("ascii"),
-        "published_path": "content/spaces/studio/notes/synthetic.md",
+        "published_path": f"content/spaces/studio/notes/{PAGE_ID}.md",
         "published_sha256": sha256(published_bytes).hexdigest(),
         "recorded_at": "2026-08-30T12:10:00Z",
         "role_claim": _claim(),
@@ -391,6 +402,28 @@ def _action() -> dict[str, object]:
         "recorded_at": "2026-08-30T12:11:00Z",
         "role_claim": _claim(),
         "schema_version": 1,
+        "tenant_id": TENANT,
+    }
+
+
+def _routing() -> dict[str, object]:
+    payload = {"capture_id": ROUTED_CAPTURE, "space_id": SPACE}
+    return {
+        "actor_id": ACTOR,
+        "capture_id": ROUTED_CAPTURE,
+        "receipt": _receipt(
+            "routing",
+            ROUTED_CAPTURE,
+            payload,
+            "122",
+            recorded_at="2026-08-30T12:04:00Z",
+        ),
+        "recorded_at": "2026-08-30T12:04:00Z",
+        "role_claim": _claim(),
+        "route_id": ROUTE_ID,
+        "schema_version": 1,
+        "space_id": SPACE,
+        "supersedes": None,
         "tenant_id": TENANT,
     }
 
@@ -449,10 +482,20 @@ def _set_record_path(
 def _root(tmp_path: Path) -> Path:
     root = tmp_path / "brain-root"
     root.mkdir(parents=True, exist_ok=True)
-    (root / "brain.toml").write_text("layout_version = 1\n", encoding="utf-8")
+    (root / "brain.toml").write_text(
+        "layout_version = 1\n"
+        'profile = "single-user-local"\n'
+        f'tenant_id = "{TENANT}"\n'
+        f'owner_actor_id = "{ACTOR}"\n'
+        'owner_role_id = "role_123e4567-e89b-42d3-a456-426614174002"\n'
+        'owner_role_claim_id = "role_claim_123e4567-e89b-42d3-a456-426614174003"\n'
+        'owner_capabilities = ["canonical.publish", "capture.accept", "space.write"]\n',
+        encoding="utf-8",
+    )
     for number, family in enumerate(("text", "reference_or_file", "event", "measurement")):
+        capture = _capture(family, number)
         _write_json(
-            root / f"sources/captures/2026/08/capture_{number}.json", _capture(family, number)
+            root / f"sources/captures/2026/08/{capture['capture_id']}.json", capture
         )
     for family, prefix, batch in (("event", "event", "006"), ("measurement", "measurement", "007")):
         rows = []
@@ -473,7 +516,11 @@ def _root(tmp_path: Path) -> Path:
                     "tenant_id": TENANT,
                 }
             )
-        path = root / f"sources/batches/2026/08/batch_{batch}.jsonl"
+        path = (
+            root
+            / "sources/batches/2026/08"
+            / f"batch_123e4567-e89b-42d3-a456-426614174{batch}.jsonl"
+        )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b"".join(portable_canonical_json_bytes(row) + b"\n" for row in rows))
     blob = root / f"sources/blobs/sha256/{BLOB_DIGEST[:2]}/{BLOB_DIGEST}"
@@ -483,13 +530,20 @@ def _root(tmp_path: Path) -> Path:
     action_proposal = _proposal(ACTION_PROPOSAL, "action")
     page_decision = _decision(page_proposal)
     action_decision = _decision(action_proposal, ACTION_DECISION, "approved")
-    _write_json(root / "history/proposals/2026/08/proposal.json", page_proposal)
-    _write_json(root / "history/proposals/2026/08/proposal-action.json", action_proposal)
-    _write_json(root / "history/decisions/2026/08/decision.json", page_decision)
-    _write_json(root / "history/decisions/2026/08/decision-action.json", action_decision)
-    _write_json(root / "history/publications/2026/08/publication.json", _publication())
-    _write_json(root / "history/actions/2026/08/action.json", _action())
-    content = root / "content/spaces/studio/notes/synthetic.md"
+    _write_json(root / f"history/proposals/2026/08/{PAGE_PROPOSAL}.json", page_proposal)
+    _write_json(root / f"history/proposals/2026/08/{ACTION_PROPOSAL}.json", action_proposal)
+    _write_json(root / f"history/decisions/2026/08/{PAGE_DECISION}.json", page_decision)
+    _write_json(root / f"history/decisions/2026/08/{ACTION_DECISION}.json", action_decision)
+    _write_json(
+        root / "history/publications/2026/08/publication_123e4567-e89b-42d3-a456-42661417400a.json",
+        _publication(),
+    )
+    _write_json(
+        root / "history/actions/2026/08/action_123e4567-e89b-42d3-a456-42661417400b.json",
+        _action(),
+    )
+    _write_json(root / f"history/routes/2026/08/{ROUTE_ID}.json", _routing())
+    content = root / f"content/spaces/studio/notes/{PAGE_ID}.md"
     content.parent.mkdir(parents=True, exist_ok=True)
     content.write_bytes(_page_bytes())
     space = root / "content/spaces/studio/_space.md"
@@ -518,7 +572,7 @@ def _root(tmp_path: Path) -> Path:
 
 def test_every_schema_is_draft_2020_12_closed_and_local() -> None:
     schemas = _schemas()
-    assert len(schemas) == 14
+    assert len(schemas) == 15
     for schema in schemas.values():
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
         assert str(schema["$id"]).startswith("urn:open-brain:portable-brain:v1:")
@@ -645,7 +699,7 @@ def test_review_history_requires_content_receipts_and_digests(
 def test_canonical_page_frontmatter_requires_privacy(tmp_path: Path) -> None:
     root = _root(tmp_path)
     fields = dict(
-        parse_markdown((root / "content/spaces/studio/notes/synthetic.md").read_bytes()).fields
+        parse_markdown((root / f"content/spaces/studio/notes/{PAGE_ID}.md").read_bytes()).fields
     )
     _assert_valid("canonical-page-frontmatter.json", fields)
     space_fields = dict(
@@ -654,6 +708,56 @@ def test_canonical_page_frontmatter_requires_privacy(tmp_path: Path) -> None:
     _assert_valid("space-frontmatter.json", space_fields)
     fields.pop("privacy")
     assert list(_validator("canonical-page-frontmatter.json").iter_errors(fields))
+
+
+@pytest.mark.parametrize(
+    ("status", "trust"),
+    (("active", "owner"), ("archived", "reviewed")),
+)
+def test_canonical_page_schema_and_runtime_accept_the_same_states(
+    tmp_path: Path,
+    status: str,
+    trust: str,
+) -> None:
+    fields = _page_frontmatter()
+    fields.update(status=status, trust=trust)
+    _assert_valid("canonical-page-frontmatter.json", fields)
+    payload = _page_bytes_with(status=status, trust=trust)
+    relative = f"content/spaces/studio/notes/{PAGE_ID}.md"
+    validate_portable_write(relative, payload, TENANT)
+
+    root = _root(tmp_path)
+    (root / relative).write_bytes(payload)
+    _write_manifest(root)
+    validate_portable_root(root)
+
+
+@pytest.mark.parametrize(
+    ("status", "trust"),
+    (
+        ("deleted", "owner"),
+        ("active", "third_party"),
+        ("active", "unverified"),
+    ),
+)
+def test_canonical_page_schema_and_runtime_reject_the_same_states(
+    tmp_path: Path,
+    status: str,
+    trust: str,
+) -> None:
+    fields = _page_frontmatter()
+    fields.update(status=status, trust=trust)
+    assert list(_validator("canonical-page-frontmatter.json").iter_errors(fields))
+    payload = _page_bytes_with(status=status, trust=trust)
+    relative = f"content/spaces/studio/notes/{PAGE_ID}.md"
+    with pytest.raises(PortableValidationError, match="canonical page"):
+        validate_portable_write(relative, payload, TENANT)
+
+    root = _root(tmp_path)
+    (root / relative).write_bytes(payload)
+    _write_manifest(root)
+    with pytest.raises(PortableValidationError, match="canonical page"):
+        validate_portable_root(root)
 
 
 def test_strict_json_rejects_floats_keys_and_normalized_collisions() -> None:
@@ -725,13 +829,16 @@ def test_manifest_rejects_symlinks_and_duplicate_terminal_decisions(tmp_path: Pa
     (root / "content/symlink.md").unlink()
     duplicate = _decision()
     duplicate["decision_id"] = "decision_123e4567-e89b-42d3-a456-42661417400d"
-    _write_json(root / "history/decisions/2026/08/duplicate.json", duplicate)
+    _write_json(
+        root / "history/decisions/2026/08/decision_123e4567-e89b-42d3-a456-42661417400d.json",
+        duplicate,
+    )
     _write_manifest(root)
     with pytest.raises(PortableValidationError, match="multiple terminal"):
         validate_portable_root(root)
 
 
-def test_manifest_rejects_a_symlink_root_and_allows_non_operational_state_names(
+def test_content_inventory_allows_documented_owner_markdown_and_rejects_runtime_like_files(
     tmp_path: Path,
 ) -> None:
     root = _root(tmp_path)
@@ -740,6 +847,20 @@ def test_manifest_rejects_a_symlink_root_and_allows_non_operational_state_names(
     allowed.write_text("Synthetic user state page.\n", encoding="utf-8")
     _write_manifest(root)
     validate_portable_root(root)
+
+    for relative in (
+        "content/spaces/studio/notes/.portable.tmp",
+        "content/spaces/studio/notes/search.sqlite3",
+        "content/spaces/studio/runtime/cache.md",
+        "content/spaces/studio/notes/owner-note.txt",
+    ):
+        root = _root(tmp_path / relative.replace("/", "-"))
+        candidate = root / relative
+        candidate.parent.mkdir(parents=True, exist_ok=True)
+        candidate.write_text("Synthetic unsafe inventory member.\n", encoding="utf-8")
+        _write_manifest(root)
+        with pytest.raises(PortableValidationError, match="outside the v1 inventory"):
+            validate_portable_root(root)
 
     linked_root = tmp_path / "linked-root"
     linked_root.symlink_to(root, target_is_directory=True)
@@ -761,6 +882,36 @@ def test_manifest_rejects_a_blob_stored_outside_its_digest_prefix(tmp_path: Path
         validate_portable_root(root)
 
 
+def test_publication_history_preserves_immutable_bytes_after_a_direct_owner_page_edit(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    page_path = root / f"content/spaces/studio/notes/{PAGE_ID}.md"
+    parsed = parse_markdown(page_path.read_bytes())
+    owner_edited = render_markdown(
+        fields=parsed.fields,
+        body=parsed.body + "\nOwner edit after publication.\n",
+    ).encode("utf-8")
+    page_path.write_bytes(owner_edited)
+    _write_manifest(root)
+
+    validate_portable_root(root)
+
+    publication = cast(
+        dict[str, object],
+        json.loads(
+            (
+                root
+                / (
+                    "history/publications/2026/08/"
+                    "publication_123e4567-e89b-42d3-a456-42661417400a.json"
+                )
+            ).read_bytes()
+        ),
+    )
+    assert base64.b64decode(cast(str, publication["published_bytes_base64"])) != owner_edited
+
+
 def test_runtime_fixture_has_all_payloads_receipt_bound_routing_and_no_checked_in_operational_state(
     tmp_path: Path,
 ) -> None:
@@ -775,15 +926,23 @@ def test_runtime_fixture_has_all_payloads_receipt_bound_routing_and_no_checked_i
         "event",
         "measurement",
     }
-    routed = copy.deepcopy(captures[0])
-    routing_payload = {"capture_id": routed["capture_id"], "route": "synthetic"}
-    cast(list[object], routed["receipt_refs"]).append(
-        _receipt("routing", cast(str, routed["capture_id"]), routing_payload, "140")
-    )
-    assert routed["receipt_refs"][-1]["kind"] == "routing"
-    _assert_valid("capture.json", routed)
+    routing = _routing()
+    _assert_valid("routing.json", routing)
+    assert cast(dict[str, object], routing["receipt"])["kind"] == "routing"
     assert (root / "content/spaces/studio/_space.md").is_file()
     assert ".open-brain" not in {part for path in root.rglob("*") for part in path.parts}
+
+
+def test_runtime_rejects_a_forked_or_cyclic_routing_chain(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    route_path = root / f"history/routes/2026/08/{ROUTE_ID}.json"
+    routing = cast(dict[str, object], json.loads(route_path.read_bytes()))
+    routing["supersedes"] = ROUTE_ID
+    _write_json(route_path, routing)
+    _write_manifest(root)
+
+    with pytest.raises(PortableValidationError, match="routing chain"):
+        validate_portable_root(root)
 
 
 @pytest.mark.parametrize(
@@ -791,56 +950,56 @@ def test_runtime_fixture_has_all_payloads_receipt_bound_routing_and_no_checked_i
     [
         (
             "payload-digest",
-            "sources/captures/2026/08/capture_0.json",
+            f"sources/captures/2026/08/{CAPTURE}.json",
             ("payload_binding", "payload_sha256"),
             _DIGEST,
             "capture payload binding",
         ),
         (
             "batch-record",
-            "sources/captures/2026/08/capture_2.json",
+            "sources/captures/2026/08/capture_123e4567-e89b-42d3-a456-426614174102.json",
             ("payload_binding", "record_id"),
             "event_123e4567-e89b-42d3-a456-426614174999",
             "batch record",
         ),
         (
             "role-claim",
-            "sources/captures/2026/08/capture_0.json",
+            f"sources/captures/2026/08/{CAPTURE}.json",
             ("role_claim", "actor_id"),
             "actor_123e4567-e89b-42d3-a456-426614174099",
             "role claim",
         ),
         (
             "receipt",
-            "sources/captures/2026/08/capture_0.json",
+            f"sources/captures/2026/08/{CAPTURE}.json",
             ("receipt_refs", 0, "payload", "payload_sha256"),
             _DIGEST,
             "receipt digest",
         ),
         (
             "evidence",
-            "history/proposals/2026/08/proposal.json",
+            f"history/proposals/2026/08/{PAGE_PROPOSAL}.json",
             ("evidence", 0, "sha256"),
             _DIGEST,
             "evidence digest",
         ),
         (
             "proposal-state",
-            "history/decisions/2026/08/decision.json",
+            f"history/decisions/2026/08/{PAGE_DECISION}.json",
             ("expected_state_digest",),
             _DIGEST,
             "proposal state",
         ),
         (
             "publication-chain",
-            "history/publications/2026/08/publication.json",
+            "history/publications/2026/08/publication_123e4567-e89b-42d3-a456-42661417400a.json",
             ("decision_id",),
             ACTION_DECISION,
             "publication decision",
         ),
         (
             "action-result",
-            "history/actions/2026/08/action.json",
+            "history/actions/2026/08/action_123e4567-e89b-42d3-a456-42661417400b.json",
             ("action_result", "status"),
             "tampered",
             "action result digest",
@@ -896,8 +1055,15 @@ def test_checked_in_conformance_root_is_complete_canonical_and_schema_valid(
         "decisions": "decision.json",
         "proposals": "proposal.json",
         "publications": "publication.json",
+        "routes": "routing.json",
     }
-    expected_history_counts = {"actions": 1, "decisions": 2, "proposals": 2, "publications": 1}
+    expected_history_counts = {
+        "actions": 1,
+        "decisions": 2,
+        "proposals": 2,
+        "publications": 1,
+        "routes": 1,
+    }
     for directory, schema in history_schemas.items():
         paths = sorted((root / "history" / directory).rglob("*.json"))
         assert len(paths) == expected_history_counts[directory]
@@ -914,7 +1080,7 @@ def test_checked_in_conformance_root_is_complete_canonical_and_schema_valid(
             assert portable_canonical_json_bytes(value) + b"\n" == line
             _assert_valid("batch-row.json", value)
     space = parse_markdown((root / "content/spaces/studio/_space.md").read_bytes())
-    page = parse_markdown((root / "content/spaces/studio/notes/synthetic.md").read_bytes())
+    page = parse_markdown((root / f"content/spaces/studio/notes/{PAGE_ID}.md").read_bytes())
     _assert_valid("space-frontmatter.json", dict(space.fields))
     _assert_valid("canonical-page-frontmatter.json", dict(page.fields))
     assert not any(path.is_file() for path in (root / ".open-brain").rglob("*"))

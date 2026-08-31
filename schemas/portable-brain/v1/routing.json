@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:routing",
+  "type": "object",
+  "properties": {
+    "actor_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/actor_id"},
+    "capture_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/capture_id"},
+    "receipt": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/receipt"},
+    "recorded_at": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/timestamp"},
+    "role_claim": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/role_claim"},
+    "route_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/route_id"},
+    "schema_version": {"const": 1},
+    "space_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/space_id"},
+    "supersedes": {
+      "oneOf": [
+        {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/route_id"},
+        {"type": "null"}
+      ]
+    },
+    "tenant_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/tenant_id"}
+  },
+  "required": [
+    "actor_id",
+    "capture_id",
+    "receipt",
+    "recorded_at",
+    "role_claim",
+    "route_id",
+    "schema_version",
+    "space_id",
+    "supersedes",
+    "tenant_id"
+  ],
+  "additionalProperties": false
+}

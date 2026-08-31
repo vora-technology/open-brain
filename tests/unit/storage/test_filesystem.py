@@ -16,6 +16,7 @@ from open_brain.storage.filesystem import (
     WriteState,
     atomic_replace,
     atomic_write_new,
+    capture_root_identity,
     raw_relative_path,
     read_confined,
 )
@@ -36,6 +37,48 @@ def test_filesystem_write_publishes_complete_bytes_atomically(tmp_path: Path) ->
     assert state is WriteState.CREATED
     assert final_path.read_bytes() == payload
     assert not tuple(final_path.parent.glob(".*.tmp"))
+
+
+def test_expected_root_identity_rejects_replacement_before_io(tmp_path: Path) -> None:
+    selected = tmp_path / "selected"
+    replacement = tmp_path / "replacement"
+    selected.mkdir()
+    replacement.mkdir()
+    identity = capture_root_identity(selected)
+    selected.rename(tmp_path / "displaced-selected")
+    replacement.rename(selected)
+
+    with pytest.raises(RootConfinementError, match="identity changed"):
+        atomic_write_new(
+            root=selected,
+            relative="record.json",
+            data=b"must not persist",
+            expected_root_identity=identity,
+        )
+
+    assert tuple(selected.iterdir()) == ()
+
+
+def test_root_open_rejects_an_intermediate_symlink_even_when_identity_matches(
+    tmp_path: Path,
+) -> None:
+    route = tmp_path / "route"
+    selected = route / "selected"
+    selected.mkdir(parents=True)
+    identity = capture_root_identity(selected)
+    moved_route = tmp_path / "moved-route"
+    route.rename(moved_route)
+    route.symlink_to(moved_route, target_is_directory=True)
+
+    with pytest.raises(RootConfinementError, match="unsafe storage root"):
+        atomic_write_new(
+            root=selected,
+            relative="record.json",
+            data=b"must not persist",
+            expected_root_identity=identity,
+        )
+
+    assert tuple((moved_route / "selected").iterdir()) == ()
 
 
 def test_equal_duplicate_is_a_noop_and_conflict_never_overwrites(tmp_path: Path) -> None:

@@ -8,7 +8,7 @@ from hashlib import sha256
 from typing import TYPE_CHECKING, cast
 
 from open_brain.core.ids import portable_canonical_json_bytes
-from open_brain.storage.filesystem import atomic_replace, atomic_write_new
+from open_brain.storage.filesystem import atomic_write_new
 from open_brain.storage.markdown import render_markdown
 
 from .contracts import (
@@ -30,6 +30,7 @@ from .normalization import (
     _text,
     _timestamp,
 )
+from .portability_ports import portable_write_port
 
 if TYPE_CHECKING:
     from .local import BrainEngine
@@ -135,7 +136,6 @@ class SpaceOperations(_LocalEngineOperations):
         if cast(int, row["stage"]) >= 1:
             return
         space = self._space(cast(str, row["space_id"]))
-        relative = f"content/spaces/{space.slug}/_space.md"
         payload = render_markdown(
             fields={
                 "actor_id": self.profile.owner_actor_id,
@@ -148,10 +148,10 @@ class SpaceOperations(_LocalEngineOperations):
             },
             body="",
         ).encode("utf-8")
-        if cast(str, row["operation"]) == "create":
-            atomic_write_new(root=self.profile.root, relative=relative, data=payload)
-        else:
-            atomic_replace(root=self.profile.root, relative=relative, data=payload)
+        portable_write_port(self).put_space(
+            payload,
+            replace=cast(str, row["operation"]) == "rename",
+        )
         self._fault(CaptureFault.AFTER_SPACE_WRITE)
         with self._store.transaction() as connection:
             connection.execute(
@@ -192,9 +192,7 @@ class SpaceOperations(_LocalEngineOperations):
         space = self._space(space_id)
         return f"content/spaces/{space.slug}/notes/{page_id}.md"
 
-    def _route_capture(
-        self, capture_id: str, space_id: str, delivery_id: str
-    ) -> RoutedCapture:
+    def _route_capture(self, capture_id: str, space_id: str, delivery_id: str) -> RoutedCapture:
         _portable_id(capture_id, "capture")
         _portable_id(space_id, "space")
         _delivery_id(delivery_id)
@@ -219,13 +217,33 @@ class SpaceOperations(_LocalEngineOperations):
                 if cast(str, capture["action"]) == CaptureAction.CANONICAL_NOTE.value:
                     raise ValueError("published capture cannot be rerouted")
                 now = _timestamp(self._clock())
+                previous = connection.execute(
+                    """
+                    SELECT current.route_id
+                    FROM route_operations AS current
+                    LEFT JOIN route_operations AS child
+                      ON child.supersedes_route_id = current.route_id
+                    WHERE current.capture_id = ? AND child.route_id IS NULL
+                    """,
+                    (capture_id,),
+                ).fetchone()
                 connection.execute(
                     """
                     INSERT INTO route_operations (
-                        delivery_id, request_sha256, capture_id, space_id, receipt_id, recorded_at
-                    ) VALUES (?, ?, ?, ?, ?, ?)
+                        delivery_id, request_sha256, route_id, supersedes_route_id,
+                        capture_id, space_id, receipt_id, recorded_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (delivery_id, request_sha, capture_id, space_id, _new_id("receipt"), now),
+                    (
+                        delivery_id,
+                        request_sha,
+                        _new_id("route"),
+                        None if previous is None else previous["route_id"],
+                        capture_id,
+                        space_id,
+                        _new_id("receipt"),
+                        now,
+                    ),
                 )
                 connection.execute(
                     "UPDATE captures SET space_id = ? WHERE capture_id = ?", (space_id, capture_id)
@@ -253,29 +271,57 @@ class SpaceOperations(_LocalEngineOperations):
 
     def _process_route(self, supplied_row: sqlite3.Row) -> None:
         row = self._route_row(cast(str, supplied_row["delivery_id"]))
-        if cast(int, row["stage"]) >= 1:
-            return
-        capture = self._capture_row(cast(str, row["capture_id"]))
-        source_path = cast(str | None, capture["source_path"])
-        if source_path is None:
-            self._process_capture(capture)
+        stage = cast(int, row["stage"])
+        if stage < 1:
             capture = self._capture_row(cast(str, row["capture_id"]))
-            source_path = cast(str, capture["source_path"])
-        atomic_replace(
-            root=self.profile.root,
-            relative=source_path,
-            data=portable_canonical_json_bytes(self._capture_record(capture)),
-        )
-        self._fault(CaptureFault.AFTER_ROUTE_SOURCE_WRITE)
-        with self._store.transaction() as connection:
-            connection.execute(
-                "UPDATE search_documents SET space_id = ?, updated_at = ? WHERE capture_id = ?",
-                (row["space_id"], row["recorded_at"], row["capture_id"]),
+            if cast(str | None, capture["source_path"]) is None:
+                self._process_capture(capture)
+            portable_write_port(self).put_history(
+                "routing",
+                portable_canonical_json_bytes(self._routing_record(row)),
             )
-            connection.execute(
-                "UPDATE route_operations SET stage = 1 WHERE delivery_id = ?",
-                (row["delivery_id"],),
-            )
+            self._fault(CaptureFault.AFTER_ROUTE_SOURCE_WRITE)
+            with self._store.transaction() as connection:
+                connection.execute(
+                    "UPDATE route_operations SET stage = 1 WHERE delivery_id = ?",
+                    (row["delivery_id"],),
+                )
+            stage = 1
+        if stage < 2:
+            with self._store.transaction() as connection:
+                connection.execute(
+                    "UPDATE search_documents SET space_id = ?, updated_at = ? WHERE capture_id = ?",
+                    (row["space_id"], row["recorded_at"], row["capture_id"]),
+                )
+                connection.execute(
+                    "UPDATE route_operations SET stage = 2 WHERE delivery_id = ?",
+                    (row["delivery_id"],),
+                )
+
+    def _routing_record(self, row: sqlite3.Row) -> dict[str, object]:
+        capture_id = cast(str, row["capture_id"])
+        space_id = cast(str, row["space_id"])
+        recorded_at = cast(str, row["recorded_at"])
+        receipt_payload = {"capture_id": capture_id, "space_id": space_id}
+        return {
+            "actor_id": self.profile.owner_actor_id,
+            "capture_id": capture_id,
+            "receipt": {
+                "kind": "routing",
+                "payload": receipt_payload,
+                "receipt_id": row["receipt_id"],
+                "recorded_at": recorded_at,
+                "sha256": sha256(portable_canonical_json_bytes(receipt_payload)).hexdigest(),
+                "subject_id": capture_id,
+            },
+            "recorded_at": recorded_at,
+            "role_claim": _role_claim(self.profile),
+            "route_id": row["route_id"],
+            "schema_version": 1,
+            "space_id": space_id,
+            "supersedes": row["supersedes_route_id"],
+            "tenant_id": self.profile.tenant_id,
+        }
 
     def _quarantine(self, delivery_id: str, *, expected: str, actual: str) -> None:
         marker = sha256(delivery_id.encode("utf-8")).hexdigest()
@@ -290,6 +336,7 @@ class SpaceOperations(_LocalEngineOperations):
             root=self.profile.root,
             relative=f".open-brain/quarantine/{marker}-{uuid.uuid4()}.json",
             data=portable_canonical_json_bytes(payload),
+            expected_root_identity=self.profile.root_identity,
         )
 
 

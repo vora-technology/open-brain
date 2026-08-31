@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, cast
 
 from open_brain.core.ids import portable_canonical_json_bytes
 from open_brain.providers.base import EnrichmentState
-from open_brain.storage.filesystem import atomic_write_new
 from open_brain.storage.markdown import render_markdown
 
 from .contracts import (
@@ -43,6 +42,7 @@ from .normalization import (
     _timestamp,
     _trust,
 )
+from .portability_ports import portable_write_port
 
 if TYPE_CHECKING:
     from .local import BrainEngine
@@ -202,22 +202,14 @@ class CaptureOperations(_LocalEngineOperations):
         row = self._capture_row(cast(str, supplied_row["capture_id"]))
         stage = cast(int, row["stage"])
         if stage < 1:
-            payload = _payload_dict(row)
             if cast(bytes | None, row["file_bytes"]) is not None:
-                digest = cast(str, payload["blob_sha256"])
-                atomic_write_new(
-                    root=self.profile.root,
-                    relative=f"sources/blobs/sha256/{digest[:2]}/{digest}",
-                    data=cast(bytes, row["file_bytes"]),
-                )
+                portable_write_port(self).put_blob(cast(bytes, row["file_bytes"]))
                 self._fault(CaptureFault.AFTER_BLOB_WRITE)
             source_path = _dated_path(
                 "sources/captures", cast(str, row["accepted_at"]), cast(str, row["capture_id"])
             )
-            atomic_write_new(
-                root=self.profile.root,
-                relative=source_path,
-                data=portable_canonical_json_bytes(self._capture_record(row)),
+            portable_write_port(self).put_capture(
+                portable_canonical_json_bytes(self._capture_record(row))
             )
             self._fault(CaptureFault.AFTER_SOURCE_WRITE)
             with self._store.transaction() as connection:
@@ -324,15 +316,11 @@ class CaptureOperations(_LocalEngineOperations):
         origin = cast(str, row["source_origin"])
         submission_path = cast(str | None, row["submission_path"]) or "owner"
         public_job = submission_path == "public_job"
-        stored_provenance = (
-            _stored_submission_value(row, "provenance_json") if public_job else {}
-        )
+        stored_provenance = _stored_submission_value(row, "provenance_json") if public_job else {}
         provenance = (
             {
                 "content_origin": (
-                    "unknown"
-                    if stored_provenance["content_origin"] == "unknown"
-                    else "third_party"
+                    "unknown" if stored_provenance["content_origin"] == "unknown" else "third_party"
                 ),
                 "owner_context": "automation_absent",
                 "source_ref": row["source_reference"],
@@ -377,17 +365,17 @@ class CaptureOperations(_LocalEngineOperations):
                 self.profile,
                 cast(str, row["accepted_at"]),
                 (
-                    "unknown"
+                    "unverified"
                     if public_job and provenance["content_origin"] == "unknown"
-                    else "third_party" if origin == "third_party" else "owner"
+                    else "third_party"
+                    if origin == "third_party"
+                    else "owner"
                 ),
                 "captured source material" if origin == "third_party" else "owner supplied capture",
             ),
         }
 
-    def _write_automatic_publication(
-        self, row: sqlite3.Row
-    ) -> tuple[str, str, str, str]:
+    def _write_automatic_publication(self, row: sqlite3.Row) -> tuple[str, str, str, str]:
         page_bytes = self._canonical_page_bytes(row, trust="owner")
         proposal = self._proposal_record(
             row,
@@ -404,11 +392,7 @@ class CaptureOperations(_LocalEngineOperations):
             cast(str, row["accepted_at"]),
             cast(str, row["auto_proposal_id"]),
         )
-        atomic_write_new(
-            root=self.profile.root,
-            relative=proposal_path,
-            data=portable_canonical_json_bytes(proposal),
-        )
+        portable_write_port(self).put_history("proposal", portable_canonical_json_bytes(proposal))
         self._fault(CaptureFault.AFTER_AUTOMATIC_PROPOSAL_WRITE)
         decision = _decision_record(
             profile=self.profile,
@@ -423,16 +407,10 @@ class CaptureOperations(_LocalEngineOperations):
             cast(str, row["accepted_at"]),
             cast(str, row["auto_decision_id"]),
         )
-        atomic_write_new(
-            root=self.profile.root,
-            relative=decision_path,
-            data=portable_canonical_json_bytes(decision),
-        )
+        portable_write_port(self).put_history("decision", portable_canonical_json_bytes(decision))
         self._fault(CaptureFault.AFTER_AUTOMATIC_DECISION_WRITE)
-        canonical_path = self._canonical_path(
-            cast(str, row["space_id"]), cast(str, row["page_id"])
-        )
-        atomic_write_new(root=self.profile.root, relative=canonical_path, data=page_bytes)
+        canonical_path = self._canonical_path(cast(str, row["space_id"]), cast(str, row["page_id"]))
+        portable_write_port(self).put_page(canonical_path, page_bytes)
         self._fault(CaptureFault.AFTER_CANONICAL_PAGE_WRITE)
         publication = _publication_record(
             profile=self.profile,
@@ -448,10 +426,8 @@ class CaptureOperations(_LocalEngineOperations):
             cast(str, row["accepted_at"]),
             cast(str, row["publication_id"]),
         )
-        atomic_write_new(
-            root=self.profile.root,
-            relative=publication_path,
-            data=portable_canonical_json_bytes(publication),
+        portable_write_port(self).put_history(
+            "publication", portable_canonical_json_bytes(publication)
         )
         self._fault(CaptureFault.AFTER_PUBLICATION_WRITE)
         return proposal_path, decision_path, canonical_path, publication_path
@@ -504,11 +480,7 @@ class CaptureOperations(_LocalEngineOperations):
         return CaptureReceipt(
             capture_id=cast(str, row["capture_id"]),
             payload_family=cast(str, row["payload_family"]),
-            state=(
-                "published"
-                if cast(str | None, row["canonical_path"]) is not None
-                else "inbox"
-            ),
+            state=("published" if cast(str | None, row["canonical_path"]) is not None else "inbox"),
             enrichment_state=cast(str, row["enrichment_state"]),
             space_id=cast(str | None, row["space_id"]),
             canonical_path=cast(str | None, row["canonical_path"]),

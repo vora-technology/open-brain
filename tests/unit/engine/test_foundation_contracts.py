@@ -326,7 +326,9 @@ def test_capture_submission_rejects_invalid_versions_origins_and_metadata_invari
     with pytest.raises(ValueError, match="source origin"):
         _public_submission(tasks, source_origin=ContentOrigin.OWNER_AUTHORED)
     with pytest.raises(ValueError):
-        _public_submission(tasks, source_origin="unbounded"  # type: ignore[arg-type]
+        _public_submission(
+            tasks,
+            source_origin="unbounded",  # type: ignore[arg-type]
         )
     with pytest.raises(ValueError, match="capture reason"):
         replace(
@@ -414,7 +416,7 @@ def test_public_job_sink_accepts_unknown_ingress_without_owner_publication_autho
     }
     assert source["source"]["origin"] == "third_party"
     assert source["provenance"]["content_origin"] == "unknown"
-    assert source["trust"]["label"] == "unknown"
+    assert source["trust"]["label"] == "unverified"
     result = tasks.retrieval.search("unknown public-job capture")[0]
     assert result.provenance.source_origin == "unknown"
 

@@ -9,3 +9,4 @@ class LockScope(StrEnum):
     INDEX = "index"
     BACKUP_PROFILE = "backup-profile"
     INGRESS = "ingress"
+    PORTABILITY_PROMOTION = "portability-promotion"

@@ -14,7 +14,7 @@ export, import, provider, connector, daemon, or hosted runtime behavior.
   sources/captures/YYYY/MM/<capture-id>.json
   sources/batches/YYYY/MM/<batch-id>.jsonl
   sources/blobs/sha256/<first-two-hex>/<sha256>
-  history/{proposals,decisions,publications,actions}/YYYY/MM/<record-id>.json
+  history/{proposals,decisions,publications,actions,routes}/YYYY/MM/<record-id>.json
   portable-manifest.json
   .open-brain/{state,indexes,run,credentials}/  # never portable
 ```
@@ -41,18 +41,21 @@ as `0.5` and `-0.5` are valid; JSON numeric values, exponents, leading zeros, tr
 zeros, and negative zero are invalid. Role claims are immutable snapshots containing their stable
 claim and role IDs plus a sorted, unique capability list. Their tenant and actor IDs bind to the
 enclosing record. Receipt IDs bind to one subject, and each receipt digest covers its strict
-canonical `payload` object. Reusing a receipt ID with different bytes is invalid.
+canonical `payload` object. Reusing a receipt ID with different bytes is invalid. Routing an
+existing capture appends a route record. Later routes link to the route they supersede, so export
+and import preserve current space membership without rewriting the immutable source record.
 
 ## Schemas and fixture evidence
 
-The 14 Draft 2020-12 schemas are under `schemas/portable-brain/v1/`. They have immutable v1
+The 15 Draft 2020-12 schemas are under `schemas/portable-brain/v1/`. They have immutable v1
 URN identifiers and only local URN references. The conformance suite registers every schema with
 `jsonschema.Draft202012Validator` and format checking.
 
 The repository and both default Python artifacts include a synthetic populated root under
 `tests/fixtures/portable-brain/v1/brain-root`. It covers all four capture payload families,
 blob-backed originals, batch-backed event and measurement payloads, readable page frontmatter,
-page and action proposal/decision chains, publication and action results, and a SHA-256 manifest.
+page and action proposal/decision chains, routed space membership, publication and action results,
+and a SHA-256 manifest.
 The test factory reproduces this fixture byte for byte. Operational state is created only in a
 temporary test root and is excluded from exact-byte export; no `.open-brain` file is checked in.
 

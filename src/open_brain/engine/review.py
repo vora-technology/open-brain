@@ -9,7 +9,6 @@ from hashlib import sha256
 from typing import TYPE_CHECKING, cast
 
 from open_brain.core.ids import portable_canonical_json_bytes
-from open_brain.storage.filesystem import atomic_write_new
 from open_brain.storage.markdown import parse_markdown, render_markdown
 
 from .contracts import (
@@ -35,6 +34,7 @@ from .normalization import (
     _timestamp,
     _trust,
 )
+from .portability_ports import portable_write_port
 
 if TYPE_CHECKING:
     from .local import BrainEngine
@@ -81,9 +81,10 @@ class ReviewOperations(_LocalEngineOperations):
                 ).fetchone()
                 if capture is None:
                     raise ValueError("unknown capture")
-                if any(
-                    draft.proposed_kind == "page_update" for draft in drafts
-                ) and capture["space_id"] is None:
+                if (
+                    any(draft.proposed_kind == "page_update" for draft in drafts)
+                    and capture["space_id"] is None
+                ):
                     raise ValueError("page proposal requires routed capture")
                 now = _timestamp(self._clock())
                 proposal_ids = tuple(_new_id("proposal") for _ in drafts)
@@ -111,9 +112,7 @@ class ReviewOperations(_LocalEngineOperations):
                         )
                     )
                     canonical_path = (
-                        self._canonical_path(
-                            cast(str, capture["space_id"]), page_id
-                        )
+                        self._canonical_path(cast(str, capture["space_id"]), page_id)
                         if page_id is not None
                         else None
                     )
@@ -218,15 +217,8 @@ class ReviewOperations(_LocalEngineOperations):
                 supplied_reason=cast(str | None, proposal["supplied_reason"]),
                 recorded_at=cast(str, row["recorded_at"]),
             )
-            path = _dated_path(
-                "history/proposals",
-                cast(str, row["recorded_at"]),
-                cast(str, proposal["proposal_id"]),
-            )
-            atomic_write_new(
-                root=self.profile.root,
-                relative=path,
-                data=portable_canonical_json_bytes(record),
+            portable_write_port(self).put_history(
+                "proposal", portable_canonical_json_bytes(record)
             )
         self._fault(CaptureFault.AFTER_PROPOSAL_WRITE)
         with self._store.transaction() as connection:
@@ -429,9 +421,10 @@ class ReviewOperations(_LocalEngineOperations):
                 duplicate = True
                 decision_id = cast(str, existing["decision_id"])
             else:
-                if cast(str, proposal["proposed_kind"]) == "page_update" and proposal[
-                    "space_id"
-                ] is None:
+                if (
+                    cast(str, proposal["proposed_kind"]) == "page_update"
+                    and proposal["space_id"] is None
+                ):
                     raise ValueError("page proposal requires routed capture")
                 now = _timestamp(self._clock())
                 capture = connection.execute(
@@ -537,15 +530,8 @@ class ReviewOperations(_LocalEngineOperations):
                 edited_bytes=edited_bytes,
                 recorded_at=cast(str, row["recorded_at"]),
             )
-            decision_path = _dated_path(
-                "history/decisions",
-                cast(str, row["recorded_at"]),
-                cast(str, row["decision_id"]),
-            )
-            atomic_write_new(
-                root=self.profile.root,
-                relative=decision_path,
-                data=portable_canonical_json_bytes(record),
+            portable_write_port(self).put_history(
+                "decision", portable_canonical_json_bytes(record)
             )
             self._fault(CaptureFault.AFTER_DECISION_WRITE)
             with self._store.transaction() as connection:
@@ -559,7 +545,7 @@ class ReviewOperations(_LocalEngineOperations):
             canonical_path = cast(str | None, row["canonical_path"])
             publication_path: str | None = None
             if effective is not None and canonical_path is not None:
-                atomic_write_new(root=self.profile.root, relative=canonical_path, data=effective)
+                portable_write_port(self).put_page(canonical_path, effective)
                 self._fault(CaptureFault.AFTER_REVIEW_PAGE_WRITE)
                 publication = _publication_record(
                     profile=self.profile,
@@ -575,10 +561,8 @@ class ReviewOperations(_LocalEngineOperations):
                     cast(str, row["recorded_at"]),
                     cast(str, row["publication_id"]),
                 )
-                atomic_write_new(
-                    root=self.profile.root,
-                    relative=publication_path,
-                    data=portable_canonical_json_bytes(publication),
+                portable_write_port(self).put_history(
+                    "publication", portable_canonical_json_bytes(publication)
                 )
                 self._fault(CaptureFault.AFTER_REVIEW_PUBLICATION_WRITE)
             with self._store.transaction() as connection:

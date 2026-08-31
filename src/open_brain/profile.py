@@ -5,9 +5,10 @@ from __future__ import annotations
 import json
 import os
 import stat
-import unicodedata
+import tomllib
 import uuid
 from collections.abc import Mapping, Sequence
+from contextlib import suppress
 from pathlib import Path
 from types import MappingProxyType
 
@@ -20,6 +21,38 @@ class ProfileError(ValueError):
 
 SingleUserLocalProfile = LocalEngineContext
 
+_PROFILE_NAME = "single-user-local"
+_OWNER_CAPABILITIES = ("canonical.publish", "capture.accept", "space.write")
+_LAYOUT_ONLY_BRAIN_TOML = b"layout_version = 1\n"
+_DIRECTORY_FLAGS = (
+    os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+)
+_FILE_READ_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+_FILE_CREATE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+_MAX_IDENTITY_BYTES = 16_384
+_LAYOUT_DIRECTORIES = (
+    ".open-brain/indexes",
+    ".open-brain/quarantine",
+    ".open-brain/run",
+    ".open-brain/state",
+    "content/spaces",
+    "history/decisions",
+    "history/proposals",
+    "history/publications",
+    "sources/blobs/sha256",
+    "sources/captures",
+)
+_PREFLIGHT_DIRECTORIES = tuple(
+    dict.fromkeys(
+        part
+        for relative in _LAYOUT_DIRECTORIES
+        for part in (
+            "/".join(relative.split("/")[:index])
+            for index in range(1, len(relative.split("/")) + 1)
+        )
+    )
+)
+
 
 def compile_single_user_local(
     root: Path, *, starter_spaces: Sequence[str] = ()
@@ -30,24 +63,42 @@ def compile_single_user_local(
     candidate = root.expanduser().absolute()
     if candidate.exists() and candidate.is_symlink():
         raise ProfileError("Brain root must not be a symlink")
+    root_fd = -1
     try:
         candidate.mkdir(mode=0o700, parents=True, exist_ok=True)
-        os.chmod(candidate, 0o700)
+        root_fd = os.open(candidate, _DIRECTORY_FLAGS)
         absolute_root = candidate.resolve(strict=True)
-    except OSError as error:
+        _assert_root_identity(absolute_root, root_fd)
+    except (OSError, ProfileError) as error:
+        if root_fd >= 0:
+            os.close(root_fd)
+        if isinstance(error, ProfileError):
+            raise
         raise ProfileError("Brain root is unavailable") from error
-    metadata = absolute_root.stat()
-    if not stat.S_ISDIR(metadata.st_mode) or stat.S_IMODE(metadata.st_mode) & 0o022:
-        raise ProfileError("Brain root permissions are unsafe")
-    normalized_starters = _starter_spaces(starter_spaces)
-    _create_layout(absolute_root)
-    identity = _load_or_create_identity(absolute_root)
+    try:
+        metadata = os.fstat(root_fd)
+        if not stat.S_ISDIR(metadata.st_mode):
+            raise ProfileError("Brain root is unavailable")
+        had_portable_content = _has_portable_content(root_fd)
+        normalized_starters = _starter_spaces(starter_spaces)
+        _preflight_layout(root_fd)
+        identity = _load_or_create_identity(root_fd, had_portable_content=had_portable_content)
+        os.fchmod(root_fd, 0o700)
+        metadata = os.fstat(root_fd)
+        if stat.S_IMODE(metadata.st_mode) & 0o077:
+            raise ProfileError("Brain root permissions are unsafe")
+        root_identity = (metadata.st_dev, metadata.st_ino)
+        _create_layout(root_fd)
+        _assert_root_identity(absolute_root, root_fd)
+    finally:
+        os.close(root_fd)
     role_claim = _mapping(identity, "owner_role_claim")
     capabilities = role_claim.get("capabilities")
     assert isinstance(capabilities, list)
     role_claim["capabilities"] = tuple(capabilities)
     return LocalEngineContext(
         root=absolute_root,
+        root_identity=root_identity,
         tenant_id=_string(identity, "tenant_id"),
         owner_actor_id=_string(identity, "owner_actor_id"),
         owner_role_claim=MappingProxyType(role_claim),
@@ -56,31 +107,54 @@ def compile_single_user_local(
     )
 
 
-def _create_layout(root: Path) -> None:
-    for relative in (
-        ".open-brain/indexes",
-        ".open-brain/quarantine",
-        ".open-brain/run",
-        ".open-brain/state",
-        "content/spaces",
-        "history/decisions",
-        "history/proposals",
-        "history/publications",
-        "sources/blobs/sha256",
-        "sources/captures",
-    ):
-        path = root.joinpath(*relative.split("/"))
-        path.mkdir(mode=0o700, parents=True, exist_ok=True)
-        os.chmod(path, 0o700)
-    _write_new(root, "brain.toml", b"layout_version = 1\n")
+def _create_layout(root_fd: int) -> None:
+    for relative in _LAYOUT_DIRECTORIES:
+        descriptor = _open_directory_path(root_fd, relative.split("/"), create=True)
+        assert descriptor is not None
+        try:
+            os.fchmod(descriptor, 0o700)
+            os.fsync(descriptor)
+        except OSError as error:
+            raise ProfileError("local profile file is unavailable") from error
+        finally:
+            os.close(descriptor)
 
 
-def _load_or_create_identity(root: Path) -> dict[str, object]:
-    payload = _read_file(root, ".open-brain/identity.json")
-    if payload is None:
+def _preflight_layout(root_fd: int) -> None:
+    """Reject poisoned existing operational components before any mutation."""
+    for relative in _PREFLIGHT_DIRECTORIES:
+        descriptor = _open_directory_path(root_fd, relative.split("/"), create=False)
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def _load_or_create_identity(root_fd: int, *, had_portable_content: bool) -> dict[str, object]:
+    brain_payload = _read_file(root_fd, "brain.toml")
+    legacy_payload = _read_file(root_fd, ".open-brain/identity.json")
+    legacy_identity = _load_legacy_identity(legacy_payload)
+    if brain_payload is None:
+        if had_portable_content or legacy_identity is not None:
+            raise ProfileError("portable identity is missing")
         identity = _new_identity()
-        _write_new(root, ".open-brain/identity.json", _canonical_json_bytes(identity))
+        _write_new(root_fd, "brain.toml", _canonical_brain_toml(identity))
         return identity
+    if brain_payload == _LAYOUT_ONLY_BRAIN_TOML:
+        if legacy_identity is None:
+            raise ProfileError("portable identity is missing")
+        _replace_file(root_fd, "brain.toml", _canonical_brain_toml(legacy_identity))
+        _retire_legacy_identity(root_fd)
+        return legacy_identity
+    identity = _identity_from_brain_toml(brain_payload)
+    if legacy_identity is not None:
+        if legacy_identity != identity:
+            raise ProfileError("portable and legacy identities disagree")
+        _retire_legacy_identity(root_fd)
+    return identity
+
+
+def _load_legacy_identity(payload: bytes | None) -> dict[str, object] | None:
+    if payload is None:
+        return None
     try:
         value = json.loads(payload.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -91,12 +165,126 @@ def _load_or_create_identity(root: Path) -> dict[str, object]:
     return value
 
 
+def _identity_from_brain_toml(payload: bytes) -> dict[str, object]:
+    try:
+        value = tomllib.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
+        raise ProfileError("portable identity is invalid") from error
+    if not isinstance(value, dict):
+        raise ProfileError("portable identity is invalid")
+    expected_keys = {
+        "layout_version",
+        "profile",
+        "tenant_id",
+        "owner_actor_id",
+        "owner_role_id",
+        "owner_role_claim_id",
+        "owner_capabilities",
+    }
+    if set(value) != expected_keys:
+        raise ProfileError("portable identity is invalid")
+    capabilities = value.get("owner_capabilities")
+    identity: dict[str, object] = {
+        "tenant_id": value.get("tenant_id"),
+        "owner_actor_id": value.get("owner_actor_id"),
+        "owner_role_claim": {
+            "role_claim_id": value.get("owner_role_claim_id"),
+            "tenant_id": value.get("tenant_id"),
+            "actor_id": value.get("owner_actor_id"),
+            "role_id": value.get("owner_role_id"),
+            "capabilities": capabilities,
+        },
+    }
+    if value.get("layout_version") != 1 or value.get("profile") != _PROFILE_NAME:
+        raise ProfileError("portable identity is invalid")
+    _validate_identity(identity)
+    if (
+        identity["owner_role_claim"]
+        != {
+            "role_claim_id": value.get("owner_role_claim_id"),
+            "tenant_id": value.get("tenant_id"),
+            "actor_id": value.get("owner_actor_id"),
+            "role_id": value.get("owner_role_id"),
+            "capabilities": list(_OWNER_CAPABILITIES),
+        }
+        or _canonical_brain_toml(identity) != payload
+    ):
+        raise ProfileError("portable identity is invalid")
+    return identity
+
+
+def _canonical_brain_toml(identity: Mapping[str, object]) -> bytes:
+    _validate_identity(identity)
+    role_claim = _mapping(identity, "owner_role_claim")
+    tenant_id = _string(identity, "tenant_id")
+    actor_id = _string(identity, "owner_actor_id")
+    role_id = _string(role_claim, "role_id")
+    role_claim_id = _string(role_claim, "role_claim_id")
+    capabilities = role_claim.get("capabilities")
+    if capabilities != list(_OWNER_CAPABILITIES):
+        raise ProfileError("local identity is invalid")
+    return (
+        "layout_version = 1\n"
+        f'profile = "{_PROFILE_NAME}"\n'
+        f'tenant_id = "{tenant_id}"\n'
+        f'owner_actor_id = "{actor_id}"\n'
+        f'owner_role_id = "{role_id}"\n'
+        f'owner_role_claim_id = "{role_claim_id}"\n'
+        'owner_capabilities = ["canonical.publish", "capture.accept", "space.write"]\n'
+    ).encode()
+
+
+def _has_portable_content(root_fd: int) -> bool:
+    for name in ("content", "history", "sources"):
+        try:
+            metadata = os.stat(name, dir_fd=root_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            continue
+        except OSError as error:
+            raise ProfileError("local profile file is unavailable") from error
+        if not stat.S_ISDIR(metadata.st_mode):
+            return True
+        descriptor = _open_child_directory(root_fd, name, create=False)
+        assert descriptor is not None
+        try:
+            if _directory_has_content(descriptor):
+                return True
+        finally:
+            os.close(descriptor)
+    return False
+
+
+def _directory_has_content(directory_fd: int) -> bool:
+    try:
+        entries = sorted(os.scandir(directory_fd), key=lambda entry: entry.name)
+    except OSError as error:
+        raise ProfileError("local profile file is unavailable") from error
+    for entry in entries:
+        try:
+            metadata = entry.stat(follow_symlinks=False)
+        except OSError as error:
+            raise ProfileError("local profile file is unavailable") from error
+        if not stat.S_ISDIR(metadata.st_mode):
+            return True
+        child_fd = _open_child_directory(directory_fd, entry.name, create=False)
+        assert child_fd is not None
+        try:
+            current = os.fstat(child_fd)
+            if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
+                raise ProfileError("local profile file changed during validation")
+            if _directory_has_content(child_fd):
+                return True
+        finally:
+            os.close(child_fd)
+    return False
+
+
 def _new_identity() -> dict[str, object]:
     tenant_id = _portable_id("tenant")
     actor_id = _portable_id("actor")
     role_claim = {
         "actor_id": actor_id,
-        "capabilities": ["canonical.publish", "capture.accept", "space.write"],
+        "capabilities": list(_OWNER_CAPABILITIES),
         "role_claim_id": _portable_id("role_claim"),
         "role_id": _portable_id("role"),
         "tenant_id": tenant_id,
@@ -110,95 +298,223 @@ def _new_identity() -> dict[str, object]:
     return value
 
 
-def _canonical_json_bytes(value: object) -> bytes:
-    return json.dumps(
-        _normalize_json(value),
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
-
-
-def _normalize_json(value: object) -> object:
-    if isinstance(value, float):
-        raise ProfileError("local identity is invalid")
-    if isinstance(value, str):
-        return unicodedata.normalize("NFC", value)
-    if isinstance(value, list | tuple):
-        return [_normalize_json(item) for item in value]
-    if isinstance(value, dict):
-        normalized: dict[str, object] = {}
-        for key, item in value.items():
-            if not isinstance(key, str):
-                raise ProfileError("local identity is invalid")
-            normalized_key = unicodedata.normalize("NFC", key)
-            if normalized_key in normalized:
-                raise ProfileError("local identity is invalid")
-            normalized[normalized_key] = _normalize_json(item)
-        return normalized
-    return value
-
-
-def _write_new(root: Path, relative: str, payload: bytes) -> None:
-    path = root.joinpath(*relative.split("/"))
+def _assert_root_identity(root: Path, root_fd: int) -> None:
     try:
-        metadata = path.lstat()
+        path_metadata = os.stat(root, follow_symlinks=False)
+        descriptor_metadata = os.fstat(root_fd)
+    except OSError as error:
+        raise ProfileError("Brain root is unavailable") from error
+    if (
+        not stat.S_ISDIR(path_metadata.st_mode)
+        or (path_metadata.st_dev, path_metadata.st_ino)
+        != (descriptor_metadata.st_dev, descriptor_metadata.st_ino)
+    ):
+        raise ProfileError("Brain root changed during profile compilation")
+
+
+def _open_child_directory(parent_fd: int, name: str, *, create: bool) -> int | None:
+    if not name or "/" in name or name in {".", ".."}:
+        raise ProfileError("local profile path is unsafe")
+    try:
+        return os.open(name, _DIRECTORY_FLAGS, dir_fd=parent_fd)
     except FileNotFoundError:
-        metadata = None
-    if metadata is not None:
-        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
-            raise ProfileError("local profile file is unsafe")
-        if _read_file(root, relative) != payload:
-            raise ProfileError("local profile file conflicts")
-        return
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+        if not create:
+            return None
+    except OSError as error:
+        raise ProfileError("local profile file is unsafe") from error
     try:
-        descriptor = os.open(path, flags, 0o600)
-        try:
-            remaining = memoryview(payload)
-            while remaining:
-                written = os.write(descriptor, remaining)
-                if written <= 0:
-                    raise OSError("short profile write")
-                remaining = remaining[written:]
-            os.fsync(descriptor)
-        finally:
-            os.close(descriptor)
+        os.mkdir(name, mode=0o700, dir_fd=parent_fd)
+        os.fsync(parent_fd)
     except FileExistsError:
-        if _read_file(root, relative) != payload:
-            raise ProfileError("local profile file conflicts") from None
+        pass
     except OSError as error:
         raise ProfileError("local profile file is unavailable") from error
-
-
-def _read_file(root: Path, relative: str) -> bytes | None:
-    path = root.joinpath(*relative.split("/"))
     try:
-        metadata = path.lstat()
+        child_fd = os.open(name, _DIRECTORY_FLAGS, dir_fd=parent_fd)
+        os.fchmod(child_fd, 0o700)
+        return child_fd
+    except OSError as error:
+        raise ProfileError("local profile file is unsafe") from error
+
+
+def _open_directory_path(
+    root_fd: int, parts: Sequence[str], *, create: bool
+) -> int | None:
+    current_fd = os.dup(root_fd)
+    try:
+        for part in parts:
+            child_fd = _open_child_directory(current_fd, part, create=create)
+            if child_fd is None:
+                os.close(current_fd)
+                return None
+            if create:
+                try:
+                    os.fchmod(child_fd, 0o700)
+                except OSError as error:
+                    os.close(child_fd)
+                    raise ProfileError("local profile file is unavailable") from error
+            os.close(current_fd)
+            current_fd = child_fd
+        return current_fd
+    except BaseException:
+        with suppress(OSError):
+            os.close(current_fd)
+        raise
+
+
+def _open_parent(root_fd: int, relative: str) -> tuple[int | None, str]:
+    parts = relative.split("/")
+    if not parts or any(not part or part in {".", ".."} for part in parts):
+        raise ProfileError("local profile path is unsafe")
+    parent_fd = _open_directory_path(root_fd, parts[:-1], create=False)
+    return parent_fd, parts[-1]
+
+
+def _file_metadata(parent_fd: int, name: str) -> os.stat_result | None:
+    try:
+        metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
     except FileNotFoundError:
         return None
-    if (
-        stat.S_ISLNK(metadata.st_mode)
-        or not stat.S_ISREG(metadata.st_mode)
-        or metadata.st_size > 16_384
-    ):
-        raise ProfileError("local profile file is unsafe")
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
-    try:
-        descriptor = os.open(path, flags)
-        try:
-            current = os.fstat(descriptor)
-            if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
-                raise OSError("profile file changed")
-            payload = os.read(descriptor, 16_385)
-        finally:
-            os.close(descriptor)
     except OSError as error:
         raise ProfileError("local profile file is unavailable") from error
-    if len(payload) > 16_384:
+    if (
+        not stat.S_ISREG(metadata.st_mode)
+        or metadata.st_nlink != 1
+        or metadata.st_size > _MAX_IDENTITY_BYTES
+    ):
         raise ProfileError("local profile file is unsafe")
-    return payload
+    return metadata
+
+
+def _write_all(descriptor: int, payload: bytes) -> None:
+    remaining = memoryview(payload)
+    while remaining:
+        written = os.write(descriptor, remaining)
+        if written <= 0:
+            raise OSError("short profile write")
+        remaining = remaining[written:]
+
+
+def _write_new(root_fd: int, relative: str, payload: bytes) -> None:
+    parent_fd, name = _open_parent(root_fd, relative)
+    if parent_fd is None:
+        raise ProfileError("local profile file is unavailable")
+    try:
+        if _file_metadata(parent_fd, name) is not None:
+            if _read_file(root_fd, relative) != payload:
+                raise ProfileError("local profile file conflicts")
+            return
+        try:
+            descriptor = os.open(name, _FILE_CREATE_FLAGS, 0o600, dir_fd=parent_fd)
+            try:
+                _write_all(descriptor, payload)
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+            os.fsync(parent_fd)
+        except FileExistsError:
+            if _read_file(root_fd, relative) != payload:
+                raise ProfileError("local profile file conflicts") from None
+        except OSError as error:
+            raise ProfileError("local profile file is unavailable") from error
+    finally:
+        os.close(parent_fd)
+
+
+def _replace_file(root_fd: int, relative: str, payload: bytes) -> None:
+    parent_fd, name = _open_parent(root_fd, relative)
+    if parent_fd is None or _file_metadata(parent_fd, name) is None:
+        if parent_fd is not None:
+            os.close(parent_fd)
+        raise ProfileError("local profile file is unavailable")
+    temporary = f".{name}.{uuid.uuid4().hex}.tmp"
+    descriptor = -1
+    try:
+        descriptor = os.open(temporary, _FILE_CREATE_FLAGS, 0o600, dir_fd=parent_fd)
+        _write_all(descriptor, payload)
+        os.fsync(descriptor)
+        os.close(descriptor)
+        descriptor = -1
+        os.replace(temporary, name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+        os.fsync(parent_fd)
+    except OSError as error:
+        raise ProfileError("local profile file is unavailable") from error
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        try:
+            os.unlink(temporary, dir_fd=parent_fd)
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            raise ProfileError("local profile file is unavailable") from error
+        finally:
+            os.close(parent_fd)
+
+
+def _retire_legacy_identity(root_fd: int) -> None:
+    parent_fd, name = _open_parent(root_fd, ".open-brain/identity.json")
+    if parent_fd is None:
+        return
+    try:
+        if _file_metadata(parent_fd, name) is None:
+            return
+        os.unlink(name, dir_fd=parent_fd)
+        os.fsync(parent_fd)
+    except OSError as error:
+        raise ProfileError("local profile file is unavailable") from error
+    finally:
+        os.close(parent_fd)
+
+
+def _read_file(root_fd: int, relative: str) -> bytes | None:
+    parent_fd, name = _open_parent(root_fd, relative)
+    if parent_fd is None:
+        return None
+    try:
+        metadata = _file_metadata(parent_fd, name)
+        if metadata is None:
+            return None
+        try:
+            descriptor = os.open(name, _FILE_READ_FLAGS, dir_fd=parent_fd)
+            try:
+                before = os.fstat(descriptor)
+                if (
+                    (before.st_dev, before.st_ino) != (metadata.st_dev, metadata.st_ino)
+                    or before.st_nlink != 1
+                ):
+                    raise OSError("profile file changed")
+                chunks: list[bytes] = []
+                total = 0
+                while total <= _MAX_IDENTITY_BYTES:
+                    chunk = os.read(descriptor, _MAX_IDENTITY_BYTES + 1 - total)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    total += len(chunk)
+                after = os.fstat(descriptor)
+            finally:
+                os.close(descriptor)
+        except OSError as error:
+            raise ProfileError("local profile file is unavailable") from error
+        payload = b"".join(chunks)
+        if (
+            len(payload) > _MAX_IDENTITY_BYTES
+            or len(payload) != metadata.st_size
+            or (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns)
+            != (
+                metadata.st_dev,
+                metadata.st_ino,
+                metadata.st_size,
+                metadata.st_mtime_ns,
+                metadata.st_ctime_ns,
+            )
+            or after.st_nlink != 1
+        ):
+            raise ProfileError("local profile file changed during validation")
+        return payload
+    finally:
+        os.close(parent_fd)
 
 
 def _portable_id(prefix: str) -> str:

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from datetime import datetime
 from hashlib import sha256
 
 from open_brain.providers.base import ProviderMode
+from open_brain.storage.filesystem import assert_root_identity
 from open_brain.storage.locks import FileLease
 
 from .capture import CaptureOperations, CaptureTasks
@@ -29,6 +30,7 @@ from .contracts import (
     LocalEngineContext,
     MeasurementPayload,
     Payload,
+    PortabilityFault,
     ProposalDraft,
     ProposalRecord,
     PublicJobCaptureContext,
@@ -42,6 +44,7 @@ from .contracts import (
 )
 from .local_store import _LocalStore
 from .normalization import _done, _utc_now
+from .portability import PortabilityTasks
 from .retrieval import RetrievalOperations, RetrievalTasks, ScopedRetrieval
 from .review import ReviewOperations, ReviewTasks
 from .spaces import InboxSpaceTasks, SpaceOperations
@@ -54,7 +57,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         self,
         profile: LocalEngineContext,
         *,
-        faults: set[CaptureFault],
+        faults: Collection[CaptureFault | PortabilityFault],
         clock: Callable[[], datetime],
         enrichment_provider: EnrichmentProvider | None,
     ) -> None:
@@ -66,24 +69,32 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             getattr(enrichment_provider, "enrich", None)
         ):
             raise ValueError("invalid enrichment provider")
+        assert_root_identity(profile.root, profile.root_identity)
         self.profile = profile
         self._faults = set(faults)
         self._clock = clock
         self._enrichment_provider = enrichment_provider
         lease_identity = "engine-" + sha256(profile.owner_actor_id.encode("utf-8")).hexdigest()[:32]
-        self._writer_lease = FileLease(profile.root / ".open-brain", lease_identity, clock=clock)
+        self._writer_lease = FileLease(
+            profile.root / ".open-brain",
+            lease_identity,
+            clock=clock,
+            parent_root_identity=profile.root_identity,
+        )
         with self._writer_lease.acquire_shared_writer():
             self._store = _LocalStore(profile)
         self.capture = CaptureTasks(self)
         self.inbox = InboxSpaceTasks(self)
         self.review = ReviewTasks(self)
         self.retrieval = RetrievalTasks(self)
+        self.portability = PortabilityTasks(self)
         self._task_set = EngineTaskSet(
             profile=profile,
             capture=self.capture,
             inbox=self.inbox,
             review=self.review,
             retrieval=self.retrieval,
+            portability=self.portability,
         )
 
     @classmethod
@@ -91,7 +102,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         cls,
         profile: LocalEngineContext,
         *,
-        faults: set[CaptureFault] | None = None,
+        faults: Collection[CaptureFault | PortabilityFault] | None = None,
         clock: Callable[[], datetime] | None = None,
         enrichment_provider: EnrichmentProvider | None = None,
     ) -> BrainEngine:
@@ -139,16 +150,19 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
                 recovered += 1
         return recovered
 
-    def _fault(self, point: CaptureFault) -> None:
+    def _fault(self, point: CaptureFault | PortabilityFault) -> None:
         if point in self._faults:
             self._faults.remove(point)
             raise InjectedFault(point)
+
+    def _assert_root(self) -> None:
+        assert_root_identity(self.profile.root, self.profile.root_identity)
 
 
 def open_local_engine(
     profile: LocalEngineContext,
     *,
-    faults: set[CaptureFault] | None = None,
+    faults: Collection[CaptureFault | PortabilityFault] | None = None,
     clock: Callable[[], datetime] | None = None,
     enrichment_provider: EnrichmentProvider | None = None,
 ) -> EngineTaskSet:

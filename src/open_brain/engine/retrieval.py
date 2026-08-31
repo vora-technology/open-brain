@@ -20,9 +20,7 @@ if TYPE_CHECKING:
 
 
 class RetrievalOperations(_LocalEngineOperations):
-    def _upsert_source_search(
-        self, connection: sqlite3.Connection, capture: sqlite3.Row
-    ) -> None:
+    def _upsert_source_search(self, connection: sqlite3.Connection, capture: sqlite3.Row) -> None:
         provenance = {
             "capture_id": capture["capture_id"],
             "source_ref": capture["source_reference"],
@@ -36,9 +34,7 @@ class RetrievalOperations(_LocalEngineOperations):
             space_id=cast(str | None, capture["space_id"]),
             title=f"{capture['payload_family']} source",
             body=cast(str, capture["search_text"]),
-            trust=(
-                "third_party" if capture["source_origin"] == "third_party" else "owner"
-            ),
+            trust=("third_party" if capture["source_origin"] == "third_party" else "owner"),
             provenance=provenance,
             canonical_path=None,
             updated_at=cast(str, capture["accepted_at"]),
@@ -147,8 +143,7 @@ class RetrievalOperations(_LocalEngineOperations):
             if not allowed_space_ids:
                 return ()
             if any(
-                _portable_id(identifier, "space") != identifier
-                for identifier in allowed_space_ids
+                _portable_id(identifier, "space") != identifier for identifier in allowed_space_ids
             ):
                 raise ValueError("invalid allowed space")
             if space_id is not None and space_id not in allowed_space_ids:
@@ -199,8 +194,7 @@ class RetrievalOperations(_LocalEngineOperations):
             if not allowed_space_ids:
                 return None
             if any(
-                _portable_id(identifier, "space") != identifier
-                for identifier in allowed_space_ids
+                _portable_id(identifier, "space") != identifier for identifier in allowed_space_ids
             ):
                 raise ValueError("invalid allowed space")
             space_ids = tuple(sorted(allowed_space_ids))
@@ -230,7 +224,11 @@ class RetrievalOperations(_LocalEngineOperations):
         body = cast(str, row["body"])
         canonical_path = cast(str | None, row["canonical_path"])
         if canonical_path is not None:
-            payload = read_confined(root=self.profile.root, relative=canonical_path)
+            payload = read_confined(
+                root=self.profile.root,
+                relative=canonical_path,
+                expected_root_identity=self.profile.root_identity,
+            )
             if payload is None:
                 return None
             try:
@@ -254,9 +252,7 @@ class RetrievalOperations(_LocalEngineOperations):
         explanation = (
             "fetched by result identifier"
             if not terms
-            else (
-                "exact phrase and lexical terms: " if phrase in haystack else "lexical terms: "
-            )
+            else ("exact phrase and lexical terms: " if phrase in haystack else "lexical terms: ")
             + ", ".join(matched)
         )
         provenance_value = json.loads(cast(str, row["provenance_json"]))
@@ -318,7 +314,6 @@ def _public_source_origin(capture: sqlite3.Row) -> str:
         if capture["source_origin"] == "owner"
         else ContentOrigin.THIRD_PARTY.value
     )
-
 
 
 class RetrievalTasks:

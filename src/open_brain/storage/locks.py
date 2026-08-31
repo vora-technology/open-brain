@@ -22,6 +22,7 @@ from open_brain.core.locks import LockScope
 from .filesystem import (
     DurabilityError,
     RootConfinementError,
+    RootIdentity,
     StorageError,
     StorageUnsupportedPlatformError,
     _open_child_directory,
@@ -49,6 +50,7 @@ _DISCRIMINATORS = {
     LockScope.INDEX: frozenset({"index"}),
     LockScope.BACKUP_PROFILE: _BACKUP_PROFILES,
     LockScope.INGRESS: frozenset({"ingress"}),
+    LockScope.PORTABILITY_PROMOTION: frozenset({"portability-promotion"}),
 }
 _DESCRIPTOR_FIELDS = frozenset(
     {"version", "scope", "discriminator", "owner_identity_id", "pid", "acquired_at"}
@@ -60,6 +62,7 @@ _LOCK_FILE_NAMES = frozenset(
         "lease.shared-writer",
         "lease.index",
         "lease.ingress",
+        "lease.portability-promotion",
         *(f"lease.{profile}" for profile in _BACKUP_PROFILES),
     }
 )
@@ -216,6 +219,9 @@ class FileLease:
         *,
         backup_profile: str | None = None,
         clock: Clock | None = None,
+        parent_root_identity: RootIdentity | None = None,
+        root_identity: RootIdentity | None = None,
+        required_root_mode: int | None = None,
     ) -> None:
         if not isinstance(state_root, Path) or not state_root.is_absolute():
             raise RootConfinementError("unsafe lease root")
@@ -226,12 +232,19 @@ class FileLease:
             and backup_profile not in _BACKUP_PROFILES
             or clock is not None
             and not callable(clock)
+            or parent_root_identity is not None
+            and root_identity is not None
+            or required_root_mode is not None
+            and (type(required_root_mode) is not int or required_root_mode != 0o700)
         ):
             raise LeaseFormatError("invalid lease configuration")
         self._state_root = state_root
         self._owner_identity_id = owner_identity_id
         self._backup_profile = backup_profile
         self._clock = _system_clock if clock is None else clock
+        self._parent_root_identity = parent_root_identity
+        self._root_identity = root_identity
+        self._required_root_mode = required_root_mode
 
     @contextmanager
     def acquire_shared_writer(self) -> Iterator[None]:
@@ -243,7 +256,20 @@ class FileLease:
     def acquire(self, scope: LockScope) -> Iterator[None]:
         discriminator = self._discriminator(scope)
         _require_record_lock_support()
-        root_fd = _open_root(self._state_root)
+        if self._root_identity is not None:
+            root_fd = _open_root(self._state_root, self._root_identity)
+        elif self._parent_root_identity is None:
+            root_fd = _open_root(self._state_root)
+        else:
+            parent_fd = _open_root(self._state_root.parent, self._parent_root_identity)
+            try:
+                root_fd = _open_child_directory(
+                    parent_fd,
+                    self._state_root.name,
+                    create=False,
+                )
+            finally:
+                os.close(parent_fd)
         lock_directory_fd = -1
         lock_fd = -1
         held_key: tuple[int, int, str] | None = None
@@ -251,6 +277,11 @@ class FileLease:
         process_lock_registered = False
         try:
             root_metadata = os.fstat(root_fd)
+            if (
+                self._required_root_mode is not None
+                and stat.S_IMODE(root_metadata.st_mode) != self._required_root_mode
+            ):
+                raise RootConfinementError("unsafe lease root mode")
             held_key = (root_metadata.st_dev, root_metadata.st_ino, discriminator)
             with _PROCESS_HELD_LOCKS_GUARD:
                 if held_key in _PROCESS_HELD_LOCKS:
