@@ -664,11 +664,54 @@
       "api": "public",
       "roles": []
     },
+    "engine/capture.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "writer"
+      ]
+    },
+    "engine/contracts.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
     "engine/local.py": {
       "owner": "engine",
       "api": "internal",
       "roles": [
         "store"
+      ]
+    },
+    "engine/local_store.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "store"
+      ]
+    },
+    "engine/normalization.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/retrieval.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "engine/review.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "writer"
+      ]
+    },
+    "engine/spaces.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": [
+        "writer"
       ]
     },
     "events/__init__.py": {

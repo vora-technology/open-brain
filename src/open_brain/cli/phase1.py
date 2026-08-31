@@ -6,7 +6,6 @@ import base64
 import binascii
 import json
 from dataclasses import dataclass
-from hashlib import sha256
 
 from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
 from open_brain.cli._registry import CommandAdapterRegistry
@@ -294,12 +293,7 @@ class Phase1CommandAdapter:
                         "excerpt": result.excerpt,
                         "explanation": result.explanation,
                         "payload_family": result.payload_family,
-                        "provenance": {
-                            "capture_id": result.provenance["capture_id"],
-                            "source_ref_sha256": sha256(
-                                result.provenance["source_ref"].encode("utf-8")
-                            ).hexdigest(),
-                        },
+                        "provenance": result.provenance.as_dict(),
                         "record_type": result.record_type,
                         "result_id": result.result_id,
                         "space_id": result.space_id,

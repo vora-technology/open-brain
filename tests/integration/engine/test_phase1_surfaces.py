@@ -14,7 +14,7 @@ from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.main import main
 from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import BrainEngine, ProposalDraft, TextPayload
+from open_brain.engine import BrainEngine, ProposalDraft, ReferencePayload, TextPayload
 from open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
     Phase1UiRequest,
@@ -233,6 +233,37 @@ def test_cli_and_ui_accept_every_generic_payload_family_through_the_same_engine(
         "reference_or_file",
         "text",
     }
+
+
+def test_cli_and_ui_serialize_only_public_retrieval_provenance(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    engine = _engine(tmp_path / "brain")
+    adapters = build_phase1_command_adapters(engine)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    private_source = "https://example.test/private-engine-source"
+    capture = engine.capture.accept(
+        ReferencePayload(private_source, "Synthetic source-safe surface token"),
+        delivery_id="surface.safe-provenance",
+    )
+
+    _, cli = _cli(capsys, adapters, "query", "source-safe")
+    response, ui_value = _ui(ui, "GET", "/api/search?q=source-safe")
+    cli_item = cast(list[dict[str, object]], cli["results"])[0]
+    ui_item = cast(list[dict[str, object]], ui_value["results"])[0]
+
+    expected = {
+        "capture_id": capture.capture_id,
+        "source_origin": "third_party",
+        "source_record_id": capture.capture_id,
+    }
+    assert response.status == 200
+    assert cli_item["provenance"] == expected
+    assert ui_item["provenance"] == expected
+    assert private_source not in json.dumps({"cli": cli, "ui": ui_value})
+    assert "source_ref" not in json.dumps({"cli": cli, "ui": ui_value})
+    assert "sha256" not in json.dumps({"cli": cli, "ui": ui_value})
 
 
 def test_cli_and_ui_each_approve_reject_and_edit_with_shared_terminal_ids(
