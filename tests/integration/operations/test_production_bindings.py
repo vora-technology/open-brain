@@ -6,8 +6,9 @@ from dataclasses import dataclass, replace
 import pytest
 
 from open_brain.cli.scheduled import ScheduledDispatchResult, ScheduledDispatchStatus
+from open_brain.engine import LockScope
 from open_brain.operations.catalog import JOB_CATALOG
-from open_brain.operations.models import HostRole, LockScope
+from open_brain.operations.models import HostRole
 from open_brain.operations.production_bindings import (
     ApplicationFamily,
     BindingAuthority,

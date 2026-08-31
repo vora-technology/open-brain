@@ -19,8 +19,9 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+from open_brain.engine import LockScope
 from open_brain.operations.capture_jobs import CaptureWrite, get_capture_job
-from open_brain.operations.models import HostRole, LockScope, WriterScope
+from open_brain.operations.models import HostRole, WriterScope
 
 FIXED_TIME = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 

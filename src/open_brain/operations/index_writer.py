@@ -9,6 +9,7 @@ from pathlib import Path, PurePosixPath
 
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.models import PrivacyDecision
+from open_brain.engine import LockScope
 from open_brain.storage.filesystem import (
     DuplicateConflictError,
     atomic_write_new,
@@ -22,7 +23,7 @@ from .index import (
     build_index,
     check_index,
 )
-from .models import DeploymentTarget, HostRole, LockScope
+from .models import DeploymentTarget, HostRole
 from .writer_jobs import (
     EffectCommand,
     EffectReceipt,

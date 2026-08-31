@@ -7,9 +7,10 @@ from datetime import UTC, datetime
 from typing import Protocol
 
 from open_brain.config import AppConfig, ConfigError
+from open_brain.engine import LockScope
 
 from .doctor import DoctorProbe, ProbeReading
-from .models import DeploymentTarget, LockScope, OperationsValidationError
+from .models import DeploymentTarget, OperationsValidationError
 
 
 class WriterRecordView(Protocol):

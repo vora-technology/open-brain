@@ -35,7 +35,7 @@ from open_brain.cli.scheduled import ScheduledDispatchResult
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain.core.ports import Clock
-from open_brain.engine import BrainEngine
+from open_brain.engine import BrainEngine, LockScope
 from open_brain.events.store import SqliteEventStore
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.life_os import LifePlanRequest, LifeResetRequest
@@ -80,7 +80,7 @@ from open_brain.operations.index import IndexError as IndexOperationError
 from open_brain.operations.index import IndexRoots, check_index
 from open_brain.operations.index_writer import IndexEffectCapability, IndexWriterApplication
 from open_brain.operations.local_effect import FilesystemPreparedEffectCapability
-from open_brain.operations.models import JobSpec, LockScope
+from open_brain.operations.models import JobSpec
 from open_brain.operations.now import NowItem, NowProjectionInput, NowRoots, check_now
 from open_brain.operations.now_runtime import (
     NowEffectCapability,

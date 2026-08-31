@@ -8,9 +8,10 @@ import pytest
 
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain.engine import LockScope
 from open_brain.operations.catalog import get_job
 from open_brain.operations.index import IndexPrivacyError, IndexRoots, build_index
-from open_brain.operations.models import DeploymentTarget, HostRole, LockScope
+from open_brain.operations.models import DeploymentTarget, HostRole
 
 
 class RecordingLease:

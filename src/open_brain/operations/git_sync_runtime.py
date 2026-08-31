@@ -11,9 +11,9 @@ from typing import Protocol
 from urllib.parse import urlsplit
 
 from open_brain.core.ids import canonical_json_bytes
+from open_brain.engine import LockScope
 from open_brain.storage.filesystem import DuplicateConflictError, atomic_write_new, read_confined
 
-from .models import LockScope
 from .writer_jobs import (
     EffectCommand,
     EffectReceipt,

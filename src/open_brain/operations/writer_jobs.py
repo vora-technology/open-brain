@@ -11,10 +11,11 @@ from types import MappingProxyType
 from typing import Protocol
 
 from open_brain.core.ids import ReviewId, canonical_json_bytes
+from open_brain.engine import LockScope
 from open_brain.review.models import ApprovedIntentRecord, ReviewAggregate, ReviewState
 
 from .catalog import get_job
-from .models import DeploymentTarget, HostRole, LockScope
+from .models import DeploymentTarget, HostRole
 
 
 class WriterJobError(RuntimeError):

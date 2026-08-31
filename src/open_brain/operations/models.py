@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 
+from open_brain.engine import LockScope
+
 
 class OperationsValidationError(ValueError):
     """An operations value violates the public scheduler contract."""
@@ -40,14 +42,6 @@ class WriterScope(StrEnum):
     CONTENT = "content"
     STATE = "state"
     BACKUP = "backup"
-
-
-class LockScope(StrEnum):
-    NONE = "none"
-    SHARED_WRITER = "shared-writer"
-    INDEX = "index"
-    BACKUP_PROFILE = "backup-profile"
-    INGRESS = "ingress"
 
 
 class TriggerKind(StrEnum):

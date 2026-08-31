@@ -1,5 +1,7 @@
 """Task-shaped local engine facade for the Phase 1 vertical slice."""
 
+from open_brain.core.locks import LockScope
+
 from .local import (
     BrainEngine,
     CaptureAction,
@@ -30,6 +32,7 @@ __all__ = [
     "FilePayload",
     "InjectedFault",
     "LocalEngineContext",
+    "LockScope",
     "MeasurementPayload",
     "ProposalDraft",
     "ReferencePayload",

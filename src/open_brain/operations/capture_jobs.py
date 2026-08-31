@@ -10,9 +10,10 @@ from typing import Protocol
 from open_brain.capture.models import CaptureWorkItem
 from open_brain.core.models import CaptureEnvelope
 from open_brain.core.ports import PutDisposition, PutResult
+from open_brain.engine import LockScope
 
 from .catalog import get_job
-from .models import HostRole, JobSpec, JobState, LockScope, OutputPolicy, WriterScope
+from .models import HostRole, JobSpec, JobState, OutputPolicy, WriterScope
 
 
 class CaptureJobContractError(ValueError):

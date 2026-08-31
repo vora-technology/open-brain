@@ -47,6 +47,7 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+from open_brain.engine import LockScope
 from open_brain.integrations.life_os import LifePlanRequest
 from open_brain.integrations.life_os_runtime import (
     LifeOSPlanningRuntime,
@@ -70,7 +71,6 @@ from open_brain.operations.backup_writer import (
 from open_brain.operations.capture_jobs import get_capture_job
 from open_brain.operations.catalog import get_job
 from open_brain.operations.index import IndexRoots, check_index
-from open_brain.operations.models import LockScope
 from open_brain.operations.scheduler import EXPECTED_JOB_IDS
 from open_brain.operations.writer_jobs import WriterLease, get_writer_job_spec
 from open_brain.production.imessage import ImessageHistoryClient

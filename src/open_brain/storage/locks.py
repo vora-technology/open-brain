@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Literal
 
 from open_brain.core.ids import canonical_json_bytes
-from open_brain.operations.models import LockScope
+from open_brain.core.locks import LockScope
 
 from .filesystem import (
     DurabilityError,

@@ -21,6 +21,7 @@ from open_brain.core.models import (
 )
 from open_brain.core.policy import classify_privacy
 from open_brain.core.ports import EventRecord, PutDisposition, PutResult, RedactionReceipt
+from open_brain.engine import LockScope
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.models import LedgerRoute, LedgerScanRecord, LedgerTaxonomy
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
@@ -42,7 +43,6 @@ from open_brain.operations.curation_runtime import (
     ReviewQueueBoundary,
     SharedWriterAuthority,
 )
-from open_brain.operations.models import LockScope
 from open_brain.operations.replay_journal import SqliteReplayJournal
 from open_brain.operations.writer_jobs import (
     ApprovalBinding,

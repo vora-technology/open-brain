@@ -8,6 +8,7 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 
+from open_brain.engine import LockScope
 from open_brain.operations.git_sync_runtime import (
     GitCommand,
     GitCommandResult,
@@ -20,7 +21,6 @@ from open_brain.operations.git_sync_runtime import (
     PlannedGitSyncExecutor,
     SharedWriterAuthority,
 )
-from open_brain.operations.models import LockScope
 from open_brain.operations.replay_journal import SqliteReplayJournal
 from open_brain.operations.writer_jobs import JobRunDisposition, WriterJobError, run_writer_job
 from tests.unit.storage._factories import FixedClock
