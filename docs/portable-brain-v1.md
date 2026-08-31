@@ -1,0 +1,83 @@
+# Portable Brain v1
+
+Portable Brain v1 is the Phase 0 interchange evidence for one Brain root. It freezes the
+readable layout and serialized representations only. It does not implement capture,
+export, import, provider, connector, daemon, or hosted runtime behavior.
+
+## Layout
+
+```text
+<brain-root>/
+  brain.toml
+  content/spaces/<space-slug>/_space.md
+  content/spaces/<space-slug>/... Markdown pages
+  sources/captures/YYYY/MM/<capture-id>.json
+  sources/batches/YYYY/MM/<batch-id>.jsonl
+  sources/blobs/sha256/<first-two-hex>/<sha256>
+  history/{proposals,decisions,publications,actions}/YYYY/MM/<record-id>.json
+  portable-manifest.json
+  .open-brain/{state,indexes,run,credentials}/  # never portable
+```
+
+Date partitions use immutable acceptance or recording timestamps. Source occurrence-time
+corrections append a new event or measurement batch row with `supersedes`; they do not move
+or rewrite the original record.
+
+## Serialization
+
+Portable JSON records are UTF-8 canonical JSON with NFC strings and keys, sorted keys, no
+insignificant whitespace, and no final newline. `portable_canonical_json_bytes` rejects floats,
+non-string object keys, and NFC-normalized key collisions. `canonical_json_bytes` remains the
+legacy serializer and continues to support existing float/vector callers. JSONL uses strict
+Portable record bytes plus one LF for every row; a complete file ends in LF. Structured JSON and
+Markdown frontmatter use snake_case field names.
+
+Portable IDs are lowercase UUIDv4 values with a type prefix. They are generated once and do not
+depend on a name, slug, path, timestamp, or payload. `space_id` in Markdown frontmatter remains
+unchanged when the mutable space name or directory slug changes.
+
+Measurement `value` is a fixed-point decimal string with at most 128 decimal digits. Values such
+as `0.5` and `-0.5` are valid; JSON numeric values, exponents, leading zeros, trailing fractional
+zeros, and negative zero are invalid. Role claims are immutable snapshots containing their stable
+claim and role IDs plus a sorted, unique capability list. Their tenant and actor IDs bind to the
+enclosing record. Receipt IDs bind to one subject, and each receipt digest covers its strict
+canonical `payload` object. Reusing a receipt ID with different bytes is invalid.
+
+## Schemas and fixture evidence
+
+The 14 Draft 2020-12 schemas are under `schemas/portable-brain/v1/`. They have immutable v1
+URN identifiers and only local URN references. The conformance suite registers every schema with
+`jsonschema.Draft202012Validator` and format checking.
+
+The repository and both default Python artifacts include a synthetic populated root under
+`tests/fixtures/portable-brain/v1/brain-root`. It covers all four capture payload families,
+blob-backed originals, batch-backed event and measurement payloads, readable page frontmatter,
+page and action proposal/decision chains, publication and action results, and a SHA-256 manifest.
+The test factory reproduces this fixture byte for byte. Operational state is created only in a
+temporary test root and is excluded from exact-byte export; no `.open-brain` file is checked in.
+
+The manifest has an export ID, layout and schema versions, contract version and compatibility
+range, and a schema catalog digest. It lists every portable file except itself in sorted unique
+normalized-relative path order. Each listed digest is the SHA-256 hash of the exact stored bytes.
+A v1 schema catalog digest is SHA-256 over strict canonical JSON mapping each schema filename to
+the SHA-256 digest of that schema's exact bytes. The runtime compares the manifest value with the
+frozen v1 catalog digest.
+A conforming import/export must reject a missing file, changed checksum, traversal or absolute
+path, operational path, symlink, incompatible version, or non-canonical bytes. Runtime validation
+also fails closed on mismatched original, normalized, blob, batch, role-claim, receipt, evidence,
+proposal-state, decision, publication-content, action-request, or action-result bindings.
+
+For each decision, `expected_state_digest` covers the exact canonical proposal bytes and
+`expected_receipt` repeats the proposal-creation receipt. `terminal_digest` covers the decision ID,
+proposal ID, outcome, expected state digest, and optional edited-content digest. A publication's
+bytes must equal the decision's effective page content and the exact file at `published_path`. An
+action request must equal the effective approved action proposal; its approval receipt binds the
+action ID, decision ID, and request digest, while the result has its own canonical digest.
+
+## Conformance boundary
+
+`tests/contract/test_portable_brain_v1.py` verifies schemas, lossless capture envelopes, strict
+canonical bytes, JSONL corrections, same-family supersession, cross-record receipt and digest
+chains, canonical-page privacy, root confinement, symlink rejection, operational exclusion, the
+complete checked-in fixture, semantic tamper rejection, and an exact-byte clean-root round trip.
+These helpers are contract validation, not a Phase 1 capture or hosted runtime interface.

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:manifest",
+  "type": "object",
+  "properties": {
+    "compatibility": {
+      "type": "object",
+      "properties": {
+        "maximum_contract_version": {"const": "1"},
+        "minimum_contract_version": {"const": "1"}
+      },
+      "required": ["maximum_contract_version", "minimum_contract_version"],
+      "additionalProperties": false
+    },
+    "contract_version": {"const": "1"},
+    "created_at": {
+      "$ref": "urn:open-brain:portable-brain:v1:common#/$defs/timestamp"
+    },
+    "export_id": {
+      "$ref": "urn:open-brain:portable-brain:v1:common#/$defs/export_id"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*(?:^|/)\\.open-brain(?:/|$))(?!.*//)[a-zA-Z0-9._/-]+$"
+          },
+          "sha256": {
+            "$ref": "urn:open-brain:portable-brain:v1:common#/$defs/digest"
+          }
+        },
+        "required": ["path", "sha256"],
+        "additionalProperties": false
+      }
+    },
+    "layout_version": {"const": 1},
+    "schema_catalog_digest": {
+      "$ref": "urn:open-brain:portable-brain:v1:common#/$defs/digest"
+    },
+    "schema_version": {"const": 1},
+    "tenant_id": {
+      "$ref": "urn:open-brain:portable-brain:v1:common#/$defs/tenant_id"
+    }
+  },
+  "required": [
+    "compatibility",
+    "contract_version",
+    "created_at",
+    "export_id",
+    "files",
+    "layout_version",
+    "schema_catalog_digest",
+    "schema_version",
+    "tenant_id"
+  ],
+  "additionalProperties": false
+}

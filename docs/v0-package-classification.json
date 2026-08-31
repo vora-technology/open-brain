@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "source_root": "src/open_brain",
+  "classification_terms": {
+    "engine": "Current package is a Phase 0 engine candidate.",
+    "app": "Current package is an application interface or composition candidate.",
+    "connector": "A future optional adapter package outside the current top-level inventory.",
+    "hosted": "A future managed-service package outside the current top-level inventory.",
+    "mixed": "Current package contains more than one target ownership scope and is not exempt from Phase 1 extraction.",
+    "legacy": "Current package is predecessor, migration, or parity work that shipping namespaces must not require.",
+    "workspace": "Current package is repository tooling and must not become a runtime dependency."
+  },
+  "packages": {
+    "capture": {
+      "classification": "mixed",
+      "target_owner": "engine plus connector adapters",
+      "current_scope": "Durable capture, provenance, queues, and deterministic extraction share paths with source-specific media and provider coupling.",
+      "phase_1_action": "Separate the common capture envelope and deterministic workflow from source-specific adapters."
+    },
+    "cli": {
+      "classification": "app",
+      "target_owner": "app",
+      "current_scope": "Parser and terminal representation currently also construct adapters.",
+      "phase_1_action": "Split parsing and representation from composition."
+    },
+    "core": {
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Values, policies, identifiers, and ports form the current protected engine scope.",
+      "phase_1_action": "Add the v0 identities and public surface without exposing every port."
+    },
+    "dev": {
+      "classification": "workspace",
+      "target_owner": "workspace tooling",
+      "current_scope": "Repository development and release-audit utilities.",
+      "phase_1_action": "Keep out of runtime dependency graphs and native artifacts."
+    },
+    "events": {
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Durable event values and occurrence-time behavior.",
+      "phase_1_action": "Keep persistence with the workflow that owns it."
+    },
+    "integrations": {
+      "classification": "mixed",
+      "target_owner": "engine, app, and connectors",
+      "current_scope": "Retrieval, UI and MCP representation, and external-system behavior share one package.",
+      "phase_1_action": "Separate retrieval, representations, and external normalizers by capability."
+    },
+    "ledger": {
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Knowledge, publication, receipts, and writer rules.",
+      "phase_1_action": "Retain unless the vertical slice proves a clearer knowledge/publication module."
+    },
+    "migrate": {
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Predecessor import and migration behavior.",
+      "phase_1_action": "Retain only reviewed generic public importers in a shipping artifact."
+    },
+    "operations": {
+      "classification": "mixed",
+      "target_owner": "engine, app, legacy, and connectors",
+      "current_scope": "Maintenance sits beside cutover, shadow, predecessor parity, and connector jobs.",
+      "phase_1_action": "Extract by capability; do not rename the package wholesale."
+    },
+    "parity": {
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Predecessor-parity harnesses and observations.",
+      "phase_1_action": "Keep outside app and release-acceptance dependencies."
+    },
+    "portable": {
+      "classification": "engine",
+      "target_owner": "engine public Portable Brain surface",
+      "current_scope": "Portable v1 strict serialization and versioned interchange contracts.",
+      "phase_1_action": "Keep runtime import and export orchestration behind this public contract."
+    },
+    "production": {
+      "classification": "mixed",
+      "target_owner": "engine, app, and connectors",
+      "current_scope": "Canonical adapters, provider and daemon runtime, and source bridges are coupled.",
+      "phase_1_action": "Split local adapters, runtime adapters, and source bridges by owner."
+    },
+    "providers": {
+      "classification": "mixed",
+      "target_owner": "engine, app, and optional adapters",
+      "current_scope": "Provider port and deterministic behavior sit beside local HTTP and cloud implementations.",
+      "phase_1_action": "Keep the port and none behavior with engine; move transport implementations by owner."
+    },
+    "release": {
+      "classification": "mixed",
+      "target_owner": "app, legacy, and workspace tooling",
+      "current_scope": "Installation lifecycle, replacement evidence, and artifact auditing are coupled.",
+      "phase_1_action": "Separate native lifecycle, legacy stabilization, and artifact conformance work."
+    },
+    "review": {
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Proposal and decision behavior with durable review receipts.",
+      "phase_1_action": "Add independently decided sibling proposals; move UI and CLI representations to app."
+    },
+    "services": {
+      "classification": "app",
+      "target_owner": "app",
+      "current_scope": "HTTP, UI, MCP process entry points, and composition roots.",
+      "phase_1_action": "Fold surfaces and composition into the app-owned boundary."
+    },
+    "storage": {
+      "classification": "mixed",
+      "target_owner": "engine local implementation and app adapters",
+      "current_scope": "Local persistence imports operations lock types, so the package cannot yet be treated as an isolated engine adapter.",
+      "phase_1_action": "Move lock identity out of operations before extracting local adapters."
+    }
+  },
+  "root_modules": {
+    "__init__": {
+      "classification": "engine",
+      "target_owner": "engine public surface",
+      "current_scope": "Package version and deliberately exported public values.",
+      "phase_1_action": "Keep the public surface explicit and small."
+    },
+    "__main__": {
+      "classification": "app",
+      "target_owner": "app",
+      "current_scope": "The python -m open_brain entry point.",
+      "phase_1_action": "Keep with the app distribution entry point."
+    },
+    "config": {
+      "classification": "app",
+      "target_owner": "app profile",
+      "current_scope": "Private-deployment settings currently import ledger models.",
+      "phase_1_action": "Compile one Brain root without importing ledger models."
+    }
+  },
+  "root_public_symbols": ["__version__"],
+  "dynamic_import_sites": [
+    {
+      "path": "integrations/ports.py",
+      "reason": "Loads one configured adapter through the explicit integration boundary."
+    },
+    {
+      "path": "providers/base.py",
+      "reason": "Loads the selected provider adapter after closed provider-policy checks."
+    },
+    {
+      "path": "providers/optional_cloud.py",
+      "reason": "Lazily imports the optional external OpenAI dependency after cloud authority checks."
+    }
+  ],
+  "rules": [
+    {
+      "id": "engine-to-interface",
+      "source_packages": ["core", "portable"],
+      "forbidden_classifications": ["app", "connector", "hosted", "legacy", "workspace"],
+      "rationale": "The current protected engine scope must not depend on application interfaces, optional connectors, hosted code, legacy behavior, or workspace tooling."
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+name: Release audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "uv.lock"
+      - "src/**"
+      - "schemas/**"
+      - "release/**"
+      - "tests/contract/**"
+      - "tests/fixtures/**"
+      - "tests/integration/release/**"
+      - "tests/security/**"
+      - "docs/*.md"
+      - "examples/**"
+      - "LICENSE"
+      - "NOTICE"
+      - "Makefile"
+      - ".github/workflows/release-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  public-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+          enable-cache: true
+      - run: uv sync --frozen --group dev
+      - run: uv run python -m build
+      - name: Verify artifact member policy
+        run: >-
+          uv run python -m open_brain.dev.artifact_policy
+          --policy release/v0-artifact-policy.json
+          --artifacts dist/*
+      - name: Create synthetic CI denylist
+        run: printf '%s\n' "ci-private-canary-${GITHUB_RUN_ID}" > "$RUNNER_TEMP/private-denylist.txt"
+      - name: Audit source tree and built artifacts
+        run: >-
+          uv run python -m open_brain.dev.release_audit
+          --root .
+          --private-denylist "$RUNNER_TEMP/private-denylist.txt"
+          --artifacts dist/*
+      - name: Audit reachable Git history
+        run: >-
+          uv run python -m open_brain.dev.public_history_audit
+          --repository .
+          --private-denylist "$RUNNER_TEMP/private-denylist.txt"
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

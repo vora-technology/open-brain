@@ -1,0 +1,151 @@
+{
+  "policy_version": 1,
+  "phase": "0-explicit-boundary",
+  "default_python_artifacts": {
+    "wheel": {
+      "configured_package_roots": [
+        "src/open_brain"
+      ],
+      "configured_exclusions": [],
+      "force_includes": [
+        {
+          "source": "schemas/portable-brain/v1",
+          "destination": "open_brain/portable/schemas/v1"
+        },
+        {
+          "source": "tests/fixtures/portable-brain/v1",
+          "destination": "open_brain/portable/conformance/v1"
+        }
+      ],
+      "required_members": [
+        "open_brain/__init__.py"
+      ],
+      "required_trees": [
+        {
+          "source": "schemas/portable-brain/v1",
+          "destination": "open_brain/portable/schemas/v1"
+        },
+        {
+          "source": "tests/fixtures/portable-brain/v1",
+          "destination": "open_brain/portable/conformance/v1"
+        }
+      ],
+      "forbidden_member_patterns": [
+        "docs/ai/**",
+        "**/.open-brain/**",
+        "**/credentials/**",
+        "**/*.db",
+        "**/*.sqlite",
+        "**/*.sqlite3"
+      ],
+      "status": "explicit-current-not-release-ready"
+    },
+    "sdist": {
+      "configured_includes": [
+        "/LICENSE",
+        "/NOTICE",
+        "/README.md",
+        "/docs/*.md",
+        "/docs/architecture/*.md",
+        "/pyproject.toml",
+        "/release/*.json",
+        "/schemas/portable-brain/v1/*.json",
+        "/src/open_brain",
+        "/tests/contract",
+        "/tests/fixtures/phase0",
+        "/tests/fixtures/portable-brain/v1"
+      ],
+      "configured_exclusions": [],
+      "required_members": [
+        "src/open_brain/__init__.py",
+        "docs/v0-product-contract.md",
+        "release/v0-artifact-policy.json"
+      ],
+      "required_trees": [
+        {
+          "source": "schemas/portable-brain/v1",
+          "destination": "schemas/portable-brain/v1"
+        },
+        {
+          "source": "tests/fixtures/portable-brain/v1",
+          "destination": "tests/fixtures/portable-brain/v1"
+        }
+      ],
+      "forbidden_member_patterns": [
+        "docs/ai/**",
+        "**/.open-brain/**",
+        "**/credentials/**",
+        "**/*.db",
+        "**/*.sqlite",
+        "**/*.sqlite3"
+      ],
+      "status": "explicit-current-not-release-ready"
+    }
+  },
+  "target_release_exclusions": [
+    "open_brain/dev/**",
+    "open_brain/migrate/**",
+    "open_brain/parity/**",
+    "open_brain/operations/cutover.py",
+    "open_brain/operations/cutover_doctor.py",
+    "open_brain/operations/cutover_verification.py",
+    "open_brain/operations/shadow.py",
+    "open_brain/providers/optional_cloud.py",
+    "open_brain/production/imessage.py",
+    "open_brain/production/optional_automation.py",
+    "open_brain/production/project_commit_bridge.py",
+    "open_brain/production/youtube_bridge.py",
+    "open_brain/production/youtube_poll.py",
+    "open_brain/production/media.py",
+    "open_brain/capture/extractors/social.py",
+    "open_brain/capture/extractors/youtube.py",
+    "open_brain/integrations/dev_workflows.py",
+    "open_brain/integrations/finance.py",
+    "open_brain/integrations/hooks.py",
+    "open_brain/integrations/life_os.py",
+    "open_brain/integrations/life_os_runtime.py",
+    "open_brain/integrations/mail_calendar.py",
+    "open_brain/integrations/messaging.py",
+    "open_brain/integrations/messaging_runtime.py",
+    "open_brain/integrations/obsidian.py",
+    "open_brain/operations/optional_jobs.py"
+  ],
+  "hosts": {
+    "supported": [
+      {
+        "artifact": "macos-arm64",
+        "architecture": "arm64",
+        "operating_system": "macOS",
+        "versions": ">=14"
+      },
+      {
+        "artifact": "linux-x86_64",
+        "architecture": "x86_64",
+        "operating_system": "Ubuntu",
+        "versions": [
+          "24.04 LTS",
+          "26.04 LTS"
+        ]
+      },
+      {
+        "artifact": "linux-x86_64",
+        "architecture": "x86_64",
+        "operating_system": "Debian",
+        "versions": [
+          "13"
+        ]
+      }
+    ],
+    "unsupported": [
+      "macos-x86_64",
+      "linux-arm64",
+      "windows"
+    ]
+  },
+  "native_artifacts": {
+    "bundler_candidate": "PyInstaller 6 onedir",
+    "fallback": "Nuitka standalone",
+    "published": [],
+    "status": "pending-phase-1-spike"
+  }
+}

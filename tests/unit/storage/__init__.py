@@ -1,0 +1,1 @@
+"""Focused storage adapter tests."""

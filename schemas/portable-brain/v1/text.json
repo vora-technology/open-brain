@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:text",
+  "type": "object",
+  "properties": {"family": {"const": "text"}, "text": {"type": "string", "minLength": 1}},
+  "required": ["family", "text"],
+  "additionalProperties": false
+}

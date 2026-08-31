@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:measurement",
+  "type": "object",
+  "properties": {
+    "dimensions": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/attributes"},
+    "family": {"const": "measurement"},
+    "occurrence_at": {"oneOf": [{"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/timestamp"}, {"type": "null"}]},
+    "unit": {"type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_./-]{0,63}$"},
+    "value": {"type": "string", "minLength": 1, "maxLength": 130, "pattern": "^(?=.{1,130}$)(?=(?:[^0-9]*[0-9]){1,128}$)(?:0|-?(?:(?:[1-9][0-9]*)(?:\\.[0-9]*[1-9])?|0\\.[0-9]*[1-9]))$"}
+  },
+  "required": ["dimensions", "family", "occurrence_at", "unit", "value"],
+  "additionalProperties": false
+}

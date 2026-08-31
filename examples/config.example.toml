@@ -1,0 +1,29 @@
+# Synthetic Open Brain configuration example.
+# Copy to an untracked file and replace these placeholders with private paths.
+
+[paths]
+work_root = "/path/to/private/work"
+personal_root = "/path/to/private/personal"
+capture_root = "/path/to/private/capture"
+saved_content_root = "/path/to/private/saved-content"
+state_root = "/path/to/private/state"
+backup_root = "/path/to/private/backups"
+
+[host]
+identity = "writer-host"
+
+[providers]
+default = "local"
+cloud_enabled = false
+
+[egress]
+enabled = false
+
+[ledger.taxonomy]
+version = "synthetic-v1"
+
+[[ledger.taxonomy.routes]]
+path_prefix = ["professional"]
+topic_id = "research"
+topic_label = "Research"
+privacy_tier = "work"

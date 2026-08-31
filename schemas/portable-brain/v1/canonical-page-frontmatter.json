@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:canonical-page-frontmatter",
+  "type": "object",
+  "properties": {
+    "actor_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/actor_id"},
+    "modified_at": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/timestamp"},
+    "page_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/page_id"},
+    "privacy": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/privacy"},
+    "provenance": {"type": "array", "items": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/capture_id"}, "minItems": 1, "uniqueItems": true},
+    "role_claim": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/role_claim"},
+    "schema_version": {"const": 1},
+    "space_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/space_id"},
+    "status": {"enum": ["active", "archived"]},
+    "tenant_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/tenant_id"},
+    "title": {"type": "string", "minLength": 1},
+    "trust": {"enum": ["owner", "reviewed"]}
+  },
+  "required": ["actor_id", "modified_at", "page_id", "privacy", "provenance", "role_claim", "schema_version", "space_id", "status", "tenant_id", "title", "trust"],
+  "additionalProperties": false
+}

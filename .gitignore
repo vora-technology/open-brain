@@ -1,0 +1,47 @@
+# Secrets and private configuration
+.env
+.env.*
+!.env.example
+config.local.toml
+private-denylist.txt
+*.token
+*.credentials
+
+# Private content and runtime state
+content/
+state/
+runtime/
+captures/
+transcripts/
+media/
+vault/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Public synthetic Portable Brain conformance fixtures
+!tests/fixtures/portable-brain/v1/brain-root/content/
+!tests/fixtures/portable-brain/v1/brain-root/content/**
+!tests/fixtures/portable-brain/v1/brain-root/sources/captures/
+!tests/fixtures/portable-brain/v1/brain-root/sources/captures/**
+
+# Python and build artifacts
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.codegraph/
+.coverage
+coverage/
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+.vscode/

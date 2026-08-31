@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:space-frontmatter",
+  "type": "object",
+  "properties": {
+    "actor_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/actor_id"},
+    "name": {"type": "string", "minLength": 1},
+    "role_claim": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/role_claim"},
+    "schema_version": {"const": 1},
+    "slug": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "space_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/space_id"},
+    "tenant_id": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/tenant_id"}
+  },
+  "required": ["actor_id", "name", "role_claim", "schema_version", "slug", "space_id", "tenant_id"],
+  "additionalProperties": false
+}

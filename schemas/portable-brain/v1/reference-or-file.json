@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:reference-or-file",
+  "type": "object",
+  "properties": {
+    "blob_sha256": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/digest"},
+    "family": {"const": "reference_or_file"},
+    "file_name": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["reference", "file"]},
+    "media_type": {"type": "string", "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"},
+    "supplied_text": {"type": "string", "minLength": 1},
+    "url": {"type": "string", "format": "uri", "pattern": "^https?://"}
+  },
+  "required": ["family", "kind"],
+  "allOf": [
+    {"if": {"properties": {"kind": {"const": "reference"}}, "required": ["kind"]}, "then": {"required": ["url"]}},
+    {"if": {"properties": {"kind": {"const": "file"}}, "required": ["kind"]}, "then": {"required": ["blob_sha256", "file_name", "media_type"]}}
+  ],
+  "additionalProperties": false
+}

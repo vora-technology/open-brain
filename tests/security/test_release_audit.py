@@ -1,0 +1,202 @@
+from __future__ import annotations
+
+import tarfile
+import zipfile
+from io import BytesIO
+from pathlib import Path
+
+import pytest
+
+from open_brain.dev.release_audit import audit, main
+
+
+def write_safe_tree(root: Path) -> Path:
+    root.mkdir()
+    (root / "LICENSE").write_text("synthetic license", encoding="utf-8")
+    (root / "NOTICE").write_text("synthetic notice", encoding="utf-8")
+    (root / "README.md").write_text("synthetic public fixture", encoding="utf-8")
+    denylist = root.parent / "denylist.txt"
+    denylist.write_text("owner-private-canary\n", encoding="utf-8")
+    return denylist
+
+
+def test_safe_tree_passes(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+
+    assert audit(root, denylist) == []
+
+
+def test_loopback_address_is_public_safe_configuration(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    (root / "bind.txt").write_text("127.0.0.1", encoding="utf-8")
+
+    assert audit(root, denylist) == []
+
+
+def test_dynamic_credential_option_name_is_public_safe(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    (root / "provider.py").write_text(
+        'client = constructor(**{"api" + "_key": credential})\n',
+        encoding="utf-8",
+    )
+
+    assert audit(root, denylist) == []
+
+
+@pytest.mark.parametrize(
+    ("relative_path", "body", "rule"),
+    [
+        ("content/note.md", "synthetic", "forbidden-path-family"),
+        ("example.env", "synthetic", "forbidden-file-type"),
+        (
+            "example.md",
+            "/" + "/".join(["Users", "example", "private", "file"]),
+            "absolute-home-path",
+        ),
+        (
+            "example.md",
+            "http://" + ".".join(["192", "168", "1", "10"]) + "/item",
+            "private-ip-address",
+        ),
+        ("example.md", "owner-" + "private-canary", "private-denylist-term"),
+        ("example.md", "api" + "_key=" + "abcdefghijklmnop", "credential-assignment"),
+    ],
+)
+def test_tree_canaries_fail(tmp_path: Path, relative_path: str, body: str, rule: str) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    target = root / relative_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+
+    assert rule in {finding.rule for finding in audit(root, denylist)}
+
+
+def test_public_portable_fixture_paths_are_narrowly_allowed(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    fixture = root / "tests/fixtures/portable-brain/v1/brain-root/content/spaces/demo/_space.md"
+    fixture.parent.mkdir(parents=True)
+    fixture.write_text("synthetic public conformance fixture", encoding="utf-8")
+
+    assert audit(root, denylist) == []
+
+    private_content = root / "other/content/private.md"
+    private_content.parent.mkdir(parents=True)
+    private_content.write_text("synthetic", encoding="utf-8")
+    assert "forbidden-path-family" in {finding.rule for finding in audit(root, denylist)}
+
+
+def test_oversized_content_fails_closed(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    (root / "large.txt").write_bytes(b"x" * (2 * 1024 * 1024 + 1))
+
+    assert "content-scan-limit-exceeded" in {finding.rule for finding in audit(root, denylist)}
+
+
+def test_denylist_matches_unicode_case_and_normalization(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    denylist.write_text("caf" + chr(0x00E9) + "\n", encoding="utf-8")
+    (root / "example.md").write_text("CAFE" + chr(0x0301), encoding="utf-8")
+
+    assert "private-denylist-term" in {finding.rule for finding in audit(root, denylist)}
+
+
+def test_missing_or_empty_denylist_fails_closed(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    denylist.unlink()
+
+    assert main(["--root", str(root), "--private-denylist", str(denylist)]) == 2
+
+    denylist.write_text("# no terms\n", encoding="utf-8")
+    assert main(["--root", str(root), "--private-denylist", str(denylist)]) == 2
+
+
+def test_tree_symlink_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    target = tmp_path / "outside.md"
+    target.write_text("synthetic", encoding="utf-8")
+    (root / "linked.md").symlink_to(target)
+
+    assert "symlink-not-allowed" in {finding.rule for finding in audit(root, denylist)}
+
+
+def test_zip_member_name_and_content_are_scanned(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    artifact = tmp_path / "release.whl"
+    with zipfile.ZipFile(artifact, "w") as archive:
+        archive.writestr("package/content/private.md", "owner-private-canary")
+
+    rules = {finding.rule for finding in audit(root, denylist, [artifact])}
+    assert "forbidden-path-family" in rules
+    assert "private-denylist-term" in rules
+
+
+def test_packaged_portable_fixture_paths_are_narrowly_allowed(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    artifact = tmp_path / "release.whl"
+    with zipfile.ZipFile(artifact, "w") as archive:
+        archive.writestr(
+            "open_brain/portable/conformance/v1/brain-root/content/spaces/demo/_space.md",
+            "synthetic public conformance fixture",
+        )
+        archive.writestr(
+            "open_brain/portable/conformance/v1/brain-root/sources/captures/capture.json",
+            "synthetic public conformance fixture",
+        )
+
+    assert audit(root, denylist, [artifact]) == []
+
+    with zipfile.ZipFile(artifact, "a") as archive:
+        archive.writestr(
+            "open_brain/portable/conformance/v2/brain-root/content/private.md",
+            "synthetic",
+        )
+    assert "forbidden-path-family" in {
+        finding.rule for finding in audit(root, denylist, [artifact])
+    }
+
+
+def test_zip_traversal_name_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    artifact = tmp_path / "release.whl"
+    with zipfile.ZipFile(artifact, "w") as archive:
+        archive.writestr("../outside.md", "synthetic")
+
+    assert "unsafe-archive-path" in {finding.rule for finding in audit(root, denylist, [artifact])}
+
+
+def test_tar_member_content_is_scanned(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    payload = tmp_path / "payload.md"
+    payload.write_text("http://" + ".".join(["10", "0", "0", "1"]) + "/item", encoding="utf-8")
+    artifact = tmp_path / "release.tar.gz"
+    with tarfile.open(artifact, "w:gz") as archive:
+        archive.add(payload, arcname="package/payload.md")
+
+    rules = {finding.rule for finding in audit(root, denylist, [artifact])}
+    assert "private-ip-address" in rules
+
+
+def test_tar_symlink_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    artifact = tmp_path / "release.tar.gz"
+    with tarfile.open(artifact, "w:gz") as archive:
+        member = tarfile.TarInfo("package/linked.md")
+        member.type = tarfile.SYMTYPE
+        member.linkname = "../outside.md"
+        archive.addfile(member, BytesIO())
+
+    assert "symlink-not-allowed" in {finding.rule for finding in audit(root, denylist, [artifact])}

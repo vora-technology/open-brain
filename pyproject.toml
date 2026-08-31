@@ -1,0 +1,86 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "open-brain"
+version = "0.1.0"
+description = "A local-first capture, provenance, review, and knowledge pipeline."
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Open Brain contributors" }]
+keywords = ["knowledge-management", "capture", "provenance", "local-first"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = []
+
+[project.optional-dependencies]
+cloud = ["openai>=1.99,<3"]
+integrations = []
+mcp = []
+
+[project.scripts]
+open-brain = "open_brain.cli.composition:run"
+open-brain-youtube-bridge = "open_brain.production.youtube_bridge:main"
+open-brain-project-commit-queue = "open_brain.production.project_commit_bridge:queue_main"
+open-brain-project-commit-relay = "open_brain.production.project_commit_bridge:relay_main"
+open-brain-project-commit-bridge = "open_brain.production.project_commit_bridge:bridge_main"
+open-brain-http = "open_brain.services.entrypoints:run_http"
+open-brain-mcp = "open_brain.services.entrypoints:run_mcp"
+
+[dependency-groups]
+dev = [
+  "build>=1.2.2,<2",
+  "cryptography>=46,<47",
+  "jsonschema>=4.25,<5",
+  "mypy>=1.15,<2",
+  "pytest>=8.3,<10",
+  "ruff>=0.11,<1",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/LICENSE",
+  "/NOTICE",
+  "/README.md",
+  "/docs/*.md",
+  "/docs/architecture/*.md",
+  "/pyproject.toml",
+  "/release/*.json",
+  "/schemas/portable-brain/v1/*.json",
+  "/src/open_brain",
+  "/tests/contract",
+  "/tests/fixtures/phase0",
+  "/tests/fixtures/portable-brain/v1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/open_brain"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"schemas/portable-brain/v1" = "open_brain/portable/schemas/v1"
+"tests/fixtures/portable-brain/v1" = "open_brain/portable/conformance/v1"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]

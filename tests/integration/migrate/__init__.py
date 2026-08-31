@@ -1,0 +1,1 @@
+"""Synthetic migration integration tests."""

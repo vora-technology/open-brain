@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-brain:portable-brain:v1:event",
+  "type": "object",
+  "properties": {
+    "attributes": {"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/attributes"},
+    "event_type": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$"},
+    "family": {"const": "event"},
+    "occurrence_at": {"oneOf": [{"$ref": "urn:open-brain:portable-brain:v1:common#/$defs/timestamp"}, {"type": "null"}]}
+  },
+  "required": ["attributes", "event_type", "family", "occurrence_at"],
+  "additionalProperties": false
+}
