@@ -11,29 +11,34 @@
 
 ## Current milestone
 
-- Milestone: Gate 0 reviewed planning baseline
+- Milestone: P2-W0 freeze boundaries and canonical vocabulary
 - Status: verified; evidence commit pending
-- Allowed scope: preserve and commit the reviewed Phase 2 plan, repair prerequisites required by its gates, and persist sanitized orchestration state
-- Stop condition: P2-W0 implementation starts before Gate 0 has a clean verified checkpoint
-- Planning baseline: `99b35c1` contains exactly the five reviewed planning files
-- Audit prerequisite: `70bbd19` supports the exact owner-approved `# no additional project terms` marker while arbitrary comments and missing files remain fail-closed
+- Allowed scope: canonical lock ownership, file-level runtime ownership, eight import rules, exact temporary debt, literal/non-literal dynamic-import enforcement, and pre-W1 behavior freezes
+- Stop condition: P2-W1 starts before P2-W0 has a clean verified checkpoint
+- Code checkpoint: `a28ffb1`
+- Result: one engine-owned `LockScope`; 188/188 runtime files classified; all eight rules have non-vacuous static and literal dynamic fixtures; 284 current violations are named exactly as temporary debt
 
 ## Last verification
 
-- Command: `make verify`; `git diff --check`; owner-approved `make audit`
-- Result: passed Ruff, strict MyPy on 408 source files, 2,812 tests, wheel/sdist builds, artifact policy, diff integrity, and release audit
-- Focused prerequisite result: 25 source-tree/history audit tests passed
+- Command: P2-W0 focused Pytest; focused Ruff; strict MyPy; `make verify`; `git diff --check`; owner-approved `make audit`
+- Result: passed 87 focused tests, Ruff, strict MyPy on 409 source files, 2,856 total tests, wheel/sdist builds, artifact policy, diff integrity, and release audit
 
 ## Decision log
 
 - Chosen: one canonical comment marker represents an explicitly approved empty owner denylist. Rejected: treating “no additional terms” as a scan term, accepting arbitrary comments, or skipping the audit. Reason: preserve fail-closed behavior while representing the owner's actual decision.
 - Chosen: redact local absolute paths as `<repo-root>` in public workstream state. Rejected: publishing laptop paths or excluding workstream evidence from the release audit. Reason: project privacy rules outrank the generic workflow-state path format.
+- Chosen: define `LockScope` once in `core/locks.py`, export it through `open_brain.engine`, and preserve operations compatibility by re-exporting the same type. Rejected: a second operations-owned enum or storage importing operations. Reason: one engine-owned vocabulary closes the storage-to-operations edge without breaking callers.
+- Chosen: treat the live filesystem inventory of 188 runtime files as authoritative. Rejected: carrying the mapper's provisional count forward. Reason: the classification checker discovers and compares the current tree on every run.
+- Chosen: retain every current violation as one exact sorted temporary-debt edge instead of weakening rules around the monolith. Rejected: package-level exemptions or vacuous absent-namespace tests. Reason: later waves must remove observable debt while the rules remain enforced now.
 
 ## Dispatch ledger
 
 - Codex coordinator: current Codex session; Gate 0 grounding, diagnosis, implementation, verification, and git integration; complete
-- Child agents: 0 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
+- `W0-LOCK-01`: Codex `gpt-5.6-terra`, high effort, workspace-write; canonical lock implementation; complete and coordinator-verified
+- `W0-ARCH-01`: Codex `gpt-5.6-luna`, high effort, read-only; ownership/rule/debt/fixture/freeze map; complete with sandbox-only test limitation recorded
+- `W0-ARCH-IMPL-01`: Codex `gpt-5.6-sol`, xhigh effort, workspace-write; authoritative classification and eight-rule test harness; complete and coordinator-verified
+- Child agents: 3 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit this sanitized workstream evidence, verify a clean checkpoint, push the goal branch, then execute P2-W0 with Codex-only bounded workers.
+Commit this P2-W0 evidence, verify a clean checkpoint, push the goal branch, then execute P2-W1 with Codex-only bounded workers.
