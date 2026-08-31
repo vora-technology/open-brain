@@ -11,17 +11,17 @@
 
 ## Current milestone
 
-- Milestone: P2-W2 surface convergence on engine tasks
+- Milestone: P2-W3 Portable Brain engine interfaces
 - Status: verified; evidence commit pending
-- Allowed scope: engine task extraction, one-root application capability injection, four-family HTTP capture, scoped read-only MCP, exact public-job sink migration, representation-test relocation, source-safe results, and exact architecture classification/debt
-- Stop condition: P2-W3 starts before P2-W2 has a clean verified checkpoint and independent READY re-review
-- Code checkpoints: `d3acb64` engine foundation and `a5c2cf1` surface convergence
-- Result: CLI, authenticated HTTP, local UI, MCP, and exactly JOB-005/JOB-027/JOB-028/JOB-029 use one local application task set; HTTP accepts all common capture families; MCP query/fetch apply an explicit space allow-list before projection; public results expose bounded provenance only; 198/198 runtime files are classified with 275 exact temporary-debt entries
+- Allowed scope: strict Portable Brain v1 profile/identity, typed root-confined ports, complete write validation, exact-byte live-root export, clean-root atomic import, materialized operational state, disposable-index reconstruction, retry/fault safety, and requirement-level fixture/architecture evidence
+- Stop condition: P2-W4 starts before P2-W3 has a clean verified checkpoint and independent READY review
+- Code checkpoint: `7e98efc` Portable Brain interfaces, atomic portability workflow, append-only routing evidence, and reconstruction
+- Result: local authoring now writes the published Portable contract through typed ports; export emits only Portable bytes; clean import validates one immutable snapshot before mutation and promotes without replacement; reconstructed roots reopen with stable identities/results; post-capture route chains survive export/import without rewriting source captures; all 203 runtime files are classified with 275 exact temporary-debt entries
 
 ## Last verification
 
-- Command: P2-W2 exact focused Pytest; affected production/process Pytest; repository Ruff; strict MyPy; `make verify`; `git diff --check`; owner-approved `make audit`; fresh independent Codex re-review
-- Result: passed 138 focused tests, 82 affected tests, Ruff, strict MyPy on 421 source files, 2,883 total tests, wheel/sdist builds, artifact policy, diff integrity, release audit, and independent READY review with no findings
+- Command: P2-W3 targeted route/contract/portability Pytest; focused P2-W3 plus architecture Pytest; repository Ruff; strict MyPy; `make verify`; `git diff --check`; fresh independent Codex review
+- Result: passed 107 targeted tests, 215 focused/architecture tests, Ruff, strict MyPy on 430 source files, 2,932 total tests, wheel/sdist builds, artifact policy, diff integrity, and independent READY review with no demonstrated in-scope high/medium finding
 
 ## Decision log
 
@@ -39,10 +39,13 @@
 - Chosen: require MCP retrieval to scope both search and fetch at the SQL lookup before reading canonical content, with an empty default and identical unknown/disallowed fetch results. Rejected: filtering projected results after retrieval. Reason: callers outside the allow-list must never expose the underlying capability.
 - Chosen: grant capture-only contexts to exactly JOB-005, JOB-027, JOB-028, and JOB-029, and advance connector checkpoints only after durable acceptance. Rejected: queue fallback or route/canonicalize authority. Reason: public ingress can submit idempotently but cannot acquire owner actions.
 - Chosen: advance JOB-005 past policy-rejected rows while saving no cursor if an eligible sink submission fails. Rejected: advancing the whole batch before persistence or leaving a full rejected page at the old cursor. Reason: preserve durable ordering without starving later authorized messages.
+- Chosen: represent post-capture space changes as typed append-only route records linked by `supersedes`. Rejected: rewriting immutable capture records or keeping routing only in SQLite/search projections. Reason: current space membership must round-trip through Portable export/import while source evidence remains immutable.
+- Chosen: bind validation, materialization, reopen, and promotion to one immutable Portable snapshot and one retained root identity. Rejected: repeated pathname reads or individually valid but unbound snapshots. Reason: accepted bytes must be exactly the bytes materialized and promoted.
+- Chosen: document a trusted-owner local filesystem boundary for the pre-alpha single-user product. Rejected: claiming kernel protection against arbitrary hostile same-UID mutation. Reason: the implementation defends malformed input, crashes, target races, and cooperating processes; stronger hostile-local-user isolation requires a separate UID, container, VM, or immutable snapshot.
 
 ## Dispatch ledger
 
-- Codex coordinator: current Codex session; P2-W0 through P2-W2 grounding, diagnosis, verification, review reconciliation, and git integration; active
+- Codex coordinator: current Codex session; P2-W0 through P2-W3 grounding, diagnosis, verification, review reconciliation, and git integration; active
 - P2-W0: `W0-LOCK-01`, `W0-ARCH-01`, and `W0-ARCH-IMPL-01`; 3 Codex children complete and coordinator-verified
 - P2-W1 mapping: `W1-MAP-COMPOSITION-01` and `W1-MAP-VALUES-01`; 2 Codex children complete
 - P2-W1 implementation: `W1-IMPLEMENT-01` ended on model capacity; `W1-RESUME-01` completed the preserved patch and focused gates
@@ -52,7 +55,11 @@
 - P2-W2 implementation: engine foundation and semantic repair completed; the surface worker exited incomplete; its resume patch was recovered and coordinator-verified
 - P2-W2 review: `W2-INDEPENDENT-REVIEW-01` found JOB-005 rejected-page starvation; coordinator reproduced and fixed it; `W2-INDEPENDENT-REREVIEW-01` returned READY with no findings
 - P2-W2 children: 11 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
+- P2-W3 mapping/reconciliation: four independent Codex mappers plus `W3-RECONCILE-01`; complete
+- P2-W3 implementation/reconciliation: one implementation worker plus coordinator repairs implemented strict profile/ports, export/import/materialization, exact snapshot/promotion binding, schema parity, null occurrence preservation, and append-only routing replay
+- P2-W3 review: seven normal-budget and five recorded-override read-only Codex verdicts exposed successive high/medium defects; every demonstrated issue was reproduced and repaired; `W3-ROUTING-FINAL-INDEPENDENT-REVIEW-01` returned READY with no in-scope high/medium finding
+- P2-W3 children: 17 total, 0 active. Overrides and reasons are preserved in the milestone ledger. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit this P2-W2 evidence, verify a clean checkpoint, push the goal branch, then execute P2-W3 with Codex-only bounded workers.
+Commit this P2-W3 evidence, verify and push the exact checkpoint, then execute P2-W4 with a fresh Codex-only milestone budget.
