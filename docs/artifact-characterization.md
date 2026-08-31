@@ -59,9 +59,9 @@ assert that a native artifact exists. No bundler spike or clean-host run is Phas
 
 `open_brain.dev.public_history_audit` scans each reachable Git blob once, applies bounded batch
 reads and command timeouts, fails closed when scan limits are exceeded, and emits only commit ID,
-redacted path, and rule ID. Project-specific private-term coverage still requires the untracked
-owner denylist. Generic credential, private-IP, absolute-home, forbidden-path, and scan-limit
-rules run with a synthetic denylist in CI.
+redacted path, and rule ID. The owner declared no additional project-specific private terms for
+the clean public repository. Generic credential, private-IP, absolute-home, forbidden-path, and
+scan-limit rules run with a synthetic denylist in CI.
 
 The Phase 0 real-history result is recorded in
 [`docs/audits/2026-08-30-phase0-public-history-audit.md`](audits/2026-08-30-phase0-public-history-audit.md).

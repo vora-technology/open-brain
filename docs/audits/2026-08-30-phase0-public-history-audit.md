@@ -3,8 +3,8 @@
 - Date: 2026-08-30
 - Scope: every blob reachable from every local Git ref
 - Output: commit ID, redacted repository path, and rule ID only
-- Project-specific denylist: unavailable
-- Result: findings recorded; existing history is not approved for public publication
+- Project-specific denylist: owner declared no additional private terms on 2026-08-30
+- Result: existing history remains private; clean-history publication approved
 
 The bounded scanner read each reachable blob once and completed without hitting its commit, blob,
 byte, or command-time limits. A synthetic denylist enabled the generic detectors without exposing
@@ -29,15 +29,16 @@ This result is not proof that a credential or customer record exists. The scanne
 does not print matching bytes. It is proof that the existing history contains material that the
 public-release rules require an owner-reviewed disposition.
 
-## Publication gate
+## Publication disposition
 
-Before repository publication, choose one owner-authorized path:
+The owner selected the clean-history path on 2026-08-30:
 
-1. publish a clean public repository from a verified source archive, preserving private migration
-   commit IDs only in a private record; or
-2. rewrite the existing publication history, then rerun the generic audit, the owner denylist,
-   Gitleaks, and artifact checks.
+- preserve the original repository and all migration history as a private archive;
+- create the public repository from the verified Phase 0 source tree with no parent history;
+- record exact Gitleaks fingerprints for synthetic replay keys and idempotency digests;
+- rerun the full build, test, artifact, generic-history, release, and Gitleaks gates before making
+  the replacement repository public.
 
-Phase 0 does not rewrite or publish Git history. The full metadata-only report remains in the
-session scratch ledger and is not copied into the repository. Project-specific name and term
-coverage remains unverified until the owner denylist is supplied.
+The clean repository passed the generic history audit and Gitleaks scan. The 101 legacy-history
+occurrences remain only in the private archive and are not ancestors of the public root commit.
+The full metadata-only legacy report remains private and is not copied into the public repository.

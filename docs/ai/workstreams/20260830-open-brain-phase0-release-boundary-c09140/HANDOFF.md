@@ -10,5 +10,5 @@ last_verified.command: make verify; release audit with rebuilt artifacts; uv loc
 last_verified.result: passed; Ruff clean, mypy clean across 398 source files, 2754 tests passed, wheel and sdist built, all required artifact members present, source/archive release audit clean, lock and diff checks clean
 changes: Phase 0 completed; contract boundary, package/import rules, CLI and current-record characterization, Portable Brain v1 schemas and complete fixture, semantic binding validation, artifact policy, and bounded source/history audits are implemented
 blocker: null
-next_action: review the uncommitted Phase 0 diff and decide whether to commit it; do not publish until the owner dispositions the recorded history findings and supplies the project-specific denylist
+next_action: begin Phase 1 from the verified clean-history public repository; keep the legacy history private
 safe_to_start_new_thread: true

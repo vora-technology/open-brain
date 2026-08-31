@@ -42,6 +42,6 @@
 
 ## Remaining work outside Phase 0
 
-- Repository publication remains owner-gated until 101 generic history findings across 25 commits and eight paths are dispositioned and a project-specific private denylist is supplied.
+- The owner selected a clean public root commit with no additional project-specific denylist terms; the 101 generic findings remain isolated in the private legacy archive.
 - The PyInstaller 6 clean-host spike, Nuitka fallback, native artifacts, and host verification remain Phase 1 work.
-- No commit or push was made.
+- Public-repository publication is tracked separately from the completed Phase 0 implementation commit.
