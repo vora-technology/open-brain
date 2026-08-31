@@ -1,5 +1,5 @@
 """Run the Open Brain CLI with ``python -m open_brain``."""
 
-from open_brain.cli.composition import run
+from open_brain.services.entrypoints import run_cli
 
-raise SystemExit(run())
+raise SystemExit(run_cli())

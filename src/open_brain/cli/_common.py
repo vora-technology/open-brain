@@ -179,6 +179,8 @@ class ExitCode(IntEnum):
     FAILURE = 1
     USAGE = 2
     DEFERRED = 3
+    LOCK_HELD = 75
+    CONFIGURATION = 78
 
 
 class CommandDispatchResult(Protocol):

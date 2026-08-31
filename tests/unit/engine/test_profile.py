@@ -1,7 +1,22 @@
+import ast
 from pathlib import Path
 
+from open_brain.engine import ProviderMode
 from open_brain.profile import compile_single_user_local
-from open_brain.providers.base import ProviderMode
+
+
+def test_profile_imports_only_the_public_engine_surface() -> None:
+    source = Path(__file__).parents[3] / "src" / "open_brain" / "profile.py"
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+    imports = {
+        node.module
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom)
+        and node.module is not None
+        and node.module.startswith("open_brain")
+    }
+
+    assert imports == {"open_brain.engine"}
 
 
 def test_single_user_local_compiles_one_root_with_stable_identities_and_none_provider(

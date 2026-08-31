@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
@@ -11,8 +10,7 @@ from typing import Protocol
 from open_brain.cli._common import ExitCode, redacted_error
 from open_brain.core.models import PrivacyTier
 from open_brain.operations.runlog import RunMetadata
-
-_SHA256 = re.compile(r"[0-9a-f]{64}")
+from open_brain.production.retention import RetentionReport
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,30 +23,6 @@ class OperationsCliResult:
     def to_json(self) -> str:
         """Serialize the metadata-only envelope for automation callers."""
         return json.dumps(self.envelope, sort_keys=True, separators=(",", ":"))
-
-
-@dataclass(frozen=True, slots=True)
-class RetentionReport:
-    """Redacted retention outcome supplied by the typed retention service."""
-
-    candidate_count: int
-    manifest_digest: str
-    protected_count: int
-    removed_count: int
-    replayed: bool
-
-    def __post_init__(self) -> None:
-        if (
-            any(
-                not isinstance(value, int) or isinstance(value, bool) or value < 0
-                for value in (self.candidate_count, self.protected_count, self.removed_count)
-            )
-            or self.protected_count > self.candidate_count
-            or self.removed_count > self.candidate_count - self.protected_count
-            or _SHA256.fullmatch(self.manifest_digest) is None
-            or not isinstance(self.replayed, bool)
-        ):
-            raise ValueError("invalid retention report")
 
 
 class RetentionService(Protocol):

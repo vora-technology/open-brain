@@ -14,16 +14,64 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import Protocol
 
-from open_brain.cli.scheduled import ScheduledDispatchResult, ScheduledDispatchStatus
 from open_brain.engine import LockScope
 
 from .catalog import JOB_CATALOG, get_job
-from .models import HostRole, JobSpec, WriterScope
+from .models import ExitClass, HostRole, JobSpec, WriterScope
 from .scheduler import EXPECTED_JOB_IDS, validate_job_catalog
 
 
 class ProductionBindingError(ValueError):
     """A scheduler composition is incomplete or exceeds its catalog authority."""
+
+
+class ScheduledDispatchStatus(StrEnum):
+    """Closed metadata-only outcomes for one scheduled application dispatch."""
+
+    COMPLETED = "completed"
+    FAILED = "failed"
+    UNAVAILABLE = "unavailable"
+
+
+@dataclass(frozen=True, slots=True)
+class ScheduledDispatchResult:
+    """A redaction-safe scheduled result owned by the application boundary."""
+
+    job_id: str
+    exit_code: int
+    status: ScheduledDispatchStatus
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.job_id, str) or not self.job_id.startswith("JOB-"):
+            raise ValueError("invalid scheduled dispatch job")
+        if not isinstance(self.exit_code, int) or isinstance(self.exit_code, bool):
+            raise ValueError("invalid scheduled dispatch exit")
+        if self.exit_code not in {0, 1, int(ExitClass.LOCK_HELD), int(ExitClass.CONFIGURATION)}:
+            raise ValueError("scheduled dispatch cannot return usage or deferred")
+        if not isinstance(self.status, ScheduledDispatchStatus):
+            raise ValueError("invalid scheduled dispatch status")
+        if (self.status is ScheduledDispatchStatus.COMPLETED) != (self.exit_code == 0):
+            raise ValueError("scheduled dispatch status and exit disagree")
+
+    @classmethod
+    def completed(cls, job_id: str) -> ScheduledDispatchResult:
+        return cls(job_id, 0, ScheduledDispatchStatus.COMPLETED)
+
+    @classmethod
+    def failed(cls, job_id: str) -> ScheduledDispatchResult:
+        return cls(job_id, 1, ScheduledDispatchStatus.FAILED)
+
+    @classmethod
+    def unavailable(cls, job_id: str) -> ScheduledDispatchResult:
+        return cls(job_id, 1, ScheduledDispatchStatus.UNAVAILABLE)
+
+    @classmethod
+    def lock_held(cls, job_id: str) -> ScheduledDispatchResult:
+        return cls(job_id, int(ExitClass.LOCK_HELD), ScheduledDispatchStatus.FAILED)
+
+    @classmethod
+    def configuration(cls, job_id: str) -> ScheduledDispatchResult:
+        return cls(job_id, int(ExitClass.CONFIGURATION), ScheduledDispatchStatus.FAILED)
 
 
 class ApplicationFamily(StrEnum):

@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from open_brain.cli._common import ExitCode
-from open_brain.cli.operations import RetentionReport, run_retention
+from open_brain.cli.operations import run_retention
+from open_brain.production.retention import RetentionReport
 
 
 @dataclass
@@ -38,6 +39,10 @@ def test_retention_defaults_to_dry_run_and_serializes_only_metadata() -> None:
         "replayed": False,
         "status": "planned",
     }
+
+
+def test_retention_report_is_owned_by_the_production_service() -> None:
+    assert RetentionReport.__module__ == "open_brain.production.retention"
 
 
 def test_retention_redacts_service_failures() -> None:

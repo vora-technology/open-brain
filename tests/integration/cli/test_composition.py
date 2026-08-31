@@ -18,11 +18,6 @@ from open_brain.capture.models import CaptureWorkItem
 from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import SCHEDULED_ROUTES, command_names
-from open_brain.cli.composition import (
-    ConfiguredScheduledAdapters,
-    build_command_adapters,
-    run,
-)
 from open_brain.cli.main import main
 from open_brain.cli.scheduled import ScheduledDispatchStatus, dispatch_scheduled_route
 from open_brain.config import (
@@ -90,6 +85,11 @@ from open_brain.review.models import (
     ReviewState,
 )
 from open_brain.review.store import SqliteReviewStore
+from open_brain.services.application import (
+    ConfiguredScheduledAdapters,
+    build_command_adapters,
+)
+from open_brain.services.entrypoints import run_cli as run
 from open_brain.services.http_server import HttpServerFactory
 from open_brain.storage.locks import LockBusyError
 from open_brain.storage.sqlite import connect_database, migrate
@@ -409,54 +409,28 @@ def test_composition_root_wires_a_real_config_adapter_end_to_end() -> None:
 def test_composition_root_wires_every_public_command_family(tmp_path: Path) -> None:
     adapters = build_command_adapters(_filesystem_config(tmp_path))
 
-    assert tuple(sorted(adapters.adapters)) == command_names()
-
-
-@pytest.mark.parametrize(
-    ("route", "kind"),
-    [
-        ("state-backfill", "state_backfill"),
-        ("processed-at-backfill", "processed_at_backfill"),
-    ],
-)
-def test_composition_root_wires_configured_nonmutating_migration_plans(
-    route: str,
-    kind: str,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    adapters = build_command_adapters(_filesystem_config(tmp_path))
-
-    exit_code = main(("migrate", route, "--json"), command_adapters=adapters)
-
-    assert exit_code is ExitCode.SUCCESS
-    output = json.loads(capsys.readouterr().out)
-    assert output["status"] == "planned"
-    assert output["plan"]["kind"] == kind
-    assert "ready" not in output["plan"]
-
-
-def test_composition_root_rejects_unconfigured_content_layout_migration(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    adapters = build_command_adapters(_filesystem_config(tmp_path))
-
-    exit_code = main(
-        ("migrate", "content-layout", "--json"),
-        command_adapters=adapters,
+    assert tuple(sorted(adapters.adapters)) == tuple(
+        command for command in command_names() if command != "migrate"
     )
 
-    assert exit_code is ExitCode.USAGE
-    assert json.loads(capsys.readouterr().out) == {
-        "command": "migration",
-        "error": {
-            "code": "invalid_migration_request",
-            "message": "operation unavailable; details redacted",
-            "redacted": True,
-        },
-        "status": "invalid",
-    }
+
+def test_default_composition_excludes_pre_alpha_compatibility_routes(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    adapters = build_command_adapters(_filesystem_config(tmp_path))
+
+    assert {"migrate", "parity", "shadow"}.isdisjoint(adapters.adapters)
+    assert {"parity", "shadow"}.isdisjoint(command_names())
+    assert main(("migrate", "--json"), command_adapters=adapters) is ExitCode.FAILURE
+    assert json.loads(capsys.readouterr().out)["status"] == "unavailable"
+    for arguments in (
+        ("parity", "--json"),
+        ("shadow", "--json"),
+        ("doctor", "--cutover", "--json"),
+    ):
+        assert main(arguments, command_adapters=adapters) is ExitCode.USAGE
+        assert json.loads(capsys.readouterr().out)["status"] == "invalid"
 
 
 def test_composition_root_runs_confined_query_capture_and_proposals(
@@ -679,7 +653,7 @@ def test_run_classifies_scheduled_configuration_failure_as_exit_78(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -828,7 +802,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
         )
     )
     monkeypatch.setattr(
-        "open_brain.cli.composition.inspect_published_references",
+        "open_brain.services.application.inspect_published_references",
         lambda **_: PublishedReferenceInspection(0, 0),
     )
 
@@ -877,7 +851,7 @@ def test_composed_youtube_poll_uses_private_reference_and_queues_transcript(
     youtube_config.chmod(0o600)
     media = _YouTubeMediaAdapter()
     monkeypatch.setattr(
-        "open_brain.cli.composition.compose_production_capture_media_adapter",
+        "open_brain.services.application.compose_production_capture_media_adapter",
         lambda **_: media,
     )
     adapters = ConfiguredScheduledAdapters(
@@ -972,7 +946,7 @@ def test_composed_imessage_service_uses_keepalive_mode(
             calls.append("forever")
 
     monkeypatch.setattr(
-        "open_brain.cli.composition.compose_production_imessage_ingress",
+        "open_brain.services.application.compose_production_imessage_ingress",
         lambda **_: _Runtime(),
     )
     adapters = ConfiguredScheduledAdapters(
@@ -1151,7 +1125,7 @@ def test_composed_backup_requires_the_matching_canonical_writer_record(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -1173,7 +1147,7 @@ def test_composed_backup_rejects_a_different_canonical_writer(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -1187,14 +1161,14 @@ def test_composed_backup_preserves_lock_contention_exit(
     def lock_busy(**_: object) -> None:
         raise LockBusyError("synthetic contention")
 
-    monkeypatch.setattr("open_brain.cli.composition.run_writer_job", lock_busy)
+    monkeypatch.setattr("open_brain.services.application.run_writer_job", lock_busy)
     exit_code = main(
         ("backup", "run", "--profile=capture", "--json"),
         scheduled_adapters=ConfiguredScheduledAdapters(config, FixedClock()),
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 75
+    assert exit_code is ExitCode.LOCK_HELD
     assert output["error"]["code"] == "scheduled_application_lock_held"
 
 
@@ -1217,7 +1191,7 @@ def test_backup_effect_holds_canonical_authority_for_the_complete_run(
             )
 
     monkeypatch.setattr(
-        "open_brain.cli.composition.run_writer_job",
+        "open_brain.services.application.run_writer_job",
         assert_authority_lock,
     )
 
@@ -1285,7 +1259,7 @@ def test_composed_index_requires_staged_output_root(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -1305,9 +1279,7 @@ def test_composed_optional_life_os_jobs_persist_and_reset_the_current_plan(
     reset = adapters.dispatch_optional(get_job("JOB-019"))
     runtime = LifeOSPlanningRuntime.bind(root=config.state_root)
 
-    assert midday.exit_code is ExitCode.SUCCESS
-    assert planned.exit_code is ExitCode.SUCCESS
-    assert reset.exit_code is ExitCode.SUCCESS
+    assert (midday.exit_code, planned.exit_code, reset.exit_code) == (0, 0, 0)
     midday_request = runtime.load(
         operation=LifeOSRuntimeOperation.MIDDAY,
         plan_date=FixedClock().now().date(),
@@ -1326,7 +1298,7 @@ def test_composed_optional_automation_jobs_require_owner_only_configs(
     config = _filesystem_config(tmp_path)
     adapters = ConfiguredScheduledAdapters(config, FixedClock())
 
-    assert adapters.dispatch_optional(get_job("JOB-004")).exit_code is ExitCode.FAILURE
+    assert adapters.dispatch_optional(get_job("JOB-004")).exit_code == 1
     assert adapters.dispatch_optional(get_job("JOB-017")).exit_code == 78
     assert adapters.dispatch_optional(get_job("JOB-020")).exit_code == 78
     assert adapters.dispatch_optional(get_job("JOB-024")).exit_code == 78
@@ -1353,8 +1325,7 @@ def test_composed_sqlite_backup_and_retention_are_real_read_only_operations(
     sqlite_result = adapters.dispatch_optional(get_job("JOB-004"))
     retention_result = adapters.dispatch_optional(get_job("JOB-024"))
 
-    assert sqlite_result.exit_code is ExitCode.SUCCESS
-    assert retention_result.exit_code is ExitCode.SUCCESS
+    assert (sqlite_result.exit_code, retention_result.exit_code) == (0, 0)
     assert database.read_bytes() == source_bytes
     assert not (config.backup_root / "backups").exists()
     assert (config.backup_root / "recovery-baseline.json").exists()
@@ -1432,7 +1403,7 @@ def test_composed_message_extract_writes_review_and_advances_cursor(
         )
         queued = reviews.get(review_id_for(capture_id, Intent.ACTION_CANDIDATE.value))
 
-    assert result.exit_code is ExitCode.SUCCESS
+    assert result.exit_code == 0
     assert state.current_cursor(resource_ref) == "cursor_002"
     assert queued is not None
     assert queued.proposal.source_ref == "content_001"
@@ -1468,7 +1439,7 @@ def test_composed_message_sync_dry_run_does_not_write_review_or_cursor(
     ).dispatch_optional(get_job("JOB-021"))
     state = PersistentMessagingCursorStore(root=config.state_root, clock=FixedClock())
 
-    assert result.exit_code is ExitCode.SUCCESS
+    assert result.exit_code == 0
     assert state.current_cursor(resource_ref) is None
     assert not (config.state_root / "review" / "review.sqlite3").exists()
 
@@ -1546,11 +1517,11 @@ def test_composed_doctor_has_a_fully_healthy_concrete_path(
             generation="runtime-2026-08-16" if job_id == "JOB-025" else None,
         )
     monkeypatch.setattr(
-        "open_brain.cli.composition.inspect_published_references",
+        "open_brain.services.application.inspect_published_references",
         lambda **_: PublishedReferenceInspection(0, 0),
     )
     monkeypatch.setattr(
-        "open_brain.cli.composition._utc_now",
+        "open_brain.services.application._utc_now",
         lambda: FixedClock().now(),
     )
 
@@ -1650,7 +1621,7 @@ def test_composition_binds_stale_reference_reader_to_doctor(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    import open_brain.cli.composition as composition_module
+    import open_brain.services.application as composition_module
 
     monkeypatch.setattr(
         composition_module,

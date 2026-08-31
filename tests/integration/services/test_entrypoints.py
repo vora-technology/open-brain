@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import tomllib
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +20,21 @@ from open_brain.services.entrypoints import (
     load_private_http_bind_config,
 )
 from open_brain.services.http_server import HttpRouteMode
+
+
+def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
+    root = Path(__file__).parents[3]
+    application = root / "src" / "open_brain" / "services" / "application.py"
+    scripts = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]["scripts"]
+    module_source = (root / "src" / "open_brain" / "__main__.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert application.is_file()
+    assert scripts["open-brain"] == "open_brain.services.entrypoints:run_cli"
+    assert "from open_brain.services.entrypoints import run_cli" in module_source
 
 
 def _config(tmp_path: Path, *, with_token: bool = False) -> AppConfig:

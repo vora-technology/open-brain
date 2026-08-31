@@ -5,15 +5,13 @@ from __future__ import annotations
 import json
 import os
 import stat
+import unicodedata
 import uuid
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
 
-from open_brain.core.ids import portable_canonical_json_bytes
-from open_brain.engine.local import LocalEngineContext
-from open_brain.providers.base import ProviderMode
-from open_brain.storage.filesystem import atomic_write_new, read_confined
+from open_brain.engine import LocalEngineContext, ProviderMode
 
 
 class ProfileError(ValueError):
@@ -74,18 +72,14 @@ def _create_layout(root: Path) -> None:
         path = root.joinpath(*relative.split("/"))
         path.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(path, 0o700)
-    atomic_write_new(root=root, relative="brain.toml", data=b"layout_version = 1\n")
+    _write_new(root, "brain.toml", b"layout_version = 1\n")
 
 
 def _load_or_create_identity(root: Path) -> dict[str, object]:
-    payload = read_confined(root=root, relative=".open-brain/identity.json")
+    payload = _read_file(root, ".open-brain/identity.json")
     if payload is None:
         identity = _new_identity()
-        atomic_write_new(
-            root=root,
-            relative=".open-brain/identity.json",
-            data=portable_canonical_json_bytes(identity),
-        )
+        _write_new(root, ".open-brain/identity.json", _canonical_json_bytes(identity))
         return identity
     try:
         value = json.loads(payload.decode("utf-8"))
@@ -114,6 +108,97 @@ def _new_identity() -> dict[str, object]:
     }
     _validate_identity(value)
     return value
+
+
+def _canonical_json_bytes(value: object) -> bytes:
+    return json.dumps(
+        _normalize_json(value),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def _normalize_json(value: object) -> object:
+    if isinstance(value, float):
+        raise ProfileError("local identity is invalid")
+    if isinstance(value, str):
+        return unicodedata.normalize("NFC", value)
+    if isinstance(value, list | tuple):
+        return [_normalize_json(item) for item in value]
+    if isinstance(value, dict):
+        normalized: dict[str, object] = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise ProfileError("local identity is invalid")
+            normalized_key = unicodedata.normalize("NFC", key)
+            if normalized_key in normalized:
+                raise ProfileError("local identity is invalid")
+            normalized[normalized_key] = _normalize_json(item)
+        return normalized
+    return value
+
+
+def _write_new(root: Path, relative: str, payload: bytes) -> None:
+    path = root.joinpath(*relative.split("/"))
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        metadata = None
+    if metadata is not None:
+        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+            raise ProfileError("local profile file is unsafe")
+        if _read_file(root, relative) != payload:
+            raise ProfileError("local profile file conflicts")
+        return
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags, 0o600)
+        try:
+            remaining = memoryview(payload)
+            while remaining:
+                written = os.write(descriptor, remaining)
+                if written <= 0:
+                    raise OSError("short profile write")
+                remaining = remaining[written:]
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+    except FileExistsError:
+        if _read_file(root, relative) != payload:
+            raise ProfileError("local profile file conflicts") from None
+    except OSError as error:
+        raise ProfileError("local profile file is unavailable") from error
+
+
+def _read_file(root: Path, relative: str) -> bytes | None:
+    path = root.joinpath(*relative.split("/"))
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        return None
+    if (
+        stat.S_ISLNK(metadata.st_mode)
+        or not stat.S_ISREG(metadata.st_mode)
+        or metadata.st_size > 16_384
+    ):
+        raise ProfileError("local profile file is unsafe")
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags)
+        try:
+            current = os.fstat(descriptor)
+            if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
+                raise OSError("profile file changed")
+            payload = os.read(descriptor, 16_385)
+        finally:
+            os.close(descriptor)
+    except OSError as error:
+        raise ProfileError("local profile file is unavailable") from error
+    if len(payload) > 16_384:
+        raise ProfileError("local profile file is unsafe")
+    return payload
 
 
 def _portable_id(prefix: str) -> str:

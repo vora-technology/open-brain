@@ -458,6 +458,93 @@ def test_current_import_violations_exactly_match_temporary_live_debt() -> None:
     assert _live_debt_errors(SOURCE_ROOT, classification) == []
 
 
+def test_p2_w1_owner_edges_are_closed() -> None:
+    classification = _load_classification()
+    classified_paths = set(_classified_files(classification))
+
+    def targets(relative_path: str) -> set[str]:
+        path = SOURCE_ROOT / relative_path
+        return {
+            target
+            for reference in _import_references(path, SOURCE_ROOT, classified_paths)
+            if (target := _module_target(reference.module, classified_paths)) is not None
+        }
+
+    production_cli = {
+        (path.relative_to(SOURCE_ROOT).as_posix(), target)
+        for path in sorted((SOURCE_ROOT / "production").glob("*.py"))
+        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        if target.startswith("cli/")
+    }
+    operations_cli = {
+        (path.relative_to(SOURCE_ROOT).as_posix(), target)
+        for path in sorted((SOURCE_ROOT / "operations").glob("*.py"))
+        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        if target.startswith("cli/")
+    }
+    storage_operations = {
+        (path.relative_to(SOURCE_ROOT).as_posix(), target)
+        for path in sorted((SOURCE_ROOT / "storage").glob("*.py"))
+        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        if target.startswith("operations/")
+    }
+
+    assert production_cli == set()
+    assert operations_cli == set()
+    assert not any(target.startswith("ledger/") for target in targets("config.py"))
+    assert storage_operations == set()
+
+
+def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
+    classification = _load_classification()
+    classified_paths = set(_classified_files(classification))
+
+    def targets(relative_path: str) -> set[str]:
+        path = SOURCE_ROOT / relative_path
+        return {
+            target
+            for reference in _import_references(path, SOURCE_ROOT, classified_paths)
+            if (target := _module_target(reference.module, classified_paths)) is not None
+        }
+
+    entrypoints = targets("services/entrypoints.py")
+    application = targets("services/application.py")
+    production_application = targets("production/application.py")
+
+    assert {"services/application.py", "services/runtime.py"} <= entrypoints
+    assert "services/capabilities.py" not in entrypoints
+    assert "production/application.py" not in entrypoints
+    assert {"services/capabilities.py", "services/runtime.py"} <= application
+    assert "services/entrypoints.py" not in application
+    assert production_application == {"services/application.py"}
+
+    from open_brain.production.application import (
+        ProductionApplication as CompatibilityProductionApplication,
+    )
+    from open_brain.production.application import (
+        compose_production_application as compatibility_factory,
+    )
+    from open_brain.services.application import (
+        ProductionApplication as ApplicationProductionApplication,
+    )
+    from open_brain.services.application import compose_production_application
+    from open_brain.services.capabilities import (
+        ProductionApplication as CapabilityProductionApplication,
+    )
+    from open_brain.services.capabilities import (
+        compose_production_application as capability_factory,
+    )
+    from open_brain.services.entrypoints import (
+        compose_production_application as entrypoint_factory,
+    )
+
+    assert compose_production_application is capability_factory
+    assert entrypoint_factory is compose_production_application
+    assert compatibility_factory is compose_production_application
+    assert ApplicationProductionApplication is CapabilityProductionApplication
+    assert CompatibilityProductionApplication is ApplicationProductionApplication
+
+
 SYNTHETIC_FILES: dict[str, dict[str, object]] = {
     "app/composition.py": {
         "owner": "app",

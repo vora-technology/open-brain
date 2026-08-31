@@ -49,7 +49,6 @@ _FAMILIES = frozenset(
         "cron",
         "digest",
         "ledger",
-        "migrate",
         "okf",
         "social",
     }
@@ -91,7 +90,6 @@ class ProductionCommandDependencies:
     cron: CronReader | None = None
     digest: DigestService | None = None
     ledger: FamilyService | None = None
-    migrate: FamilyService | None = None
     okf: OkfService | None = None
 
 
@@ -155,8 +153,6 @@ class ProductionCommandAdapter:
             return self._digest(positional, options, dry_run)
         if family == "ledger":
             return self._delegate(self.dependencies.ledger, family, positional, options, dry_run)
-        if family == "migrate":
-            return self._delegate(self.dependencies.migrate, family, positional, options, dry_run)
         if family == "okf":
             return self._okf(positional, options, dry_run)
         return self._social(positional, options, dry_run)

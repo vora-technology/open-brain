@@ -23,11 +23,11 @@ from open_brain.cli._registry import (
 )
 from open_brain.cli.scheduled import (
     ScheduledApplicationAdapters,
-    ScheduledDispatchResult,
     UnavailableScheduledAdapters,
     dispatch_scheduled_route,
     write_scheduled_result,
 )
+from open_brain.operations.production_bindings import ScheduledDispatchResult
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -59,7 +59,7 @@ def main(
     command_adapters: CommandAdapterRegistry | None = None,
     scheduled_adapters: ScheduledApplicationAdapters | None = None,
     scheduled_job_id: str | None = None,
-) -> int:
+) -> ExitCode:
     """Select injected adapters without loading services or configuration."""
     arguments = tuple(sys.argv[1:] if argv is None else argv)
     if not arguments:
@@ -104,7 +104,7 @@ def main(
             json_output="--json" in arguments,
             stream=sys.stdout,
         )
-        return scheduled_result.exit_code
+        return ExitCode(scheduled_result.exit_code)
 
     dry_run = "--dry-run" in arguments
     command_index: int | None = None

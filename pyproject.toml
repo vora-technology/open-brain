@@ -28,7 +28,7 @@ integrations = []
 mcp = []
 
 [project.scripts]
-open-brain = "open_brain.cli.composition:run"
+open-brain = "open_brain.services.entrypoints:run_cli"
 open-brain-youtube-bridge = "open_brain.production.youtube_bridge:main"
 open-brain-project-commit-queue = "open_brain.production.project_commit_bridge:queue_main"
 open-brain-project-commit-relay = "open_brain.production.project_commit_bridge:relay_main"

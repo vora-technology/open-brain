@@ -1,6 +1,7 @@
 """Task-shaped local engine facade for the Phase 1 vertical slice."""
 
 from open_brain.core.locks import LockScope
+from open_brain.providers.base import ProviderMode
 
 from .local import (
     BrainEngine,
@@ -35,6 +36,7 @@ __all__ = [
     "LockScope",
     "MeasurementPayload",
     "ProposalDraft",
+    "ProviderMode",
     "ReferencePayload",
     "TextPayload",
 ]

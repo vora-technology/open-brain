@@ -1,10 +1,8 @@
-"""Composition root wiring real domain services into the public CLI."""
+"""App-owned construction for CLI, HTTP, MCP, and scheduled capabilities."""
 
 from __future__ import annotations
 
-import os
-import sys
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -24,18 +22,15 @@ from open_brain.cli._common import (
     redacted_error,
     unavailable_envelope,
 )
-from open_brain.cli._registry import CommandAdapterRegistry, scheduled_route_spec
+from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.config import ConfigCliResult, show_config
 from open_brain.cli.doctor import DoctorCommandAdapter
-from open_brain.cli.main import main
-from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.cli.production_adapters import build_production_command_adapters
 from open_brain.cli.review import ReviewCommandAdapter
-from open_brain.cli.scheduled import ScheduledDispatchResult
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain.core.ports import Clock
-from open_brain.engine import BrainEngine, LockScope
+from open_brain.engine import LockScope
 from open_brain.events.store import SqliteEventStore
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.life_os import LifePlanRequest, LifeResetRequest
@@ -48,6 +43,7 @@ from open_brain.integrations.messaging_runtime import (
 )
 from open_brain.integrations.ports import Capability, ProviderSyncRequest, SyncStatus
 from open_brain.ledger.embed import embed_text
+from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy
 from open_brain.ledger.store import SqliteLedgerStore, inspect_published_references
 from open_brain.operations.backup import BackupError
 from open_brain.operations.backup_writer import (
@@ -104,20 +100,13 @@ from open_brain.operations.probes import (
     unavailable_probe,
     writer_ownership_probe,
 )
+from open_brain.operations.production_bindings import ScheduledDispatchResult
 from open_brain.operations.replay_journal import SqliteReplayJournal
-from open_brain.operations.runlog import (
-    RunErrorClass,
-    RunMetadata,
-    RunOutcome,
-    classify_exit_code,
-)
-from open_brain.operations.runlog_store import FilesystemRunLogStore, RunLogStoreError
 from open_brain.operations.writer_jobs import (
     WriterJobError,
     WriterJobSpec,
     run_writer_job,
 )
-from open_brain.production.application import compose_production_application
 from open_brain.production.capture import compose_production_capture_runtime
 from open_brain.production.curation import (
     ProductionCurationError,
@@ -169,7 +158,6 @@ from open_brain.production.youtube_poll import (
     ProductionYouTubePollRuntime,
     load_private_youtube_config,
 )
-from open_brain.profile import compile_single_user_local
 from open_brain.providers.base import ProviderService
 from open_brain.review.maintenance import predecessor_curation_taxonomy
 from open_brain.review.store import (
@@ -177,13 +165,17 @@ from open_brain.review.store import (
     SqliteReviewStore,
     inspect_review_schema,
 )
-from open_brain.services.entrypoints import (
+from open_brain.services.capabilities import (
+    ProductionApplication,
+    compose_production_application,
+)
+from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
+from open_brain.services.runtime import (
     ServiceConfigurationError,
     compose_http_from_config,
     load_private_http_bind_config,
     read_private_service_secret,
 )
-from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
 from open_brain.storage.locks import FileLease, LockBusyError, inspect_file_leases
 from open_brain.storage.sqlite import SCHEMA_VERSION, inspect_event_schema
 from open_brain.storage.writer_record import WriterRecordError, read_canonical_writer_record
@@ -194,6 +186,8 @@ _LOCK_STALE_AFTER_SECONDS = {
     LockScope.BACKUP_PROFILE: 86_400,
     LockScope.INGRESS: 300,
 }
+
+__all__ = ["ProductionApplication", "compose_production_application"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -979,6 +973,7 @@ class ConfiguredScheduledAdapters:
             ):
                 composition = build_production_curation_batch(
                     config=self.config,
+                    taxonomy=_ledger_taxonomy(self.config),
                     now=now,
                     reviews=reviews,
                     events=events,
@@ -1427,6 +1422,7 @@ def build_command_adapters(
     )
     production = build_production_command_adapters(application.command_dependencies)
     adapters = dict(production.adapters)
+    adapters.pop("migrate", None)
     adapters.update(
         {
             "config": ConfigCommandAdapter(config=config),
@@ -1441,86 +1437,19 @@ def build_command_adapters(
     )
 
 
-def run(
-    argv: Sequence[str] | None = None,
-    *,
-    environment: Mapping[str, object] | None = None,
-) -> int:
-    """Load real configuration and dispatch through the pure CLI core.
-
-    This is the real process entry point: it performs the I/O that ``main``
-    deliberately does not (loading configuration from the environment). A
-    missing or invalid configuration degrades to the pre-existing unwired
-    behavior rather than crashing the process, so ``--version``/``--help``
-    and other commands are unaffected by configuration issues.
-    """
-    env = os.environ if environment is None else environment
-    phase1_root = env.get("OPEN_BRAIN_ROOT")
-    if isinstance(phase1_root, str) and phase1_root:
-        try:
-            profile = compile_single_user_local(Path(phase1_root))
-            engine = BrainEngine.open(profile)
-            return main(argv, command_adapters=build_phase1_command_adapters(engine))
-        except (OSError, ValueError, LockBusyError):
-            return main(argv)
-    try:
-        config = AppConfig.load(environment=env)
-    except ConfigError:
-        return main(
-            argv,
-            command_adapters=_degraded_doctor_adapters(),
-            scheduled_adapters=ConfigurationFailedScheduledAdapters(),
-        )
-    arguments = tuple(sys.argv[1:] if argv is None else argv)
-    scheduled_job_id = env.get("OPEN_BRAIN_JOB_ID")
-    scheduled_adapters = ConfiguredScheduledAdapters(
-        config,
-        _SystemClock(),
-        environment=env,
-        imessage_service_mode=scheduled_job_id == "JOB-005",
-        http_service_mode=scheduled_job_id in {"JOB-026", "JOB-027", "JOB-028"},
-    )
-    route = scheduled_route_spec(
-        arguments,
-        job_id=scheduled_job_id if isinstance(scheduled_job_id, str) else None,
-    )
-    if (
-        route is not None
-        and isinstance(scheduled_job_id, str)
-        and scheduled_job_id == route.job_id
-    ):
-        started_at = _utc_now()
-        exit_code = main(
-            argv,
-            scheduled_adapters=scheduled_adapters,
-            scheduled_job_id=scheduled_job_id,
-        )
-        finished_at = _utc_now()
-        try:
-            outcome = classify_exit_code(int(exit_code))
-            error_class = {
-                RunOutcome.SUCCEEDED: None,
-                RunOutcome.SKIPPED_LOCKED: RunErrorClass.LOCK_HELD,
-                RunOutcome.CONFIGURATION_FAILED: RunErrorClass.CONFIGURATION,
-                RunOutcome.FAILED: RunErrorClass.JOB_FAILURE,
-            }[outcome]
-            FilesystemRunLogStore(root=config.state_root).append(
-                RunMetadata.create(
-                    job_id=scheduled_job_id,
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    exit_code=int(exit_code),
-                    error_class=error_class,
-                    metrics={},
-                )
+def _ledger_taxonomy(config: AppConfig) -> LedgerTaxonomy:
+    taxonomy = config.ledger.taxonomy
+    return LedgerTaxonomy.create(
+        version=taxonomy.version,
+        routes=tuple(
+            LedgerRoute.create(
+                path_prefix=route.path_prefix,
+                topic_id=route.topic_id,
+                topic_label=route.topic_label,
+                privacy_tier=route.privacy_tier,
             )
-        except (RunLogStoreError, ValueError):
-            return ExitCode.FAILURE
-        return exit_code
-    return main(
-        argv,
-        command_adapters=build_command_adapters(config, environment=env),
-        scheduled_adapters=scheduled_adapters,
+            for route in taxonomy.routes
+        ),
     )
 
 

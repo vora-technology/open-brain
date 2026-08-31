@@ -496,13 +496,6 @@
         "representation"
       ]
     },
-    "cli/composition.py": {
-      "owner": "app",
-      "api": "internal",
-      "roles": [
-        "composition"
-      ]
-    },
     "cli/config.py": {
       "owner": "app",
       "api": "internal",
@@ -1416,6 +1409,20 @@
       "api": "internal",
       "roles": []
     },
+    "services/application.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": [
+        "composition"
+      ]
+    },
+    "services/capabilities.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": [
+        "composition"
+      ]
+    },
     "services/composition.py": {
       "owner": "app",
       "api": "internal",
@@ -1435,6 +1442,13 @@
       "api": "internal",
       "roles": [
         "transport"
+      ]
+    },
+    "services/runtime.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": [
+        "composition"
       ]
     },
     "services/mcp_stdio.py": {
@@ -1532,25 +1546,6 @@
     "app-to-engine-internals: cli/capture.py:14 -> core/models.py",
     "app-to-engine-internals: cli/capture.py:24 -> core/policy.py",
     "app-to-engine-internals: cli/capture.py:25 -> core/ports.py",
-    "app-to-engine-internals: cli/composition.py:107 -> operations/replay_journal.py",
-    "app-to-engine-internals: cli/composition.py:108 -> operations/runlog.py",
-    "app-to-engine-internals: cli/composition.py:173 -> providers/base.py",
-    "app-to-engine-internals: cli/composition.py:174 -> review/maintenance.py",
-    "app-to-engine-internals: cli/composition.py:175 -> review/store.py",
-    "app-to-engine-internals: cli/composition.py:187 -> storage/locks.py",
-    "app-to-engine-internals: cli/composition.py:188 -> storage/sqlite.py",
-    "app-to-engine-internals: cli/composition.py:189 -> storage/writer_record.py",
-    "app-to-engine-internals: cli/composition.py:19 -> capture/queue.py",
-    "app-to-engine-internals: cli/composition.py:20 -> capture/service.py",
-    "app-to-engine-internals: cli/composition.py:36 -> core/models.py",
-    "app-to-engine-internals: cli/composition.py:37 -> core/ports.py",
-    "app-to-engine-internals: cli/composition.py:39 -> events/store.py",
-    "app-to-engine-internals: cli/composition.py:50 -> ledger/embed.py",
-    "app-to-engine-internals: cli/composition.py:51 -> ledger/store.py",
-    "app-to-engine-internals: cli/composition.py:79 -> operations/index.py",
-    "app-to-engine-internals: cli/composition.py:80 -> operations/index.py",
-    "app-to-engine-internals: cli/composition.py:83 -> operations/models.py",
-    "app-to-engine-internals: cli/composition.py:84 -> operations/now.py",
     "app-to-engine-internals: cli/ledger.py:12 -> core/models.py",
     "app-to-engine-internals: cli/ledger.py:13 -> ledger/age.py",
     "app-to-engine-internals: cli/ledger.py:14 -> ledger/embed.py",
@@ -1565,8 +1560,8 @@
     "app-to-engine-internals: cli/ledger.py:23 -> ledger/stage.py",
     "app-to-engine-internals: cli/ledger.py:29 -> ledger/synthesis.py",
     "app-to-engine-internals: cli/ledger.py:35 -> ledger/synthesis_store.py",
-    "app-to-engine-internals: cli/operations.py:12 -> core/models.py",
-    "app-to-engine-internals: cli/operations.py:13 -> operations/runlog.py",
+    "app-to-engine-internals: cli/operations.py:11 -> core/models.py",
+    "app-to-engine-internals: cli/operations.py:12 -> operations/runlog.py",
     "app-to-engine-internals: cli/production_adapters.py:35 -> core/models.py",
     "app-to-engine-internals: cli/production_adapters.py:37 -> operations/status.py",
     "app-to-engine-internals: cli/proposals.py:12 -> review/models.py",
@@ -1574,9 +1569,8 @@
     "app-to-engine-internals: cli/review.py:13 -> core/ports.py",
     "app-to-engine-internals: cli/review.py:14 -> review/maintenance.py",
     "app-to-engine-internals: cli/review.py:20 -> review/models.py",
-    "app-to-engine-internals: cli/scheduled.py:14 -> operations/models.py",
+    "app-to-engine-internals: cli/scheduled.py:13 -> operations/models.py",
     "app-to-engine-internals: cli/status.py:8 -> operations/status.py",
-    "app-to-engine-internals: config.py:14 -> ledger/models.py",
     "app-to-engine-internals: integrations/phase1_ui.py:12 -> capture/auth.py",
     "app-to-engine-internals: integrations/phase1_ui.py:13 -> core/ids.py",
     "app-to-engine-internals: integrations/ui.py:10 -> capture/auth.py",
@@ -1607,7 +1601,7 @@
     "app-to-engine-internals: operations/now_runtime.py:9 -> core/ids.py",
     "app-to-engine-internals: operations/optional_jobs.py:12 -> operations/models.py",
     "app-to-engine-internals: operations/probes.py:13 -> operations/models.py",
-    "app-to-engine-internals: operations/production_bindings.py:21 -> operations/models.py",
+    "app-to-engine-internals: operations/production_bindings.py:20 -> operations/models.py",
     "app-to-engine-internals: operations/render.py:6 -> operations/models.py",
     "app-to-engine-internals: operations/runlog_store.py:11 -> core/ids.py",
     "app-to-engine-internals: operations/runlog_store.py:12 -> storage/filesystem.py",
@@ -1617,14 +1611,6 @@
     "app-to-engine-internals: operations/writer_jobs.py:13 -> core/ids.py",
     "app-to-engine-internals: operations/writer_jobs.py:15 -> review/models.py",
     "app-to-engine-internals: operations/writer_jobs.py:18 -> operations/models.py",
-    "app-to-engine-internals: production/application.py:13 -> capture/models.py",
-    "app-to-engine-internals: production/application.py:14 -> capture/queue.py",
-    "app-to-engine-internals: production/application.py:27 -> core/models.py",
-    "app-to-engine-internals: production/application.py:28 -> core/ports.py",
-    "app-to-engine-internals: production/application.py:30 -> integrations/retrieval.py",
-    "app-to-engine-internals: production/application.py:35 -> operations/runlog.py",
-    "app-to-engine-internals: production/application.py:37 -> operations/status.py",
-    "app-to-engine-internals: production/application.py:43 -> review/store.py",
     "app-to-engine-internals: production/assets.py:11 -> core/models.py",
     "app-to-engine-internals: production/capture.py:11 -> capture/distillation.py",
     "app-to-engine-internals: production/capture.py:18 -> capture/extractors/text.py",
@@ -1659,12 +1645,37 @@
     "app-to-engine-internals: production/runtime.py:22 -> core/ports.py",
     "app-to-engine-internals: production/sqlite_backup.py:11 -> core/ids.py",
     "app-to-engine-internals: production/sqlite_backup.py:12 -> core/ports.py",
-    "app-to-engine-internals: profile.py:13 -> core/ids.py",
-    "app-to-engine-internals: profile.py:14 -> engine/local.py",
-    "app-to-engine-internals: profile.py:15 -> providers/base.py",
-    "app-to-engine-internals: profile.py:16 -> storage/filesystem.py",
     "app-to-engine-internals: release/installation.py:10 -> operations/models.py",
-    "app-to-engine-internals: services/entrypoints.py:20 -> core/ids.py",
+    "app-to-engine-internals: services/application.py:104 -> operations/replay_journal.py",
+    "app-to-engine-internals: services/application.py:161 -> providers/base.py",
+    "app-to-engine-internals: services/application.py:162 -> review/maintenance.py",
+    "app-to-engine-internals: services/application.py:163 -> review/store.py",
+    "app-to-engine-internals: services/application.py:17 -> capture/queue.py",
+    "app-to-engine-internals: services/application.py:179 -> storage/locks.py",
+    "app-to-engine-internals: services/application.py:18 -> capture/service.py",
+    "app-to-engine-internals: services/application.py:180 -> storage/sqlite.py",
+    "app-to-engine-internals: services/application.py:181 -> storage/writer_record.py",
+    "app-to-engine-internals: services/application.py:31 -> core/models.py",
+    "app-to-engine-internals: services/application.py:32 -> core/ports.py",
+    "app-to-engine-internals: services/application.py:34 -> events/store.py",
+    "app-to-engine-internals: services/application.py:45 -> ledger/embed.py",
+    "app-to-engine-internals: services/application.py:46 -> ledger/models.py",
+    "app-to-engine-internals: services/application.py:47 -> ledger/store.py",
+    "app-to-engine-internals: services/application.py:75 -> operations/index.py",
+    "app-to-engine-internals: services/application.py:76 -> operations/index.py",
+    "app-to-engine-internals: services/application.py:79 -> operations/models.py",
+    "app-to-engine-internals: services/application.py:80 -> operations/now.py",
+    "app-to-engine-internals: services/capabilities.py:13 -> capture/models.py",
+    "app-to-engine-internals: services/capabilities.py:14 -> capture/queue.py",
+    "app-to-engine-internals: services/capabilities.py:26 -> core/models.py",
+    "app-to-engine-internals: services/capabilities.py:27 -> core/ports.py",
+    "app-to-engine-internals: services/capabilities.py:29 -> integrations/retrieval.py",
+    "app-to-engine-internals: services/capabilities.py:33 -> operations/runlog.py",
+    "app-to-engine-internals: services/capabilities.py:35 -> operations/status.py",
+    "app-to-engine-internals: services/capabilities.py:41 -> review/store.py",
+    "app-to-engine-internals: services/entrypoints.py:56 -> operations/runlog.py",
+    "app-to-engine-internals: services/entrypoints.py:64 -> storage/locks.py",
+    "app-to-engine-internals: services/runtime.py:18 -> core/ids.py",
     "connector-capability-only: capture/egress.py:15 -> core/models.py",
     "connector-capability-only: capture/egress.py:16 -> core/ports.py",
     "connector-capability-only: capture/extractors/article.py:17 -> core/ids.py",
@@ -1724,16 +1735,17 @@
     "connector-capability-only: production/curation.py:13 -> core/ports.py",
     "connector-capability-only: production/curation.py:14 -> events/store.py",
     "connector-capability-only: production/curation.py:15 -> ledger/merge.py",
-    "connector-capability-only: production/curation.py:16 -> ledger/sanitize.py",
-    "connector-capability-only: production/curation.py:17 -> ledger/scan.py",
-    "connector-capability-only: production/curation.py:18 -> ledger/service.py",
-    "connector-capability-only: production/curation.py:19 -> ledger/stage.py",
-    "connector-capability-only: production/curation.py:20 -> ledger/store.py",
-    "connector-capability-only: production/curation.py:28 -> operations/writer_jobs.py",
-    "connector-capability-only: production/curation.py:29 -> review/models.py",
-    "connector-capability-only: production/curation.py:30 -> review/store.py",
-    "connector-capability-only: production/curation.py:31 -> storage/filesystem.py",
-    "connector-capability-only: production/curation.py:38 -> storage/frontmatter.py",
+    "connector-capability-only: production/curation.py:16 -> ledger/models.py",
+    "connector-capability-only: production/curation.py:17 -> ledger/sanitize.py",
+    "connector-capability-only: production/curation.py:18 -> ledger/scan.py",
+    "connector-capability-only: production/curation.py:19 -> ledger/service.py",
+    "connector-capability-only: production/curation.py:20 -> ledger/stage.py",
+    "connector-capability-only: production/curation.py:21 -> ledger/store.py",
+    "connector-capability-only: production/curation.py:29 -> operations/writer_jobs.py",
+    "connector-capability-only: production/curation.py:30 -> review/models.py",
+    "connector-capability-only: production/curation.py:31 -> review/store.py",
+    "connector-capability-only: production/curation.py:32 -> storage/filesystem.py",
+    "connector-capability-only: production/curation.py:39 -> storage/frontmatter.py",
     "connector-capability-only: production/git_sync.py:15 -> core/ids.py",
     "connector-capability-only: production/git_sync.py:22 -> operations/writer_jobs.py",
     "connector-capability-only: production/imessage.py:21 -> core/ids.py",
@@ -1786,8 +1798,6 @@
     "nonliteral-dynamic-import: providers/base.py:162",
     "representation-to-adapters: capture/http.py:19 -> capture/queue.py",
     "representation-to-adapters: cli/ledger.py:35 -> ledger/synthesis_store.py",
-    "shipping-to-legacy: cli/doctor.py:11 -> cli/phase6_adapters.py",
-    "shipping-to-legacy: production/application.py:17 -> cli/migrate.py",
-    "shipping-to-legacy: production/application.py:34 -> migrate/_models.py"
+    "representation-to-adapters: cli/scheduled.py:14 -> operations/production_bindings.py"
   ]
 }

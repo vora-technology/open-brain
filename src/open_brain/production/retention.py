@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import stat
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -12,7 +13,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import cast
 
-from open_brain.cli.operations import RetentionReport
 from open_brain.config import AppConfig
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.ports import Clock
@@ -29,6 +29,33 @@ _MAX_CANDIDATES = 10_000
 
 class ProductionRetentionError(RuntimeError):
     """The production retention policy or requested operation is invalid."""
+
+
+_SHA256 = re.compile(r"[0-9a-f]{64}")
+
+
+@dataclass(frozen=True, slots=True)
+class RetentionReport:
+    """Redacted retention outcome owned by the production service."""
+
+    candidate_count: int
+    manifest_digest: str
+    protected_count: int
+    removed_count: int
+    replayed: bool
+
+    def __post_init__(self) -> None:
+        if (
+            any(
+                not isinstance(value, int) or isinstance(value, bool) or value < 0
+                for value in (self.candidate_count, self.protected_count, self.removed_count)
+            )
+            or self.protected_count > self.candidate_count
+            or self.removed_count > self.candidate_count - self.protected_count
+            or _SHA256.fullmatch(self.manifest_digest) is None
+            or not isinstance(self.replayed, bool)
+        ):
+            raise ValueError("invalid retention report")
 
 
 class ProductionRetentionRoot(StrEnum):
@@ -270,6 +297,7 @@ __all__ = [
     "ProductionRetentionError",
     "ProductionRetentionRoot",
     "ProductionRetentionService",
+    "RetentionReport",
     "compose_production_retention_service",
     "load_private_retention_config",
 ]

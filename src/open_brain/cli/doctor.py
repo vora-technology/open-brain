@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from types import MappingProxyType
 
 from open_brain.cli._common import ExitCode, redacted_error
-from open_brain.cli.phase6_adapters import CutoverDoctorCommandAdapter
 from open_brain.operations.doctor import (
     DoctorProbe,
     DoctorResult,
@@ -32,10 +31,9 @@ class DoctorCliResult:
 
 @dataclass(frozen=True, slots=True)
 class DoctorCommandAdapter:
-    """Route the one doctor family to probe-backed or cutover diagnostics."""
+    """Route the one doctor family to probe-backed diagnostics."""
 
     probes: Mapping[ProbeName, DoctorProbe] | None = None
-    cutover: CutoverDoctorCommandAdapter | None = None
     timeout_seconds: float = 5.0
 
     def __post_init__(self) -> None:
@@ -44,10 +42,6 @@ class DoctorCommandAdapter:
 
     def dispatch(self, argv: tuple[str, ...]) -> DoctorCliResult:
         options = tuple(argument for argument in argv if argument != "--json")
-        if options == ("--cutover",):
-            adapter = self.cutover or CutoverDoctorCommandAdapter()
-            cutover_result = adapter.dispatch(argv)
-            return DoctorCliResult(cutover_result.exit_code, cutover_result.envelope)
         roles: dict[tuple[str, ...], DoctorRole] = {
             ("--role=writer",): DoctorRole.WRITER,
             ("--role=probe",): DoctorRole.PROBE,

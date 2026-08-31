@@ -73,7 +73,9 @@ remain usable and report `pending_enrichment`.
 
 This is pre-alpha software. Phase 1 does not include a bound HTTP service, model-backed
 enrichment, export/import, connector ingestion, package extraction, hosted operation, migration,
-or production cutover. The older modules remain in place until their later architecture phases.
+or production cutover. The default application composition no longer binds predecessor migration,
+parity, shadow, or `doctor --cutover` routes; their older modules remain in place for explicit
+legacy compatibility tests until later architecture phases.
 
 ## License
 

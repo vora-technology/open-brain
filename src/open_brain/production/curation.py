@@ -13,6 +13,7 @@ from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.ports import PutDisposition, PutResult
 from open_brain.events.store import SqliteEventStore
 from open_brain.ledger.merge import TrustedCitation
+from open_brain.ledger.models import LedgerTaxonomy
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
 from open_brain.ledger.scan import scan_distillation_work_item
 from open_brain.ledger.service import CaptureCitationResolver, LedgerService
@@ -112,6 +113,7 @@ class FilesystemCurationReviewQueue(ReviewQueueBoundary):
 def build_production_curation_batch(
     *,
     config: AppConfig,
+    taxonomy: LedgerTaxonomy,
     now: datetime,
     reviews: SqliteReviewStore,
     events: SqliteEventStore,
@@ -119,7 +121,7 @@ def build_production_curation_batch(
 ) -> ProductionCurationBatch:
     """Build all due approved promotions without applying or deciding reviews."""
     current = _utc(now)
-    if not isinstance(config, AppConfig):
+    if not isinstance(config, AppConfig) or not isinstance(taxonomy, LedgerTaxonomy):
         raise ProductionCurationError("invalid curation configuration")
     cutoff = (current - timedelta(days=1)).date()
     queue = FilesystemCurationReviewQueue(root=config.state_root)
@@ -150,7 +152,7 @@ def build_production_curation_batch(
             if len(matching_events) != 1:
                 raise ProductionCurationError("curation event binding conflict")
             event = matching_events[0]
-            route = config.ledger.taxonomy.route_for(target.page)
+            route = taxonomy.route_for(target.page)
             if route is None or route.privacy_tier is not approved.privacy_tier:
                 followups.append(_followup(approved, aggregate, queue))
                 continue
@@ -162,10 +164,10 @@ def build_production_curation_batch(
             record = scan_distillation_work_item(
                 item=item,
                 event=event,
-                taxonomy=config.ledger.taxonomy,
+                taxonomy=taxonomy,
                 source_locator=target.page,
             )
-            stage = stage_scan_record(record=record, taxonomy=config.ledger.taxonomy)
+            stage = stage_scan_record(record=record, taxonomy=taxonomy)
             sanitized = sanitize_leaf(
                 item_id=approved.record_id,
                 section=LedgerSection.SUMMARY,

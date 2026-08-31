@@ -14,6 +14,7 @@ from open_brain.cli.scheduled import (
     ScheduledDispatchResult,
     UnavailableScheduledAdapters,
     dispatch_scheduled_route,
+    scheduled_result_envelope,
 )
 from open_brain.operations.capture_jobs import CaptureJobApplication
 from open_brain.operations.catalog import get_job
@@ -95,8 +96,8 @@ def test_scheduled_result_preserves_operational_exit_classes(
     expected_exit: ExitClass,
     error_code: str,
 ) -> None:
-    assert result.exit_code is expected_exit
-    assert result.to_envelope()["error"] == {
+    assert result.exit_code == int(expected_exit)
+    assert scheduled_result_envelope(result)["error"] == {
         "code": error_code,
         "message": "operation unavailable; details redacted",
         "redacted": True,
