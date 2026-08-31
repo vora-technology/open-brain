@@ -57,6 +57,7 @@ CREDENTIAL_ASSIGNMENT_RE = re.compile(
     rb"\s*[:=]\s*['\"]?[A-Za-z0-9._~+/=-]{8,}"
 )
 TEXT_SCAN_LIMIT = 2 * 1024 * 1024
+NO_ADDITIONAL_TERMS_MARKER = "# no additional project terms"
 PORTABLE_FIXTURE_PATHS = (
     ("tests", "fixtures", "portable-brain", "v1", "brain-root"),
     ("open_brain", "portable", "conformance", "v1", "brain-root"),
@@ -145,14 +146,22 @@ def content_rule_ids(data: bytes, deny_terms: Sequence[str]) -> tuple[str, ...]:
 def _load_denylist(path: Path) -> tuple[str, ...]:
     if not path.is_file():
         raise ValueError("private denylist is required and must be a readable file")
-    terms = tuple(
+    lines = tuple(
         _normalize_text(line.strip())
         for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
+        if line.strip()
     )
-    if not terms:
-        raise ValueError("private denylist must contain at least one non-comment term")
-    return terms
+    terms = tuple(
+        line for line in lines if not line.startswith("#")
+    )
+    if terms:
+        return terms
+    if lines == (NO_ADDITIONAL_TERMS_MARKER,):
+        return ()
+    raise ValueError(
+        "private denylist must contain at least one non-comment term or the exact "
+        f"{NO_ADDITIONAL_TERMS_MARKER!r} marker"
+    )
 
 
 def _iter_tree(root: Path) -> Iterable[tuple[str, bytes]]:
