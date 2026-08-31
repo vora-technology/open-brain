@@ -51,7 +51,7 @@ v0 support promise.
 
 ## Native artifact status
 
-Phase 1 pending: PyInstaller 6 onedir is the first candidate, with Nuitka standalone as the
+Phase 4 pending: PyInstaller 6 onedir is the first candidate, with Nuitka standalone as the
 accepted fallback if that spike fails. The policy has an empty `published` list and does not
 assert that a native artifact exists. No bundler spike or clean-host run is Phase 0 evidence.
 

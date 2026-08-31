@@ -146,6 +146,6 @@
     "bundler_candidate": "PyInstaller 6 onedir",
     "fallback": "Nuitka standalone",
     "published": [],
-    "status": "pending-phase-1-spike"
+    "status": "pending-phase-4-spike"
   }
 }

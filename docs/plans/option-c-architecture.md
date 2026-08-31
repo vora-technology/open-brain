@@ -18,7 +18,7 @@ Option C is the target OSS architecture. Open Brain will remain one monorepo at 
 
 A later managed deployment, referred to here as `open-brain-hosted`, is a fifth consumer rather than a fifth dependency of the OSS runtime. It uses the published engine and Portable Brain contract, adds tenant provisioning, managed identity, envelope encryption, scoped workers, audit, and fleet operations, and cannot redefine canonical schemas. Its repository and publication policy can be decided after the OSS alpha; its dependency direction is fixed now.
 
-The physical split is not the first implementation step. The first step is a contract-level vertical slice through generic typed capture, unassigned inbox routing, independent derived-output review, publication, space-aware lexical retrieval, and portable export. The existing monolith stays in place while that journey is made executable and tested. Package movement begins only after the slice passes.
+The physical split is not the first implementation step. The first step is a contract-level vertical slice through generic typed capture, unassigned inbox routing, independent derived-output review, publication, space-aware lexical retrieval, and portable export. The existing monolith stays in place while that journey is made executable and tested. Phase 2 may extract single-owner modules inside the existing `src/open_brain` tree. The four-distribution move begins only in Phase 4.
 
 This sequencing keeps Option C from becoming another architecture project that delays a usable release.
 
@@ -448,7 +448,7 @@ The public release contains:
 
 The target install experience is a self-contained application artifact; `pipx` plus the app wheel remains a development and recovery path. Linux builds use Ubuntu 24.04 as the compatibility baseline. Intel macOS, Linux `arm64`, and Windows are not supported in v0.
 
-PyInstaller 6 one-folder mode is the first bundler candidate. A one-working-day spike must verify clean installation, daemon startup, package and resource discovery, upgrade, backup and restore, and uninstall on the accepted host matrix. The macOS result is wrapped in a signed and notarized artifact; the Linux result is a checksummed archive. If PyInstaller fails the spike, Phase 1 evaluates Nuitka standalone under the same gate. Neither route may require system Python on a release host.
+PyInstaller 6 one-folder mode is the first bundler candidate. A one-working-day spike must verify clean installation, daemon startup, package and resource discovery, upgrade, backup and restore, and uninstall on the accepted host matrix. The macOS result is wrapped in a signed and notarized artifact; the Linux result is a checksummed archive. Phase 4 runs this spike after the Phase 3 appliance surfaces exist. If PyInstaller fails, Phase 4 evaluates Nuitka standalone under the same gate. Neither route may require system Python on a release host.
 
 Containers are evaluated after native artifacts pass. A container does not replace the Mac launchd path, and it is not accepted for Linux until ownership, volume, backup, upgrade, and localhost-auth behavior pass the same product gates.
 
@@ -533,7 +533,7 @@ Work:
 - move all composition out of CLI handlers;
 - remove `production -> cli` and `config -> ledger model` dependency leaks;
 - relocate the canonical lock-scope value so `storage` no longer imports `operations.models` and no duplicate lock vocabulary is created;
-- split mixed `operations`, `integrations`, and `production` files by the ownership map;
+- split mixed `operations`, `integrations`, and `production` behavior into single-owner internal modules inside the existing source tree; defer separate distributions and the `packages/` move to Phase 4;
 - make CLI, HTTP, UI, MCP, and daemon jobs depend on the engine task interface;
 - define the internal connector discovery/run interface and build the first reference connector proof without making it part of the default profile;
 - implement the versioned open source-record, content-addressed blob, portable history, and export/import interfaces;
@@ -543,7 +543,7 @@ Work:
 Exit gate:
 
 - all import rules pass;
-- deleting the optional connector installation leaves the default journey intact;
+- connector discovery may return no installed connectors and the default journey remains intact; Phase 4 repeats this gate with the connector distribution physically absent;
 - the engine test suite runs without importing CLI, HTTP listeners, OS supervisors, or legacy code;
 - the same conformance fixture round-trips through local engine interfaces with stable identities and exact bytes;
 - public result envelopes contain no absolute paths, secrets, or raw private content.
@@ -703,7 +703,7 @@ Promote existing capture, review, ledger, storage, provider, scheduler, and serv
 | Hosted requirements take over the OSS release | KMS, billing, fleet, or shared-user work appears in Phases 0 through 5 | Build only identity, encryption ports, and portability conformance in OSS v0; defer the managed implementation to Phase 6 |
 | Hosted storage quietly forks the Brain | Hosted export needs private transforms or loses review history | Make hosted-to-local round trip a conformance gate and prohibit hosted-only canonical schemas |
 | One daemon creates a large failure domain | A slow connector delays capture or review | Durable queues, per-task budgets, isolated connector runs, and supervisor restart tests |
-| Artifact ambition delays the alpha | PyInstaller fails late or unsupported architectures enter the release matrix | Run the one-working-day spike in Phase 1, keep the accepted matrix bounded, and move to Nuitka on recorded failure |
+| Artifact ambition delays the alpha | PyInstaller fails late or unsupported architectures enter the release matrix | Run the one-working-day spike in Phase 4 after the appliance surfaces exist, keep the accepted matrix bounded, and move to Nuitka on recorded failure |
 | Legacy/private behavior leaks into OSS | Public artifact or docs require predecessor names, inventories, or private fixtures | Enforce the legacy dependency rule, artifact inspection, and pre-publication history audit |
 
 ## Approved decisions and remaining evidence
@@ -715,7 +715,7 @@ The owner approved these bounded decisions on 2026-08-30:
 3. Support macOS 14 or newer on Apple Silicon and Linux `x86_64` on Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13.
 4. Run PyInstaller 6 one-folder mode as the first bundler candidate under a one-working-day clean-host spike, with Nuitka standalone as the accepted fallback.
 
-No additional owner choice is required for these four items. Phase 0 still must produce reviewable JSON Schemas and conformance fixtures. Phase 1 still must produce the bundler spike evidence before the release artifact implementation proceeds.
+No additional owner choice is required for these four items. Phase 0 produced the reviewable JSON Schemas and conformance fixtures. Phase 4 must produce the bundler spike evidence before release artifact implementation proceeds.
 
 ## Definition of done
 
