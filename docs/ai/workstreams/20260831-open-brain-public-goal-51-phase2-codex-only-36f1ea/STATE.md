@@ -11,17 +11,17 @@
 
 ## Current milestone
 
-- Milestone: P2-W0 freeze boundaries and canonical vocabulary
+- Milestone: P2-W1 application composition inversion
 - Status: verified; evidence commit pending
-- Allowed scope: canonical lock ownership, file-level runtime ownership, eight import rules, exact temporary debt, literal/non-literal dynamic-import enforcement, and pre-W1 behavior freezes
-- Stop condition: P2-W1 starts before P2-W0 has a clean verified checkpoint
-- Code checkpoint: `a28ffb1`
-- Result: one engine-owned `LockScope`; 188/188 runtime files classified; all eight rules have non-vacuous static and literal dynamic fixtures; 284 current violations are named exactly as temporary debt
+- Allowed scope: app-owned construction and startup, producer-owned result/config values, public engine profile imports, default predecessor-route removal, exact architecture classification and debt
+- Stop condition: P2-W2 starts before P2-W1 has a clean verified checkpoint and independent READY review
+- Code checkpoint: `9cbacbd`
+- Result: one app-owned composition facade with a one-way startup graph; production is a compatibility shim; forbidden production-to-CLI, operations-to-CLI, config-to-ledger, and storage-to-operations edges are absent; default migrate, parity, shadow, and cutover routes are unavailable; 190/190 runtime files are classified with 280 exact temporary-debt entries
 
 ## Last verification
 
-- Command: P2-W0 focused Pytest; focused Ruff; strict MyPy; `make verify`; `git diff --check`; owner-approved `make audit`
-- Result: passed 87 focused tests, Ruff, strict MyPy on 409 source files, 2,856 total tests, wheel/sdist builds, artifact policy, diff integrity, and release audit
+- Command: P2-W1 focused Pytest; repository Ruff; strict MyPy; `make verify`; factory-identity/import-graph smoke; `git diff --check`; owner-approved `make audit`; fresh independent Codex re-review
+- Result: passed 117 focused tests, Ruff, strict MyPy on 411 source files, 2,861 total tests, wheel/sdist builds, artifact policy, factory identity, diff integrity, release audit, and independent READY review with no findings
 
 ## Decision log
 
@@ -30,15 +30,20 @@
 - Chosen: define `LockScope` once in `core/locks.py`, export it through `open_brain.engine`, and preserve operations compatibility by re-exporting the same type. Rejected: a second operations-owned enum or storage importing operations. Reason: one engine-owned vocabulary closes the storage-to-operations edge without breaking callers.
 - Chosen: treat the live filesystem inventory of 188 runtime files as authoritative. Rejected: carrying the mapper's provisional count forward. Reason: the classification checker discovers and compares the current tree on every run.
 - Chosen: retain every current violation as one exact sorted temporary-debt edge instead of weakening rules around the monolith. Rejected: package-level exemptions or vacuous absent-namespace tests. Reason: later waves must remove observable debt while the rules remain enforced now.
+- Chosen: make `services.application` the authoritative application facade, move shared HTTP/MCP/config helpers to `services.runtime`, and point the production compatibility module back to the app facade. Rejected: a deferred entrypoint/application cycle or startup through a production re-export. Reason: startup and construction now form one one-way dependency graph.
+- Chosen: return scheduler records from operations, retention records from production, and ledger config values from app config, converting only at the CLI/composition edges. Rejected: producer modules importing CLI representation or config importing ledger internals. Reason: ownership must follow the capability that creates the value.
+- Chosen: keep predecessor modules for compatibility tests while removing their default application routes. Rejected: deleting historical modules in P2-W1 or leaving migrate/cutover reachable by default. Reason: the pre-alpha compatibility change is explicit without broadening into P2-W2 convergence.
+- Chosen: expose profile dependencies through the public engine package and keep profile-local confined file handling. Rejected: profile imports from engine, provider, core, or storage internals. Reason: the profile boundary now depends only on the supported engine facade.
 
 ## Dispatch ledger
 
-- Codex coordinator: current Codex session; Gate 0 grounding, diagnosis, implementation, verification, and git integration; complete
-- `W0-LOCK-01`: Codex `gpt-5.6-terra`, high effort, workspace-write; canonical lock implementation; complete and coordinator-verified
-- `W0-ARCH-01`: Codex `gpt-5.6-luna`, high effort, read-only; ownership/rule/debt/fixture/freeze map; complete with sandbox-only test limitation recorded
-- `W0-ARCH-IMPL-01`: Codex `gpt-5.6-sol`, xhigh effort, workspace-write; authoritative classification and eight-rule test harness; complete and coordinator-verified
-- Child agents: 3 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
+- Codex coordinator: current Codex session; P2-W0 and P2-W1 grounding, diagnosis, verification, review reconciliation, and git integration; active
+- P2-W0: `W0-LOCK-01`, `W0-ARCH-01`, and `W0-ARCH-IMPL-01`; 3 Codex children complete and coordinator-verified
+- P2-W1 mapping: `W1-MAP-COMPOSITION-01` and `W1-MAP-VALUES-01`; 2 Codex children complete
+- P2-W1 implementation: `W1-IMPLEMENT-01` ended on model capacity; `W1-RESUME-01` completed the preserved patch and focused gates
+- P2-W1 review: `W1-REVIEW-01` returned NOT_READY; `W1-REVIEW-FIX-01` resolved all findings; `W1-REREVIEW-01` returned READY with no findings
+- P2-W1 children: 7 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit this P2-W0 evidence, verify a clean checkpoint, push the goal branch, then execute P2-W1 with Codex-only bounded workers.
+Commit this P2-W1 evidence, verify a clean checkpoint, push the goal branch, then execute P2-W2 with Codex-only bounded workers.

@@ -3,14 +3,14 @@
 packet_version: 1
 status: in_progress
 workstream: 20260831-open-brain-public-goal-51-phase2-codex-only-36f1ea
-milestone: p2-w0-boundaries
+milestone: p2-w1-composition-inversion
 branch: goal/open-brain-phase2
-head: a28ffb1
-last_verified.command: P2-W0 focused checks; make verify; git diff --check; owner-approved make audit
-last_verified.result: passed: 87 focused tests, Ruff, strict MyPy on 409 files, 2856 total tests, wheel/sdist, artifact policy, diff integrity, release audit
-changes: ["a28ffb1: one engine-owned LockScope and owner-correct imports","a28ffb1: 188-file authoritative ownership map","a28ffb1: eight import rules, exact 284-edge temporary debt, synthetic dynamic-import fixtures"]
+head: 9cbacbd
+last_verified.command: P2-W1 focused checks; make verify; git diff --check; owner-approved make audit; independent Codex re-review
+last_verified.result: passed: 117 focused tests; Ruff; strict MyPy on 411 files; 2861 total tests; wheel/sdist; artifact policy; release audit; re-review READY with no findings
+changes: ["9cbacbd: app-owned composition and one-way services startup graph","9cbacbd: producer-owned config/results and public-engine-only profile imports","9cbacbd: default predecessor routes removed; exact 190-file classification and 280-edge debt"]
 blocker: null
-next_action: Commit P2-W0 evidence, verify clean checkpoint, push branch, execute P2-W1
+next_action: Commit P2-W1 evidence, verify clean checkpoint, push branch, execute P2-W2
 safe_to_start_new_thread: false
 
 Emit this complete block as one packet; keep the heading and field names exact. Keep values bounded and redacted. This packet summarizes verified state; it does not override project instructions or machine-authoritative runner state.
