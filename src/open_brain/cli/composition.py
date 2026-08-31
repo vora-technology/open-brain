@@ -18,17 +18,24 @@ from open_brain.capture.media import MediaCommand
 from open_brain.capture.poll import FilesystemYouTubePollState
 from open_brain.capture.queue import FilesystemCaptureQueue, read_pending_queue_snapshot
 from open_brain.capture.service import ProcessStatus
-from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
+from open_brain.cli._common import (
+    CommandDispatchResult,
+    ExitCode,
+    redacted_error,
+    unavailable_envelope,
+)
 from open_brain.cli._registry import CommandAdapterRegistry, scheduled_route_spec
 from open_brain.cli.config import ConfigCliResult, show_config
 from open_brain.cli.doctor import DoctorCommandAdapter
 from open_brain.cli.main import main
+from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.cli.production_adapters import build_production_command_adapters
 from open_brain.cli.review import ReviewCommandAdapter
 from open_brain.cli.scheduled import ScheduledDispatchResult
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain.core.ports import Clock
+from open_brain.engine import BrainEngine
 from open_brain.events.store import SqliteEventStore
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.life_os import LifePlanRequest, LifeResetRequest
@@ -162,6 +169,7 @@ from open_brain.production.youtube_poll import (
     ProductionYouTubePollRuntime,
     load_private_youtube_config,
 )
+from open_brain.profile import compile_single_user_local
 from open_brain.providers.base import ProviderService
 from open_brain.review.maintenance import predecessor_curation_taxonomy
 from open_brain.review.store import (
@@ -205,6 +213,19 @@ class ConfigCommandAdapter:
                 },
             )
         return show_config(config=self.config)
+
+
+@dataclass(frozen=True, slots=True)
+class UnavailablePhase1CommandAdapter:
+    """Keep Phase 1-only families closed under the legacy composition path."""
+
+    command: str
+
+    def dispatch(self, _argv: tuple[str, ...]) -> ConfigCliResult:
+        return ConfigCliResult(
+            exit_code=ExitCode.FAILURE,
+            envelope=unavailable_envelope(self.command),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -1410,7 +1431,9 @@ def build_command_adapters(
         {
             "config": ConfigCommandAdapter(config=config),
             "doctor": DoctorCommandAdapter(probes=_doctor_probes(config)),
+            "inbox": UnavailablePhase1CommandAdapter(command="inbox"),
             "review": ConfiguredReviewCommandAdapter(config=config, clock=_SystemClock()),
+            "spaces": UnavailablePhase1CommandAdapter(command="spaces"),
         }
     )
     return CommandAdapterRegistry(
@@ -1432,6 +1455,14 @@ def run(
     and other commands are unaffected by configuration issues.
     """
     env = os.environ if environment is None else environment
+    phase1_root = env.get("OPEN_BRAIN_ROOT")
+    if isinstance(phase1_root, str) and phase1_root:
+        try:
+            profile = compile_single_user_local(Path(phase1_root))
+            engine = BrainEngine.open(profile)
+            return main(argv, command_adapters=build_phase1_command_adapters(engine))
+        except (OSError, ValueError, LockBusyError):
+            return main(argv)
     try:
         config = AppConfig.load(environment=env)
     except ConfigError:

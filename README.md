@@ -17,6 +17,35 @@ This repository contains the local pipeline and its production composition bound
 
 Requirements: Python 3.12–3.14 and [uv](https://docs.astral.sh/uv/).
 
+### Run the Phase 1 local slice
+
+Set one Brain root. The command creates the private runtime layout with owner-only
+permissions and reuses its stable local identity on later runs.
+
+```bash
+export OPEN_BRAIN_ROOT="$HOME/open-brain-data"
+uv run open-brain spaces create "Projects" --delivery=setup-projects --json
+uv run open-brain capture quick text "Review the roadmap" --delivery=capture-roadmap --json
+uv run open-brain inbox list --json
+uv run open-brain query roadmap --json
+```
+
+Canonical text capture requires the `space_id` returned by `spaces create`, because Portable Brain
+canonical-page frontmatter always carries a stable space identity:
+
+```bash
+uv run open-brain capture canonical text "Project context" \
+  --delivery=capture-project-context \
+  --space=space_REPLACE_WITH_RETURNED_ID \
+  --json
+```
+
+Every mutating command requires a caller-supplied delivery ID. Repeating the same request
+with the same delivery ID returns the existing identifiers. Reusing a delivery ID for a
+different request fails closed and records metadata-only quarantine evidence.
+
+### Verify the repository
+
 ```bash
 uv sync --group dev
 uv run open-brain --version
@@ -36,12 +65,15 @@ The denylist contains one private term per line. Blank lines and lines beginning
 
 ## Status
 
-The historical Phase 5 synthetic checkpoint has been superseded by the Goal #24 terminal
-contract. Its release validator accepts all 83 capability rows only when every row is
-`open-brain-live` and carries hash-bound implementation, focused-test, parity, and production
-binding evidence. Synthetic readiness is not live parity, deployment, migration, cutover, or
-compatibility proof. Cloud routing requires explicit authority and secret-free input. Media
-execution fails closed where the required operating-system limits cannot be enforced.
+The Phase 1 in-place vertical slice supports one local Brain root, stable portable identities,
+typed capture, spaces, inbox routing, sibling review proposals, terminal decisions, canonical
+Markdown publication, and lexical retrieval. The CLI and authenticated framework-neutral UI
+handler use the same engine and return the same identifiers. With no model configured, captures
+remain usable and report `pending_enrichment`.
+
+This is pre-alpha software. Phase 1 does not include a bound HTTP service, model-backed
+enrichment, export/import, connector ingestion, package extraction, hosted operation, migration,
+or production cutover. The older modules remain in place until their later architecture phases.
 
 ## License
 

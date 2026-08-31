@@ -234,6 +234,12 @@ class FileLease:
         self._clock = _system_clock if clock is None else clock
 
     @contextmanager
+    def acquire_shared_writer(self) -> Iterator[None]:
+        """Acquire the one canonical-writer lease without exporting its lock enum."""
+        with self.acquire(LockScope.SHARED_WRITER):
+            yield
+
+    @contextmanager
     def acquire(self, scope: LockScope) -> Iterator[None]:
         discriminator = self._discriminator(scope)
         _require_record_lock_support()

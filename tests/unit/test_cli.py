@@ -136,7 +136,7 @@ def test_prefix_dry_run_is_normalized_once_into_adapter_argv(
     }
 
 
-def test_command_registry_is_deterministic_and_covers_phase_five_families() -> None:
+def test_command_registry_is_deterministic_and_covers_public_families() -> None:
     assert command_names() == tuple(sorted(command_names()))
     assert command_names() == (
         "capture",
@@ -145,6 +145,7 @@ def test_command_registry_is_deterministic_and_covers_phase_five_families() -> N
         "digest",
         "doctor",
         "explain",
+        "inbox",
         "ledger",
         "migrate",
         "okf",
@@ -155,6 +156,7 @@ def test_command_registry_is_deterministic_and_covers_phase_five_families() -> N
         "review",
         "share",
         "social",
+        "spaces",
         "status",
     )
 

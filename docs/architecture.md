@@ -8,11 +8,21 @@ The package map uses these ownership boundaries:
 
 - `core`: immutable values, policies, and ports; no filesystem, network, provider, CLI, HTTP, configuration, integration, or operations imports.
 - `capture`, `ledger`, and `review`: application services that depend on typed ports.
+- `engine`: the in-place Phase 1 task surface for Portable identities, generic capture,
+  spaces, independent review, publication, recovery, and lexical retrieval.
 - `storage`, `providers`, and `integrations`: adapters selected by the composition root. Adapters do not import CLI/HTTP handlers or one another.
 - `operations`: doctor, scheduling, retention, backup, and recovery behavior.
 - `dev`: public development and release-safety tools only.
 
 Private deployment configuration contains values and rendered manifests, never patched or copied application source.
+
+The app-owned `profile` module compiles one `single-user-local` Brain root into an
+engine-owned context. The engine does not import profile, CLI, UI, service, migration,
+or parity code.
+
+Every Phase 1 mutation and recovery pass holds the root-confined shared-writer lease across
+its SQLite reservation and portable file transitions. Reads remain available outside that
+lease and observe only durable stages or atomically replaced files.
 
 The implemented application layers are:
 
