@@ -5,9 +5,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from open_brain.capture.http import HttpRequest, ShareHttpHandler
-from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.operations.capture_jobs import CaptureWrite, get_capture_job
 from open_brain.operations.models import JobState, TriggerKind
+from open_brain.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 TOKEN = "synthetic-bearer-token"
@@ -33,10 +33,10 @@ def test_job_027_is_enabled_safe_bind_queue_only_ingress(tmp_path: Path) -> None
         },
         separators=(",", ":"),
     ).encode()
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     handler = ShareHttpHandler(
         expected_bearer_token=TOKEN,
-        queue=queue,
+        capture=local.public_job_sink("JOB-027"),
         clock=lambda: FIXED_TIME,
         body_reader=lambda maximum_bytes, timeout_seconds: body,
     )
@@ -59,23 +59,23 @@ def test_job_027_is_enabled_safe_bind_queue_only_ingress(tmp_path: Path) -> None
         "OPEN_BRAIN_INGRESS_CONFIG",
         "OPEN_BRAIN_INGRESS_TOKEN",
     )
-    assert application.allowed_writes == frozenset({CaptureWrite.QUEUE_ENVELOPE})
+    assert application.allowed_writes == frozenset({CaptureWrite.ENGINE_CAPTURE})
     assert application.service_actions == ()
     assert (unauthorized.status, unauthorized.body) == (401, b'{"code":"unauthorized"}')
     assert created.status == duplicate.status == 202
     assert json.loads(created.body)["status"] == "queued"
     assert json.loads(duplicate.body)["status"] == "duplicate"
-    assert len(tuple((tmp_path / "queue" / "active").glob("*.json"))) == 1
+    assert len(local.tasks.inbox.list()) == 1
     assert TOKEN.encode() not in created.body + duplicate.body
     assert b"Synthetic shared body" not in created.body + duplicate.body
 
 
 def test_job_027_does_not_claim_a_health_surface(tmp_path: Path) -> None:
     body = b"{}"
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     handler = ShareHttpHandler(
         expected_bearer_token=TOKEN,
-        queue=queue,
+        capture=local.public_job_sink("JOB-027"),
         clock=lambda: FIXED_TIME,
         body_reader=lambda maximum_bytes, timeout_seconds: body,
     )
@@ -83,4 +83,4 @@ def test_job_027_does_not_claim_a_health_surface(tmp_path: Path) -> None:
     response = handler.handle(_request(body, token=TOKEN, path="/health"))
 
     assert (response.status, response.body) == (400, b'{"code":"invalid_request"}')
-    assert tuple((tmp_path / "queue" / "active").glob("*.json")) == ()
+    assert local.tasks.inbox.list() == ()

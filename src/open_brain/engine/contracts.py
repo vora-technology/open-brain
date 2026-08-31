@@ -819,6 +819,20 @@ class ReviewTask(Protocol):
     ) -> DecisionRecord: ...
 
 
+class ScopedRetrievalTask(Protocol):
+    def search(
+        self,
+        query: str,
+        *,
+        space_id: str | None = None,
+        payload_family: str | None = None,
+        record_type: str | None = None,
+        limit: int = 10,
+    ) -> tuple[RetrievalResult, ...]: ...
+
+    def fetch(self, result_id: str) -> RetrievalResult | None: ...
+
+
 class RetrievalTask(Protocol):
     def search(
         self,
@@ -831,6 +845,8 @@ class RetrievalTask(Protocol):
     ) -> tuple[RetrievalResult, ...]: ...
 
     def fetch(self, result_id: str) -> RetrievalResult | None: ...
+
+    def scoped(self, *, allowed_space_ids: frozenset[str]) -> ScopedRetrievalTask: ...
 
 
 @dataclass(frozen=True, slots=True)

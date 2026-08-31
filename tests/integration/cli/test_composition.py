@@ -87,6 +87,7 @@ from open_brain.review.models import (
 from open_brain.review.store import SqliteReviewStore
 from open_brain.services.application import (
     ConfiguredScheduledAdapters,
+    SingleUserLocalApplication,
     build_command_adapters,
 )
 from open_brain.services.entrypoints import run_cli as run
@@ -210,14 +211,10 @@ def _optional_automation_environment(
     message_resource_ref: str = "messages_primary",
 ) -> dict[str, str]:
     life_os_config = tmp_path / "life-os.json"
-    life_os_config.write_bytes(
-        canonical_json_bytes({"schema_version": 1, "candidate_limit": 100})
-    )
+    life_os_config.write_bytes(canonical_json_bytes({"schema_version": 1, "candidate_limit": 100}))
     messages_config = tmp_path / "messages.json"
     messages_config.write_bytes(
-        canonical_json_bytes(
-            {"schema_version": 1, "resource_ref": message_resource_ref}
-        )
+        canonical_json_bytes({"schema_version": 1, "resource_ref": message_resource_ref})
     )
     for path in (life_os_config, messages_config):
         path.chmod(0o600)
@@ -697,9 +694,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
     (config.work_root / "pages").mkdir()
     (config.state_root / "index").mkdir()
     youtube_config = tmp_path / "youtube.json"
-    youtube_config.write_bytes(
-        canonical_json_bytes({"schema_version": 1, "subscriptions": []})
-    )
+    youtube_config.write_bytes(canonical_json_bytes({"schema_version": 1, "subscriptions": []}))
     youtube_config.chmod(0o600)
     imessage_config = tmp_path / "imessage.json"
     imessage_config.write_bytes(
@@ -726,6 +721,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             )
         )
         path.chmod(0o600)
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
@@ -741,6 +737,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             "OPEN_BRAIN_INGRESS_TOKEN": "synthetic-ingress-token",
         },
         imessage_history_client=_ImessageHistory(),
+        public_application=application,
     )
     event_root = config.state_root / "events"
     review_root = config.state_root / "review"
@@ -772,12 +769,14 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             created_at=FixedClock().now(),
             generation="runtime-2026-08-16" if job_id == "JOB-025" else None,
         )
-    assert adapters.dispatch_writer(
-        get_writer_job_spec("JOB-016")
-    ).status is ScheduledDispatchStatus.COMPLETED
-    assert adapters.dispatch_writer(
-        get_writer_job_spec("JOB-022")
-    ).status is ScheduledDispatchStatus.COMPLETED
+    assert (
+        adapters.dispatch_writer(get_writer_job_spec("JOB-016")).status
+        is ScheduledDispatchStatus.COMPLETED
+    )
+    assert (
+        adapters.dispatch_writer(get_writer_job_spec("JOB-022")).status
+        is ScheduledDispatchStatus.COMPLETED
+    )
     now_payload = (config.work_root / "NOW.md").read_bytes()
     for replica in (
         config.state_root / "now" / "edge" / "NOW.md",
@@ -806,10 +805,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
         lambda **_: PublishedReferenceInspection(0, 0),
     )
 
-    results = tuple(
-        dispatch_scheduled_route(route, adapters)
-        for route in SCHEDULED_ROUTES
-    )
+    results = tuple(dispatch_scheduled_route(route, adapters) for route in SCHEDULED_ROUTES)
 
     assert tuple(route.job_id for route in SCHEDULED_ROUTES) == EXPECTED_JOB_IDS
     assert len(results) == 30
@@ -818,13 +814,16 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
         for result in results
         if result.status is not ScheduledDispatchStatus.COMPLETED
     )
-    assert len(
-        tuple((config.state_root / "operations" / "effects" / "prepared").glob("*.effect.json"))
-    ) == 4
+    assert (
+        len(
+            tuple((config.state_root / "operations" / "effects" / "prepared").glob("*.effect.json"))
+        )
+        == 4
+    )
     assert not (config.state_root / "operations" / "effects" / "empty").exists()
 
 
-def test_composed_youtube_poll_uses_private_reference_and_queues_transcript(
+def test_composed_youtube_poll_uses_private_reference_and_durable_engine_capture(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -854,17 +853,19 @@ def test_composed_youtube_poll_uses_private_reference_and_queues_transcript(
         "open_brain.services.application.compose_production_capture_media_adapter",
         lambda **_: media,
     )
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
         environment={"OPEN_BRAIN_YOUTUBE_CONFIG": str(youtube_config)},
+        public_application=application,
     )
 
     result = adapters.dispatch_capture(get_capture_job("JOB-029"))
 
     assert result.status is ScheduledDispatchStatus.COMPLETED
     assert media.calls == ["playlist", "video000001"]
-    assert FilesystemCaptureQueue(config.capture_root).pending_snapshot().pending_count == 1
+    assert len(application.tasks.inbox.list()) == 1
 
 
 def test_composed_youtube_poll_requires_its_declared_environment_reference(
@@ -880,7 +881,7 @@ def test_composed_youtube_poll_requires_its_declared_environment_reference(
     assert result.exit_code == 78
 
 
-def test_composed_imessage_ingress_uses_private_reference_and_appends_personal(
+def test_composed_imessage_ingress_uses_private_reference_and_durable_engine_capture(
     tmp_path: Path,
 ) -> None:
     config = _filesystem_config(tmp_path)
@@ -906,18 +907,20 @@ def test_composed_imessage_ingress_uses_private_reference_and_appends_personal(
             }
         )
     )
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
         environment={"OPEN_BRAIN_IMESSAGE_CONFIG": str(private_config)},
         imessage_history_client=history,
+        public_application=application,
     )
 
     result = adapters.dispatch_capture(get_capture_job("JOB-005"))
 
     assert result.status is ScheduledDispatchStatus.COMPLETED
     assert history.calls == 1
-    assert FilesystemCaptureQueue(config.capture_root).pending_snapshot().pending_count == 1
+    assert len(application.tasks.inbox.list()) == 1
 
 
 def test_composed_imessage_service_uses_keepalive_mode(
@@ -954,6 +957,7 @@ def test_composed_imessage_service_uses_keepalive_mode(
         clock=FixedClock(),
         environment={"OPEN_BRAIN_IMESSAGE_CONFIG": str(private_config)},
         imessage_service_mode=True,
+        public_application=SingleUserLocalApplication.open(tmp_path / "brain"),
     )
 
     result = adapters.dispatch_capture(get_capture_job("JOB-005"))
@@ -1018,6 +1022,7 @@ def test_composed_http_jobs_start_closed_route_lifecycles(
         },
         http_service_mode=True,
         http_server_factory=cast(HttpServerFactory, factory),
+        public_application=SingleUserLocalApplication.open(tmp_path / "brain"),
     )
 
     results = (
@@ -1067,8 +1072,7 @@ def test_composed_nightly_job_drains_work_capture_and_distills_locally(
         capture_why_origin=CaptureWhyOrigin.OWNER_AUTHORED,
         capture_source=CaptureSource.CLI,
         provenance=Provenance.create(
-            source_ref="urn:open-brain:text:sha256:"
-            + sha256(text.encode()).hexdigest(),
+            source_ref="urn:open-brain:text:sha256:" + sha256(text.encode()).hexdigest(),
             content_origin=ContentOrigin.OWNER_AUTHORED,
             owner_context=CaptureWhyOrigin.OWNER_AUTHORED,
         ),
@@ -1566,9 +1570,7 @@ def test_composed_doctor_rejects_a_different_canonical_writer(
         command_adapters=build_command_adapters(config),
     )
     output = json.loads(capsys.readouterr().out)
-    writer = next(
-        check for check in output["checks"] if check["probe"] == "writer-ownership"
-    )
+    writer = next(check for check in output["checks"] if check["probe"] == "writer-ownership")
 
     assert writer["state"] == "unhealthy"
     assert writer["finding_class"] == "writer-ownership-conflict"

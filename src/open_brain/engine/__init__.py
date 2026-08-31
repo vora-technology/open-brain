@@ -3,6 +3,7 @@
 from open_brain.core.locks import LockScope
 from open_brain.providers.base import ProviderMode
 
+from .contracts import CaptureReceipt, CaptureTask, Payload, RetrievalTask
 from .local import (
     BrainEngine,
     CaptureAction,
@@ -34,8 +35,10 @@ __all__ = [
     "BrainEngine",
     "CaptureAction",
     "CaptureFault",
+    "CaptureReceipt",
     "CaptureSubmission",
     "CaptureSubmissionPath",
+    "CaptureTask",
     "DecisionOutcome",
     "EnrichmentProvider",
     "EnrichmentRequest",
@@ -47,6 +50,7 @@ __all__ = [
     "LocalEngineContext",
     "LockScope",
     "MeasurementPayload",
+    "Payload",
     "ProposalDraft",
     "PublicJobCaptureContext",
     "PublicJobCaptureSink",
@@ -54,6 +58,7 @@ __all__ = [
     "ProviderMode",
     "ReferencePayload",
     "RetrievalResult",
+    "RetrievalTask",
     "ScopedRetrieval",
     "TextPayload",
     "open_local_engine",

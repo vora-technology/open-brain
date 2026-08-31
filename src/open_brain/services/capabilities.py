@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from open_brain.capture.http import enqueue_share
 from open_brain.capture.models import CaptureWorkItem, ShareRequest, ShareResponse
 from open_brain.capture.queue import FilesystemCaptureQueue, read_pending_queue_snapshot
 from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
@@ -25,6 +24,7 @@ from open_brain.cli.production_adapters import ProductionCommandDependencies
 from open_brain.config import AppConfig
 from open_brain.core.models import PrivacyTier
 from open_brain.core.ports import PutResult
+from open_brain.engine import CaptureAction, CaptureReceipt, Payload
 from open_brain.integrations.ports import PageDocument, PageReadRequest
 from open_brain.integrations.retrieval import (
     FilesystemWorkRetriever,
@@ -71,6 +71,20 @@ class ConfiguredCaptureQueue:
             payload_digest=payload_digest,
         )
 
+    def accept(
+        self,
+        _payload: Payload,
+        *,
+        delivery_id: str,
+        action: CaptureAction = CaptureAction.QUICK,
+        space_id: str | None = None,
+        intent: str | None = None,
+        capture_why: str | None = None,
+        title: str | None = None,
+    ) -> CaptureReceipt:
+        del delivery_id, action, space_id, intent, capture_why, title
+        raise ValueError("single-user-local capture tasks are required")
+
 
 @dataclass(frozen=True, slots=True)
 class ConfiguredShareSubmitter:
@@ -78,7 +92,8 @@ class ConfiguredShareSubmitter:
     clock: Callable[[], datetime]
 
     def submit(self, request: ShareRequest) -> ShareResponse:
-        return enqueue_share(request=request, queue=self.queue, clock=self.clock)
+        del request
+        raise ValueError("legacy share composition is unavailable")
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,7 +265,7 @@ def compose_production_application(
     dependencies = ProductionCommandDependencies(
         capture_queue=queue,
         clock=clock,
-        share_submitter=ConfiguredShareSubmitter(queue, clock),
+        share_submitter=None,
         retriever=retriever,
         status=ConfiguredStatusService(config, clock, feedback),
         proposals=ConfiguredProposalReader(config, clock),

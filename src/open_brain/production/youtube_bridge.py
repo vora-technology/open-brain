@@ -9,13 +9,13 @@ import re
 import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
+from open_brain.capture.http import enqueue_share
 from open_brain.capture.models import ShareRequest, ShareResponse
-from open_brain.config import AppConfig, ConfigError
-from open_brain.production.application import compose_production_application
+from open_brain.engine import PublicJobCaptureSink
+from open_brain.services.application import SingleUserLocalApplication
 
 _SCHEMA_VERSION = 1
 _MAX_SPOOL_BYTES = 110_000
@@ -25,6 +25,18 @@ _LAUNCHD_LABEL = re.compile(r"[A-Za-z0-9._-]+")
 
 class ShareSubmitter(Protocol):
     def submit(self, request: ShareRequest) -> ShareResponse: ...
+
+
+@dataclass(frozen=True, slots=True)
+class PublicJobShareSubmitter:
+    """Bounded YouTube spool adapter over one injected public-job capture sink."""
+
+    sink: PublicJobCaptureSink
+
+    def submit(self, request: ShareRequest) -> ShareResponse:
+        if not isinstance(self.sink, PublicJobCaptureSink):
+            raise ValueError("invalid public YouTube capture sink")
+        return enqueue_share(request=request, capture=self.sink)
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,14 +87,11 @@ def main(
     arguments = parser.parse_args(argv)
     env = os.environ if environment is None else environment
     try:
-        config = AppConfig.load(environment=env)
-        application = compose_production_application(
-            config=config,
-            clock=lambda: datetime.now(UTC),
-        )
-        submitter = application.command_dependencies.share_submitter
-        if submitter is None:
-            raise ValueError("share submitter unavailable")
+        root = env.get("OPEN_BRAIN_ROOT")
+        if not isinstance(root, str) or not root or not Path(root).is_absolute():
+            raise ValueError("invalid OPEN_BRAIN_ROOT")
+        application = SingleUserLocalApplication.open(Path(root))
+        submitter = PublicJobShareSubmitter(application.public_job_sink("JOB-029"))
         result = consume_youtube_spool(
             arguments.spool_root.expanduser().resolve(),
             submitter=submitter,
@@ -93,7 +102,7 @@ def main(
                 _kickstart(arguments.kickstart_label)
             except Exception:
                 kickstart_failed = True
-    except (ConfigError, OSError, ValueError):
+    except (OSError, ValueError):
         result = SpoolConsumptionResult(processed=0, failed=1)
         kickstart_failed = False
 

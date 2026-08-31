@@ -21,7 +21,6 @@ from open_brain.capture.poll import (
     PollRunResult,
     YouTubePoller,
 )
-from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.core.ids import canonical_json_bytes, canonicalize_source_url
 from open_brain.core.models import (
     CaptureEnvelope,
@@ -32,6 +31,7 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+from open_brain.engine import PublicJobCaptureSink
 from open_brain.operations.capture_jobs import get_capture_job
 
 _MAX_CONFIG_BYTES = 64 * 1024
@@ -138,20 +138,20 @@ class ProductionYouTubePollRuntime:
         *,
         config: YouTubePollConfig,
         state: FilesystemYouTubePollState,
-        queue: FilesystemCaptureQueue,
+        sink: PublicJobCaptureSink,
         media_adapter: YouTubeMediaAdapter,
         clock: Callable[[], datetime],
     ) -> None:
         if (
             not isinstance(config, YouTubePollConfig)
             or not isinstance(state, FilesystemYouTubePollState)
-            or not isinstance(queue, FilesystemCaptureQueue)
+            or not isinstance(sink, PublicJobCaptureSink)
             or not callable(clock)
         ):
             raise ValueError("invalid production YouTube poll runtime")
         self._config = config
         self._state = state
-        self._queue = queue
+        self._sink = sink
         self._poller = YouTubePoller(state=state, media_adapter=media_adapter)
         self._clock = clock
 
@@ -206,7 +206,17 @@ class ProductionYouTubePollRuntime:
                 or record.origin is not PollRequestOrigin.PLAYLIST
             ):
                 continue
-            append = application.append(queue=self._queue, envelope=_playlist_envelope(record))
+            append = application.submit(sink=self._sink, envelope=_playlist_envelope(record))
+            self._state.replace(
+                record,
+                type(record).from_dict(
+                    {
+                        **record.to_dict(),
+                        "capture_id": append.capture_id,
+                        "state": PollItemState.ACCEPTED.value,
+                    }
+                ),
+            )
             if append.disposition.value == "created":
                 created += 1
             else:
@@ -254,7 +264,7 @@ def compose_production_youtube_poll_runtime(
     *,
     config_path: Path,
     state_root: Path,
-    queue: FilesystemCaptureQueue,
+    sink: PublicJobCaptureSink,
     media_adapter: YouTubeMediaAdapter,
     clock: Callable[[], datetime],
 ) -> ProductionYouTubePollRuntime:
@@ -263,7 +273,7 @@ def compose_production_youtube_poll_runtime(
     return ProductionYouTubePollRuntime(
         config=load_private_youtube_config(config_path),
         state=FilesystemYouTubePollState(state_root / "youtube-poll"),
-        queue=queue,
+        sink=sink,
         media_adapter=media_adapter,
         clock=clock,
     )

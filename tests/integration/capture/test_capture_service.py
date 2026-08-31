@@ -53,6 +53,8 @@ from open_brain.core.ports import (
     RawStore,
     RedactionReceipt,
 )
+from open_brain.engine import open_local_engine
+from open_brain.profile import compile_single_user_local
 from open_brain.storage.filesystem import AtomicFilesystemRawStore
 
 FIXED_TIME = datetime(2026, 8, 13, 12, 0, tzinfo=UTC)
@@ -855,9 +857,11 @@ def test_pending_youtube_transcript_retries_without_publishing_immutable_event()
     assert not distillation.records
 
 
-def test_g03_ios_handler_to_temporary_raw_preserves_provenance(tmp_path: Path) -> None:
-    operations: list[str] = []
-    intake = CaptureQueueFake(operations, label="intake")
+def test_g03_ios_handler_to_durable_engine_capture_preserves_source_evidence(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "brain"
+    tasks = open_local_engine(compile_single_user_local(root))
     body = json.dumps(
         {
             "url": "https://example.test/shared",
@@ -868,9 +872,9 @@ def test_g03_ios_handler_to_temporary_raw_preserves_provenance(tmp_path: Path) -
     ).encode()
     response = ShareHttpHandler(
         expected_bearer_token="synthetic-token",
-        queue=intake,
+        capture=tasks.capture,
         clock=lambda: FIXED_TIME,
-        body_reader=lambda maximum_bytes, timeout_seconds: body,
+        body_reader=lambda _maximum, _timeout: body,
     ).handle(
         HttpRequest(
             method="POST",
@@ -882,31 +886,22 @@ def test_g03_ios_handler_to_temporary_raw_preserves_provenance(tmp_path: Path) -
             ),
         )
     )
+    value = json.loads(response.body)
+    capture_id = value["capture_id"]
     assert response.status == 202
-    envelope = intake.pending[0].envelope
-    raw_root = tmp_path / "raw"
-    raw_root.mkdir()
-    raw_store = AtomicFilesystemRawStore(root=raw_root)
+    assert isinstance(capture_id, str)
+    assert [item.capture_id for item in tasks.inbox.list()] == [capture_id]
 
-    assert (
-        _service(
-            intake=intake,
-            hold=CaptureQueueFake(operations, label="hold"),
-            distillation=DistillationQueueFake(operations),
-            raw_store=raw_store,
-            event_store=EventStoreFake(operations),
-            extractor=ExtractorFake(operations),
-            ids=DeterministicIds(operations),
-        ).process_one(worker_id="worker-001")
-        is ProcessStatus.ACKNOWLEDGED
-    )
+    space = tasks.inbox.create_space("iOS", delivery_id="ios.space")
+    tasks.inbox.route(capture_id, space.space_id, delivery_id="ios.route")
+    results = tasks.retrieval.search("Synthetic iOS shared text")
 
-    stored = raw_store.get(envelope.capture_id)
-    assert stored is not None
-    assert stored.envelope.capture_why == "Synthetic iOS share reason"
-    assert stored.envelope.capture_source is CaptureSource.SHORTCUT
-    assert stored.envelope.captured_at == FIXED_TIME
-    assert stored.envelope.privacy_decision == envelope.privacy_decision
+    assert len(results) == 1
+    assert results[0].capture_id == capture_id
+    assert results[0].provenance.source_origin == "third_party"
+    rendered = json.dumps(results[0].provenance.as_dict())
+    assert "https://example.test/shared" not in rendered
+    assert "Synthetic iOS share reason" not in rendered
 
 
 def test_g04_service_has_no_markdown_task_review_provider_or_network_surface() -> None:

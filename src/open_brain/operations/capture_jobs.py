@@ -1,4 +1,4 @@
-"""Queue-only scheduled applications for capture ingress jobs."""
+"""Capture-only scheduled applications for public ingress jobs."""
 
 from __future__ import annotations
 
@@ -7,10 +7,9 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import Protocol
 
-from open_brain.capture.models import CaptureWorkItem
-from open_brain.core.models import CaptureEnvelope
-from open_brain.core.ports import PutDisposition, PutResult
-from open_brain.engine import LockScope
+from open_brain.core.models import CaptureEnvelope, CaptureWhyOrigin, Provenance
+from open_brain.core.ports import PutDisposition
+from open_brain.engine import LockScope, PublicJobCaptureSink, ReferencePayload, TextPayload
 
 from .catalog import get_job
 from .models import HostRole, JobSpec, JobState, OutputPolicy, WriterScope
@@ -23,13 +22,13 @@ class CaptureJobContractError(ValueError):
 class CaptureWrite(StrEnum):
     """The only durable effect available to a capture scheduled application."""
 
-    QUEUE_ENVELOPE = "queue-envelope"
+    ENGINE_CAPTURE = "engine-capture"
 
 
-class CaptureQueue(Protocol):
-    """Append-only capture queue port used by scheduled ingress applications."""
+class PublicCaptureSink(Protocol):
+    """Capture-only capability injected by the one-root application."""
 
-    def enqueue(self, item: CaptureWorkItem, *, item_id: str, payload_digest: str) -> PutResult: ...
+    def submit(self, *args: object, **kwargs: object) -> object: ...
 
 
 _EXPECTED_COMMANDS = MappingProxyType(
@@ -86,7 +85,7 @@ class CaptureAppendResult:
 
 @dataclass(frozen=True, slots=True)
 class CaptureJobApplication:
-    """A validated public CLI specification with queue-append authority only."""
+    """A validated public CLI specification with engine-capture authority only."""
 
     job: JobSpec
 
@@ -100,7 +99,7 @@ class CaptureJobApplication:
             or self.job.lock_scope is not LockScope.INGRESS
             or self.job.output_policy is not OutputPolicy.REDACTED_REPORT
         ):
-            raise CaptureJobContractError("capture job must remain queue-only ingress")
+            raise CaptureJobContractError("capture job must remain public capture ingress")
         if self.job.state is not JobState.ENABLED:
             raise CaptureJobContractError("production capture job must remain enabled")
 
@@ -110,30 +109,56 @@ class CaptureJobApplication:
 
     @property
     def allowed_writes(self) -> frozenset[CaptureWrite]:
-        return frozenset({CaptureWrite.QUEUE_ENVELOPE})
+        return frozenset({CaptureWrite.ENGINE_CAPTURE})
 
     @property
     def service_actions(self) -> tuple[str, ...]:
         return ()
 
-    def append(self, *, queue: CaptureQueue, envelope: CaptureEnvelope) -> CaptureAppendResult:
-        if not isinstance(envelope, CaptureEnvelope):
-            raise CaptureJobContractError("invalid capture envelope")
-        item = CaptureWorkItem.create(envelope=envelope, available_at=envelope.captured_at)
-        item_id = str(envelope.capture_id)
-        payload_digest = item.payload_digest_sha256()
-        result = queue.enqueue(item, item_id=item_id, payload_digest=payload_digest)
-        if (
-            not isinstance(result, PutResult)
-            or result.disposition not in {PutDisposition.CREATED, PutDisposition.DUPLICATE}
-            or result.record_id != item_id
-            or result.digest_sha256 != payload_digest
-        ):
-            raise CaptureJobContractError("invalid capture queue append result")
+    def submit(
+        self,
+        *,
+        sink: PublicJobCaptureSink,
+        envelope: CaptureEnvelope,
+    ) -> CaptureAppendResult:
+        """Durably submit one public-job envelope without queue or routing authority."""
+        if not isinstance(sink, PublicJobCaptureSink) or not isinstance(envelope, CaptureEnvelope):
+            raise CaptureJobContractError("invalid public capture submission")
+        payload = (
+            ReferencePayload(envelope.source_url, envelope.shared_text or None)
+            if envelope.source_url is not None
+            else TextPayload(envelope.shared_text)
+        )
+        try:
+            source_origin = (
+                envelope.provenance.content_origin
+                if envelope.provenance.content_origin.value in {"third_party", "unknown"}
+                else type(envelope.provenance.content_origin).THIRD_PARTY
+            )
+            provenance = Provenance.create(
+                source_ref=envelope.provenance.source_ref,
+                content_origin=source_origin,
+                owner_context=CaptureWhyOrigin.AUTOMATION_ABSENT,
+            )
+            receipt = sink.submit(
+                payload,
+                delivery_id=str(envelope.capture_id),
+                source_origin=source_origin,
+                source_reference=envelope.provenance.source_ref,
+                provenance=provenance,
+                privacy=envelope.privacy_decision,
+                title=envelope.title,
+            )
+        except (TypeError, ValueError) as error:
+            raise CaptureJobContractError("public capture submission failed") from error
+        capture_id = getattr(receipt, "capture_id", None)
+        duplicate = getattr(receipt, "duplicate", None)
+        if not isinstance(capture_id, str) or type(duplicate) is not bool:
+            raise CaptureJobContractError("invalid public capture receipt")
         return CaptureAppendResult(
             job_id=self.job.id,
-            capture_id=item_id,
-            disposition=result.disposition,
+            capture_id=capture_id,
+            disposition=PutDisposition.DUPLICATE if duplicate else PutDisposition.CREATED,
         )
 
 

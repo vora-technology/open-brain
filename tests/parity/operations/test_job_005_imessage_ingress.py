@@ -4,8 +4,6 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.capture.models import QueueErrorCode
-from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.core.models import (
     Authority,
     CaptureEnvelope,
@@ -22,6 +20,7 @@ from open_brain.core.models import (
 from open_brain.engine import LockScope
 from open_brain.operations.capture_jobs import CaptureWrite, get_capture_job
 from open_brain.operations.models import HostRole, WriterScope
+from open_brain.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 
@@ -53,13 +52,13 @@ def _message_envelope() -> CaptureEnvelope:
     )
 
 
-def test_job_005_appends_one_idempotent_redacted_queue_envelope(tmp_path: Path) -> None:
+def test_job_005_submits_one_idempotent_redacted_engine_capture(tmp_path: Path) -> None:
     application = get_capture_job("JOB-005")
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     envelope = _message_envelope()
 
-    created = application.append(queue=queue, envelope=envelope)
-    duplicate = application.append(queue=queue, envelope=envelope)
+    created = application.submit(sink=local.public_job_sink("JOB-005"), envelope=envelope)
+    duplicate = application.submit(sink=local.public_job_sink("JOB-005"), envelope=envelope)
 
     assert application.argv == (
         "open-brain",
@@ -75,10 +74,10 @@ def test_job_005_appends_one_idempotent_redacted_queue_envelope(tmp_path: Path) 
         "OPEN_BRAIN_CONFIG",
         "OPEN_BRAIN_IMESSAGE_CONFIG",
     )
-    assert application.allowed_writes == frozenset({CaptureWrite.QUEUE_ENVELOPE})
+    assert application.allowed_writes == frozenset({CaptureWrite.ENGINE_CAPTURE})
     assert application.service_actions == ()
     assert created.to_dict() == {
-        "capture_id": str(envelope.capture_id),
+        "capture_id": created.capture_id,
         "disposition": "created",
         "job_id": "JOB-005",
     }
@@ -87,20 +86,7 @@ def test_job_005_appends_one_idempotent_redacted_queue_envelope(tmp_path: Path) 
         "disposition": "duplicate",
     }
 
-    records = tuple((tmp_path / "queue" / "active").glob("*.json"))
-    assert len(records) == 1
+    assert [item.capture_id for item in local.tasks.inbox.list()] == [created.capture_id]
     report = repr((created.to_dict(), duplicate.to_dict()))
     assert envelope.shared_text not in report
     assert envelope.capture_why not in report
-
-    lease = queue.claim(worker_id="synthetic-worker", now=FIXED_TIME)
-    assert lease is not None
-    queue.retry(
-        lease,
-        available_at=FIXED_TIME,
-        error_code=QueueErrorCode.RETRYABLE_FAILURE.value,
-    )
-    retried = queue.claim(worker_id="synthetic-worker", now=FIXED_TIME)
-    assert retried is not None
-    assert retried.item.envelope == envelope
-    assert retried.item.attempt_count == 1

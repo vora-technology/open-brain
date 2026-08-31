@@ -5,10 +5,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from open_brain.capture.http import HttpRequest, ShareHttpHandler
-from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.operations.capture_jobs import CaptureWrite, get_capture_job
 from open_brain.operations.models import JobState, RetryPolicy
 from open_brain.operations.render import render_systemd_service
+from open_brain.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 
@@ -26,10 +26,10 @@ def test_job_028_renders_enabled_ingress_only_service_and_queues_share(
         },
         separators=(",", ":"),
     ).encode()
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     handler = ShareHttpHandler(
         expected_bearer_token="synthetic-ingress-token",
-        queue=queue,
+        capture=local.public_job_sink("JOB-028"),
         clock=lambda: FIXED_TIME,
         body_reader=lambda maximum_bytes, timeout_seconds: body,
     )
@@ -55,7 +55,7 @@ def test_job_028_renders_enabled_ingress_only_service_and_queues_share(
     )
     assert application.job.state is JobState.ENABLED
     assert application.job.retry is RetryPolicy.ON_FAILURE
-    assert application.allowed_writes == frozenset({CaptureWrite.QUEUE_ENVELOPE})
+    assert application.allowed_writes == frozenset({CaptureWrite.ENGINE_CAPTURE})
     assert application.service_actions == ()
     assert "Wants=network-online.target" in service
     assert "After=network-online.target" in service
@@ -69,6 +69,6 @@ def test_job_028_renders_enabled_ingress_only_service_and_queues_share(
     assert "[Install]" not in service
     assert "WantedBy=" not in service
     assert response.status == 202
-    assert len(tuple((tmp_path / "queue" / "active").glob("*.json"))) == 1
+    assert len(local.tasks.inbox.list()) == 1
     assert not tuple(tmp_path.glob("*.md"))
     assert not tuple(tmp_path.glob("*.sqlite"))

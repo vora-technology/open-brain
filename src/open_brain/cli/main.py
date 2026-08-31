@@ -23,11 +23,11 @@ from open_brain.cli._registry import (
 )
 from open_brain.cli.scheduled import (
     ScheduledApplicationAdapters,
+    ScheduledDispatchResult,
     UnavailableScheduledAdapters,
     dispatch_scheduled_route,
     write_scheduled_result,
 )
-from open_brain.operations.production_bindings import ScheduledDispatchResult
 
 
 def build_parser() -> argparse.ArgumentParser:

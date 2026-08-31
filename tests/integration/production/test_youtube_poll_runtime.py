@@ -8,20 +8,21 @@ import pytest
 
 from open_brain.capture.extractors.youtube import YouTubeMediaResult
 from open_brain.capture.media import MediaCommand
-from open_brain.capture.queue import FilesystemCaptureQueue
+from open_brain.capture.poll import PollItemState
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.models import (
     Authority,
-    CaptureSource,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
 )
+from open_brain.engine import PublicJobCaptureSink
 from open_brain.production.youtube_poll import (
     YouTubePollConfigError,
     compose_production_youtube_poll_runtime,
     load_private_youtube_config,
 )
+from open_brain.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 25, 12, 0, tzinfo=UTC)
 
@@ -80,24 +81,25 @@ def _config(path: Path, *, privacy: PrivacyDecision | None = None) -> Path:
     return path
 
 
-def test_poll_runtime_republishes_seen_transcripts_after_queue_loss(tmp_path: Path) -> None:
+def test_poll_runtime_accepts_transcripts_once_after_durable_engine_submission(
+    tmp_path: Path,
+) -> None:
     config = _config(tmp_path / "youtube.json")
     state_root = tmp_path / "state"
-    first_queue = FilesystemCaptureQueue(tmp_path / "first-queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     media = _MediaAdapter()
 
     first = compose_production_youtube_poll_runtime(
         config_path=config,
         state_root=state_root,
-        queue=first_queue,
+        sink=local.public_job_sink("JOB-029"),
         media_adapter=media,
         clock=lambda: FIXED_TIME,
     ).run(max_items=10)
-    recovered_queue = FilesystemCaptureQueue(tmp_path / "recovered-queue")
     replay = compose_production_youtube_poll_runtime(
         config_path=config,
         state_root=state_root,
-        queue=recovered_queue,
+        sink=local.public_job_sink("JOB-029"),
         media_adapter=media,
         clock=lambda: FIXED_TIME,
     ).run(max_items=10)
@@ -106,25 +108,20 @@ def test_poll_runtime_republishes_seen_transcripts_after_queue_loss(tmp_path: Pa
     assert first.polled_count == 2
     assert first.created_count == 2
     assert replay.polled_count == 0
-    assert replay.created_count == 2
+    assert replay.created_count == 0
     assert media.calls == ["playlist", "video000001", "video000002", "playlist"]
-    assert recovered_queue.pending_snapshot().pending_count == 2
-    lease = recovered_queue.claim(worker_id="synthetic", now=FIXED_TIME)
-    assert lease is not None
-    assert lease.item.envelope.capture_source is CaptureSource.PLAYLIST
-    assert lease.item.envelope.shared_text == "Synthetic transcript"
-    assert lease.item.envelope.capture_why == ""
+    assert len(local.tasks.inbox.list()) == 2
 
 
-def test_local_only_subscription_causes_zero_media_or_queue_effects(tmp_path: Path) -> None:
+def test_local_only_subscription_causes_zero_media_or_engine_effects(tmp_path: Path) -> None:
     config = _config(tmp_path / "youtube.json", privacy=_privacy(egress=False))
     media = _MediaAdapter()
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
 
     result = compose_production_youtube_poll_runtime(
         config_path=config,
         state_root=tmp_path / "state",
-        queue=queue,
+        sink=local.public_job_sink("JOB-029"),
         media_adapter=media,
         clock=lambda: FIXED_TIME,
     ).run(max_items=10)
@@ -133,7 +130,36 @@ def test_local_only_subscription_causes_zero_media_or_queue_effects(tmp_path: Pa
     assert result.polled_count == 0
     assert result.created_count == 0
     assert media.calls == []
-    assert queue.pending_snapshot().pending_count == 0
+    assert local.tasks.inbox.list() == ()
+
+
+def test_poll_checkpoint_stays_unaccepted_when_sink_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _config(tmp_path / "youtube.json")
+    state_root = tmp_path / "state"
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
+    runtime = compose_production_youtube_poll_runtime(
+        config_path=config,
+        state_root=state_root,
+        sink=local.public_job_sink("JOB-029"),
+        media_adapter=_MediaAdapter(),
+        clock=lambda: FIXED_TIME,
+    )
+
+    with monkeypatch.context() as patched:
+        patched.setattr(
+            PublicJobCaptureSink,
+            "submit",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("sink failure")),
+        )
+        with pytest.raises(RuntimeError, match="sink failure"):
+            runtime.run(max_items=10)
+
+    assert {record.state for record in runtime._state.records()} == {PollItemState.SEEN}
+    retried = runtime.run(max_items=10)
+    assert retried.created_count == 2
+    assert {record.state for record in runtime._state.records()} == {PollItemState.ACCEPTED}
 
 
 def test_private_youtube_config_requires_owner_only_regular_canonical_file(

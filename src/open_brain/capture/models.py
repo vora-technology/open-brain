@@ -335,7 +335,7 @@ class ShareRequest:
 
 @dataclass(frozen=True, slots=True)
 class ShareResponse:
-    capture_id: CaptureId
+    capture_id: str
     pipeline: CapturePipeline
     duplicate: bool
     status: ShareStatus
@@ -344,13 +344,15 @@ class ShareResponse:
     def create(
         cls,
         *,
-        capture_id: CaptureId | str,
+        capture_id: str,
         pipeline: CapturePipeline | str,
         duplicate: bool,
         status: ShareStatus | str,
     ) -> ShareResponse:
         try:
-            normalized_id = CaptureId(validate_identifier(str(capture_id), prefix="cap_"))
+            normalized_id = str(capture_id)
+            if not normalized_id.startswith(("cap_", "capture_")):
+                raise ValueError
             normalized_pipeline = CapturePipeline(pipeline)
             normalized_status = ShareStatus(status)
         except (TypeError, ValueError) as error:

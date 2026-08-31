@@ -41,6 +41,7 @@ class PollItemState(StrEnum):
     REQUESTED = "requested"
     PROCESSING = "processing"
     SEEN = "seen"
+    ACCEPTED = "accepted"
     STUBBED = "stubbed"
 
 
@@ -229,7 +230,10 @@ class PollRecord:
                 raise ValueError("invalid poll record") from error
             if not capture_why.strip():
                 raise ValueError("invalid poll record")
-        elif capture_id is not None or capture_why:
+        elif (
+            (capture_id is not None and normalized_state is not PollItemState.ACCEPTED)
+            or capture_why
+        ):
             raise ValueError("invalid poll record")
         if reclassification is not None:
             if capture_id is None or not isinstance(
@@ -261,7 +265,7 @@ class PollRecord:
             ):
                 raise ValueError("invalid poll record")
             lease_expires_at = _utc_datetime(lease_expires_at)
-        elif normalized_state is PollItemState.SEEN:
+        elif normalized_state in {PollItemState.SEEN, PollItemState.ACCEPTED}:
             if (
                 not isinstance(extraction, NormalizedExtraction)
                 or extraction.state is not ExtractionState.COMPLETE
@@ -269,6 +273,10 @@ class PollRecord:
                 or attempt_count < 1
                 or lease_id is not None
                 or lease_expires_at is not None
+                or (
+                    normalized_state is PollItemState.ACCEPTED
+                    and (capture_id is None or not capture_id.startswith("capture_"))
+                )
             ):
                 raise ValueError("invalid poll record")
         elif (

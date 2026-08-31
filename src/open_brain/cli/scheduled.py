@@ -11,10 +11,7 @@ from open_brain.cli._registry import ScheduledRouteSpec
 from open_brain.operations.capture_jobs import CaptureJobApplication, get_capture_job
 from open_brain.operations.catalog import get_job
 from open_brain.operations.models import ExitClass, JobSpec
-from open_brain.operations.production_bindings import (
-    ScheduledDispatchResult,
-    ScheduledDispatchStatus,
-)
+from open_brain.operations.scheduled_results import ScheduledDispatchResult, ScheduledDispatchStatus
 from open_brain.operations.writer_jobs import WriterJobSpec, get_writer_job_spec
 
 __all__ = [

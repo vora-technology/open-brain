@@ -8,7 +8,9 @@ import stat
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from open_brain.capture.http import CaptureAcceptor, ShareHttpHandler
 from open_brain.config import (
     AppConfig,
     NamedSecretRef,
@@ -16,17 +18,17 @@ from open_brain.config import (
     resolve_secret,
 )
 from open_brain.core.ids import canonical_json_bytes
-from open_brain.integrations.mcp import LocalStdioMcpAdapter
+from open_brain.engine import PublicJobCaptureSink
 from open_brain.integrations.ui import UiBindConfig
 
-from .capabilities import ProductionApplication
 from .composition import (
     HttpLifecycle,
-    ProductionServiceDependencies,
     StdioMcpLifecycle,
-    compose_production_services,
 )
-from .http_server import HttpRouteMode
+from .http_server import HttpRouteMode, HttpService, HttpServiceConfig
+
+if TYPE_CHECKING:
+    from .application import SingleUserLocalApplication
 
 _SERVICE_SECRET_NAME = "service_token"
 _SERVICE_SECRET_NAMES = frozenset(
@@ -41,17 +43,17 @@ class ServiceConfigurationError(RuntimeError):
 
 def compose_mcp_from_config(
     *,
-    config: AppConfig,
-    application: ProductionApplication,
+    application: SingleUserLocalApplication,
+    allowed_space_ids: frozenset[str] = frozenset(),
 ) -> StdioMcpLifecycle:
-    """Compose work-only MCP without requiring unrelated HTTP credentials."""
-    if not isinstance(config, AppConfig) or not isinstance(application, ProductionApplication):
+    """Compose scoped MCP from one app-owned engine task set."""
+    if (
+        not _is_single_user_application(application)
+        or not isinstance(allowed_space_ids, frozenset)
+    ):
         raise ServiceConfigurationError("invalid MCP service configuration")
     try:
-        adapter = LocalStdioMcpAdapter(
-            retriever=application.retriever,
-            feedback=application.feedback,
-        )
+        adapter = application.mcp_adapter(allowed_space_ids=allowed_space_ids)
     except Exception as error:
         raise ServiceConfigurationError("invalid MCP service configuration") from error
     return StdioMcpLifecycle(adapter)
@@ -60,21 +62,27 @@ def compose_mcp_from_config(
 def compose_http_from_config(
     *,
     config: AppConfig,
-    application: ProductionApplication,
+    application: SingleUserLocalApplication,
     environment: Mapping[str, str],
     file_reader: Callable[[Path], str],
     bind: UiBindConfig | None = None,
     secret_name: str = _SERVICE_SECRET_NAME,
     route_mode: HttpRouteMode = HttpRouteMode.COMBINED,
+    capture: CaptureAcceptor | PublicJobCaptureSink | None = None,
 ) -> HttpLifecycle:
     """Resolve one named credential, then compose authenticated UI/share HTTP."""
     if (
         not isinstance(config, AppConfig)
-        or not isinstance(application, ProductionApplication)
+        or not _is_single_user_application(application)
         or not isinstance(environment, Mapping)
         or not callable(file_reader)
         or secret_name not in _SERVICE_SECRET_NAMES
         or not isinstance(route_mode, HttpRouteMode)
+        or (
+            capture is not None
+            and not callable(getattr(capture, "accept", None))
+            and not isinstance(capture, PublicJobCaptureSink)
+        )
     ):
         raise ServiceConfigurationError("invalid HTTP service configuration")
     token = _service_token(
@@ -84,21 +92,29 @@ def compose_http_from_config(
         file_reader=file_reader,
     )
     try:
-        services = compose_production_services(
-            ProductionServiceDependencies(
-                retriever=application.retriever,
-                feedback=application.feedback,
-                page_reader=application.page_reader,
-                share_queue=application.capture_queue,
+        selected_capture = application.tasks.capture if capture is None else capture
+        http = HttpService(
+            ui_handler=application.ui_handler(token),
+            share_handler_factory=lambda body_reader: ShareHttpHandler(
                 expected_bearer_token=token,
+                capture=selected_capture,
+                body_reader=body_reader,
                 clock=_utc_now,
+            ),
+            config=HttpServiceConfig(
                 bind=bind or UiBindConfig(),
-                http_route_mode=route_mode,
-            )
+                route_mode=route_mode,
+            ),
         )
     except Exception as error:
         raise ServiceConfigurationError("invalid HTTP service configuration") from error
-    return services.http
+    return HttpLifecycle(http)
+
+
+def _is_single_user_application(value: object) -> bool:
+    from .application import SingleUserLocalApplication
+
+    return isinstance(value, SingleUserLocalApplication)
 
 
 def read_private_service_secret(path: Path) -> str:

@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.core.models import (
     Authority,
     CaptureEnvelope,
@@ -28,6 +27,7 @@ from open_brain.operations.capture_jobs import (
 )
 from open_brain.operations.models import JobState, TriggerKind
 from open_brain.operations.render import render_systemd_service, render_systemd_timer
+from open_brain.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 
@@ -59,15 +59,15 @@ def _youtube_envelope() -> CaptureEnvelope:
     )
 
 
-def test_job_029_is_enabled_queue_only_poll_with_persistent_timer(tmp_path: Path) -> None:
+def test_job_029_is_enabled_engine_capture_poll_with_persistent_timer(tmp_path: Path) -> None:
     application = get_capture_job("JOB-029")
     service = render_systemd_service(application.job)
     timer = render_systemd_timer(application.job)
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     envelope = _youtube_envelope()
 
-    created = application.append(queue=queue, envelope=envelope)
-    duplicate = application.append(queue=queue, envelope=envelope)
+    created = application.submit(sink=local.public_job_sink("JOB-029"), envelope=envelope)
+    duplicate = application.submit(sink=local.public_job_sink("JOB-029"), envelope=envelope)
 
     assert application.argv == (
         "open-brain",
@@ -81,7 +81,7 @@ def test_job_029_is_enabled_queue_only_poll_with_persistent_timer(tmp_path: Path
     assert application.job.trigger.kind is TriggerKind.CALENDAR_INTERVAL
     assert application.job.trigger.interval_seconds == 300
     assert application.job.trigger.persistent is True
-    assert application.allowed_writes == frozenset({CaptureWrite.QUEUE_ENVELOPE})
+    assert application.allowed_writes == frozenset({CaptureWrite.ENGINE_CAPTURE})
     assert application.service_actions == ()
     assert created.disposition.value == "created"
     assert duplicate.disposition.value == "duplicate"
@@ -90,7 +90,7 @@ def test_job_029_is_enabled_queue_only_poll_with_persistent_timer(tmp_path: Path
     assert "OnCalendar=*-*-* *:0/5:00" in timer
     assert "Persistent=true" in timer
     assert "[Install]" not in service + timer
-    assert len(tuple((tmp_path / "queue" / "active").glob("*.json"))) == 1
+    assert [item.capture_id for item in local.tasks.inbox.list()] == [created.capture_id]
     assert not tuple(tmp_path.glob("*.md"))
     assert not tuple(tmp_path.glob("*.sqlite"))
 

@@ -68,8 +68,8 @@ def test_cli_and_ui_share_capture_space_routing_and_retrieval_ids(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks)
 
     exit_code, created = _cli(
         capsys,
@@ -146,8 +146,8 @@ def test_cli_and_ui_accept_every_generic_payload_family_through_the_same_engine(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks)
     cli_requests = (
         ("text", "Synthetic CLI text"),
         (
@@ -240,8 +240,8 @@ def test_cli_and_ui_serialize_only_public_retrieval_provenance(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks)
     private_source = "https://example.test/private-engine-source"
     capture = engine.capture.accept(
         ReferencePayload(private_source, "Synthetic source-safe surface token"),
@@ -271,8 +271,8 @@ def test_cli_and_ui_each_approve_reject_and_edit_with_shared_terminal_ids(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks)
     space = engine.inbox.create_space("Review", delivery_id="surface.review.space")
     capture = engine.capture.accept(
         TextPayload("Synthetic six-way surface review"),
@@ -350,7 +350,7 @@ def test_cli_and_ui_each_approve_reject_and_edit_with_shared_terminal_ids(
 
 def test_ui_authenticates_before_mutating_or_parsing_private_body(tmp_path: Path) -> None:
     engine = _engine(tmp_path / "brain")
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks)
     private_body = b'{"delivery_id":"unauthorized","text":"synthetic private body"}'
 
     unauthorized = ui.handle(

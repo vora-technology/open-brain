@@ -3,9 +3,9 @@ from __future__ import annotations
 import hmac
 import json
 import logging
-from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import cast
+from pathlib import Path
 
 import pytest
 
@@ -16,31 +16,56 @@ from open_brain.capture.http import (
     RequestReadTimeout,
     ShareHttpHandler,
 )
-from open_brain.capture.models import CaptureWorkItem
-from open_brain.capture.queue import QueueImmutableConflictError
-from open_brain.core.ports import PutDisposition, PutResult
-
-FIXED_TIME = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+from open_brain.engine import CaptureAction, CaptureReceipt, Payload, open_local_engine
+from open_brain.profile import compile_single_user_local
 
 
-class FakeQueue:
-    def __init__(self, disposition: PutDisposition = PutDisposition.CREATED) -> None:
-        self.disposition = disposition
-        self.items: list[CaptureWorkItem] = []
-        self.failure: Exception | None = None
+@dataclass
+class _CaptureSpy:
+    calls: list[dict[str, object]] = field(default_factory=list)
+    failure: Exception | None = None
+    duplicate: bool = False
 
-    def enqueue(self, item: CaptureWorkItem, *, item_id: str, payload_digest: str) -> PutResult:
+    def accept(
+        self,
+        payload: Payload,
+        *,
+        delivery_id: str,
+        action: CaptureAction = CaptureAction.QUICK,
+        space_id: str | None = None,
+        intent: str | None = None,
+        capture_why: str | None = None,
+        title: str | None = None,
+    ) -> CaptureReceipt:
         if self.failure is not None:
             raise self.failure
-        self.items.append(item)
-        return PutResult(self.disposition, item_id, payload_digest)
+        self.calls.append(
+            {
+                "action": action,
+                "capture_why": capture_why,
+                "delivery_id": delivery_id,
+                "intent": intent,
+                "payload": payload,
+                "space_id": space_id,
+                "title": title,
+            }
+        )
+        return CaptureReceipt(
+            capture_id="cap_" + "a" * 64,
+            payload_family="reference_or_file",
+            state="captured",
+            enrichment_state="held",
+            space_id=None,
+            canonical_path=None,
+            duplicate=self.duplicate,
+        )
 
 
-class RecordingBodyReader:
-    def __init__(self, body: bytes) -> None:
+class _Reader:
+    def __init__(self, body: bytes, failure: Exception | None = None) -> None:
         self.body = body
+        self.failure = failure
         self.calls: list[tuple[int, float]] = []
-        self.failure: Exception | None = None
 
     def __call__(self, maximum_bytes: int, timeout_seconds: float) -> bytes:
         self.calls.append((maximum_bytes, timeout_seconds))
@@ -49,68 +74,94 @@ class RecordingBodyReader:
         return self.body
 
 
-def _marker(kind: str) -> str:
-    return "synthetic" + "-" + kind + "-marker"
-
-
-def _bearer() -> str:
-    return "bearer" + "-" + "token"
-
-
-def _payload(**overrides: object) -> bytes:
-    value: dict[str, object] = {
-        "url": "https://example.test/shared",
-        "why": "Keep this reference",
-        "text": "Shared note",
-    }
-    value.update(overrides)
-    return json.dumps(value, separators=(",", ":")).encode("utf-8")
-
-
-def _request(
-    body: bytes,
-    *,
-    authorization: str | None = None,
-    path: str = "/share",
-    content_type: str = "application/json",
-    length: str | None = None,
-    extra_headers: tuple[tuple[str, str], ...] = (),
-) -> HttpRequest:
-    headers: list[tuple[str, str]] = [
-        ("Content-Length", str(len(body)) if length is None else length),
-        ("Content-Type", content_type),
-    ]
-    if authorization is not None:
-        headers.append(("Authorization", authorization))
-    headers.extend(extra_headers)
-    return HttpRequest(method="POST", path=path, headers=tuple(headers))
-
-
-def _handler(
-    reader: RecordingBodyReader,
-    queue: FakeQueue | None = None,
-    *,
-    clock: Callable[[], datetime] = lambda: FIXED_TIME,
-    expected_bearer_token: str | None = None,
-) -> tuple[ShareHttpHandler, FakeQueue]:
-    actual_queue = queue or FakeQueue()
-    token = _bearer() if expected_bearer_token is None else expected_bearer_token
-    return (
-        ShareHttpHandler(
-            expected_bearer_token=token,
-            queue=actual_queue,
-            clock=clock,
-            body_reader=reader,
+def _request(body: bytes, *, authorization: str = "Bearer synthetic-token") -> HttpRequest:
+    return HttpRequest(
+        method="POST",
+        path="/share",
+        headers=(
+            ("Authorization", authorization),
+            ("Content-Length", str(len(body))),
+            ("Content-Type", "application/json"),
         ),
-        actual_queue,
     )
 
 
-def _response_body(response_body: bytes) -> dict[str, object]:
-    return cast(dict[str, object], json.loads(response_body))
+def _handler(root: Path, body: bytes, *, calls: list[tuple[int, float]]) -> ShareHttpHandler:
+    return ShareHttpHandler(
+        expected_bearer_token="synthetic-token",
+        capture=open_local_engine(compile_single_user_local(root)).capture,
+        clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
+        body_reader=lambda maximum, timeout: _record_body(calls, maximum, timeout, body),
+    )
 
 
-def test_h01_bearer_authentication_is_constant_time_and_all_invalid_values_are_identical(
+def _record_body(
+    calls: list[tuple[int, float]], maximum: int, timeout: float, body: bytes
+) -> bytes:
+    calls.append((maximum, timeout))
+    return body
+
+
+def test_share_authenticates_and_bounds_before_reading_the_body(tmp_path: Path) -> None:
+    body = b'{"url":"https://example.test/share","why":"Synthetic reason"}'
+    calls: list[tuple[int, float]] = []
+    handler = _handler(tmp_path / "brain", body, calls=calls)
+
+    unauthorized = handler.handle(_request(body, authorization="Bearer wrong-token"))
+    oversized = handler.handle(
+        HttpRequest(
+            method="POST",
+            path="/share",
+            headers=(
+                ("Authorization", "Bearer synthetic-token"),
+                ("Content-Length", str(BODY_LIMIT_BYTES + 1)),
+                ("Content-Type", "application/json"),
+            ),
+        )
+    )
+
+    assert (unauthorized.status, unauthorized.body) == (401, b'{"code":"unauthorized"}')
+    assert (oversized.status, oversized.body) == (413, b'{"code":"request_too_large"}')
+    assert calls == []
+
+
+def test_share_keeps_the_202_envelope_and_uses_engine_replay(tmp_path: Path) -> None:
+    body = json.dumps(
+        {
+            "url": "https://www.youtube.com/watch?v=synthetic123",
+            "why": "Watch this before the planning meeting",
+            "text": "A teammate shared this from iOS.",
+        },
+        separators=(",", ":"),
+    ).encode()
+    calls: list[tuple[int, float]] = []
+    handler = _handler(tmp_path / "brain", body, calls=calls)
+
+    created = handler.handle(_request(body))
+    replay = handler.handle(_request(body))
+    created_value = json.loads(created.body)
+    replay_value = json.loads(replay.body)
+
+    assert created.status == replay.status == 202
+    assert created_value["status"] == "queued"
+    assert replay_value == {**created_value, "duplicate": True, "status": "duplicate"}
+    assert created_value["pipeline"] == "youtube"
+    assert created_value["capture_id"] == replay_value["capture_id"]
+    assert calls == [(BODY_LIMIT_BYTES, 5.0), (BODY_LIMIT_BYTES, 5.0)]
+
+
+def _spy_handler(
+    reader: _Reader, spy: _CaptureSpy, *, token: str = "synthetic-token"
+) -> ShareHttpHandler:
+    return ShareHttpHandler(
+        expected_bearer_token=token,
+        capture=spy,
+        clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
+        body_reader=reader,
+    )
+
+
+def test_share_uses_constant_time_auth_and_refuses_blank_composition(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     observed: list[tuple[bytes, bytes]] = []
@@ -120,231 +171,218 @@ def test_h01_bearer_authentication_is_constant_time_and_all_invalid_values_are_i
         observed.append((left, right))
         return bool(original(left, right))
 
-    monkeypatch.setattr(hmac, "compare_digest", compare)
-    body = _payload()
-    reader = RecordingBodyReader(body)
-    handler, queue = _handler(reader)
+    monkeypatch.setattr(
+        hmac,
+        "compare_digest",
+        compare,
+    )
+    body = b'{"url":"https://example.test/share","why":"Synthetic reason"}'
+    reader = _Reader(body)
+    spy = _CaptureSpy()
+    handler = _spy_handler(reader, spy)
 
-    valid = handler.handle(_request(body, authorization="Bearer " + _bearer()))
+    valid = handler.handle(_request(body))
     invalid = [
-        handler.handle(_request(body)),
-        handler.handle(_request(body, authorization="Bearer ")),
-        handler.handle(_request(body, authorization="Token " + _bearer())),
-        handler.handle(_request(body, authorization="Bearer " + _bearer() + "-wrong")),
-        handler.handle(_request(body, authorization="Bearer non\u00e4scii")),
+        handler.handle(_request(body, authorization=value))
+        for value in (
+            "",
+            "Bearer ",
+            "Token synthetic-token",
+            "Bearer wrong",
+            "Bearer non\u00e4scii",
+        )
     ]
 
     assert valid.status == 202
-    expected = _bearer().encode("ascii")
-    assert observed == [(expected, expected), (b"bearer-token-wrong", expected)]
     assert {(response.status, response.body) for response in invalid} == {
         (401, b'{"code":"unauthorized"}')
     }
-    assert len(queue.items) == 1
-
-
-def test_h02_blank_expected_bearer_refuses_handler_composition() -> None:
+    assert observed == [(b"synthetic-token", b"synthetic-token"), (b"wrong", b"synthetic-token")]
+    assert len(spy.calls) == 1
     with pytest.raises(ValueError):
-        ShareHttpHandler(
-            expected_bearer_token=" ",
-            queue=FakeQueue(),
-            clock=lambda: FIXED_TIME,
-            body_reader=RecordingBodyReader(_payload()),
-        )
+        _spy_handler(_Reader(body), _CaptureSpy(), token=" ")
 
 
-@pytest.mark.parametrize("length", [None, "", "-1", "not-a-number", "100001"])
-def test_h03_invalid_or_oversized_content_length_never_reads_or_queues(length: str | None) -> None:
-    body = _payload()
-    reader = RecordingBodyReader(body)
-    handler, queue = _handler(reader)
-    request = _request(body, authorization="Bearer " + _bearer(), length=length)
+@pytest.mark.parametrize("length", [None, "", "-1", "bad", str(BODY_LIMIT_BYTES + 1)])
+def test_share_refuses_missing_invalid_or_oversized_lengths_before_reading(
+    length: str | None,
+) -> None:
+    body = b'{"url":"https://example.test/share","why":"Synthetic reason"}'
+    reader = _Reader(body)
+    spy = _CaptureSpy()
+    headers = list(_request(body).headers)
     if length is None:
-        request = HttpRequest(
-            method=request.method,
-            path=request.path,
-            headers=tuple(header for header in request.headers if header[0] != "Content-Length"),
-        )
+        headers = [header for header in headers if header[0] != "Content-Length"]
+    else:
+        headers = [(name, length if name == "Content-Length" else value) for name, value in headers]
 
-    response = handler.handle(request)
+    response = _spy_handler(reader, spy).handle(HttpRequest("POST", "/share", tuple(headers)))
 
-    assert response.status == 413
+    assert response == type(response)(413, b'{"code":"request_too_large"}')
     assert reader.calls == []
-    assert queue.items == []
+    assert spy.calls == []
 
 
-def test_h03_duplicate_length_and_exact_or_one_over_body_and_field_bounds_are_closed() -> None:
-    exact_body = _payload(text="x" * (BODY_LIMIT_BYTES - len(_payload(text=""))))
-    one_over_body = exact_body + b" "
-    assert len(exact_body) == BODY_LIMIT_BYTES
-    reader = RecordingBodyReader(exact_body)
-    handler, queue = _handler(reader)
-
-    exact = handler.handle(_request(exact_body, authorization="Bearer " + _bearer()))
-    too_large = handler.handle(_request(one_over_body, authorization="Bearer " + _bearer()))
-    duplicate_length = handler.handle(
-        _request(
-            _payload(),
-            authorization="Bearer " + _bearer(),
-            extra_headers=(("Content-Length", str(len(_payload()))),),
-        )
+def test_share_closes_duplicate_lengths_body_and_field_bounds() -> None:
+    exact = (
+        b'{"url":"https://example.test/share","why":"reason","text":"'
+        + b"x"
+        * (BODY_LIMIT_BYTES - len(b'{"url":"https://example.test/share","why":"reason","text":""}'))
+        + b'"}'
     )
-    exact_url = "https://example.test/" + "x" * (2_048 - len("https://example.test/"))
-    field_cases = [
-        _payload(url=exact_url),
-        _payload(url=exact_url + "x"),
-        _payload(why="x" * 280),
-        _payload(why="x" * 281),
-    ]
-    responses = []
-    for value in field_cases:
-        field_handler, field_queue = _handler(RecordingBodyReader(value))
-        responses.append(field_handler.handle(_request(value, authorization="Bearer " + _bearer())))
-        queue.items.extend(field_queue.items)
+    reader = _Reader(exact)
+    spy = _CaptureSpy()
+    handler = _spy_handler(reader, spy)
+    duplicate = HttpRequest(
+        "POST", "/share", _request(exact).headers + (("Content-Length", str(len(exact))),)
+    )
+    too_long_url = b'{"url":"https://example.test/' + b"x" * 2_100 + b'","why":"reason"}'
 
-    assert exact.status == 202
-    assert too_large.status == 413
-    assert duplicate_length.status == 413
-    assert [response.status for response in responses] == [202, 413, 202, 400]
-    assert len(queue.items) == 3
-    assert reader.calls[0] == (BODY_LIMIT_BYTES, REQUEST_TIMEOUT_SECONDS)
+    assert handler.handle(_request(exact)).status == 409
+    assert handler.handle(_request(exact + b" ")).status == 413
+    assert handler.handle(duplicate).status == 413
+    assert (
+        _spy_handler(_Reader(too_long_url), _CaptureSpy()).handle(_request(too_long_url)).status
+        == 413
+    )
+    assert reader.calls == [(BODY_LIMIT_BYTES, REQUEST_TIMEOUT_SECONDS)]
+    assert spy.calls == []
 
 
 @pytest.mark.parametrize(
     ("http_request", "status", "body"),
-    [
+    (
+        (HttpRequest("POST", "/other", ()), 400, b'{"code":"invalid_request"}'),
         (
-            _request(_payload(), authorization="Bearer bearer-token", path="/other"),
+            _request(b"{}", authorization="Bearer synthetic-token"),
             400,
             b'{"code":"invalid_request"}',
         ),
         (
-            _request(_payload(), authorization="Bearer bearer-token", content_type="text/plain"),
+            HttpRequest(
+                "POST",
+                "/share",
+                (
+                    ("Authorization", "Bearer synthetic-token"),
+                    ("Content-Length", "2"),
+                    ("Content-Type", "text/plain"),
+                ),
+            ),
             415,
             b'{"code":"unsupported_media_type"}',
         ),
-        (_request(b"", authorization="Bearer bearer-token"), 400, b'{"code":"invalid_request"}'),
-        (_request(b"{", authorization="Bearer bearer-token"), 400, b'{"code":"invalid_request"}'),
-        (_request(b"[]", authorization="Bearer bearer-token"), 400, b'{"code":"invalid_request"}'),
         (
-            _request(_payload(extra="no"), authorization="Bearer bearer-token"),
+            _request(b"{", authorization="Bearer synthetic-token"),
             400,
             b'{"code":"invalid_request"}',
         ),
         (
-            _request(_payload(url="ftp://example.test/file"), authorization="Bearer bearer-token"),
+            _request(b"[]", authorization="Bearer synthetic-token"),
             400,
             b'{"code":"invalid_request"}',
         ),
-        (
-            _request(_payload(why="line\none"), authorization="Bearer bearer-token"),
-            400,
-            b'{"code":"invalid_request"}',
-        ),
-    ],
+    ),
 )
-def test_h04_only_the_closed_json_contract_is_accepted(
+def test_share_accepts_only_closed_json_content_and_path(
     http_request: HttpRequest, status: int, body: bytes
 ) -> None:
-    reader = RecordingBodyReader(b"ignored")
-    handler, queue = _handler(reader)
-
-    response = handler.handle(http_request)
+    response = _spy_handler(_Reader(http_request.method.encode()), _CaptureSpy()).handle(
+        http_request
+    )
 
     assert (response.status, response.body) == (status, body)
-    assert queue.items == []
 
 
-def test_h05_slow_body_reader_returns_closed_timeout_without_enqueue() -> None:
-    reader = RecordingBodyReader(_payload())
-    reader.failure = RequestReadTimeout()
-    handler, queue = _handler(reader)
-
-    response = handler.handle(_request(_payload(), authorization="Bearer " + _bearer()))
-
-    assert (response.status, response.body) == (408, b'{"code":"request_timeout"}')
-    assert reader.calls == [(BODY_LIMIT_BYTES, REQUEST_TIMEOUT_SECONDS)]
-    assert queue.items == []
-
-
-def test_h06_failures_do_not_expose_body_or_bearer_markers(
+def test_share_timeout_errors_and_capture_failures_are_redacted(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    body_marker = _marker("body")
-    bearer_marker = _marker("bearer")
-    reader = RecordingBodyReader(_payload(text=body_marker))
-    queue = FakeQueue()
-    queue.failure = RuntimeError(body_marker + bearer_marker)
-    handler, _ = _handler(reader, queue, expected_bearer_token=bearer_marker)
-    auth_handler, _ = _handler(RecordingBodyReader(reader.body))
-    parser_handler, _ = _handler(RecordingBodyReader(b"{"), expected_bearer_token=bearer_marker)
-
+    marker = "synthetic-secret-marker"
+    body = (
+        b'{"url":"https://example.test/share","why":"Synthetic reason","text":"'
+        + marker.encode()
+        + b'"}'
+    )
+    timeout = _spy_handler(_Reader(body, RequestReadTimeout()), _CaptureSpy()).handle(
+        _request(body)
+    )
+    unavailable = _spy_handler(_Reader(body), _CaptureSpy(failure=RuntimeError(marker))).handle(
+        _request(body)
+    )
     with caplog.at_level(logging.DEBUG):
-        responses = [
-            auth_handler.handle(_request(reader.body, authorization="Bearer " + bearer_marker)),
-            parser_handler.handle(_request(b"{", authorization="Bearer " + bearer_marker)),
-            handler.handle(_request(reader.body, authorization="Bearer " + bearer_marker)),
-        ]
+        exposed = b"".join((timeout.body, unavailable.body)) + b"\n".join(
+            record.getMessage().encode() for record in caplog.records
+        )
 
-    exposed = (
-        b"".join(response.body for response in responses)
-        + "\n".join(record.getMessage() for record in caplog.records).encode()
+    assert (timeout.status, timeout.body) == (408, b'{"code":"request_timeout"}')
+    assert (unavailable.status, unavailable.body) == (500, b'{"code":"capture_unavailable"}')
+    assert marker.encode() not in exposed
+
+
+def test_share_requires_why_preserves_provenance_and_closes_conflict() -> None:
+    body = (
+        b'{"url":"https://www.youtube.com/watch?v=synthetic",'
+        b'"why":"Keep this source","text":"Synthetic text"}'
     )
-    assert [(response.status, response.body) for response in responses] == [
-        (401, b'{"code":"unauthorized"}'),
-        (400, b'{"code":"invalid_request"}'),
-        (500, b'{"code":"queue_unavailable"}'),
-    ]
-    assert body_marker.encode() not in exposed
-    assert bearer_marker.encode() not in exposed
-
-
-def test_h07_ios_shaped_request_queues_once_with_owner_reason_and_duplicate_response() -> None:
-    body = _payload(
-        url="https://www.youtube.com/watch?v=synthetic123",
-        why="Watch this before the planning meeting",
-        text="A teammate shared this from iOS.",
-        privacy="work",
+    spy = _CaptureSpy()
+    response = _spy_handler(_Reader(body), spy).handle(_request(body))
+    conflict = _spy_handler(_Reader(body), _CaptureSpy(failure=ValueError("conflict"))).handle(
+        _request(body)
     )
-    reader = RecordingBodyReader(body)
-    handler, queue = _handler(reader)
-    request = _request(body, authorization="Bearer " + _bearer())
 
-    created = handler.handle(request)
-    queue.disposition = PutDisposition.DUPLICATE
-    duplicate = handler.handle(request)
-
-    created_body = _response_body(created.body)
-    assert created.status == 202
-    assert created_body == {
-        "capture_id": str(queue.items[0].envelope.capture_id),
-        "pipeline": "youtube",
-        "duplicate": False,
-        "status": "queued",
-    }
-    assert queue.items[0].envelope.capture_why == "Watch this before the planning meeting"
-    assert queue.items[0].envelope.captured_at == FIXED_TIME
-    assert queue.items[0].envelope.privacy_decision.reason.value == "policy_work"
-    assert queue.items[0].envelope.privacy_decision.authority.external_egress is False
-    assert duplicate.status == 202
-    assert _response_body(duplicate.body) == {
-        **created_body,
-        "duplicate": True,
-        "status": "duplicate",
-    }
-    assert len(queue.items) == 2
+    assert response.status == 202
+    assert spy.calls[0]["capture_why"] == "Keep this source"
+    assert conflict == type(conflict)(409, b'{"code":"immutable_conflict"}')
 
 
-def test_queue_conflict_and_queue_failure_are_closed() -> None:
-    body = _payload()
-    reader = RecordingBodyReader(body)
-    queue = FakeQueue()
-    handler, _ = _handler(reader, queue)
-    queue.failure = QueueImmutableConflictError("synthetic")
+def test_captures_accepts_four_families_with_created_replay_and_conflict(tmp_path: Path) -> None:
+    application = open_local_engine(compile_single_user_local(tmp_path / "brain"))
+    token = "synthetic-token"
+    payloads = (
+        {"family": "text", "text": "Synthetic text"},
+        {"family": "reference_or_file", "kind": "reference", "url": "https://example.test/ref"},
+        {"family": "event", "event_type": "synthetic.event", "attributes": {"key": "value"}},
+        {"family": "measurement", "value": "7", "unit": "count", "dimensions": {"key": "value"}},
+    )
+    responses = []
+    for index, payload in enumerate(payloads):
+        body = json.dumps({"delivery_id": f"http.{index}", "payload": payload}).encode()
+        responses.append(
+            ShareHttpHandler(
+                expected_bearer_token=token,
+                capture=application.capture,
+                clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
+                body_reader=lambda _maximum, _timeout, body=body: body,
+            ).handle(
+                HttpRequest(
+                    "POST",
+                    "/captures",
+                    (
+                        ("Authorization", "Bearer " + token),
+                        ("Content-Length", str(len(body))),
+                        ("Content-Type", "application/json"),
+                    ),
+                )
+            )
+        )
 
-    conflict = handler.handle(_request(body, authorization="Bearer " + _bearer()))
-    queue.failure = RuntimeError("synthetic")
-    unavailable = handler.handle(_request(body, authorization="Bearer " + _bearer()))
+    replay_body = json.dumps({"delivery_id": "http.0", "payload": payloads[0]}).encode()
+    replay = ShareHttpHandler(
+        expected_bearer_token=token,
+        capture=application.capture,
+        clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
+        body_reader=lambda _maximum, _timeout: replay_body,
+    ).handle(
+        HttpRequest(
+            "POST",
+            "/captures",
+            (
+                ("Authorization", "Bearer " + token),
+                ("Content-Length", str(len(replay_body))),
+                ("Content-Type", "application/json"),
+            ),
+        )
+    )
 
-    assert (conflict.status, conflict.body) == (409, b'{"code":"immutable_conflict"}')
-    assert (unavailable.status, unavailable.body) == (500, b'{"code":"queue_unavailable"}')
+    assert [response.status for response in responses] == [201, 201, 201, 201]
+    assert replay.status == 200
+    assert json.loads(responses[0].body)["capture_id"] == json.loads(replay.body)["capture_id"]

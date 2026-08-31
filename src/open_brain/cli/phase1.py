@@ -10,9 +10,9 @@ from dataclasses import dataclass
 from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
 from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.engine import (
-    BrainEngine,
     CaptureAction,
     DecisionOutcome,
+    EngineTaskSet,
     EventPayload,
     FilePayload,
     MeasurementPayload,
@@ -30,7 +30,7 @@ class Phase1CliResult:
 @dataclass(frozen=True, slots=True)
 class Phase1CommandAdapter:
     family: str
-    engine: BrainEngine
+    tasks: EngineTaskSet
 
     def dispatch(self, argv: tuple[str, ...]) -> CommandDispatchResult:
         try:
@@ -94,7 +94,7 @@ class Phase1CommandAdapter:
             if positional[0] == "canonical"
             else CaptureAction.QUICK
         )
-        receipt = self.engine.capture.accept(
+        receipt = self.tasks.capture.accept(
             payload,
             delivery_id=options["delivery"],
             action=action,
@@ -126,7 +126,7 @@ class Phase1CommandAdapter:
     ) -> Phase1CliResult:
         if positional not in {(), ("list",)} or options or flags - {"unassigned"}:
             return _invalid("inbox")
-        items = self.engine.inbox.list(unassigned_only="unassigned" in flags)
+        items = self.tasks.inbox.list(unassigned_only="unassigned" in flags)
         return Phase1CliResult(
             ExitCode.SUCCESS,
             {
@@ -154,7 +154,7 @@ class Phase1CommandAdapter:
             return _invalid("spaces")
         action = positional[0]
         if action == "list" and len(positional) == 1 and not options:
-            spaces = self.engine.inbox.spaces()
+            spaces = self.tasks.inbox.spaces()
             return Phase1CliResult(
                 ExitCode.SUCCESS,
                 {
@@ -169,17 +169,17 @@ class Phase1CommandAdapter:
         if set(options) != {"delivery"}:
             return _invalid("spaces")
         if action == "create" and len(positional) == 2:
-            space = self.engine.inbox.create_space(
+            space = self.tasks.inbox.create_space(
                 positional[1], delivery_id=options["delivery"]
             )
             status = "created"
         elif action == "rename" and len(positional) == 3:
-            space = self.engine.inbox.rename_space(
+            space = self.tasks.inbox.rename_space(
                 positional[1], positional[2], delivery_id=options["delivery"]
             )
             status = "renamed"
         elif action == "route" and len(positional) == 3:
-            routed = self.engine.inbox.route(
+            routed = self.tasks.inbox.route(
                 positional[1], positional[2], delivery_id=options["delivery"]
             )
             return Phase1CliResult(
@@ -206,7 +206,7 @@ class Phase1CommandAdapter:
     ) -> Phase1CliResult:
         if positional not in {(), ("list",)} or flags or set(options) - {"capture", "status"}:
             return _invalid("proposals")
-        proposals = self.engine.review.list(
+        proposals = self.tasks.review.list(
             capture_id=options.get("capture"), status=options.get("status")
         )
         return Phase1CliResult(
@@ -246,7 +246,7 @@ class Phase1CommandAdapter:
             "reject": DecisionOutcome.REJECTED,
             "edit": DecisionOutcome.EDITED,
         }[positional[0]]
-        decision = self.engine.review.decide(
+        decision = self.tasks.review.decide(
             positional[1],
             outcome,
             delivery_id=options["delivery"],
@@ -276,7 +276,7 @@ class Phase1CommandAdapter:
         if len(positional) != 1 or flags or set(options) - {"space", "family", "type", "limit"}:
             return _invalid("query")
         limit = int(options.get("limit", "10"))
-        results = self.engine.retrieval.search(
+        results = self.tasks.retrieval.search(
             positional[0],
             space_id=options.get("space"),
             payload_family=options.get("family"),
@@ -307,12 +307,12 @@ class Phase1CommandAdapter:
         )
 
 
-def build_phase1_command_adapters(engine: BrainEngine) -> CommandAdapterRegistry:
-    if not isinstance(engine, BrainEngine):
-        raise ValueError("invalid Phase 1 engine")
+def build_phase1_command_adapters(tasks: EngineTaskSet) -> CommandAdapterRegistry:
+    if not isinstance(tasks, EngineTaskSet):
+        raise ValueError("invalid Phase 1 tasks")
     families = ("capture", "inbox", "proposals", "query", "review", "spaces")
     return CommandAdapterRegistry(
-        {family: Phase1CommandAdapter(family=family, engine=engine) for family in families}
+        {family: Phase1CommandAdapter(family=family, tasks=tasks) for family in families}
     )
 
 

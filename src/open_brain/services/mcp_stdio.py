@@ -6,7 +6,7 @@ import json
 from collections.abc import Mapping
 from typing import BinaryIO
 
-from open_brain.integrations.mcp import LocalStdioMcpAdapter, McpCallError
+from open_brain.integrations.mcp import EngineMcpAdapter, LocalStdioMcpAdapter, McpCallError
 from open_brain.integrations.ports import IntegrationScope
 
 MCP_PROTOCOL_VERSION = "2025-03-26"
@@ -19,7 +19,7 @@ _MAXIMUM_MESSAGE_BYTES = 1_048_576
 
 
 def serve_stdio_mcp(
-    adapter: LocalStdioMcpAdapter,
+    adapter: LocalStdioMcpAdapter | EngineMcpAdapter,
     *,
     input_stream: BinaryIO,
     output_stream: BinaryIO,
@@ -27,7 +27,7 @@ def serve_stdio_mcp(
 ) -> None:
     """Serve line-delimited MCP JSON-RPC until EOF without writing to stderr."""
     if (
-        not isinstance(adapter, LocalStdioMcpAdapter)
+        not isinstance(adapter, LocalStdioMcpAdapter | EngineMcpAdapter)
         or adapter.transport != "stdio"
         or adapter.scope is not IntegrationScope.WORK
     ):
@@ -69,7 +69,7 @@ def _discard_line(input_stream: BinaryIO) -> None:
 
 def _handle_message(
     line: bytes,
-    adapter: LocalStdioMcpAdapter,
+    adapter: LocalStdioMcpAdapter | EngineMcpAdapter,
     initialized: bool,
 ) -> tuple[dict[str, object] | None, bool]:
     try:
@@ -144,7 +144,7 @@ def _initialize_response(
 def _call_tool_response(
     request_id: object,
     params: Mapping[str, object],
-    adapter: LocalStdioMcpAdapter,
+    adapter: LocalStdioMcpAdapter | EngineMcpAdapter,
 ) -> dict[str, object]:
     if set(params) != {"name", "arguments"}:
         return _error_response(request_id, -32602, "invalid params")

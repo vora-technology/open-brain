@@ -32,7 +32,6 @@ from open_brain.ledger.synthesis import (
     SynthesisOutcome,
     SynthesisRequest,
 )
-from open_brain.ledger.synthesis_store import DurableSynthesisRecord
 
 
 class LedgerApplier(Protocol):
@@ -63,14 +62,6 @@ class LedgerSynthesisService(Protocol):
     def apply(
         self, *, request: SynthesisRequest, privacy: PrivacyDecision
     ) -> SynthesisOutcome: ...
-
-
-class LedgerSynthesisStore(Protocol):
-    def get(self, request_id: str) -> DurableSynthesisRecord | None: ...
-
-
-class LedgerSynthesisRenderer(Protocol):
-    def render(self, record: DurableSynthesisRecord) -> RenderResult: ...
 
 
 class LedgerClaimRenderer(Protocol):
@@ -277,8 +268,8 @@ def requarantine(
 def synthesis(
     *,
     service: LedgerSynthesisService,
-    store: LedgerSynthesisStore,
-    renderer: LedgerSynthesisRenderer,
+    store: object,
+    renderer: object,
     request: SynthesisRequest,
     privacy: PrivacyDecision,
     dry_run: bool,
@@ -303,10 +294,14 @@ def synthesis(
             )
         if not isinstance(outcome.prepared, PreparedSynthesis):
             raise ValueError("invalid prepared synthesis")
-        record = store.get(outcome.prepared.request.request_id)
-        if not isinstance(record, DurableSynthesisRecord):
+        get = getattr(store, "get", None)
+        render = getattr(renderer, "render", None)
+        if not callable(get) or not callable(render):
+            raise ValueError("invalid synthesis services")
+        record = get(outcome.prepared.request.request_id)
+        if record is None:
             raise ValueError("synthesis record unavailable")
-        rendered = renderer.render(record)
+        rendered = render(record)
         if not isinstance(rendered, RenderResult):
             raise ValueError("invalid synthesis render")
     except Exception:

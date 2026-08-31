@@ -12,9 +12,10 @@ from pathlib import Path
 from open_brain.capture.distillation_worker import DistillationProcessStatus
 from open_brain.capture.egress import OutboundFetcher
 from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
+from open_brain.capture.http import BodyReader, ShareHttpHandler
 from open_brain.capture.media import MediaCommand
 from open_brain.capture.poll import FilesystemYouTubePollState
-from open_brain.capture.queue import FilesystemCaptureQueue, read_pending_queue_snapshot
+from open_brain.capture.queue import read_pending_queue_snapshot
 from open_brain.capture.service import ProcessStatus
 from open_brain.cli._common import (
     CommandDispatchResult,
@@ -30,18 +31,27 @@ from open_brain.cli.review import ReviewCommandAdapter
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain.core.ports import Clock
-from open_brain.engine import LockScope
+from open_brain.engine import (
+    EngineTaskSet,
+    LockScope,
+    PublicJobCaptureContext,
+    PublicJobCaptureSink,
+    open_local_engine,
+)
 from open_brain.events.store import SqliteEventStore
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.life_os import LifePlanRequest, LifeResetRequest
 from open_brain.integrations.life_os_runtime import LifeOSPlanningRuntime
+from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.messaging_runtime import (
     PersistentMessagingCursorStore,
     PersistentMessagingRuntime,
     SqliteMessageInbox,
     SqliteReviewProposalWriter,
 )
+from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ports import Capability, ProviderSyncRequest, SyncStatus
+from open_brain.integrations.retrieval import MetadataOnlyRetrievalFeedback
 from open_brain.ledger.embed import embed_text
 from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy
 from open_brain.ledger.store import SqliteLedgerStore, inspect_published_references
@@ -100,8 +110,8 @@ from open_brain.operations.probes import (
     unavailable_probe,
     writer_ownership_probe,
 )
-from open_brain.operations.production_bindings import ScheduledDispatchResult
 from open_brain.operations.replay_journal import SqliteReplayJournal
+from open_brain.operations.scheduled_results import ScheduledDispatchResult
 from open_brain.operations.writer_jobs import (
     WriterJobError,
     WriterJobSpec,
@@ -158,6 +168,7 @@ from open_brain.production.youtube_poll import (
     ProductionYouTubePollRuntime,
     load_private_youtube_config,
 )
+from open_brain.profile import compile_single_user_local
 from open_brain.providers.base import ProviderService
 from open_brain.review.maintenance import predecessor_curation_taxonomy
 from open_brain.review.store import (
@@ -188,6 +199,74 @@ _LOCK_STALE_AFTER_SECONDS = {
 }
 
 __all__ = ["ProductionApplication", "compose_production_application"]
+
+
+@dataclass(frozen=True, slots=True)
+class SingleUserLocalApplication:
+    """One app-owned local root exposing the engine's public task capabilities."""
+
+    tasks: EngineTaskSet
+    feedback: MetadataOnlyRetrievalFeedback
+
+    @classmethod
+    def open(cls, root: Path) -> SingleUserLocalApplication:
+        return cls(
+            tasks=open_local_engine(compile_single_user_local(root)),
+            feedback=MetadataOnlyRetrievalFeedback(),
+        )
+
+    def cli_adapters(self) -> CommandAdapterRegistry:
+        from open_brain.cli.phase1 import build_phase1_command_adapters
+
+        return build_phase1_command_adapters(self.tasks)
+
+    def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler:
+        return Phase1UiHandler(expected_bearer_token=expected_bearer_token, tasks=self.tasks)
+
+    def share_handler(
+        self,
+        *,
+        expected_bearer_token: str,
+        body_reader: BodyReader,
+        clock: Callable[[], datetime],
+    ) -> ShareHttpHandler:
+        return ShareHttpHandler(
+            expected_bearer_token=expected_bearer_token,
+            capture=self.tasks.capture,
+            clock=clock,
+            body_reader=body_reader,
+        )
+
+    def mcp_adapter(self, *, allowed_space_ids: frozenset[str] = frozenset()) -> EngineMcpAdapter:
+        return EngineMcpAdapter(
+            retrieval=self.tasks.retrieval,
+            feedback=self.feedback,
+            allowed_space_ids=allowed_space_ids,
+        )
+
+    def public_job_sink(self, job_id: str) -> PublicJobCaptureSink:
+        identities = {
+            "JOB-005": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0005",
+            "JOB-027": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0027",
+            "JOB-028": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0028",
+            "JOB-029": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0029",
+        }
+        identity = identities.get(job_id)
+        if identity is None:
+            raise ValueError("unsupported public capture job")
+        actor_id = "actor_" + identity
+        context = PublicJobCaptureContext.create(
+            profile=self.tasks.profile,
+            actor_id=actor_id,
+            role_claim={
+                "actor_id": actor_id,
+                "capabilities": ["capture.accept"],
+                "role_claim_id": "role_claim_" + identity,
+                "role_id": "role_" + identity,
+                "tenant_id": self.tasks.profile.tenant_id,
+            },
+        )
+        return self.tasks.capture.public_job_sink(context)
 
 
 @dataclass(frozen=True, slots=True)
@@ -345,22 +424,22 @@ class ConfiguredScheduledAdapters:
     http_server_factory: HttpServerFactory | None = None
     http_service_mode: bool = False
     provider_service: ProviderService | None = None
+    public_application: SingleUserLocalApplication | None = None
 
     def dispatch_capture(self, application: object) -> ScheduledDispatchResult:
         job_id = getattr(getattr(application, "job", None), "id", "JOB-000")
         try:
-            queue = FilesystemCaptureQueue(self.config.capture_root)
-            snapshot = queue.pending_snapshot()
-            if snapshot.malformed_count:
-                return ScheduledDispatchResult.failed(job_id)
-            if job_id == "JOB-005":
-                return self._dispatch_imessage(job_id=job_id, queue=queue)
-            if job_id in {"JOB-027", "JOB-028"}:
-                return self._dispatch_http_service(job_id)
-            if job_id == "JOB-029":
-                return self._dispatch_youtube_poll(job_id=job_id, queue=queue)
             if job_id not in {"JOB-005", "JOB-027", "JOB-028", "JOB-029"}:
                 return ScheduledDispatchResult.configuration(job_id)
+            if self.public_application is None:
+                return ScheduledDispatchResult.configuration(job_id)
+            sink = self.public_application.public_job_sink(job_id)
+            if job_id == "JOB-005":
+                return self._dispatch_imessage(job_id=job_id, sink=sink)
+            if job_id in {"JOB-027", "JOB-028"}:
+                return self._dispatch_http_service(job_id, sink=sink)
+            if job_id == "JOB-029":
+                return self._dispatch_youtube_poll(job_id=job_id, sink=sink)
         except Exception:
             return ScheduledDispatchResult.configuration(job_id)
         return ScheduledDispatchResult.completed(job_id)
@@ -369,7 +448,7 @@ class ConfiguredScheduledAdapters:
         self,
         *,
         job_id: str,
-        queue: FilesystemCaptureQueue,
+        sink: PublicJobCaptureSink,
     ) -> ScheduledDispatchResult:
         reference = self.environment.get("OPEN_BRAIN_IMESSAGE_CONFIG")
         if not isinstance(reference, str) or not reference:
@@ -378,7 +457,7 @@ class ConfiguredScheduledAdapters:
             runtime = compose_production_imessage_ingress(
                 config_path=Path(reference),
                 state_root=self.config.state_root,
-                queue=queue,
+                sink=sink,
                 history_client=self.imessage_history_client,
             )
             if self.imessage_service_mode:
@@ -391,7 +470,12 @@ class ConfiguredScheduledAdapters:
             return ScheduledDispatchResult.failed(job_id)
         return ScheduledDispatchResult.completed(job_id)
 
-    def _dispatch_http_service(self, job_id: str) -> ScheduledDispatchResult:
+    def _dispatch_http_service(
+        self,
+        job_id: str,
+        *,
+        sink: PublicJobCaptureSink | None = None,
+    ) -> ScheduledDispatchResult:
         settings = {
             "JOB-026": (
                 "OPEN_BRAIN_UI_CONFIG",
@@ -422,18 +506,17 @@ class ConfiguredScheduledAdapters:
             if isinstance(key, str) and isinstance(value, str)
         }
         try:
-            application = compose_production_application(
-                config=self.config,
-                clock=self.clock.now,
-            )
+            if self.public_application is None:
+                return ScheduledDispatchResult.configuration(job_id)
             lifecycle = compose_http_from_config(
                 config=self.config,
-                application=application,
+                application=self.public_application,
                 environment=environment,
                 file_reader=read_private_service_secret,
                 bind=load_private_http_bind_config(Path(reference)),
                 secret_name=secret_name,
                 route_mode=route_mode,
+                capture=sink,
             )
             if not self.http_service_mode:
                 return ScheduledDispatchResult.completed(job_id)
@@ -464,7 +547,7 @@ class ConfiguredScheduledAdapters:
         self,
         *,
         job_id: str,
-        queue: FilesystemCaptureQueue,
+        sink: PublicJobCaptureSink,
     ) -> ScheduledDispatchResult:
         reference = self.environment.get("OPEN_BRAIN_YOUTUBE_CONFIG")
         if not isinstance(reference, str) or not reference:
@@ -479,7 +562,7 @@ class ConfiguredScheduledAdapters:
             runtime = ProductionYouTubePollRuntime(
                 config=poll_config,
                 state=FilesystemYouTubePollState(self.config.state_root / "youtube-poll"),
-                queue=queue,
+                sink=sink,
                 media_adapter=media_adapter or _UnavailableYouTubeMediaAdapter(),
                 clock=self.clock.now,
             )

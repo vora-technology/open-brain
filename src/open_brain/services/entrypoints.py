@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import sys
 from collections.abc import Mapping
 from pathlib import Path
@@ -11,6 +13,7 @@ from open_brain.config import AppConfig, ConfigError
 from open_brain.services.application import (
     ConfigurationFailedScheduledAdapters,
     ConfiguredScheduledAdapters,
+    SingleUserLocalApplication,
     _degraded_doctor_adapters,
     _SystemClock,
     build_command_adapters,
@@ -28,16 +31,19 @@ from open_brain.services.runtime import (
 
 
 def run_mcp() -> int:
-    """Load production configuration and serve bounded stdio MCP until EOF."""
+    """Open one root-scoped application and serve bounded stdio MCP until EOF."""
     try:
-        config = AppConfig.load(environment=os.environ)
-        application = compose_production_application(config=config, clock=_utc_now)
-        lifecycle = compose_mcp_from_config(config=config, application=application)
+        allowed_space_ids = _mcp_allowed_space_ids(os.environ)
+        application = _open_single_user_application(os.environ)
+        lifecycle = compose_mcp_from_config(
+            application=application,
+            allowed_space_ids=allowed_space_ids,
+        )
         lifecycle.serve(
             input_stream=sys.stdin.buffer,
             output_stream=sys.stdout.buffer,
         )
-    except (ConfigError, ServiceConfigurationError, ValueError):
+    except (ServiceConfigurationError, ValueError):
         return 78
     return 0
 
@@ -51,8 +57,7 @@ def run_cli(
     from open_brain.cli._common import ExitCode
     from open_brain.cli._registry import scheduled_route_spec
     from open_brain.cli.main import main
-    from open_brain.cli.phase1 import build_phase1_command_adapters
-    from open_brain.engine import BrainEngine
+    from open_brain.operations.models import ExitClass
     from open_brain.operations.runlog import (
         RunErrorClass,
         RunMetadata,
@@ -60,18 +65,23 @@ def run_cli(
         classify_exit_code,
     )
     from open_brain.operations.runlog_store import FilesystemRunLogStore, RunLogStoreError
-    from open_brain.profile import compile_single_user_local
     from open_brain.storage.locks import LockBusyError
 
     env = os.environ if environment is None else environment
-    phase1_root = env.get("OPEN_BRAIN_ROOT")
-    if isinstance(phase1_root, str) and phase1_root:
+    arguments = tuple(sys.argv[1:] if argv is None else argv)
+    scheduled_job_id = env.get("OPEN_BRAIN_JOB_ID")
+    public_application: SingleUserLocalApplication | None = None
+    if env.get("OPEN_BRAIN_ROOT") is not None:
         try:
-            profile = compile_single_user_local(Path(phase1_root))
-            engine = BrainEngine.open(profile)
-            return main(argv, command_adapters=build_phase1_command_adapters(engine))
+            public_application = _open_single_user_application(env)
         except (OSError, ValueError, LockBusyError):
-            return main(argv)
+            if scheduled_job_id in {"JOB-005", "JOB-027", "JOB-028", "JOB-029"}:
+                return ExitClass.CONFIGURATION
+        if (
+            public_application is not None
+            and scheduled_job_id not in {"JOB-005", "JOB-027", "JOB-028", "JOB-029"}
+        ):
+            return main(argv, command_adapters=public_application.cli_adapters())
     try:
         config = AppConfig.load(environment=env)
     except ConfigError:
@@ -80,14 +90,13 @@ def run_cli(
             command_adapters=_degraded_doctor_adapters(),
             scheduled_adapters=ConfigurationFailedScheduledAdapters(),
         )
-    arguments = tuple(sys.argv[1:] if argv is None else argv)
-    scheduled_job_id = env.get("OPEN_BRAIN_JOB_ID")
     scheduled_adapters = ConfiguredScheduledAdapters(
         config,
         _SystemClock(),
         environment=env,
         imessage_service_mode=scheduled_job_id == "JOB-005",
         http_service_mode=scheduled_job_id in {"JOB-026", "JOB-027", "JOB-028"},
+        public_application=public_application,
     )
     route = scheduled_route_spec(
         arguments,
@@ -134,10 +143,10 @@ def run_cli(
 
 
 def run_http() -> int:
-    """Load production configuration and serve authenticated HTTP until stopped."""
+    """Open one root-scoped application and serve authenticated HTTP until stopped."""
     try:
+        application = _open_single_user_application(os.environ)
         config = AppConfig.load(environment=os.environ)
-        application = compose_production_application(config=config, clock=_utc_now)
         lifecycle = compose_http_from_config(
             config=config,
             application=application,
@@ -153,6 +162,43 @@ def run_http() -> int:
     except KeyboardInterrupt:
         server.shutdown()
     return 0
+
+
+def _open_single_user_application(environment: Mapping[str, object]) -> SingleUserLocalApplication:
+    root = environment.get("OPEN_BRAIN_ROOT")
+    if (
+        not isinstance(root, str)
+        or not root
+        or "\x00" in root
+        or not Path(root).is_absolute()
+    ):
+        raise ValueError("invalid OPEN_BRAIN_ROOT")
+    return SingleUserLocalApplication.open(Path(root))
+
+
+def _mcp_allowed_space_ids(environment: Mapping[str, object]) -> frozenset[str]:
+    raw = environment.get("OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS")
+    if not isinstance(raw, str) or not raw or len(raw.encode("utf-8")) > 8_192:
+        raise ValueError("invalid MCP allow-list")
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise ValueError("invalid MCP allow-list") from error
+    if (
+        not isinstance(value, list)
+        or len(value) > 128
+        or any(
+            not isinstance(space_id, str)
+            or _MCP_SPACE_ID.fullmatch(space_id) is None
+            for space_id in value
+        )
+        or len(set(value)) != len(value)
+    ):
+        raise ValueError("invalid MCP allow-list")
+    return frozenset(value)
+
+
+_MCP_SPACE_ID = re.compile(r"space_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 
 
 __all__ = [
