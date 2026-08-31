@@ -14,6 +14,8 @@ from open_brain.core.models import (
 from open_brain.core.policy import BoundaryErrorCode
 from open_brain.core.ports import TextModelRequest, TextModelResult
 from open_brain.providers.base import (
+    EnrichmentState,
+    NoneProvider,
     ProviderFailure,
     ProviderService,
     lazy_cloud_factory,
@@ -49,6 +51,12 @@ def _cloud_privacy() -> PrivacyDecision:
     )
 
 
+def test_none_provider_is_inspectably_pending_without_constructing_an_adapter() -> None:
+    provider = NoneProvider()
+
+    assert provider.enrichment_state() is EnrichmentState.PENDING
+
+
 @dataclass
 class _ProviderFake:
     result: TextModelResult | Exception
@@ -59,6 +67,37 @@ class _ProviderFake:
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
+
+
+def test_none_provider_service_constructs_no_adapter_or_credential() -> None:
+    calls: list[str] = []
+
+    def local_factory() -> _ProviderFake:
+        calls.append("local")
+        return _ProviderFake(TextModelResult(text="local", provider_name="local"))
+
+    def cloud_factory(credential: str) -> _ProviderFake:
+        assert credential == "synthetic"
+        calls.append("cloud")
+        return _ProviderFake(TextModelResult(text="cloud", provider_name="cloud"))
+
+    def resolve_secret() -> str:
+        calls.append("secret")
+        return "synthetic"
+
+    service = ProviderService(
+        provider_name="none",
+        cloud_enabled=False,
+        local_factory=local_factory,
+        cloud_factory=cloud_factory,
+        resolve_cloud_secret=resolve_secret,
+    )
+
+    result = service.complete(_request(), privacy=_local_privacy())
+
+    assert result.value is None
+    assert result.error_code is BoundaryErrorCode.LOCAL_UNAVAILABLE
+    assert calls == []
 
 
 def test_text_model_values_are_bounded_canonical_and_immutable() -> None:

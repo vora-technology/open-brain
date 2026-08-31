@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+from enum import StrEnum
 from typing import Protocol, cast
 
 from open_brain.capture.redaction import has_redaction_finding
@@ -35,6 +36,28 @@ class OptionalExtraUnavailable(Exception):
     """Internal signal that never exposes optional-package details."""
 
 
+class ProviderMode(StrEnum):
+    """Explicit profile-level provider modes."""
+
+    NONE = "none"
+    LOCAL = "local"
+    CLOUD = "cloud"
+
+
+class EnrichmentState(StrEnum):
+    """A model-free profile leaves enrichment durable and inspectable."""
+
+    PENDING = "pending_enrichment"
+    ENRICHED = "enriched"
+
+
+class NoneProvider:
+    """The no-model provider mode constructs no adapter and performs no I/O."""
+
+    def enrichment_state(self) -> EnrichmentState:
+        return EnrichmentState.PENDING
+
+
 class ProviderService:
     """Select exactly one explicit provider for one immutable decision."""
 
@@ -47,11 +70,13 @@ class ProviderService:
         cloud_factory: CloudFactory,
         resolve_cloud_secret: SecretResolver,
     ) -> None:
-        if provider_name not in {"local", "cloud"}:
-            raise ValidationError("invalid provider")
+        try:
+            selected_mode = ProviderMode(provider_name)
+        except (TypeError, ValueError):
+            raise ValidationError("invalid provider") from None
         if not isinstance(cloud_enabled, bool):
             raise ValidationError("invalid provider configuration")
-        self._provider_name = provider_name
+        self._provider_name = selected_mode
         self._cloud_enabled = cloud_enabled
         self._local_factory = local_factory
         self._cloud_factory = cloud_factory
@@ -62,7 +87,9 @@ class ProviderService:
     ) -> BoundaryResult[TextModelResult]:
         if not isinstance(request, TextModelRequest) or not isinstance(privacy, PrivacyDecision):
             raise ValidationError("invalid provider request")
-        if self._provider_name == "local":
+        if self._provider_name is ProviderMode.NONE:
+            return BoundaryResult(None, BoundaryErrorCode.LOCAL_UNAVAILABLE)
+        if self._provider_name is ProviderMode.LOCAL:
             return self._complete_selected(self._local_factory, request, privacy)
         if not self._cloud_enabled or not privacy.authority.cloud:
             return BoundaryResult(None, BoundaryErrorCode.CLOUD_AUTHORITY_REQUIRED)

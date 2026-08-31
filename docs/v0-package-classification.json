@@ -41,6 +41,12 @@
       "current_scope": "Durable event values and occurrence-time behavior.",
       "phase_1_action": "Keep persistence with the workflow that owns it."
     },
+    "engine": {
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Phase 1 task facades, Portable v1 identities, local durable transitions, spaces, sibling review, publication, and lexical retrieval.",
+      "phase_1_action": "Keep the vertical slice behind Capture, Inbox/Spaces, Review, and Retrieval facades without importing app representations."
+    },
     "integrations": {
       "classification": "mixed",
       "target_owner": "engine, app, and connectors",
@@ -132,6 +138,12 @@
       "target_owner": "app profile",
       "current_scope": "Private-deployment settings currently import ledger models.",
       "phase_1_action": "Compile one Brain root without importing ledger models."
+    },
+    "profile": {
+      "classification": "app",
+      "target_owner": "app profile",
+      "current_scope": "Compiles one selected Brain root into stable local identities, safe paths, starter spaces, and provider-none engine context.",
+      "phase_1_action": "Remain the application-owned single-user-local composition boundary."
     }
   },
   "root_public_symbols": ["__version__"],
@@ -152,7 +164,7 @@
   "rules": [
     {
       "id": "engine-to-interface",
-      "source_packages": ["core", "portable"],
+      "source_packages": ["core", "engine", "portable"],
       "forbidden_classifications": ["app", "connector", "hosted", "legacy", "workspace"],
       "rationale": "The current protected engine scope must not depend on application interfaces, optional connectors, hosted code, legacy behavior, or workspace tooling."
     }

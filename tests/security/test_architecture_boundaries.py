@@ -15,3 +15,22 @@ def test_core_ports_expose_no_task_capability_or_raw_redaction() -> None:
         "class RedactionFindingCategory", maxsplit=1
     )[0]
     assert "RedactionReceipt" not in raw_store
+
+
+def test_phase1_cli_and_ui_use_engine_public_surface_not_local_stores() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "open_brain"
+    representations = (
+        source_root / "cli" / "phase1.py",
+        source_root / "integrations" / "phase1_ui.py",
+    )
+    prohibited = (
+        "open_brain.engine.local",
+        "open_brain.storage",
+        "sqlite3",
+        "atomic_write",
+        "connect_database",
+    )
+    for path in representations:
+        source = path.read_text(encoding="utf-8")
+        assert "from open_brain.engine import" in source
+        assert all(token not in source for token in prohibited)

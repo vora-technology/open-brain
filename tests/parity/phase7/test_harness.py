@@ -371,7 +371,7 @@ def _changed_metadata() -> dict[ParityFacet, FacetMetadata]:
 def test_phase7_manifest_is_fixed_versioned_and_complete() -> None:
     assert PARITY_HARNESS_VERSION == "phase7-wave0-v1"
     assert PARITY_SCHEMA_DIGEST_SHA256 == (
-        "f4ff454b521d2f71422ffdc180f8757a847c3481769df109c65618bcb8d98279"
+        "a24291718e6cc5b091111bc84ce3af61acda94536b238333f31e86cf04550d53"
     )
     assert PHASE7_FACET_MANIFEST.version == PARITY_HARNESS_VERSION
     assert PHASE7_FACET_MANIFEST.schema_digest_sha256 == PARITY_SCHEMA_DIGEST_SHA256

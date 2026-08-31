@@ -33,6 +33,8 @@ _PUBLIC_OUTPUT_SCHEMA_KEYS = frozenset(
         "backup_id",
         "candidate_count",
         "capture_id",
+        "captures",
+        "canonical",
         "checks",
         "claim_count",
         "cloud_enabled",
@@ -41,13 +43,16 @@ _PUBLIC_OUTPUT_SCHEMA_KEYS = frozenset(
         "commands",
         "configuration",
         "disposition",
+        "decision_id",
         "dry_run",
         "duplicate",
         "egress_enabled",
         "entry_count",
+        "enrichment_state",
         "error",
         "event_count",
         "excerpt",
+        "explanation",
         "findings",
         "held_count",
         "historical_diagnoses",
@@ -59,12 +64,15 @@ _PUBLIC_OUTPUT_SCHEMA_KEYS = frozenset(
         "message",
         "metrics",
         "migrate",
+        "name",
         "network",
         "network_access",
         "output",
         "output_mode",
         "owner_gated",
+        "page_id",
         "pipeline",
+        "proposal_id",
         "plan",
         "policy",
         "privacy_tier",
@@ -72,6 +80,8 @@ _PUBLIC_OUTPUT_SCHEMA_KEYS = frozenset(
         "proposed_intent",
         "protected_count",
         "provider",
+        "provenance",
+        "publication_id",
         "rank",
         "ranked_claim_ids",
         "reason",
@@ -94,8 +104,14 @@ _PUBLIC_OUTPUT_SCHEMA_KEYS = frozenset(
         "run_count",
         "runs",
         "schema_version",
+        "slug",
+        "space_id",
+        "spaces",
         "social",
+        "source_ref_sha256",
         "source_type",
+        "payload_family",
+        "record_type",
         "staged_digest_sha256",
         "state",
         "status",
@@ -105,6 +121,18 @@ _PUBLIC_OUTPUT_SCHEMA_KEYS = frozenset(
         "truncated",
         "trust",
         "window_seconds",
+    }
+)
+_PUBLIC_OPAQUE_ID_KEYS = frozenset(
+    {
+        "capture_id",
+        "decision_id",
+        "page_id",
+        "proposal_id",
+        "publication_id",
+        "result_id",
+        "review_id",
+        "space_id",
     }
 )
 _RESERVED_READINESS_KEYS = frozenset(
@@ -120,7 +148,15 @@ _RESERVED_READINESS_KEYS = frozenset(
     }
 )
 _PUBLIC_OUTPUT_ENUM_VALUES = {
-    "action": frozenset({"apply", "archive", "edit", "reject"}),
+    "action": frozenset({"apply", "approve", "archive", "edit", "reject"}),
+    "enrichment_state": frozenset({"enriched", "pending_enrichment"}),
+    "payload_family": frozenset(
+        {"event", "measurement", "reference_or_file", "text"}
+    ),
+    "record_type": frozenset({"canonical", "source"}),
+}
+_ARGUMENT_ECHO_OUTPUT_KEYS = {
+    "query": frozenset({"excerpt", "explanation", "title"}),
 }
 _PUBLIC_OUTPUT_RESIDUALS = (
     re.compile(
@@ -215,7 +251,11 @@ def validate_adapter_envelope(
         raise ValueError("mismatched command adapter envelope")
     payload = dict(envelope)
     del payload["command"]
-    _validate_public_output(payload, argv=argv)
+    _validate_public_output(
+        payload,
+        argv=argv,
+        argument_echo_keys=_ARGUMENT_ECHO_OUTPUT_KEYS.get(command, frozenset()),
+    )
     json.dumps(envelope, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return envelope
 
@@ -224,6 +264,7 @@ def _validate_public_output(
     value: object,
     *,
     argv: tuple[str, ...],
+    argument_echo_keys: frozenset[str] = frozenset(),
     check_arguments: bool = True,
     is_key: bool = False,
 ) -> None:
@@ -260,19 +301,35 @@ def _validate_public_output(
         for key, item in value.items():
             if not isinstance(key, str):
                 raise ValueError("invalid command adapter output key")
-            _validate_public_output(key, argv=argv, check_arguments=True, is_key=True)
+            _validate_public_output(
+                key,
+                argv=argv,
+                argument_echo_keys=argument_echo_keys,
+                check_arguments=True,
+                is_key=True,
+            )
             _validate_public_output(
                 item,
                 argv=argv,
+                argument_echo_keys=argument_echo_keys,
                 check_arguments=not (
                     isinstance(item, str)
-                    and item in _PUBLIC_OUTPUT_ENUM_VALUES.get(key, frozenset())
+                    and (
+                        key in argument_echo_keys
+                        or
+                        key in _PUBLIC_OPAQUE_ID_KEYS
+                        or item in _PUBLIC_OUTPUT_ENUM_VALUES.get(key, frozenset())
+                    )
                 ),
             )
         return
     if type(value) is list:
         for item in value:
-            _validate_public_output(item, argv=argv)
+            _validate_public_output(
+                item,
+                argv=argv,
+                argument_echo_keys=argument_echo_keys,
+            )
         return
     if value is None or type(value) in {bool, int, float}:
         return
