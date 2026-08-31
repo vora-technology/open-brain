@@ -39,7 +39,7 @@ open-brain-mcp = "open_brain.services.entrypoints:run_mcp"
 [dependency-groups]
 dev = [
   "build>=1.2.2,<2",
-  "cryptography>=46,<47",
+  "cryptography>=50,<51",
   "jsonschema>=4.25,<5",
   "mypy>=1.15,<2",
   "pytest>=8.3,<10",
