@@ -88,7 +88,7 @@ def test_browser_run_history_route_stays_metadata_only_and_root_confined(tmp_pat
         with ApplianceDaemon(root) as daemon:
             control_thread = threading.Thread(target=daemon.serve_until_stopped)
             control_thread.start()
-            _wait_for(run_directory)
+            _wait_for_run_receipt(run_directory)
             (run_directory / "run_invalid.json").write_bytes(
                 canonical_json_bytes(
                     {
@@ -180,10 +180,19 @@ def test_appliance_lifecycle_failures_stay_bounded_for_log_envelopes() -> None:
     assert "/private/brain-root" not in str(error)
 
 
-def _wait_for(path: Path, *, timeout_seconds: float = 5.0) -> None:
+def _wait_for_run_receipt(path: Path, *, timeout_seconds: float = 5.0) -> None:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        if path.exists():
-            return
+        try:
+            if any(
+                entry.name.startswith("run_")
+                and entry.suffix == ".json"
+                and not entry.is_symlink()
+                and entry.is_file()
+                for entry in path.iterdir()
+            ):
+                return
+        except FileNotFoundError:
+            pass
         time.sleep(0.05)
-    raise AssertionError(f"timed out waiting for {path}")
+    raise AssertionError(f"timed out waiting for a run receipt in {path}")
