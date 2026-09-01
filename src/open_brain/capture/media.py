@@ -20,8 +20,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol
 
-from open_brain.capture.models import ExtractionFailure
-from open_brain.core.models import RawAssetRef
+from open_brain.engine import ExtractionFailure, RawAssetRef
 
 _MIB = 1024 * 1024
 _PARTIAL_SUFFIXES = (".part", ".partial", ".tmp", ".ytdl")

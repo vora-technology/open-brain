@@ -6,15 +6,17 @@ from typing import Protocol
 from urllib.parse import parse_qs, urlsplit
 
 from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
-from open_brain.capture.models import (
+from open_brain.engine import (
+    ContentKind,
     ExtractionFailure,
     ExtractionMetadata,
     ExtractionState,
     ExtractorKind,
     NormalizedExtraction,
+    PrivacyDecision,
+    SourceType,
     TranscriptState,
 )
-from open_brain.core.models import ContentKind, PrivacyDecision, SourceType
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 _YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com"}

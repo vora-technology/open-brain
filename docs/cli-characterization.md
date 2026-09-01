@@ -1,12 +1,14 @@
 # Public CLI characterization
 
-This document records the Phase 0 release boundary for the current public Open Brain CLI. It is evidence of the parser and packaging surface as it exists now. It does not add product behavior.
+This document records the retained Phase 0 parser and scheduled-route boundary. Phase 2 moved the
+installed CLI, HTTP, and MCP scripts to a six-family app-owned entrypoint; the 31-family parser
+below remains legacy compatibility evidence. The packaging subsection follows current metadata.
 
 The machine-readable source is [`tests/fixtures/phase0/public_cli.json`](../tests/fixtures/phase0/public_cli.json). The focused characterization test compares that fixture with the live parser registry, scheduled route registry, static `pyproject.toml` metadata, and stable exit-code constants.
 
 ## Parser surface
 
-The parser exposes 31 top-level command families:
+The retained parser exposes 31 top-level command families:
 
 `backup`, `capture`, `close-day`, `config`, `cron`, `curation`, `dev`, `digest`, `doctor`, `explain`, `hooks`, `inbox`, `index`, `ledger`, `lifeos`, `lint`, `messages`, `migrate`, `now`, `okf`, `ops`, `proposals`, `query`, `registry`, `retention`, `review`, `share`, `social`, `spaces`, `status`, and `ui`.
 
@@ -59,13 +61,13 @@ Several routes share a parser path and are distinguished by their options and jo
 
 The static package metadata identifies distribution `open-brain`, version `0.1.0`, and these seven console entry points:
 
-- `open-brain` → `open_brain.services.entrypoints:run_cli`
+- `open-brain` → `open_brain.services.phase1_entrypoints:run_cli`
 - `open-brain-youtube-bridge` → `open_brain.production.youtube_bridge:main`
 - `open-brain-project-commit-queue` → `open_brain.production.project_commit_bridge:queue_main`
 - `open-brain-project-commit-relay` → `open_brain.production.project_commit_bridge:relay_main`
 - `open-brain-project-commit-bridge` → `open_brain.production.project_commit_bridge:bridge_main`
-- `open-brain-http` → `open_brain.services.entrypoints:run_http`
-- `open-brain-mcp` → `open_brain.services.entrypoints:run_mcp`
+- `open-brain-http` → `open_brain.services.phase1_entrypoints:run_http`
+- `open-brain-mcp` → `open_brain.services.phase1_entrypoints:run_mcp`
 
 The test reads only the `[project]` and `[project.scripts]` tables from `pyproject.toml`. It does not inspect an installed environment, absolute paths, ignored files, or remote metadata.
 

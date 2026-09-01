@@ -3,6 +3,9 @@ from __future__ import annotations
 import inspect
 import io
 import json
+import os
+import subprocess
+import sys
 import tomllib
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -13,16 +16,15 @@ import pytest
 from open_brain.config import AppConfig, NamedSecretRef, RetainedRoots, SecretRef
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.integrations.ui import UiBindConfig
-from open_brain.services.application import SingleUserLocalApplication
-from open_brain.services.entrypoints import (
+from open_brain.services.http_server import HttpRouteMode
+from open_brain.services.phase1_application import SingleUserLocalApplication
+from open_brain.services.phase1_entrypoints import run_cli, run_http, run_mcp
+from open_brain.services.runtime import (
     ServiceConfigurationError,
     compose_http_from_config,
     compose_mcp_from_config,
     load_private_http_bind_config,
-    run_http,
-    run_mcp,
 )
-from open_brain.services.http_server import HttpRouteMode
 
 
 def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
@@ -34,8 +36,119 @@ def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
     module_source = (root / "src" / "open_brain" / "__main__.py").read_text(encoding="utf-8")
 
     assert application.is_file()
-    assert scripts["open-brain"] == "open_brain.services.entrypoints:run_cli"
-    assert "from open_brain.services.entrypoints import run_cli" in module_source
+    assert scripts["open-brain"] == "open_brain.services.phase1_entrypoints:run_cli"
+    assert scripts["open-brain-http"] == "open_brain.services.phase1_entrypoints:run_http"
+    assert scripts["open-brain-mcp"] == "open_brain.services.phase1_entrypoints:run_mcp"
+    assert "from open_brain.services.phase1_entrypoints import run_cli" in module_source
+
+
+def test_default_entrypoint_module_imports_are_legacy_free_in_a_fresh_process() -> None:
+    root = Path(__file__).parents[3]
+    program = f"""
+import importlib
+import json
+import sys
+
+sys.path.insert(0, {str(root / "src")!r})
+module = importlib.import_module("open_brain.services.phase1_entrypoints")
+print(json.dumps({{
+    "callables": [callable(getattr(module, name)) for name in ("run_cli", "run_http", "run_mcp")],
+    "forbidden": sorted(
+        name for name in sys.modules
+        if name.startswith((
+            "open_brain.legacy",
+            "open_brain.operations",
+            "open_brain.production",
+            "open_brain.services.application",
+            "open_brain.services.connectors",
+            "open_brain.services.entrypoints",
+            "open_brain.providers.optional_cloud",
+        ))
+    ),
+}}))
+"""
+
+    completed = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", program],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(completed.stdout)
+    assert result == {"callables": [True, True, True], "forbidden": []}
+
+
+def test_cli_help_and_version_do_not_require_a_brain_root(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert run_mcp.__module__ == "open_brain.services.phase1_entrypoints"
+
+    assert run_cli(("--help",), environment={}) == 0
+    assert "capture" in capsys.readouterr().out
+    assert run_cli(("capture", "--help"), environment={}) == 0
+    assert "usage: open-brain capture" in capsys.readouterr().out
+    assert run_cli(("--version",), environment={}) == 0
+    assert capsys.readouterr().out == "open-brain 0.1.0\n"
+
+
+def test_global_dry_run_before_a_phase1_command_never_mutates(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = tmp_path / "brain"
+
+    exit_code = run_cli(
+        (
+            "--dry-run",
+            "capture",
+            "quick",
+            "text",
+            "synthetic non-mutating request",
+            "--delivery=dry-run.capture",
+            "--json",
+        ),
+        environment={"OPEN_BRAIN_ROOT": str(root)},
+    )
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 2
+    assert output["status"] == "invalid"
+    assert SingleUserLocalApplication.open(root).tasks.inbox.list() == ()
+
+
+@pytest.mark.parametrize(
+    ("command", "expected"),
+    (
+        (("uv", "run", "open-brain", "--help"), "spaces"),
+        (("uv", "run", "open-brain", "--version"), "open-brain 0.1.0"),
+        ((sys.executable, "-I", "-B", "-m", "open_brain", "--help"), "spaces"),
+        (
+            (sys.executable, "-I", "-B", "-m", "open_brain", "--version"),
+            "open-brain 0.1.0",
+        ),
+    ),
+)
+def test_installed_and_module_cli_help_and_version_are_root_free(
+    command: tuple[str, ...],
+    expected: str,
+) -> None:
+    environment = dict(os.environ)
+    environment.pop("OPEN_BRAIN_ROOT", None)
+    environment.pop("OPEN_BRAIN_JOB_ID", None)
+
+    completed = subprocess.run(
+        command,
+        cwd=Path(__file__).parents[3],
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert expected in completed.stdout
 
 
 def _config(tmp_path: Path, *, with_token: bool = False) -> AppConfig:
@@ -262,15 +375,15 @@ def test_run_mcp_opens_exactly_one_root_app_and_injects_scoped_tasks(
         return _McpLifecycle()
 
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.SingleUserLocalApplication.open",
+        "open_brain.services.phase1_entrypoints.SingleUserLocalApplication.open",
         open_application,
     )
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.compose_mcp_from_config",
+        "open_brain.services.phase1_entrypoints.compose_mcp_from_config",
         compose_mcp,
     )
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.os.environ",
+        "open_brain.services.phase1_entrypoints.os.environ",
         {
             "OPEN_BRAIN_ROOT": str(tmp_path / "brain"),
             "OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS": "[]",
@@ -306,7 +419,7 @@ def test_run_mcp_opens_exactly_one_root_app_and_injects_scoped_tasks(
 def test_run_mcp_fails_closed_without_a_valid_root_and_allow_list(
     monkeypatch: pytest.MonkeyPatch, environment: dict[str, str]
 ) -> None:
-    monkeypatch.setattr("open_brain.services.entrypoints.os.environ", environment)
+    monkeypatch.setattr("open_brain.services.phase1_entrypoints.os.environ", environment)
 
     assert run_mcp() == 78
 
@@ -329,19 +442,19 @@ def test_run_http_opens_exactly_one_root_app_without_legacy_task_construction(
         return _HttpLifecycle()
 
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.SingleUserLocalApplication.open",
+        "open_brain.services.phase1_entrypoints.SingleUserLocalApplication.open",
         open_application,
     )
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.AppConfig.load",
+        "open_brain.services.phase1_entrypoints.AppConfig.load",
         lambda *, environment: config,
     )
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.compose_http_from_config",
+        "open_brain.services.phase1_entrypoints.compose_http_from_config",
         compose_http,
     )
     monkeypatch.setattr(
-        "open_brain.services.entrypoints.os.environ",
+        "open_brain.services.phase1_entrypoints.os.environ",
         {"OPEN_BRAIN_ROOT": str(tmp_path / "brain")},
     )
 

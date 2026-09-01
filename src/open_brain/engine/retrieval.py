@@ -12,7 +12,13 @@ from open_brain.core.models import ContentOrigin
 from open_brain.storage.filesystem import read_confined
 from open_brain.storage.markdown import MarkdownFormatError, parse_markdown
 
-from .contracts import PublicProvenance, RetrievalResult, RetrievalTask, _LocalEngineOperations
+from .contracts import (
+    PublicProvenance,
+    RetrievalResult,
+    RetrievalTask,
+    _LocalEngineOperations,
+    project_public_result_text,
+)
 from .normalization import _TERM, _excerpt, _portable_id, _text
 
 if TYPE_CHECKING:
@@ -248,12 +254,10 @@ class RetrievalOperations(_LocalEngineOperations):
             score += 2
         if not terms:
             score = 1
-        matched = tuple(term for term in terms if term in haystack)
         explanation = (
             "fetched by result identifier"
             if not terms
-            else ("exact phrase and lexical terms: " if phrase in haystack else "lexical terms: ")
-            + ", ".join(matched)
+            else ("exact phrase match" if phrase in haystack else "lexical match")
         )
         provenance_value = json.loads(cast(str, row["provenance_json"]))
         if not isinstance(provenance_value, dict) or any(
@@ -273,7 +277,13 @@ class RetrievalOperations(_LocalEngineOperations):
             connection.close()
         if capture is None:
             return None
-        public_body = body.replace(cast(str, capture["source_reference"]), "source material")
+        protected_literals = (cast(str, capture["source_reference"]),)
+        public_title = project_public_result_text(title, protected_literals=protected_literals)
+        public_body = project_public_result_text(body, protected_literals=protected_literals)
+        public_explanation = project_public_result_text(
+            explanation,
+            protected_literals=protected_literals,
+        )
         excerpt = _excerpt(public_body, terms)
         return (
             score,
@@ -283,14 +293,14 @@ class RetrievalOperations(_LocalEngineOperations):
                 record_type=cast(str, row["record_type"]),
                 payload_family=cast(str, row["payload_family"]),
                 space_id=cast(str | None, row["space_id"]),
-                title=title,
+                title=public_title,
                 excerpt=excerpt,
                 trust=cast(str, row["trust"]),
                 provenance=PublicProvenance(
                     capture_id=capture_id,
                     source_origin=_public_source_origin(capture),
                 ),
-                explanation=explanation,
+                explanation=public_explanation,
             ),
         )
 

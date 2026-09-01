@@ -1,6 +1,5 @@
 import sys
 from dataclasses import dataclass
-from types import SimpleNamespace
 
 import pytest
 
@@ -19,6 +18,7 @@ from open_brain.providers.base import (
     ProviderFailure,
     ProviderService,
     lazy_cloud_factory,
+    unavailable_cloud_factory,
 )
 
 
@@ -69,8 +69,11 @@ class _ProviderFake:
         return self.result
 
 
-def test_none_provider_service_constructs_no_adapter_or_credential() -> None:
+def test_none_provider_service_constructs_no_adapter_or_credential(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls: list[str] = []
+    monkeypatch.delitem(sys.modules, "open_brain.providers.optional_cloud", raising=False)
 
     def local_factory() -> _ProviderFake:
         calls.append("local")
@@ -98,6 +101,7 @@ def test_none_provider_service_constructs_no_adapter_or_credential() -> None:
     assert result.value is None
     assert result.error_code is BoundaryErrorCode.LOCAL_UNAVAILABLE
     assert calls == []
+    assert "open_brain.providers.optional_cloud" not in sys.modules
 
 
 def test_text_model_values_are_bounded_canonical_and_immutable() -> None:
@@ -195,7 +199,7 @@ def test_cloud_extra_is_lazy_and_missing_extra_is_closed() -> None:
         provider_name="cloud",
         cloud_enabled=True,
         local_factory=lambda: _ProviderFake(TextModelResult(text="local", provider_name="local")),
-        cloud_factory=lazy_cloud_factory("open_brain.providers.missing_optional_cloud"),
+        cloud_factory=unavailable_cloud_factory,
         resolve_cloud_secret=lambda: "synthetic",
     )
 
@@ -215,14 +219,8 @@ def test_lazy_cloud_factory_passes_only_credential_and_configured_model(
         observed.append((credential, model))
         return provider
 
-    monkeypatch.setitem(
-        sys.modules,
-        "open_brain.providers.synthetic_cloud",
-        SimpleNamespace(create_provider=create_provider),
-    )
-
     result = lazy_cloud_factory(
-        "open_brain.providers.synthetic_cloud",
+        create_provider,
         model="synthetic-model",
     )("synthetic-credential")
 

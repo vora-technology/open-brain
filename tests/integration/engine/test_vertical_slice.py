@@ -278,7 +278,7 @@ def test_spaces_rename_and_route_without_changing_identities(tmp_path: Path) -> 
         capture.capture_id
     )
     assert engine.retrieval.search("space note")[0].space_id == space.space_id
-    assert (root / "content" / "spaces" / space.slug / "_space.md").is_file()
+    assert len(tuple((root / "content" / "spaces").rglob("_space.md"))) == 1
 
 
 @pytest.mark.parametrize(
@@ -557,8 +557,8 @@ def test_retrieval_is_exact_lexical_typed_space_scoped_and_fresh_after_edit(
     assert all(result.provenance["capture_id"] for result in lexical)
     assert all(result.explanation for result in lexical)
 
-    assert first.canonical_path is not None
-    page = root / first.canonical_path
+    assert first.canonical_path == first.capture_id
+    page = next((root / "content" / "spaces").rglob("page_*.md"))
     page.write_text(
         page.read_text(encoding="utf-8").replace(
             "Exact synthetic phrase and lexical comet", "Fresh owner edit token"

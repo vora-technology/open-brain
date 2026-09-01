@@ -6,18 +6,24 @@ import base64
 import binascii
 import json
 from dataclasses import dataclass
+from typing import cast
 
 from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
-from open_brain.cli._registry import CommandAdapterRegistry
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 from open_brain.engine import (
     CaptureAction,
+    CaptureTask,
     DecisionOutcome,
-    EngineTaskSet,
     EventPayload,
     FilePayload,
+    InboxSpaceTask,
     MeasurementPayload,
+    Phase1TaskSet,
     ReferencePayload,
+    RetrievalTask,
+    ReviewTask,
     TextPayload,
+    project_public_space,
 )
 
 
@@ -30,7 +36,7 @@ class Phase1CliResult:
 @dataclass(frozen=True, slots=True)
 class Phase1CommandAdapter:
     family: str
-    tasks: EngineTaskSet
+    task: CaptureTask | InboxSpaceTask | ReviewTask | RetrievalTask
 
     def dispatch(self, argv: tuple[str, ...]) -> CommandDispatchResult:
         try:
@@ -94,7 +100,7 @@ class Phase1CommandAdapter:
             if positional[0] == "canonical"
             else CaptureAction.QUICK
         )
-        receipt = self.tasks.capture.accept(
+        receipt = cast(CaptureTask, self.task).accept(
             payload,
             delivery_id=options["delivery"],
             action=action,
@@ -126,7 +132,7 @@ class Phase1CommandAdapter:
     ) -> Phase1CliResult:
         if positional not in {(), ("list",)} or options or flags - {"unassigned"}:
             return _invalid("inbox")
-        items = self.tasks.inbox.list(unassigned_only="unassigned" in flags)
+        items = cast(InboxSpaceTask, self.task).list(unassigned_only="unassigned" in flags)
         return Phase1CliResult(
             ExitCode.SUCCESS,
             {
@@ -154,14 +160,19 @@ class Phase1CommandAdapter:
             return _invalid("spaces")
         action = positional[0]
         if action == "list" and len(positional) == 1 and not options:
-            spaces = self.tasks.inbox.spaces()
+            spaces = cast(InboxSpaceTask, self.task).spaces()
             return Phase1CliResult(
                 ExitCode.SUCCESS,
                 {
                     "command": "spaces",
                     "spaces": [
-                        {"name": space.name, "slug": space.slug, "space_id": space.space_id}
+                        {
+                            "name": projected.name,
+                            "slug": projected.slug,
+                            "space_id": projected.space_id,
+                        }
                         for space in spaces
+                        for projected in (project_public_space(space),)
                     ],
                     "status": "listed",
                 },
@@ -169,17 +180,17 @@ class Phase1CommandAdapter:
         if set(options) != {"delivery"}:
             return _invalid("spaces")
         if action == "create" and len(positional) == 2:
-            space = self.tasks.inbox.create_space(
+            space = cast(InboxSpaceTask, self.task).create_space(
                 positional[1], delivery_id=options["delivery"]
             )
             status = "created"
         elif action == "rename" and len(positional) == 3:
-            space = self.tasks.inbox.rename_space(
+            space = cast(InboxSpaceTask, self.task).rename_space(
                 positional[1], positional[2], delivery_id=options["delivery"]
             )
             status = "renamed"
         elif action == "route" and len(positional) == 3:
-            routed = self.tasks.inbox.route(
+            routed = cast(InboxSpaceTask, self.task).route(
                 positional[1], positional[2], delivery_id=options["delivery"]
             )
             return Phase1CliResult(
@@ -206,7 +217,7 @@ class Phase1CommandAdapter:
     ) -> Phase1CliResult:
         if positional not in {(), ("list",)} or flags or set(options) - {"capture", "status"}:
             return _invalid("proposals")
-        proposals = self.tasks.review.list(
+        proposals = cast(ReviewTask, self.task).list(
             capture_id=options.get("capture"), status=options.get("status")
         )
         return Phase1CliResult(
@@ -246,7 +257,7 @@ class Phase1CommandAdapter:
             "reject": DecisionOutcome.REJECTED,
             "edit": DecisionOutcome.EDITED,
         }[positional[0]]
-        decision = self.tasks.review.decide(
+        decision = cast(ReviewTask, self.task).decide(
             positional[1],
             outcome,
             delivery_id=options["delivery"],
@@ -276,7 +287,7 @@ class Phase1CommandAdapter:
         if len(positional) != 1 or flags or set(options) - {"space", "family", "type", "limit"}:
             return _invalid("query")
         limit = int(options.get("limit", "10"))
-        results = self.tasks.retrieval.search(
+        results = cast(RetrievalTask, self.task).search(
             positional[0],
             space_id=options.get("space"),
             payload_family=options.get("family"),
@@ -307,12 +318,22 @@ class Phase1CommandAdapter:
         )
 
 
-def build_phase1_command_adapters(tasks: EngineTaskSet) -> CommandAdapterRegistry:
-    if not isinstance(tasks, EngineTaskSet):
+def build_phase1_command_adapters(tasks: Phase1TaskSet) -> Phase1CommandAdapterRegistry:
+    if not isinstance(tasks, Phase1TaskSet):
         raise ValueError("invalid Phase 1 tasks")
-    families = ("capture", "inbox", "proposals", "query", "review", "spaces")
-    return CommandAdapterRegistry(
-        {family: Phase1CommandAdapter(family=family, tasks=tasks) for family in families}
+    tasks_by_family: dict[str, CaptureTask | InboxSpaceTask | ReviewTask | RetrievalTask] = {
+        "capture": tasks.capture,
+        "inbox": tasks.inbox,
+        "proposals": tasks.review,
+        "query": tasks.retrieval,
+        "review": tasks.review,
+        "spaces": tasks.inbox,
+    }
+    return Phase1CommandAdapterRegistry(
+        {
+            family: Phase1CommandAdapter(family=family, task=task)
+            for family, task in tasks_by_family.items()
+        }
     )
 
 

@@ -23,7 +23,13 @@ from open_brain.config import (
     resolve_secret,
 )
 from open_brain.core.ids import canonical_json_bytes
-from open_brain.providers.base import ProviderService, SecretResolver, lazy_cloud_factory
+from open_brain.providers.base import (
+    CloudFactory,
+    ProviderService,
+    SecretResolver,
+    lazy_cloud_factory,
+    unavailable_cloud_factory,
+)
 from open_brain.providers.local import LocalProvider, LocalTransport
 
 _MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}")
@@ -210,6 +216,15 @@ class ProviderComposition:
 
     def build(self) -> ProviderService:
         config = self.config
+        cloud_factory: CloudFactory = unavailable_cloud_factory
+        if (
+            config.provider_name == "cloud"
+            and config.cloud_enabled
+            and config.cloud_module == "open_brain.providers.optional_cloud"
+        ):
+            from open_brain.providers.optional_cloud import create_provider
+
+            cloud_factory = lazy_cloud_factory(create_provider, model=config.cloud_model)
         return ProviderService(
             provider_name=config.provider_name,
             cloud_enabled=config.cloud_enabled,
@@ -218,10 +233,7 @@ class ProviderComposition:
                 model=config.local_model,
                 transport=self.local_transport,
             ),
-            cloud_factory=lazy_cloud_factory(
-                config.cloud_module,
-                model=config.cloud_model,
-            ),
+            cloud_factory=cloud_factory,
             resolve_cloud_secret=self.resolve_cloud_secret,
         )
 

@@ -11,7 +11,7 @@ from open_brain.capture.http import HttpRequest
 from open_brain.cli.phase1 import Phase1CommandAdapter
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.engine import CaptureAction, ReferencePayload, TextPayload
-from open_brain.services.application import SingleUserLocalApplication
+from open_brain.services.phase1_application import SingleUserLocalApplication
 
 
 def test_single_user_local_application_owns_one_engine_task_set(tmp_path: Path) -> None:
@@ -20,8 +20,12 @@ def test_single_user_local_application_owns_one_engine_task_set(tmp_path: Path) 
     assert application.tasks.profile.root == tmp_path / "brain"
     capture_adapter = application.cli_adapters().get("capture")
     assert isinstance(capture_adapter, Phase1CommandAdapter)
-    assert capture_adapter.tasks is application.tasks
-    assert application.ui_handler("synthetic-ui-token").tasks is application.tasks
+    assert capture_adapter.task is application.tasks.capture
+    assert application.ui_handler("synthetic-ui-token").tasks is application.tasks.phase1
+    assert not hasattr(capture_adapter, "profile")
+    assert not hasattr(capture_adapter, "portability")
+    assert not hasattr(application.ui_handler("synthetic-ui-token").tasks, "profile")
+    assert not hasattr(application.ui_handler("synthetic-ui-token").tasks, "portability")
     handler = application.share_handler(
         expected_bearer_token="synthetic-http-token",
         body_reader=lambda _maximum, _timeout: b"",

@@ -27,6 +27,7 @@ from .contracts import (
     PublicJobCaptureSink,
     TextPayload,
     _LocalEngineOperations,
+    project_public_capture_receipt,
 )
 from .normalization import (
     _dated_path,
@@ -175,7 +176,7 @@ class CaptureOperations(_LocalEngineOperations):
         receipt = self._capture_receipt(capture_id)
         if receipt is None:
             raise RuntimeError("capture state unavailable")
-        return CaptureReceipt(
+        return project_public_capture_receipt(CaptureReceipt(
             capture_id=receipt.capture_id,
             payload_family=receipt.payload_family,
             state=receipt.state,
@@ -183,7 +184,7 @@ class CaptureOperations(_LocalEngineOperations):
             space_id=receipt.space_id,
             canonical_path=receipt.canonical_path,
             duplicate=duplicate,
-        )
+        ))
 
     def _capture_row(self, capture_id: str) -> sqlite3.Row:
         _portable_id(capture_id, "capture")
@@ -535,7 +536,8 @@ class CaptureTasks:
         return PublicJobCaptureSink(self, context=context)
 
     def get(self, capture_id: str) -> CaptureReceipt | None:
-        return self._engine._capture_receipt(capture_id)
+        receipt = self._engine._capture_receipt(capture_id)
+        return None if receipt is None else project_public_capture_receipt(receipt)
 
     def retry_enrichment(
         self,

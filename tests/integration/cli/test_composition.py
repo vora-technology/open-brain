@@ -110,7 +110,7 @@ from open_brain.services.connectors import (
     ConnectorRegistry,
     ConnectorRunContext,
 )
-from open_brain.services.entrypoints import run_cli as run
+from open_brain.services.entrypoints import run_legacy_cli as run
 from open_brain.services.http_server import HttpServerFactory
 from open_brain.storage.locks import LockBusyError
 from open_brain.storage.sqlite import connect_database, migrate

@@ -13,137 +13,137 @@
   "packages": {
     "capture": {
       "classification": "mixed",
-      "target_owner": "engine plus connector adapters",
-      "current_scope": "Durable capture, provenance, queues, and deterministic extraction share paths with source-specific media and provider coupling.",
-      "phase_1_action": "Separate the common capture envelope and deterministic workflow from source-specific adapters."
+      "target_owner": "app plus connector plus engine plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "cli": {
-      "classification": "app",
-      "target_owner": "app",
-      "current_scope": "Parser and terminal representation currently also construct adapters.",
-      "phase_1_action": "Split parsing and representation from composition."
+      "classification": "mixed",
+      "target_owner": "app plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "core": {
       "classification": "engine",
       "target_owner": "engine",
-      "current_scope": "Values, policies, identifiers, and ports form the current protected engine scope.",
-      "phase_1_action": "Add the v0 identities and public surface without exposing every port."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "dev": {
       "classification": "workspace",
-      "target_owner": "workspace tooling",
-      "current_scope": "Repository development and release-audit utilities.",
-      "phase_1_action": "Keep out of runtime dependency graphs and native artifacts."
+      "target_owner": "workspace",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "events": {
       "classification": "engine",
       "target_owner": "engine",
-      "current_scope": "Durable event values and occurrence-time behavior.",
-      "phase_1_action": "Keep persistence with the workflow that owns it."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "engine": {
       "classification": "engine",
       "target_owner": "engine",
-      "current_scope": "Phase 1 task facades, Portable v1 identities, local durable transitions, spaces, sibling review, publication, and lexical retrieval.",
-      "phase_1_action": "Keep the vertical slice behind Capture, Inbox/Spaces, Review, and Retrieval facades without importing app representations."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "integrations": {
       "classification": "mixed",
-      "target_owner": "engine, app, and connectors",
-      "current_scope": "Retrieval, UI and MCP representation, and external-system behavior share one package.",
-      "phase_1_action": "Separate retrieval, representations, and external normalizers by capability."
+      "target_owner": "app plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "ledger": {
-      "classification": "engine",
-      "target_owner": "engine",
-      "current_scope": "Knowledge, publication, receipts, and writer rules.",
-      "phase_1_action": "Retain unless the vertical slice proves a clearer knowledge/publication module."
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "migrate": {
       "classification": "legacy",
       "target_owner": "legacy",
-      "current_scope": "Predecessor import and migration behavior.",
-      "phase_1_action": "Retain only reviewed generic public importers in a shipping artifact."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "operations": {
-      "classification": "mixed",
-      "target_owner": "engine, app, legacy, and connectors",
-      "current_scope": "Maintenance sits beside cutover, shadow, predecessor parity, and connector jobs.",
-      "phase_1_action": "Extract by capability; do not rename the package wholesale."
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "parity": {
       "classification": "legacy",
       "target_owner": "legacy",
-      "current_scope": "Predecessor-parity harnesses and observations.",
-      "phase_1_action": "Keep outside app and release-acceptance dependencies."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "portable": {
       "classification": "engine",
-      "target_owner": "engine public Portable Brain surface",
-      "current_scope": "Portable v1 strict serialization and versioned interchange contracts.",
-      "phase_1_action": "Keep runtime import and export orchestration behind this public contract."
+      "target_owner": "engine",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "production": {
       "classification": "mixed",
-      "target_owner": "engine, app, and connectors",
-      "current_scope": "Canonical adapters, provider and daemon runtime, and source bridges are coupled.",
-      "phase_1_action": "Split local adapters, runtime adapters, and source bridges by owner."
+      "target_owner": "connector plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "providers": {
       "classification": "mixed",
-      "target_owner": "engine, app, and optional adapters",
-      "current_scope": "Provider port and deterministic behavior sit beside local HTTP and cloud implementations.",
-      "phase_1_action": "Keep the port and none behavior with engine; move transport implementations by owner."
+      "target_owner": "engine plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "release": {
-      "classification": "mixed",
-      "target_owner": "app, legacy, and workspace tooling",
-      "current_scope": "Installation lifecycle, replacement evidence, and artifact auditing are coupled.",
-      "phase_1_action": "Separate native lifecycle, legacy stabilization, and artifact conformance work."
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "review": {
-      "classification": "engine",
-      "target_owner": "engine",
-      "current_scope": "Proposal and decision behavior with durable review receipts.",
-      "phase_1_action": "Add independently decided sibling proposals; move UI and CLI representations to app."
+      "classification": "mixed",
+      "target_owner": "engine plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "services": {
-      "classification": "app",
-      "target_owner": "app",
-      "current_scope": "HTTP, UI, MCP process entry points, and composition roots.",
-      "phase_1_action": "Fold surfaces and composition into the app-owned boundary."
+      "classification": "mixed",
+      "target_owner": "app plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "storage": {
-      "classification": "mixed",
-      "target_owner": "engine local implementation and app adapters",
-      "current_scope": "Local persistence imports operations lock types, so the package cannot yet be treated as an isolated engine adapter.",
-      "phase_1_action": "Move lock identity out of operations before extracting local adapters."
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     }
   },
   "root_modules": {
     "__init__": {
       "classification": "engine",
-      "target_owner": "engine public surface",
-      "current_scope": "Package version and deliberately exported public values.",
-      "phase_1_action": "Keep the public surface explicit and small."
+      "target_owner": "engine",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     },
     "__main__": {
       "classification": "app",
       "target_owner": "app",
-      "current_scope": "The python -m open_brain entry point.",
-      "phase_1_action": "Keep with the app distribution entry point."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     },
     "config": {
       "classification": "app",
-      "target_owner": "app profile",
-      "current_scope": "Private-deployment settings currently import ledger models.",
-      "phase_1_action": "Compile one Brain root without importing ledger models."
+      "target_owner": "app",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     },
     "profile": {
       "classification": "app",
-      "target_owner": "app profile",
-      "current_scope": "Compiles one selected Brain root into stable local identities, safe paths, starter spaces, and provider-none engine context.",
-      "phase_1_action": "Remain the application-owned single-user-local composition boundary."
+      "target_owner": "app",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     }
   },
   "root_public_symbols": [
@@ -364,82 +364,64 @@
       "roles": []
     },
     "capture/auth.py": {
-      "owner": "engine",
+      "owner": "app",
       "api": "internal",
       "roles": []
     },
     "capture/distillation.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "capture/distillation_worker.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "capture/drain.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "capture/egress.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter",
-        "transport"
-      ],
-      "adapter_group": "web"
+      "roles": []
     },
     "capture/extractors/__init__.py": {
-      "owner": "engine",
+      "owner": "connector",
       "api": "internal",
       "roles": []
     },
     "capture/extractors/article.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "web"
+      "roles": []
     },
     "capture/extractors/social.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "social"
+      "roles": []
     },
     "capture/extractors/text.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "capture/extractors/youtube.py": {
       "owner": "connector",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "youtube"
+      "roles": []
     },
     "capture/http.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "capture/media.py": {
       "owner": "connector",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "media"
+      "roles": []
     },
     "capture/models.py": {
       "owner": "engine",
@@ -449,18 +431,12 @@
     "capture/poll.py": {
       "owner": "connector",
       "api": "internal",
-      "roles": [
-        "adapter",
-        "store"
-      ],
-      "adapter_group": "youtube"
+      "roles": []
     },
     "capture/queue.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "capture/redaction.py": {
       "owner": "engine",
@@ -468,7 +444,7 @@
       "roles": []
     },
     "capture/service.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
@@ -480,56 +456,42 @@
     "cli/_common.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/_registry.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "cli/capture.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/config.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/doctor.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/explain.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/ledger.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/main.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "cli/migrate.py": {
       "owner": "legacy",
@@ -537,18 +499,19 @@
       "roles": []
     },
     "cli/operations.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/phase1.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
+    },
+    "cli/phase1_registry.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
     },
     "cli/phase6_adapters.py": {
       "owner": "legacy",
@@ -556,53 +519,39 @@
       "roles": []
     },
     "cli/production_adapters.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "cli/proposals.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/query.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/review.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/scheduled.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/social.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "cli/status.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "config.py": {
       "owner": "app",
@@ -667,37 +616,39 @@
     "engine/capture.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "engine/contracts.py": {
       "owner": "engine",
       "api": "public",
       "roles": []
     },
-    "engine/materializer.py": {
-      "owner": "engine",
-      "api": "internal",
-      "roles": [
-        "store"
-      ]
-    },
     "engine/local.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "engine/local_store.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
+    },
+    "engine/materializer.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
     },
     "engine/normalization.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/portability.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/portability_ports.py": {
       "owner": "engine",
       "api": "internal",
       "roles": []
@@ -705,23 +656,7 @@
     "engine/portable_index.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
-    },
-    "engine/portability.py": {
-      "owner": "engine",
-      "api": "internal",
-      "roles": [
-        "store"
-      ]
-    },
-    "engine/portability_ports.py": {
-      "owner": "engine",
-      "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "engine/retrieval.py": {
       "owner": "engine",
@@ -731,16 +666,12 @@
     "engine/review.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "engine/spaces.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "events/__init__.py": {
       "owner": "engine",
@@ -750,9 +681,7 @@
     "events/store.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "integrations/__init__.py": {
       "owner": "app",
@@ -765,233 +694,184 @@
       "roles": []
     },
     "integrations/context.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "work-context"
+      "roles": []
     },
     "integrations/dev_workflows.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "dev-workflow"
+      "roles": []
     },
     "integrations/finance.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "finance"
+      "roles": []
     },
     "integrations/hooks.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "dev-workflow"
+      "roles": []
     },
     "integrations/life_os.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "life-os"
+      "roles": []
     },
     "integrations/life_os_runtime.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "life-os"
+      "roles": []
     },
     "integrations/mail_calendar.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "mail-calendar"
+      "roles": []
     },
     "integrations/mcp.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "integrations/messaging.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "messaging"
+      "roles": []
     },
     "integrations/messaging_runtime.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "messaging"
+      "roles": []
     },
     "integrations/obsidian.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "obsidian"
+      "roles": []
     },
     "integrations/phase1_ui.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "integrations/ports.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "extension_contract",
-        "extension_host"
-      ]
+      "roles": []
     },
     "integrations/relationships.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "relationships"
+      "roles": []
     },
     "integrations/repository_identity.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "repository"
+      "roles": []
     },
     "integrations/retrieval.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "integrations/runtime_audit.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "integrations/ui.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "representation"
-      ]
+      "roles": []
     },
     "ledger/__init__.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/age.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/embed.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/index.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/merge.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/models.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/reconcile.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/reinforce.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/render.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/requarantine.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/sanitize.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/scan.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/service.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/slim.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/stage.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/store.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "ledger/synthesis.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "ledger/synthesis_store.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "migrate/__init__.py": {
       "owner": "legacy",
@@ -1024,39 +904,34 @@
       "roles": []
     },
     "operations/__init__.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/backup.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/backup_writer.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "operations/capture_jobs.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/catalog.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/curation_runtime.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "curation"
+      "roles": []
     },
     "operations/cutover.py": {
       "owner": "legacy",
@@ -1074,106 +949,97 @@
       "roles": []
     },
     "operations/doctor.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/git_sync_runtime.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "repository"
+      "roles": []
     },
     "operations/index.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/index_writer.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "operations/local_effect.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/models.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/now.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/now_runtime.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/optional_jobs.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/probes.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/production_bindings.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "operations/recovery.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/render.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/replay_journal.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/retention.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/runlog.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/runlog_store.py": {
-      "owner": "app",
-      "api": "internal",
-      "roles": [
-        "store"
-      ]
-    },
-    "operations/scheduler.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/scheduled_results.py": {
-      "owner": "app",
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/scheduler.py": {
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
@@ -1183,12 +1049,12 @@
       "roles": []
     },
     "operations/status.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "operations/writer_jobs.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
@@ -1223,158 +1089,114 @@
       "roles": []
     },
     "production/__init__.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "production/application.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "production/assets.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "production/capture.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "production/capture_publication.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "production/curation.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "curation"
+      "roles": []
     },
     "production/errors.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "production/git_sync.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "repository"
+      "roles": []
     },
     "production/imessage.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "messaging"
+      "roles": []
     },
     "production/local_jobs.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "production/media.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "media"
+      "roles": []
     },
     "production/optional_automation.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "production/personal_capture.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "messaging"
+      "roles": []
     },
     "production/project_commit_bridge.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "repository"
+      "roles": []
     },
     "production/providers.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "production/retention.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "production/runtime.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "production/sqlite_backup.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "production/transport.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "transport"
-      ]
+      "roles": []
     },
     "production/youtube_bridge.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "youtube"
+      "roles": []
     },
     "production/youtube_poll.py": {
       "owner": "connector",
       "api": "internal",
-      "roles": [
-        "adapter"
-      ],
-      "adapter_group": "youtube"
+      "roles": []
     },
     "profile.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "providers/__init__.py": {
       "owner": "engine",
@@ -1392,34 +1214,22 @@
       "roles": []
     },
     "providers/local.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter",
-        "provider"
-      ],
-      "adapter_group": "local-provider"
+      "roles": []
     },
     "providers/optional_cloud.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter",
-        "provider"
-      ],
-      "adapter_group": "cloud-provider"
+      "roles": []
     },
     "providers/transcription.py": {
-      "owner": "connector",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "adapter",
-        "provider"
-      ],
-      "adapter_group": "transcription-provider"
+      "roles": []
     },
     "release/__init__.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
@@ -1434,7 +1244,7 @@
       "roles": []
     },
     "release/installation.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
@@ -1454,7 +1264,7 @@
       "roles": []
     },
     "review/maintenance.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
@@ -1464,21 +1274,19 @@
       "roles": []
     },
     "review/routing.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "review/service.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
       "roles": []
     },
     "review/store.py": {
-      "owner": "engine",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "services/__init__.py": {
       "owner": "app",
@@ -1486,60 +1294,57 @@
       "roles": []
     },
     "services/application.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "services/capabilities.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "services/composition.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "services/connectors.py": {
       "owner": "app",
       "api": "internal",
       "roles": [
-        "extension_contract"
-      ]
-    },
-    "services/composition.py": {
-      "owner": "app",
-      "api": "internal",
-      "roles": [
-        "composition"
+        "extension_contract",
+        "extension_host"
       ]
     },
     "services/entrypoints.py": {
-      "owner": "app",
+      "owner": "legacy",
       "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "services/http_server.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "transport"
-      ]
-    },
-    "services/runtime.py": {
-      "owner": "app",
-      "api": "internal",
-      "roles": [
-        "composition"
-      ]
+      "roles": []
     },
     "services/mcp_stdio.py": {
       "owner": "app",
       "api": "internal",
-      "roles": [
-        "transport"
-      ]
+      "roles": []
+    },
+    "services/phase1_application.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/phase1_entrypoints.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/runtime.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
     },
     "storage/__init__.py": {
       "owner": "engine",
@@ -1549,9 +1354,7 @@
     "storage/filesystem.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "storage/frontmatter.py": {
       "owner": "engine",
@@ -1566,321 +1369,24 @@
     "storage/markdown.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "writer"
-      ]
+      "roles": []
     },
     "storage/sqlite.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "storage/staging.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     },
     "storage/writer_record.py": {
       "owner": "engine",
       "api": "internal",
-      "roles": [
-        "store"
-      ]
+      "roles": []
     }
   },
-  "dynamic_import_reviews": [
-    {
-      "path": "integrations/ports.py",
-      "line": 902,
-      "owner": "app",
-      "allowed_host": true,
-      "rationale": "Loads one configured integration only after the app-owned extension policy validates its named import path."
-    },
-    {
-      "path": "providers/base.py",
-      "line": 162,
-      "owner": "engine",
-      "allowed_host": false,
-      "rationale": "Temporary Phase 2 debt: the engine provider selector still accepts a caller-supplied optional adapter module."
-    }
-  ],
-  "temporary_live_debt": [
-    "adapter-to-adapter: capture/extractors/social.py:11 -> capture/media.py",
-    "adapter-to-adapter: capture/extractors/social.py:23 -> providers/transcription.py",
-    "adapter-to-adapter: capture/extractors/youtube.py:8 -> capture/media.py",
-    "adapter-to-adapter: integrations/context.py:12 -> integrations/repository_identity.py",
-    "adapter-to-adapter: production/media.py:13 -> capture/extractors/social.py",
-    "adapter-to-adapter: production/media.py:14 -> capture/extractors/youtube.py",
-    "adapter-to-adapter: production/youtube_poll.py:16 -> capture/media.py",
-    "app-to-engine-internals: capture/distillation_worker.py:11 -> capture/distillation.py",
-    "app-to-engine-internals: capture/distillation_worker.py:16 -> capture/models.py",
-    "app-to-engine-internals: capture/distillation_worker.py:22 -> core/ids.py",
-    "app-to-engine-internals: capture/distillation_worker.py:23 -> core/models.py",
-    "app-to-engine-internals: capture/distillation_worker.py:24 -> core/ports.py",
-    "app-to-engine-internals: capture/drain.py:14 -> capture/extractors/__init__.py",
-    "app-to-engine-internals: capture/drain.py:16 -> capture/models.py",
-    "app-to-engine-internals: capture/drain.py:25 -> core/ids.py",
-    "app-to-engine-internals: capture/drain.py:26 -> core/models.py",
-    "app-to-engine-internals: capture/drain.py:27 -> core/ports.py",
-    "app-to-engine-internals: capture/http.py:13 -> capture/auth.py",
-    "app-to-engine-internals: capture/http.py:14 -> capture/models.py",
-    "app-to-engine-internals: capture/http.py:20 -> core/ids.py",
-    "app-to-engine-internals: capture/http.py:21 -> core/models.py",
-    "app-to-engine-internals: capture/http.py:22 -> core/policy.py",
-    "app-to-engine-internals: cli/capture.py:12 -> capture/models.py",
-    "app-to-engine-internals: cli/capture.py:14 -> core/models.py",
-    "app-to-engine-internals: cli/capture.py:24 -> core/policy.py",
-    "app-to-engine-internals: cli/capture.py:25 -> core/ports.py",
-    "app-to-engine-internals: cli/ledger.py:12 -> core/models.py",
-    "app-to-engine-internals: cli/ledger.py:13 -> ledger/age.py",
-    "app-to-engine-internals: cli/ledger.py:14 -> ledger/embed.py",
-    "app-to-engine-internals: cli/ledger.py:15 -> ledger/index.py",
-    "app-to-engine-internals: cli/ledger.py:16 -> ledger/reconcile.py",
-    "app-to-engine-internals: cli/ledger.py:17 -> ledger/reinforce.py",
-    "app-to-engine-internals: cli/ledger.py:18 -> ledger/render.py",
-    "app-to-engine-internals: cli/ledger.py:19 -> ledger/requarantine.py",
-    "app-to-engine-internals: cli/ledger.py:20 -> ledger/scan.py",
-    "app-to-engine-internals: cli/ledger.py:21 -> ledger/service.py",
-    "app-to-engine-internals: cli/ledger.py:22 -> ledger/slim.py",
-    "app-to-engine-internals: cli/ledger.py:23 -> ledger/stage.py",
-    "app-to-engine-internals: cli/ledger.py:29 -> ledger/synthesis.py",
-    "app-to-engine-internals: cli/operations.py:11 -> core/models.py",
-    "app-to-engine-internals: cli/operations.py:12 -> operations/runlog.py",
-    "app-to-engine-internals: cli/production_adapters.py:35 -> core/models.py",
-    "app-to-engine-internals: cli/production_adapters.py:37 -> operations/status.py",
-    "app-to-engine-internals: cli/proposals.py:12 -> review/models.py",
-    "app-to-engine-internals: cli/review.py:12 -> core/ids.py",
-    "app-to-engine-internals: cli/review.py:13 -> core/ports.py",
-    "app-to-engine-internals: cli/review.py:14 -> review/maintenance.py",
-    "app-to-engine-internals: cli/review.py:20 -> review/models.py",
-    "app-to-engine-internals: cli/scheduled.py:13 -> operations/models.py",
-    "app-to-engine-internals: cli/status.py:8 -> operations/status.py",
-    "app-to-engine-internals: integrations/phase1_ui.py:12 -> capture/auth.py",
-    "app-to-engine-internals: integrations/phase1_ui.py:13 -> core/ids.py",
-    "app-to-engine-internals: integrations/ui.py:10 -> capture/auth.py",
-    "app-to-engine-internals: integrations/ui.py:11 -> core/ids.py",
-    "app-to-engine-internals: operations/__init__.py:28 -> operations/runlog.py",
-    "app-to-engine-internals: operations/__init__.py:6 -> operations/models.py",
-    "app-to-engine-internals: operations/backup_writer.py:16 -> core/ids.py",
-    "app-to-engine-internals: operations/backup_writer.py:17 -> storage/filesystem.py",
-    "app-to-engine-internals: operations/backup_writer.py:23 -> storage/writer_record.py",
-    "app-to-engine-internals: operations/capture_jobs.py:10 -> core/models.py",
-    "app-to-engine-internals: operations/capture_jobs.py:11 -> core/ports.py",
-    "app-to-engine-internals: operations/capture_jobs.py:15 -> operations/models.py",
-    "app-to-engine-internals: operations/catalog.py:7 -> operations/models.py",
-    "app-to-engine-internals: operations/doctor.py:10 -> operations/models.py",
-    "app-to-engine-internals: operations/index_writer.py:10 -> core/ids.py",
-    "app-to-engine-internals: operations/index_writer.py:11 -> core/models.py",
-    "app-to-engine-internals: operations/index_writer.py:13 -> storage/filesystem.py",
-    "app-to-engine-internals: operations/index_writer.py:19 -> operations/index.py",
-    "app-to-engine-internals: operations/index_writer.py:26 -> operations/models.py",
-    "app-to-engine-internals: operations/local_effect.py:10 -> core/ids.py",
-    "app-to-engine-internals: operations/local_effect.py:11 -> storage/filesystem.py",
-    "app-to-engine-internals: operations/now_runtime.py:10 -> core/models.py",
-    "app-to-engine-internals: operations/now_runtime.py:12 -> storage/filesystem.py",
-    "app-to-engine-internals: operations/now_runtime.py:21 -> operations/models.py",
-    "app-to-engine-internals: operations/now_runtime.py:22 -> operations/now.py",
-    "app-to-engine-internals: operations/now_runtime.py:545 -> operations/now.py",
-    "app-to-engine-internals: operations/now_runtime.py:9 -> core/ids.py",
-    "app-to-engine-internals: operations/optional_jobs.py:12 -> operations/models.py",
-    "app-to-engine-internals: operations/probes.py:13 -> operations/models.py",
-    "app-to-engine-internals: operations/production_bindings.py:20 -> operations/models.py",
-    "app-to-engine-internals: operations/render.py:6 -> operations/models.py",
-    "app-to-engine-internals: operations/runlog_store.py:11 -> core/ids.py",
-    "app-to-engine-internals: operations/runlog_store.py:12 -> storage/filesystem.py",
-    "app-to-engine-internals: operations/runlog_store.py:20 -> operations/runlog.py",
-    "app-to-engine-internals: operations/scheduled_results.py:8 -> operations/models.py",
-    "app-to-engine-internals: operations/scheduler.py:14 -> operations/models.py",
-    "app-to-engine-internals: operations/scheduler.py:8 -> operations/models.py",
-    "app-to-engine-internals: operations/writer_jobs.py:13 -> core/ids.py",
-    "app-to-engine-internals: operations/writer_jobs.py:15 -> review/models.py",
-    "app-to-engine-internals: operations/writer_jobs.py:18 -> operations/models.py",
-    "app-to-engine-internals: production/assets.py:11 -> core/models.py",
-    "app-to-engine-internals: production/capture.py:11 -> capture/distillation.py",
-    "app-to-engine-internals: production/capture.py:18 -> capture/extractors/text.py",
-    "app-to-engine-internals: production/capture.py:20 -> capture/models.py",
-    "app-to-engine-internals: production/capture.py:21 -> capture/queue.py",
-    "app-to-engine-internals: production/capture.py:25 -> capture/service.py",
-    "app-to-engine-internals: production/capture.py:27 -> core/ids.py",
-    "app-to-engine-internals: production/capture.py:34 -> core/models.py",
-    "app-to-engine-internals: production/capture.py:35 -> core/ports.py",
-    "app-to-engine-internals: production/capture.py:42 -> events/store.py",
-    "app-to-engine-internals: production/capture.py:48 -> providers/base.py",
-    "app-to-engine-internals: production/capture.py:49 -> storage/filesystem.py",
-    "app-to-engine-internals: production/capture_publication.py:10 -> capture/distillation.py",
-    "app-to-engine-internals: production/capture_publication.py:11 -> capture/models.py",
-    "app-to-engine-internals: production/capture_publication.py:12 -> core/models.py",
-    "app-to-engine-internals: production/capture_publication.py:19 -> core/ports.py",
-    "app-to-engine-internals: production/capture_publication.py:20 -> storage/filesystem.py",
-    "app-to-engine-internals: production/local_jobs.py:16 -> core/ids.py",
-    "app-to-engine-internals: production/local_jobs.py:29 -> review/models.py",
-    "app-to-engine-internals: production/local_jobs.py:30 -> storage/filesystem.py",
-    "app-to-engine-internals: production/optional_automation.py:14 -> core/ids.py",
-    "app-to-engine-internals: production/optional_automation.py:15 -> core/models.py",
-    "app-to-engine-internals: production/optional_automation.py:16 -> core/ports.py",
-    "app-to-engine-internals: production/optional_automation.py:18 -> review/models.py",
-    "app-to-engine-internals: production/optional_automation.py:19 -> review/store.py",
-    "app-to-engine-internals: production/providers.py:25 -> core/ids.py",
-    "app-to-engine-internals: production/providers.py:26 -> providers/base.py",
-    "app-to-engine-internals: production/retention.py:17 -> core/ids.py",
-    "app-to-engine-internals: production/retention.py:18 -> core/ports.py",
-    "app-to-engine-internals: production/retention.py:19 -> operations/retention.py",
-    "app-to-engine-internals: production/runtime.py:21 -> core/models.py",
-    "app-to-engine-internals: production/runtime.py:22 -> core/ports.py",
-    "app-to-engine-internals: production/sqlite_backup.py:11 -> core/ids.py",
-    "app-to-engine-internals: production/sqlite_backup.py:12 -> core/ports.py",
-    "app-to-engine-internals: release/installation.py:10 -> operations/models.py",
-    "app-to-engine-internals: services/application.py:110 -> operations/replay_journal.py",
-    "app-to-engine-internals: services/application.py:15 -> capture/queue.py",
-    "app-to-engine-internals: services/application.py:16 -> capture/service.py",
-    "app-to-engine-internals: services/application.py:165 -> providers/base.py",
-    "app-to-engine-internals: services/application.py:166 -> review/maintenance.py",
-    "app-to-engine-internals: services/application.py:167 -> review/store.py",
-    "app-to-engine-internals: services/application.py:189 -> storage/locks.py",
-    "app-to-engine-internals: services/application.py:190 -> storage/sqlite.py",
-    "app-to-engine-internals: services/application.py:191 -> storage/writer_record.py",
-    "app-to-engine-internals: services/application.py:29 -> core/models.py",
-    "app-to-engine-internals: services/application.py:30 -> core/ports.py",
-    "app-to-engine-internals: services/application.py:38 -> events/store.py",
-    "app-to-engine-internals: services/application.py:51 -> integrations/retrieval.py",
-    "app-to-engine-internals: services/application.py:52 -> ledger/embed.py",
-    "app-to-engine-internals: services/application.py:53 -> ledger/models.py",
-    "app-to-engine-internals: services/application.py:54 -> ledger/store.py",
-    "app-to-engine-internals: services/application.py:82 -> operations/index.py",
-    "app-to-engine-internals: services/application.py:83 -> operations/index.py",
-    "app-to-engine-internals: services/application.py:86 -> operations/models.py",
-    "app-to-engine-internals: services/application.py:87 -> operations/now.py",
-    "app-to-engine-internals: services/capabilities.py:12 -> capture/models.py",
-    "app-to-engine-internals: services/capabilities.py:13 -> capture/queue.py",
-    "app-to-engine-internals: services/capabilities.py:25 -> core/models.py",
-    "app-to-engine-internals: services/capabilities.py:26 -> core/ports.py",
-    "app-to-engine-internals: services/capabilities.py:29 -> integrations/retrieval.py",
-    "app-to-engine-internals: services/capabilities.py:33 -> operations/runlog.py",
-    "app-to-engine-internals: services/capabilities.py:35 -> operations/status.py",
-    "app-to-engine-internals: services/capabilities.py:41 -> review/store.py",
-    "app-to-engine-internals: services/entrypoints.py:74 -> operations/models.py",
-    "app-to-engine-internals: services/entrypoints.py:75 -> operations/runlog.py",
-    "app-to-engine-internals: services/entrypoints.py:82 -> storage/locks.py",
-    "app-to-engine-internals: services/runtime.py:20 -> core/ids.py",
-    "connector-capability-only: capture/egress.py:15 -> core/models.py",
-    "connector-capability-only: capture/egress.py:16 -> core/ports.py",
-    "connector-capability-only: capture/extractors/article.py:17 -> core/ids.py",
-    "connector-capability-only: capture/extractors/article.py:18 -> core/models.py",
-    "connector-capability-only: capture/extractors/article.py:19 -> core/ports.py",
-    "connector-capability-only: capture/extractors/article.py:8 -> capture/extractors/__init__.py",
-    "connector-capability-only: capture/extractors/article.py:9 -> capture/models.py",
-    "connector-capability-only: capture/extractors/social.py:12 -> capture/models.py",
-    "connector-capability-only: capture/extractors/social.py:20 -> core/models.py",
-    "connector-capability-only: capture/extractors/social.py:21 -> core/policy.py",
-    "connector-capability-only: capture/extractors/social.py:22 -> core/ports.py",
-    "connector-capability-only: capture/extractors/youtube.py:17 -> core/models.py",
-    "connector-capability-only: capture/extractors/youtube.py:9 -> capture/models.py",
-    "connector-capability-only: capture/media.py:23 -> capture/models.py",
-    "connector-capability-only: capture/media.py:24 -> core/models.py",
-    "connector-capability-only: capture/poll.py:25 -> capture/models.py",
-    "connector-capability-only: capture/poll.py:26 -> core/ids.py",
-    "connector-capability-only: capture/poll.py:27 -> core/models.py",
-    "connector-capability-only: integrations/context.py:13 -> integrations/retrieval.py",
-    "connector-capability-only: integrations/life_os.py:12 -> core/models.py",
-    "connector-capability-only: integrations/life_os.py:13 -> review/models.py",
-    "connector-capability-only: integrations/life_os.py:15 -> integrations/config.py",
-    "connector-capability-only: integrations/life_os_runtime.py:14 -> storage/filesystem.py",
-    "connector-capability-only: integrations/life_os_runtime.py:21 -> integrations/config.py",
-    "connector-capability-only: integrations/mail_calendar.py:16 -> integrations/config.py",
-    "connector-capability-only: integrations/messaging.py:11 -> core/ids.py",
-    "connector-capability-only: integrations/messaging.py:12 -> core/models.py",
-    "connector-capability-only: integrations/messaging.py:14 -> integrations/config.py",
-    "connector-capability-only: integrations/messaging_runtime.py:14 -> core/ids.py",
-    "connector-capability-only: integrations/messaging_runtime.py:15 -> core/models.py",
-    "connector-capability-only: integrations/messaging_runtime.py:16 -> core/ports.py",
-    "connector-capability-only: integrations/messaging_runtime.py:17 -> integrations/config.py",
-    "connector-capability-only: integrations/messaging_runtime.py:38 -> review/models.py",
-    "connector-capability-only: integrations/messaging_runtime.py:39 -> review/store.py",
-    "connector-capability-only: integrations/messaging_runtime.py:40 -> storage/filesystem.py",
-    "connector-capability-only: integrations/messaging_runtime.py:45 -> storage/sqlite.py",
-    "connector-capability-only: integrations/obsidian.py:15 -> core/models.py",
-    "connector-capability-only: integrations/obsidian.py:25 -> storage/filesystem.py",
-    "connector-capability-only: integrations/obsidian.py:34 -> storage/markdown.py",
-    "connector-capability-only: integrations/relationships.py:10 -> core/ids.py",
-    "connector-capability-only: operations/curation_runtime.py:11 -> core/ids.py",
-    "connector-capability-only: operations/curation_runtime.py:12 -> core/models.py",
-    "connector-capability-only: operations/curation_runtime.py:13 -> core/ports.py",
-    "connector-capability-only: operations/curation_runtime.py:15 -> ledger/models.py",
-    "connector-capability-only: operations/curation_runtime.py:16 -> ledger/service.py",
-    "connector-capability-only: operations/curation_runtime.py:17 -> ledger/stage.py",
-    "connector-capability-only: operations/curation_runtime.py:18 -> ledger/store.py",
-    "connector-capability-only: operations/curation_runtime.py:19 -> review/models.py",
-    "connector-capability-only: operations/curation_runtime.py:20 -> storage/filesystem.py",
-    "connector-capability-only: operations/curation_runtime.py:22 -> operations/writer_jobs.py",
-    "connector-capability-only: operations/git_sync_runtime.py:13 -> core/ids.py",
-    "connector-capability-only: operations/git_sync_runtime.py:15 -> storage/filesystem.py",
-    "connector-capability-only: operations/git_sync_runtime.py:17 -> operations/writer_jobs.py",
-    "connector-capability-only: production/curation.py:10 -> capture/models.py",
-    "connector-capability-only: production/curation.py:11 -> config.py",
-    "connector-capability-only: production/curation.py:12 -> core/ids.py",
-    "connector-capability-only: production/curation.py:13 -> core/ports.py",
-    "connector-capability-only: production/curation.py:14 -> events/store.py",
-    "connector-capability-only: production/curation.py:15 -> ledger/merge.py",
-    "connector-capability-only: production/curation.py:16 -> ledger/models.py",
-    "connector-capability-only: production/curation.py:17 -> ledger/sanitize.py",
-    "connector-capability-only: production/curation.py:18 -> ledger/scan.py",
-    "connector-capability-only: production/curation.py:19 -> ledger/service.py",
-    "connector-capability-only: production/curation.py:20 -> ledger/stage.py",
-    "connector-capability-only: production/curation.py:21 -> ledger/store.py",
-    "connector-capability-only: production/curation.py:29 -> operations/writer_jobs.py",
-    "connector-capability-only: production/curation.py:30 -> review/models.py",
-    "connector-capability-only: production/curation.py:31 -> review/store.py",
-    "connector-capability-only: production/curation.py:32 -> storage/filesystem.py",
-    "connector-capability-only: production/curation.py:39 -> storage/frontmatter.py",
-    "connector-capability-only: production/git_sync.py:15 -> core/ids.py",
-    "connector-capability-only: production/git_sync.py:22 -> operations/writer_jobs.py",
-    "connector-capability-only: production/imessage.py:21 -> core/ids.py",
-    "connector-capability-only: production/imessage.py:22 -> core/models.py",
-    "connector-capability-only: production/imessage.py:36 -> operations/capture_jobs.py",
-    "connector-capability-only: production/media.py:21 -> capture/models.py",
-    "connector-capability-only: production/media.py:22 -> config.py",
-    "connector-capability-only: production/media.py:23 -> core/ids.py",
-    "connector-capability-only: production/media.py:24 -> core/models.py",
-    "connector-capability-only: production/media.py:25 -> production/assets.py",
-    "connector-capability-only: production/media.py:26 -> production/errors.py",
-    "connector-capability-only: production/personal_capture.py:10 -> capture/distillation.py",
-    "connector-capability-only: production/personal_capture.py:15 -> capture/extractors/__init__.py",
-    "connector-capability-only: production/personal_capture.py:16 -> capture/extractors/text.py",
-    "connector-capability-only: production/personal_capture.py:17 -> capture/models.py",
-    "connector-capability-only: production/personal_capture.py:27 -> core/models.py",
-    "connector-capability-only: production/personal_capture.py:33 -> core/ports.py",
-    "connector-capability-only: production/personal_capture.py:34 -> storage/filesystem.py",
-    "connector-capability-only: production/project_commit_bridge.py:21 -> config.py",
-    "connector-capability-only: production/project_commit_bridge.py:22 -> core/ids.py",
-    "connector-capability-only: production/project_commit_bridge.py:24 -> storage/locks.py",
-    "connector-capability-only: production/project_commit_bridge.py:25 -> storage/writer_record.py",
-    "connector-capability-only: production/youtube_bridge.py:15 -> capture/http.py",
-    "connector-capability-only: production/youtube_bridge.py:16 -> capture/models.py",
-    "connector-capability-only: production/youtube_bridge.py:18 -> services/application.py",
-    "connector-capability-only: providers/local.py:11 -> providers/base.py",
-    "connector-capability-only: providers/local.py:7 -> core/models.py",
-    "connector-capability-only: providers/local.py:8 -> core/policy.py",
-    "connector-capability-only: providers/local.py:9 -> core/ports.py",
-    "connector-capability-only: providers/optional_cloud.py:10 -> capture/redaction.py",
-    "connector-capability-only: providers/optional_cloud.py:11 -> core/models.py",
-    "connector-capability-only: providers/optional_cloud.py:12 -> core/policy.py",
-    "connector-capability-only: providers/optional_cloud.py:13 -> core/ports.py",
-    "connector-capability-only: providers/optional_cloud.py:15 -> providers/base.py",
-    "connector-capability-only: providers/transcription.py:12 -> core/models.py",
-    "connector-capability-only: providers/transcription.py:13 -> core/policy.py",
-    "connector-capability-only: providers/transcription.py:15 -> providers/base.py",
-    "engine-to-app: capture/service.py:10 -> capture/extractors/social.py",
-    "engine-to-app: capture/service.py:11 -> capture/extractors/youtube.py",
-    "engine-to-app: integrations/retrieval.py:15 -> integrations/ports.py",
-    "engine-to-app: operations/recovery.py:7 -> operations/backup.py",
-    "engine-to-app: operations/replay_journal.py:12 -> operations/writer_jobs.py",
-    "engine-to-app: operations/runlog.py:12 -> operations/scheduler.py",
-    "engine-to-app: providers/__init__.py:5 -> providers/local.py",
-    "engine-to-app: providers/__init__.py:6 -> providers/transcription.py",
-    "nonliteral-dynamic-import: providers/base.py:162"
-  ]
+  "dynamic_import_reviews": [],
+  "temporary_live_debt": []
 }

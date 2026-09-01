@@ -2,7 +2,7 @@
 
 Open Brain is a local-first capture, provenance, review, and knowledge pipeline. It is being built as the single public implementation that will replace two private predecessor codebases after behavioral parity and a controlled production cutover.
 
-This repository contains the local pipeline and its production composition boundaries: immutable capture/provenance/privacy contracts, durable capture recovery, authenticated share intake, fail-closed outbound egress, bounded extraction, explicit local/cloud provider composition, receipt-bound ledger staging and publication, archive-first slimming, structured synthesis, review-gated saved-content intent, typed CLI adapters, work-only stdio MCP, authenticated HTTP/UI composition, scheduler applications, backup/recovery, retention, and runtime audit tooling. Private deployment configuration, live service state, migration evidence, and cutover receipts remain outside this repository.
+The Phase 2 boundary is one single-user local profile rooted at one private Brain directory. An engine task set supplies capture, inbox/spaces, review, retrieval, and Portable Brain operations to the CLI, authenticated HTTP/share, local UI, scoped stdio MCP, and public-job representations. The internal connector host is optional and empty by default. Private deployment configuration, live service state, migration evidence, and cutover receipts remain outside this repository.
 
 ## Principles
 
@@ -17,7 +17,7 @@ This repository contains the local pipeline and its production composition bound
 
 Requirements: Python 3.12–3.14 and [uv](https://docs.astral.sh/uv/).
 
-### Run the Phase 1 local slice
+### Run the local single-user slice
 
 Set one Brain root. The command creates the private runtime layout with owner-only
 permissions and reuses its stable local identity on later runs.
@@ -65,17 +65,28 @@ The denylist contains one private term per line. Blank lines and lines beginning
 
 ## Status
 
-The Phase 1 in-place vertical slice supports one local Brain root, stable portable identities,
+The Phase 2 in-place vertical slice supports one local Brain root, stable portable identities,
 typed capture, spaces, inbox routing, sibling review proposals, terminal decisions, canonical
-Markdown publication, and lexical retrieval. The CLI and authenticated framework-neutral UI
-handler use the same engine and return the same identifiers. With no model configured, captures
-remain usable and report `pending_enrichment`.
+Markdown publication, and lexical retrieval. The CLI, authenticated HTTP/share boundary, local
+UI, scoped MCP, and public-job sinks use bounded capabilities over the same engine task objects.
+With no model configured, captures remain usable and report `pending_enrichment`.
 
-This is pre-alpha software. Phase 1 does not include a bound HTTP service, model-backed
-enrichment, export/import, connector ingestion, package extraction, hosted operation, migration,
-or production cutover. The default application composition no longer binds predecessor migration,
-parity, shadow, or `doctor --cutover` routes; their older modules remain in place for explicit
-legacy compatibility tests until later architecture phases.
+This is pre-alpha software. Phase 2 implements engine-level Portable Brain validation, export,
+clean-root import, and disposable index rebuild. Export and import preserve portable identities,
+history, routing, and exact source bytes while excluding operational state such as credentials,
+databases, leases, runtime files, and indexes. The default profile uses provider `none` and
+loads no connectors. A retained synthetic `JOB-029` proof exercises the internal seam only with
+an absolute private configuration reference, capture-only authority, and egress enabled; host
+evidence binds accepted captures to checkpoint advancement.
+
+The public result projection exposes opaque IDs, bounded provenance, and safe titles/excerpts,
+not raw or encoded protected references, absolute paths, credentials, storage-derived slugs and
+paths, or reversible source-reference digests.
+Phase 2 does not include the Phase 3 appliance lifecycle: initialization, one supervised daemon,
+internal scheduling, launchd/systemd integration, backup/restore, upgrade, or uninstall. Phase 4
+defers the physical distributions and `packages/` split, isolated connector workers, public
+Connector SDK, signing, and bundler/native artifact work. Predecessor modules remain retained
+legacy compatibility code and are excluded from the default application path.
 
 ## License
 

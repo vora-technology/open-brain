@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import re
+import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
-from importlib import import_module
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Protocol
 from unicodedata import category
@@ -899,7 +899,7 @@ class OptionalIntegrationMetadata:
             )
 
         try:
-            import_module(self.import_path)
+            _loaded_optional_module(self.import_path)
         except ModuleNotFoundError:
             return IntegrationOutcome.unavailable(
                 capability=self.capability,
@@ -911,6 +911,13 @@ class OptionalIntegrationMetadata:
                 reason=UnavailableReason.LOAD_FAILURE,
             )
         return IntegrationOutcome.available_for(capability=self.capability)
+
+
+def _loaded_optional_module(import_path: str) -> object:
+    try:
+        return sys.modules[import_path]
+    except KeyError:
+        raise ModuleNotFoundError(import_path) from None
 
 
 @dataclass(frozen=True, slots=True)

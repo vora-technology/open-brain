@@ -22,14 +22,16 @@ from open_brain.capture.extractors.youtube import (
     YouTubeMediaAdapter,
     video_id_from_url,
 )
-from open_brain.capture.models import ExtractionState, NormalizedExtraction
-from open_brain.core.ids import canonical_json_bytes, validate_identifier
-from open_brain.core.models import (
+from open_brain.engine import (
     CaptureEnvelope,
+    ExtractionState,
+    NormalizedExtraction,
     PrivacyDecision,
     PrivacyReason,
     SourceType,
     ValidationError,
+    canonical_json_bytes,
+    validate_identifier,
 )
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")

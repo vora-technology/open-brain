@@ -23,6 +23,7 @@ from open_brain.cli._common import (
 from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.config import ConfigCliResult, show_config
 from open_brain.cli.doctor import DoctorCommandAdapter
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 from open_brain.cli.production_adapters import build_production_command_adapters
 from open_brain.cli.review import ReviewCommandAdapter
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
@@ -234,13 +235,13 @@ class SingleUserLocalApplication:
         """Enumerate allow-listed connector metadata without importing connector modules."""
         return tuple(item.name for item in self.connector_host.discover(self.connector_profile))
 
-    def cli_adapters(self) -> CommandAdapterRegistry:
+    def cli_adapters(self) -> Phase1CommandAdapterRegistry:
         from open_brain.cli.phase1 import build_phase1_command_adapters
 
-        return build_phase1_command_adapters(self.tasks)
+        return build_phase1_command_adapters(self.tasks.phase1)
 
     def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler:
-        return Phase1UiHandler(expected_bearer_token=expected_bearer_token, tasks=self.tasks)
+        return Phase1UiHandler(expected_bearer_token=expected_bearer_token, tasks=self.tasks.phase1)
 
     def share_handler(
         self,

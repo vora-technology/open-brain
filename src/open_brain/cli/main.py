@@ -8,6 +8,7 @@ from collections.abc import Sequence
 
 from open_brain import __version__
 from open_brain.cli._common import (
+    CommandAdapterLookup,
     ExitCode,
     adapter_failed_envelope,
     invalid_envelope,
@@ -16,7 +17,6 @@ from open_brain.cli._common import (
     write_envelope,
 )
 from open_brain.cli._registry import (
-    CommandAdapterRegistry,
     command_spec,
     parser_commands,
     scheduled_route_spec,
@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(
     argv: Sequence[str] | None = None,
     *,
-    command_adapters: CommandAdapterRegistry | None = None,
+    command_adapters: CommandAdapterLookup | None = None,
     scheduled_adapters: ScheduledApplicationAdapters | None = None,
     scheduled_job_id: str | None = None,
 ) -> ExitCode:

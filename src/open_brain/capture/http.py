@@ -11,25 +11,24 @@ from typing import Protocol, cast
 from urllib.parse import urlsplit
 
 from open_brain.capture.auth import BearerAuthenticator
-from open_brain.capture.models import (
-    CapturePipeline,
-    ShareRequest,
-    ShareResponse,
-    ShareStatus,
-)
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import CaptureWhyOrigin, ContentOrigin, Provenance
-from open_brain.core.policy import classify_privacy
 from open_brain.engine import (
     CaptureAction,
+    CapturePipeline,
     CaptureReceipt,
+    CaptureWhyOrigin,
+    ContentOrigin,
     EventPayload,
     FilePayload,
     MeasurementPayload,
     Payload,
+    Provenance,
     PublicJobCaptureSink,
     ReferencePayload,
+    ShareRequest,
+    ShareResponse,
+    ShareStatus,
     TextPayload,
+    classify_privacy,
 )
 
 BODY_LIMIT_BYTES = 100_000
@@ -172,7 +171,7 @@ class ShareHttpHandler:
                 return _error(500, "capture_unavailable")
             return HttpResponse(
                 status=200 if receipt.duplicate else 201,
-                body=canonical_json_bytes(
+                body=_json_bytes(
                     {
                         "capture_id": receipt.capture_id,
                         "duplicate": receipt.duplicate,
@@ -194,7 +193,7 @@ class ShareHttpHandler:
             return _error(409, "immutable_conflict")
         except Exception:
             return _error(500, "capture_unavailable")
-        return HttpResponse(status=202, body=canonical_json_bytes(response.to_dict()))
+        return HttpResponse(status=202, body=_json_bytes(response.to_dict()))
 
 
 def enqueue_share(
@@ -437,4 +436,14 @@ def _matches_host(host: str, allowed_hosts: set[str]) -> bool:
 
 
 def _error(status: int, code: str) -> HttpResponse:
-    return HttpResponse(status=status, body=canonical_json_bytes({"code": code}))
+    return HttpResponse(status=status, body=_json_bytes({"code": code}))
+
+
+def _json_bytes(value: object) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")

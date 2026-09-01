@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network, ip_address
 
 from open_brain.capture.auth import BearerAuthenticator
-from open_brain.core.ids import canonical_json_bytes
 
 from .ports import PageDocument, PageReader, PageReadRequest
 
@@ -84,7 +84,7 @@ class UiHandler:
         if request.path == "/health":
             return UiResponse(
                 status=200,
-                body=canonical_json_bytes({"status": "ok"}),
+                body=_json_bytes({"status": "ok"}),
                 headers=(("Content-Type", "application/json"),),
             )
         if not request.path.startswith("/pages/"):
@@ -144,6 +144,16 @@ def _text_response(status: int, text: str, *, allow: str | None = None) -> UiRes
     if allow is not None:
         headers.append(("Allow", allow))
     return UiResponse(status=status, body=text.encode("utf-8"), headers=tuple(headers))
+
+
+def _json_bytes(value: object) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
 
 
 _HEADING = re.compile(r"^(#{1,6})[ \t]+(.+)$")

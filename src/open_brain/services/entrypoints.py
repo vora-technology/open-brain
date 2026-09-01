@@ -44,7 +44,7 @@ from open_brain.services.runtime import (
 )
 
 
-def run_mcp() -> int:
+def run_legacy_mcp() -> int:
     """Open one root-scoped application and serve bounded stdio MCP until EOF."""
     try:
         allowed_space_ids = _mcp_allowed_space_ids(os.environ)
@@ -62,7 +62,7 @@ def run_mcp() -> int:
     return 0
 
 
-def run_cli(
+def run_legacy_cli(
     argv: tuple[str, ...] | list[str] | None = None,
     *,
     environment: Mapping[str, object] | None = None,
@@ -165,7 +165,7 @@ def run_cli(
     )
 
 
-def run_http() -> int:
+def run_legacy_http() -> int:
     """Open one root-scoped application and serve authenticated HTTP until stopped."""
     try:
         application = _open_single_user_application(os.environ)
@@ -306,8 +306,7 @@ def _mcp_allowed_space_ids(environment: Mapping[str, object]) -> frozenset[str]:
         not isinstance(value, list)
         or len(value) > 128
         or any(
-            not isinstance(space_id, str)
-            or _MCP_SPACE_ID.fullmatch(space_id) is None
+            not isinstance(space_id, str) or _MCP_SPACE_ID.fullmatch(space_id) is None
             for space_id in value
         )
         or len(set(value)) != len(value)
@@ -326,7 +325,7 @@ __all__ = [
     "compose_production_application",
     "load_private_http_bind_config",
     "read_private_service_secret",
-    "run_cli",
-    "run_http",
-    "run_mcp",
+    "run_legacy_cli",
+    "run_legacy_http",
+    "run_legacy_mcp",
 ]

@@ -199,6 +199,12 @@ class CommandFamilyAdapter(Protocol):
     def dispatch(self, argv: tuple[str, ...]) -> CommandDispatchResult: ...
 
 
+class CommandAdapterLookup(Protocol):
+    """The narrow command-registry capability needed by the CLI process shell."""
+
+    def get(self, name: str) -> CommandFamilyAdapter | None: ...
+
+
 def redacted_error(code: str, _exception: Exception | None = None) -> dict[str, str | bool]:
     """Return a public error shape without exception or environment details."""
     return {

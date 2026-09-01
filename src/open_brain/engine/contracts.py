@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
+from html import unescape
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Protocol, cast
+from urllib.parse import unquote
 
 from open_brain.core.ids import canonicalize_source_url, portable_canonical_json_bytes
 from open_brain.core.models import (
@@ -377,6 +380,115 @@ class RetrievalResult:
     trust: str
     provenance: PublicProvenance
     explanation: str
+
+
+_PUBLIC_CREDENTIAL_ASSIGNMENT = re.compile(
+    r"(?i)\b(api[_-]?key|access[_-]?token|client[_-]?secret|password|passwd|secret|token)"
+    r"(\s*[:=]\s*)(?:\"[^\"\r\n]*\"|'[^'\r\n]*'|[^\s,;&]+)"
+)
+_PUBLIC_POSIX_PATH = re.compile(r"(?<![:/\w])/(?:[^\s<>\"']+)")
+_PUBLIC_WINDOWS_PATH = re.compile(r"(?<![A-Za-z0-9])(?:[A-Za-z]:[\\/]|\\\\)[^\s<>\"']+")
+_PUBLIC_LITERAL_MARKER = "[protected]"
+_PUBLIC_PATH_MARKER = "[private-path]"
+_PUBLIC_CREDENTIAL_MARKER = "[redacted]"
+_PUBLIC_OUTPUT_TOKEN = re.compile(r"\S+")
+_PUBLIC_OUTPUT_DECODING_PASSES = 4
+
+
+def project_public_result_text(
+    value: str,
+    *,
+    protected_literals: tuple[str, ...] = (),
+) -> str:
+    """Project one public result field without changing its durable source value."""
+    if not isinstance(value, str) or not isinstance(protected_literals, tuple):
+        raise ValueError("invalid public result text")
+    if any(not isinstance(literal, str) or not literal for literal in protected_literals):
+        raise ValueError("invalid protected literal")
+
+    sensitive_literals = set(protected_literals)
+    sensitive_literals.update(
+        match.group(0) for match in _PUBLIC_CREDENTIAL_ASSIGNMENT.finditer(value)
+    )
+    sensitive_literals.update(match.group(0) for match in _PUBLIC_WINDOWS_PATH.finditer(value))
+    sensitive_literals.update(match.group(0) for match in _PUBLIC_POSIX_PATH.finditer(value))
+    result = value
+    for literal in sorted(sensitive_literals, key=len, reverse=True):
+        result = result.replace(literal, _PUBLIC_LITERAL_MARKER)
+        digest = sha256(literal.encode("utf-8")).hexdigest()
+        result = re.sub(
+            rf"(?<![0-9A-Fa-f]){re.escape(digest)}(?![0-9A-Fa-f])",
+            _PUBLIC_LITERAL_MARKER,
+            result,
+            flags=re.IGNORECASE,
+        )
+    protected_values = frozenset(
+        (
+            *protected_literals,
+            *(sha256(literal.encode("utf-8")).hexdigest() for literal in protected_literals),
+        )
+    )
+    result = _PUBLIC_OUTPUT_TOKEN.sub(
+        lambda match: _project_public_output_token(match.group(0), protected_values),
+        result,
+    )
+    result = _PUBLIC_CREDENTIAL_ASSIGNMENT.sub(
+        rf"\1\2{_PUBLIC_CREDENTIAL_MARKER}", result
+    )
+    result = _PUBLIC_WINDOWS_PATH.sub(_PUBLIC_PATH_MARKER, result)
+    return _PUBLIC_POSIX_PATH.sub(_PUBLIC_PATH_MARKER, result)
+
+
+def _project_public_output_token(token: str, protected_values: frozenset[str]) -> str:
+    variants, converged = _public_output_decoded_variants(token)
+    contains_protected = any(
+        protected in variant for protected in protected_values for variant in variants
+    )
+    contains_sensitive_shape = any(
+        _PUBLIC_CREDENTIAL_ASSIGNMENT.search(variant) is not None
+        or _PUBLIC_WINDOWS_PATH.search(variant) is not None
+        or _PUBLIC_POSIX_PATH.search(variant) is not None
+        for variant in variants
+    )
+    if not converged or contains_protected or contains_sensitive_shape:
+        return _PUBLIC_LITERAL_MARKER
+    return token
+
+
+def _public_output_decoded_variants(value: str) -> tuple[tuple[str, ...], bool]:
+    variants = [value]
+    for _ in range(_PUBLIC_OUTPUT_DECODING_PASSES):
+        decoded = unquote(unescape(variants[-1]))
+        if decoded == variants[-1]:
+            return tuple(variants), True
+        variants.append(decoded)
+    return tuple(variants), unquote(unescape(variants[-1])) == variants[-1]
+
+
+def project_public_space(space: SpaceRecord) -> SpaceRecord:
+    """Project a durable space record for public representations only."""
+    if not isinstance(space, SpaceRecord):
+        raise ValueError("invalid public space")
+    return SpaceRecord(
+        space_id=space.space_id,
+        name=project_public_result_text(space.name),
+        slug=space.space_id,
+    )
+
+
+def project_public_capture_receipt(receipt: CaptureReceipt) -> CaptureReceipt:
+    """Project a durable receipt without disclosing its canonical storage path."""
+    if not isinstance(receipt, CaptureReceipt):
+        raise ValueError("invalid public capture receipt")
+    return CaptureReceipt(
+        capture_id=receipt.capture_id,
+        payload_family=receipt.payload_family,
+        state=receipt.state,
+        enrichment_state=receipt.enrichment_state,
+        space_id=receipt.space_id,
+        canonical_path=(receipt.capture_id if receipt.canonical_path is not None else None),
+        duplicate=receipt.duplicate,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -915,6 +1027,16 @@ class PortabilityTask(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
+class Phase1TaskSet:
+    """The minimum task capabilities shared by the Phase 1 representations."""
+
+    capture: CaptureTask
+    inbox: InboxSpaceTask
+    review: ReviewTask
+    retrieval: RetrievalTask
+
+
+@dataclass(frozen=True, slots=True)
 class EngineTaskSet:
     """The public task identities exposed by one opened local engine root."""
 
@@ -924,6 +1046,7 @@ class EngineTaskSet:
     review: ReviewTask
     retrieval: RetrievalTask
     portability: PortabilityTask
+    phase1: Phase1TaskSet
 
     @property
     def spaces(self) -> InboxSpaceTask:

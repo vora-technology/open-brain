@@ -30,6 +30,7 @@ from .contracts import (
     LocalEngineContext,
     MeasurementPayload,
     Payload,
+    Phase1TaskSet,
     PortabilityFault,
     ProposalDraft,
     ProposalRecord,
@@ -88,6 +89,12 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         self.review = ReviewTasks(self)
         self.retrieval = RetrievalTasks(self)
         self.portability = PortabilityTasks(self)
+        phase1 = Phase1TaskSet(
+            capture=self.capture,
+            inbox=self.inbox,
+            review=self.review,
+            retrieval=self.retrieval,
+        )
         self._task_set = EngineTaskSet(
             profile=profile,
             capture=self.capture,
@@ -95,6 +102,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             review=self.review,
             retrieval=self.retrieval,
             portability=self.portability,
+            phase1=phase1,
         )
 
     @classmethod
@@ -197,6 +205,7 @@ __all__ = [
     "LocalEngineContext",
     "MeasurementPayload",
     "Payload",
+    "Phase1TaskSet",
     "ProposalDraft",
     "ProposalRecord",
     "PublicJobCaptureContext",

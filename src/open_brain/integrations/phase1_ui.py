@@ -10,16 +10,16 @@ from typing import cast
 from urllib.parse import parse_qs, urlsplit
 
 from open_brain.capture.auth import BearerAuthenticator
-from open_brain.core.ids import canonical_json_bytes
 from open_brain.engine import (
     CaptureAction,
     DecisionOutcome,
-    EngineTaskSet,
     EventPayload,
     FilePayload,
     MeasurementPayload,
+    Phase1TaskSet,
     ReferencePayload,
     TextPayload,
+    project_public_space,
 )
 
 _MAX_BODY = 1_500_000
@@ -43,8 +43,8 @@ class Phase1UiResponse:
 class Phase1UiHandler:
     """Map authenticated local UI routes to injected engine task capabilities."""
 
-    def __init__(self, *, expected_bearer_token: str, tasks: EngineTaskSet) -> None:
-        if not isinstance(tasks, EngineTaskSet):
+    def __init__(self, *, expected_bearer_token: str, tasks: Phase1TaskSet) -> None:
+        if not isinstance(tasks, Phase1TaskSet):
             raise ValueError("invalid Phase 1 UI tasks")
         self._authenticator = BearerAuthenticator(expected_bearer_token)
         self.tasks = tasks
@@ -104,8 +104,13 @@ class Phase1UiHandler:
                 200,
                 {
                     "spaces": [
-                        {"name": space.name, "slug": space.slug, "space_id": space.space_id}
+                        {
+                            "name": projected.name,
+                            "slug": projected.slug,
+                            "space_id": projected.space_id,
+                        }
                         for space in self.tasks.inbox.spaces()
+                        for projected in (project_public_space(space),)
                     ],
                     "status": "listed",
                 },
@@ -432,7 +437,13 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 def _json(status: int, value: dict[str, object]) -> Phase1UiResponse:
     return Phase1UiResponse(
         status=status,
-        body=canonical_json_bytes(value),
+        body=json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8"),
         headers=(
             ("Content-Type", "application/json"),
             ("Cache-Control", "no-store"),

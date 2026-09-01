@@ -8,7 +8,7 @@ import stat
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Protocol
 
 from open_brain.capture.http import CaptureAcceptor, ShareHttpHandler
 from open_brain.config import (
@@ -17,8 +17,9 @@ from open_brain.config import (
     SecretResolutionError,
     resolve_secret,
 )
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import PublicJobCaptureSink
+from open_brain.engine import EngineTaskSet, PublicJobCaptureSink
+from open_brain.integrations.mcp import EngineMcpAdapter
+from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ui import UiBindConfig
 
 from .composition import (
@@ -26,9 +27,6 @@ from .composition import (
     StdioMcpLifecycle,
 )
 from .http_server import HttpRouteMode, HttpService, HttpServiceConfig
-
-if TYPE_CHECKING:
-    from .application import SingleUserLocalApplication
 
 _SERVICE_SECRET_NAME = "service_token"
 _SERVICE_SECRET_NAMES = frozenset(
@@ -41,9 +39,20 @@ class ServiceConfigurationError(RuntimeError):
     """A service cannot start from the supplied non-secret configuration."""
 
 
+class _SingleUserApplication(Protocol):
+    @property
+    def tasks(self) -> EngineTaskSet: ...
+
+    def mcp_adapter(
+        self, *, allowed_space_ids: frozenset[str] = frozenset()
+    ) -> EngineMcpAdapter: ...
+
+    def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler: ...
+
+
 def compose_mcp_from_config(
     *,
-    application: SingleUserLocalApplication,
+    application: _SingleUserApplication,
     allowed_space_ids: frozenset[str] = frozenset(),
 ) -> StdioMcpLifecycle:
     """Compose scoped MCP from one app-owned engine task set."""
@@ -62,7 +71,7 @@ def compose_mcp_from_config(
 def compose_http_from_config(
     *,
     config: AppConfig,
-    application: SingleUserLocalApplication,
+    application: _SingleUserApplication,
     environment: Mapping[str, str],
     file_reader: Callable[[Path], str],
     bind: UiBindConfig | None = None,
@@ -112,9 +121,13 @@ def compose_http_from_config(
 
 
 def _is_single_user_application(value: object) -> bool:
-    from .application import SingleUserLocalApplication
-
-    return isinstance(value, SingleUserLocalApplication)
+    tasks = getattr(value, "tasks", None)
+    capture = getattr(tasks, "capture", None)
+    return (
+        callable(getattr(value, "mcp_adapter", None))
+        and callable(getattr(value, "ui_handler", None))
+        and callable(getattr(capture, "accept", None))
+    )
 
 
 def read_private_service_secret(path: Path) -> str:
@@ -139,7 +152,7 @@ def load_private_http_bind_config(path: Path) -> UiBindConfig:
             or not isinstance(value["port"], int)
             or isinstance(value["port"], bool)
             or type(value["allow_private_network"]) is not bool
-            or canonical_json_bytes(value) != payload
+            or _json_bytes(value) != payload
         ):
             raise ValueError
         return UiBindConfig(
@@ -234,6 +247,16 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
             raise ValueError
         value[key] = item
     return value
+
+
+def _json_bytes(value: object) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
 
 
 def _utc_now() -> datetime:

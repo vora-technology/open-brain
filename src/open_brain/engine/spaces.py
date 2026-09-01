@@ -18,6 +18,7 @@ from .contracts import (
     RoutedCapture,
     SpaceRecord,
     _LocalEngineOperations,
+    project_public_space,
 )
 from .normalization import (
     _MAX_NAME,
@@ -348,16 +349,22 @@ class InboxSpaceTasks:
         return self._engine._list_inbox(unassigned_only=unassigned_only)
 
     def spaces(self) -> tuple[SpaceRecord, ...]:
-        return self._engine._list_spaces()
+        return tuple(_project_space(space) for space in self._engine._list_spaces())
 
     def create_space(self, name: str, *, delivery_id: str) -> SpaceRecord:
         with self._engine._writer_lease.acquire_shared_writer():
-            return self._engine._space_operation("create", None, name, delivery_id)
+            return _project_space(self._engine._space_operation("create", None, name, delivery_id))
 
     def rename_space(self, space_id: str, name: str, *, delivery_id: str) -> SpaceRecord:
         with self._engine._writer_lease.acquire_shared_writer():
-            return self._engine._space_operation("rename", space_id, name, delivery_id)
+            return _project_space(
+                self._engine._space_operation("rename", space_id, name, delivery_id)
+            )
 
     def route(self, capture_id: str, space_id: str, *, delivery_id: str) -> RoutedCapture:
         with self._engine._writer_lease.acquire_shared_writer():
             return self._engine._route_capture(capture_id, space_id, delivery_id)
+
+
+def _project_space(space: SpaceRecord) -> SpaceRecord:
+    return project_public_space(space)

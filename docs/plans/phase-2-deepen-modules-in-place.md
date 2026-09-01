@@ -1,7 +1,7 @@
 # Phase 2 implementation plan: deepen modules in place
 
-- Status: Reviewed and ready for implementation
-- Baseline: `ace6547762e3a68863176ff559f3cfdfa396f253`
+- Status: Phase 2 boundary implemented in place; W5 verification is the exit gate
+- Baseline: `4ea51d9be7853b0f33068b2af1b641b5fbedab3e` W4 checkpoint
 - Planning branch: `phase2-planning`
 - Estimate: 8 to 12 working days for one maintainer
 - Product authority: [`../v0-product-contract.md`](../v0-product-contract.md)
@@ -39,14 +39,14 @@ The following decisions close the two ambiguities recorded by Phase 1. They refi
 
 ## Current baseline
 
-| Area | Current state at `ace6547` | Phase 2 gap |
+| Area | Current Phase 2 state | Boundary that remains deferred |
 |---|---|---|
-| Engine | `engine/local.py` is 2,494 lines and exposes capture, inbox/spaces, review, and retrieval facades | No portability facade, connector-safe submission, storage ports, or isolated internal modules |
-| Composition | `cli/composition.py` is 1,710 lines and constructs storage, providers, services, integrations, and 30 scheduled routes | CLI owns application composition; HTTP/MCP use a second queue/retriever application |
-| Dependency graph | `production -> cli`, `operations -> cli`, `config -> ledger`, `storage -> operations`, and shipping-to-legacy edges exist | Only one narrow architecture rule is enforced |
-| Portable Brain | `portable/v1.py` validates and copies an already-materialized bundle | No live-root export, import, portable identity restoration, runtime page/space validation, or engine task surface |
-| Connectors | YouTube polling has bounded behavior and checkpoints but writes through a source-specific queue path | No connector manifest, discovery/run contract, engine capture sink, or absent-installation proof |
-| Public results | CLI hashes `source_ref`; the Phase 1 UI returns it raw | The engine result contract permits inconsistent disclosure across surfaces |
+| Engine | `open_local_engine()` exposes one task set for profile, capture, inbox/spaces, review, retrieval, and Portable operations | Phase 3 backup/restore, upgrade, uninstall, and appliance lifecycle |
+| Composition | `SingleUserLocalApplication` opens one root and supplies bounded capabilities to six CLI families, HTTP/share, UI, MCP, and public-job sinks | Phase 3 one supervised daemon and internal scheduler |
+| Dependency graph | Runtime ownership is file-classified; default shipping paths retain the monolith while excluding predecessor-only legacy paths | Phase 4 physical distributions and `packages/` layout |
+| Portable Brain | Engine tasks validate, export, clean-import, and rebuild the disposable index with exact-byte snapshot binding and operational exclusion | Phase 3 public backup/restore orchestration |
+| Connectors | The default profile is connector-empty; explicit `JOB-029` uses the internal allow-listed host, capture-only identity, host evidence, and receipt-bound checkpoint | Phase 4 public Connector SDK, signing, isolated workers, and additional connector proofs |
+| Public results | Engine projection returns opaque IDs, bounded provenance, and useful text without raw source references, absolute paths, credentials, or reversible source-reference digests | Graph, vector, multi-agent, broad integrations, and legacy cutover |
 
 ## Target in-place architecture
 
@@ -101,7 +101,13 @@ Extend the versioned `brain.toml` profile with non-secret identity fields and st
 
 ### App composition
 
-Use `services/application.py` as the interim app-owned composition root. It compiles `single-user-local`, opens the public engine-local factory, and supplies bounded capabilities to process entry points. `services/composition.py` remains transport/service composition. `services/entrypoints.py` owns CLI, HTTP, and MCP startup. The `open-brain` and `python -m open_brain` entry points call this app boundary directly.
+Use `services/phase1_application.py` as the final Phase 2 app-owned composition root. It compiles
+`single-user-local`, opens the public engine-local factory, and supplies bounded capabilities to
+process entry points. `services/composition.py` remains transport/service composition.
+`services/phase1_entrypoints.py` owns the installed CLI, HTTP, and MCP startup. The
+`open-brain` and `python -m open_brain` entry points call this app boundary directly.
+`services/application.py` and `services/entrypoints.py` retain predecessor and scheduled
+compatibility under legacy ownership.
 
 `cli` contains parsing and representation only. `production` and `operations` return owner-module records rather than CLI exit/result types. CLI converts those records at the edge.
 
@@ -153,7 +159,7 @@ Work:
 Focused check:
 
 ```bash
-uv run pytest -q tests/security/test_architecture_imports.py tests/security/test_architecture_boundaries.py tests/unit/storage/test_locks.py tests/integration/engine/test_phase1_surfaces.py
+uv run pytest -q tests/security/test_architecture_imports.py tests/security/test_architecture_boundaries.py tests/unit/storage/test_locks.py tests/integration/services/test_phase1_surfaces.py
 uv run ruff check src/open_brain/core src/open_brain/storage src/open_brain/operations tests/security tests/unit/storage
 uv run mypy
 ```
@@ -191,14 +197,14 @@ Estimate: 2 days.
 
 Work:
 
-- extract engine task inputs/results and local helpers from the 2,494-line module without changing durable behavior;
+- extract engine task inputs/results and local helpers from the prior local-engine monolith without changing durable behavior;
 - add `CaptureSubmission` and make owner and connector-originated capture share one normalization path;
 - route CLI, authenticated HTTP, local UI, read-only MCP, and public job adapters through one `SingleUserLocalApplication` task set;
 - make HTTP accept all four payload families without bypassing engine durability or review policy;
 - give MCP only retrieval plus its explicit space allow-list and metadata feedback capability;
 - replace raw source references and bare source-reference digests in engine results with opaque record IDs and bounded source-origin labels;
 - make both retrieval search and fetch enforce an injected space allow-list before exposing the capability to MCP;
-- move or split CLI/UI surface assertions out of `tests/integration/engine/test_phase1_surfaces.py` so `tests/integration/engine` contains only pure-engine integration tests at Phase 2 exit;
+- keep the cross-process and cross-surface journey in `tests/integration/services/test_phase1_surfaces.py`; `tests/integration/engine` contains only pure-engine integration tests at Phase 2 exit;
 - classify retrieval/context as engine, UI/MCP as app, connector runtimes as connectors, and cutover/shadow as legacy without creating distributions.
 
 Focused check:
@@ -209,7 +215,7 @@ uv run ruff check src/open_brain/engine src/open_brain/capture src/open_brain/in
 uv run mypy
 ```
 
-Add `tests/integration/services/test_phase2_surfaces.py` to prove all five adapters use the same engine task objects and observe the same stable IDs.
+Add `tests/integration/services/test_phase2_surfaces.py` to prove the five product representations use the same underlying engine task objects and observe the same stable IDs.
 Add an MCP regression that fetches a known result ID from outside the caller's allow-list and receives the same bounded denial as an unknown result.
 
 Exit gate: all surfaces use engine tasks, no representation imports a concrete adapter, HTTP supports the common capture families, and MCP search and fetch remain read-only and space-scoped. No surface returns a raw source reference or its bare digest.
@@ -273,7 +279,7 @@ Work:
 - add an isolated engine import test that runs in its own fresh subprocess and fails if CLI, HTTP/UI/MCP representations, app composition, connectors, OS supervisors, legacy modules, or workspace tooling load;
 - scan JSON, text, and HTML task results for absolute paths, credential markers, raw synthetic private values, and the bare SHA-256 digests of those values;
 - rerun the Phase 1 journey to prove no behavior regression;
-- update `README.md`, `CLAUDE.md`, architecture, portability, configuration, and CLI docs to describe the Phase 2 boundary accurately;
+- update `README.md`, `CLAUDE.md`, architecture, portability, configuration, CLI, and privacy docs to describe the Phase 2 boundary accurately;
 - run an independent architecture/privacy review and require `READY`.
 
 Focused and full checks:
@@ -285,10 +291,10 @@ uv run ruff check .
 uv run mypy
 make verify
 git diff --check
-PRIVATE_DENYLIST=/tmp/open-brain-phase2-owner-denylist.txt make audit
+PRIVATE_DENYLIST=<untracked-owner-denylist> make audit
 ```
 
-Before the audit, create `/tmp/open-brain-phase2-owner-denylist.txt` as an untracked file containing only a comment that records the owner's approved choice of no additional project terms.
+Before the audit, create an untracked denylist containing only a comment that records the owner's approved choice of no additional project terms.
 
 Exit gate: every Phase 2 requirement and import rule has direct passing evidence on one clean commit, the worktree is clean, and the review verdict is `READY`.
 

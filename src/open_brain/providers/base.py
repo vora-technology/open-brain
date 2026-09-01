@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import importlib
+from collections.abc import Callable
 from enum import StrEnum
 from typing import Protocol, cast
 
@@ -149,22 +149,21 @@ class ProviderService:
             return BoundaryResult(None, BoundaryErrorCode.OUTPUT_LIMIT)
 
 
-def lazy_cloud_factory(module_name: str, *, model: str | None = None) -> CloudFactory:
-    """Load an optional cloud adapter only inside an authorized factory call."""
+def lazy_cloud_factory(
+    create_provider: Callable[..., object], *, model: str | None = None
+) -> CloudFactory:
+    """Bind an app-authorized optional provider constructor to a cloud factory."""
 
-    if model is not None and (not isinstance(model, str) or not model or model.isspace()):
+    if (
+        not callable(create_provider)
+        or model is not None
+        and (not isinstance(model, str) or not model or model.isspace())
+    ):
         raise ValidationError("invalid cloud provider model")
 
     def factory(credential: str) -> Provider:
         if not isinstance(credential, str) or not credential:
             raise ProviderFailure(BoundaryErrorCode.CREDENTIAL_UNAVAILABLE)
-        try:
-            module = importlib.import_module(module_name)
-        except ModuleNotFoundError as error:
-            raise OptionalExtraUnavailable from error
-        create_provider = getattr(module, "create_provider", None)
-        if not callable(create_provider):
-            raise OptionalExtraUnavailable
         provider = (
             create_provider(credential)
             if model is None
@@ -173,6 +172,15 @@ def lazy_cloud_factory(module_name: str, *, model: str | None = None) -> CloudFa
         return cast(Provider, provider)
 
     return factory
+
+
+class _UnavailableCloudFactory:
+    def __call__(self, credential: str) -> Provider:
+        del credential
+        raise OptionalExtraUnavailable
+
+
+unavailable_cloud_factory: CloudFactory = _UnavailableCloudFactory()
 
 
 def _has_cloud_redaction_finding(prompt: str) -> bool:

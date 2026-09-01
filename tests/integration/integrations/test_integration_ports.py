@@ -668,7 +668,7 @@ def test_disabled_optional_provider_is_never_imported(monkeypatch: pytest.Monkey
         calls.append(module_name)
         raise AssertionError("disabled provider import attempted")
 
-    monkeypatch.setattr(ports_module, "import_module", import_canary)
+    monkeypatch.setattr(ports_module, "_loaded_optional_module", import_canary)
     metadata = OptionalIntegrationMetadata(
         capability=Capability.FINANCE,
         import_path="synthetic_optional_provider",
@@ -703,7 +703,7 @@ def test_missing_and_crashing_provider_loads_are_stable_and_redacted(
     def failing_import(_: str) -> object:
         raise failure
 
-    monkeypatch.setattr(ports_module, "import_module", failing_import)
+    monkeypatch.setattr(ports_module, "_loaded_optional_module", failing_import)
     metadata = OptionalIntegrationMetadata(
         capability=Capability.FINANCE,
         import_path="synthetic_optional_provider",
