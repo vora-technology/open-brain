@@ -12,6 +12,7 @@ from open_brain.storage.filesystem import assert_root_identity
 from open_brain.storage.locks import FileLease
 from open_brain.storage.sqlite import SchemaError, connect_database_read_only
 
+from .authority import require_daemon_authority
 from .capture import CaptureOperations, CaptureTasks
 from .contracts import (
     CaptureAction,
@@ -118,6 +119,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         faults: Collection[CaptureFault | PortabilityFault],
         clock: Callable[[], datetime],
         enrichment_provider: EnrichmentProvider | None,
+        validate_mutation_authority: Callable[[], None] | None = None,
     ) -> None:
         if profile.provider_mode is ProviderMode.CLOUD:
             raise ValueError("Phase 1 local engine does not enable cloud enrichment")
@@ -127,6 +129,8 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             getattr(enrichment_provider, "enrich", None)
         ):
             raise ValueError("invalid enrichment provider")
+        if validate_mutation_authority is not None and not callable(validate_mutation_authority):
+            raise ValueError("invalid mutation authority validator")
         assert_root_identity(profile.root, profile.root_identity)
         schema = inspect_phase1_state(profile)
         if schema.state in {"invalid", "newer"}:
@@ -140,6 +144,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             profile.root / ".open-brain",
             lease_identity,
             clock=clock,
+            validate_acquire=validate_mutation_authority,
             parent_root_identity=profile.root_identity,
         )
         with self._writer_lease.acquire_shared_writer():
@@ -176,6 +181,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         faults: Collection[CaptureFault | PortabilityFault] | None = None,
         clock: Callable[[], datetime] | None = None,
         enrichment_provider: EnrichmentProvider | None = None,
+        validate_mutation_authority: Callable[[], None] | None = None,
     ) -> BrainEngine:
         if not isinstance(profile, LocalEngineContext):
             raise ValueError("invalid local profile")
@@ -184,6 +190,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             faults=faults or set(),
             clock=clock or _utc_now,
             enrichment_provider=enrichment_provider,
+            validate_mutation_authority=validate_mutation_authority,
         )
         with engine._writer_lease.acquire_shared_writer():
             engine._recover()
@@ -243,6 +250,25 @@ def open_local_engine(
         faults=faults,
         clock=clock,
         enrichment_provider=enrichment_provider,
+    ).tasks
+
+
+def open_authoritative_local_engine(
+    profile: LocalEngineContext,
+    authority: object | None,
+    *,
+    faults: Collection[CaptureFault | PortabilityFault] | None = None,
+    clock: Callable[[], datetime] | None = None,
+    enrichment_provider: EnrichmentProvider | None = None,
+) -> EngineTaskSet:
+    """Open one local root for mutation only while daemon lifetime authority remains active."""
+    require_daemon_authority(profile, authority)
+    return BrainEngine.open(
+        profile,
+        faults=faults,
+        clock=clock,
+        enrichment_provider=enrichment_provider,
+        validate_mutation_authority=lambda: require_daemon_authority(profile, authority),
     ).tasks
 
 
@@ -315,5 +341,6 @@ __all__ = [
     "StateSchemaUnavailableError",
     "TextPayload",
     "open_local_engine",
+    "open_authoritative_local_engine",
     "open_local_read_view",
 ]

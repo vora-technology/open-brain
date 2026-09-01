@@ -272,6 +272,12 @@ def test_file_lease_scopes_are_independent(tmp_path: Path) -> None:
         assert _attempt_lease(tmp_path, LockScope.SHARED_WRITER) == "acquired"
 
 
+def test_daemon_authority_lease_is_distinct_from_shared_writer(tmp_path: Path) -> None:
+    with FileLease(tmp_path, "mac-mini").acquire(LockScope.DAEMON_AUTHORITY):
+        assert _attempt_lease(tmp_path, LockScope.DAEMON_AUTHORITY) == "busy"
+        assert _attempt_lease(tmp_path, LockScope.SHARED_WRITER) == "acquired"
+
+
 def test_backup_profile_leases_are_independent(tmp_path: Path) -> None:
     lease = FileLease(tmp_path, "mac-mini", backup_profile="capture")
 

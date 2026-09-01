@@ -52,3 +52,17 @@ def test_phase3_appliance_seams_are_reserved_without_shipping_legacy_control_pat
         source = path.read_text(encoding="utf-8")
         assert "open_brain.operations" not in source
         assert "open_brain.release" not in source
+
+
+def test_appliance_application_uses_only_public_engine_surfaces_for_mutations() -> None:
+    source = (
+        Path(__file__).parents[2]
+        / "src"
+        / "open_brain"
+        / "services"
+        / "appliance_application.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from open_brain.engine import" in source
+    prohibited = ("open_brain.engine.local", "open_brain.storage", "FileLease", "LockScope")
+    assert all(token not in source for token in prohibited)

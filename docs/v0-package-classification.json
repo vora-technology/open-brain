@@ -613,6 +613,11 @@
       "api": "public",
       "roles": []
     },
+    "engine/authority.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
     "engine/capture.py": {
       "owner": "engine",
       "api": "internal",

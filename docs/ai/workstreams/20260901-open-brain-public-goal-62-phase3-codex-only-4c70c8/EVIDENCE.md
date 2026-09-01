@@ -72,3 +72,25 @@
   W2 must supply the new scheduler-owned evidence without legacy imports.
 - No real credential, service, network, production, live Brain, private
   predecessor, package publication, deployment, or unrelated PR was used.
+
+## P3-W2 authority subphase
+
+- `P3-W2-IMPLEMENT-01` stopped early after adding only the distinct
+  `DAEMON_AUTHORITY` lock scope/discriminator and one lock test. It explicitly
+  reported every remaining W2 gate incomplete; no partial result was accepted
+  as the wave checkpoint.
+- Changed strategy: split W2 into serial authority, control, and runtime
+  subphases with one writer at a time.
+- `P3-W2-AUTHORITY-02` added an issuer-created, root-bound active capability
+  held inside the daemon authority context. A second authority fails, and the
+  capability becomes stale on context exit.
+- Appliance mutating composition rejects missing, stale, and wrong-root
+  capabilities. Its constructor cannot accept a caller-supplied mutating task
+  set.
+- Authorized engine tasks revalidate the capability on every shared-writer
+  acquisition; a valid capture succeeds while lifetime authority is held,
+  proving the lock scopes do not self-conflict.
+- Focused authority/lock/architecture Pytest: 91 passed. Ruff, strict MyPy on
+  449 source files, and `git diff --check` passed.
+- No control socket, listener, scheduler, supervisor command, installed
+  entrypoint, real service, production, or live data action occurred.

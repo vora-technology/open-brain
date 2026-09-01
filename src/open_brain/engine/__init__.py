@@ -29,6 +29,12 @@ from open_brain.core.models import (
 from open_brain.core.policy import classify_privacy
 from open_brain.providers.base import ProviderMode
 
+from .authority import (
+    DaemonAuthorityError,
+    DaemonAuthorityRootMismatchError,
+    DaemonAuthorityStaleError,
+    acquire_daemon_authority,
+)
 from .contracts import (
     CaptureReceipt,
     CaptureTask,
@@ -70,6 +76,7 @@ from .local import (
     ScopedRetrieval,
     StateSchemaUnavailableError,
     TextPayload,
+    open_authoritative_local_engine,
     open_local_engine,
     open_local_read_view,
 )
@@ -93,6 +100,9 @@ __all__ = [
     "CaptureWhyOrigin",
     "ContentKind",
     "ContentOrigin",
+    "DaemonAuthorityError",
+    "DaemonAuthorityRootMismatchError",
+    "DaemonAuthorityStaleError",
     "DecisionOutcome",
     "EnrichmentProvider",
     "EnrichmentRequest",
@@ -144,6 +154,8 @@ __all__ = [
     "canonical_json_bytes",
     "validate_identifier",
     "inspect_phase1_state",
+    "acquire_daemon_authority",
+    "open_authoritative_local_engine",
     "open_local_engine",
     "open_local_read_view",
     "read_maintenance_snapshot",

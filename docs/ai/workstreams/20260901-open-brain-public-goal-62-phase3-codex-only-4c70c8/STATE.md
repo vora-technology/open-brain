@@ -24,5 +24,7 @@
 - P3-W1 verification: 32 focused tests, focused Ruff, strict MyPy on 447 source files, full `make verify` with 2,999 tests, wheel/sdist builds, artifact policy, architecture ownership/debt, and diff integrity passed.
 - P3-W1 behavior gate: init is preflighted and idempotent over identity, spaces, content, credential, schema, and index; maintenance evidence is bounded; absent/newer read views make no mutation or writer acquisition.
 - P3-W1 failure gate: unsafe credentials are preserved and rejected, newer schemas are rejected before writer acquisition, legacy schema migration preserves content, nested writable roots initialize, and installed scripts remain on Phase 1.
-- Current wave: `P3-W2` pending after the W1 commit.
-- Next action: dispatch one Codex W2 writer for daemon authority, control transport, scheduler, supervisor adapters, and default entrypoint cutover.
+- P3-W2 status: authority subphase verified; control, runtime, and full-wave gates remain pending.
+- P3-W2 authority evidence: daemon lifetime lease is process-exclusive and distinct from shared writer; engine capability is issuer-created, root-bound, stale after exit, required by appliance mutation composition, and revalidated on every writer acquisition.
+- Current subphase: `P3-W2-CONTROL-03` pending after the authority commit.
+- Next action: dispatch one Codex control/daemon writer for confined socket envelopes, stale/replacement races, daemon lifecycle, and restart-safe routing.

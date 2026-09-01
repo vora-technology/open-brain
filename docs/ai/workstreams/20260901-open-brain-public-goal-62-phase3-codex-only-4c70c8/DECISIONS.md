@@ -51,3 +51,13 @@
   the following commit command still ran. History is preserved; a follow-up
   hygiene commit removes the lines, and future batches stop at the first
   failed gate.
+
+## D-006: split W2 into serial verified subphases
+
+- Chosen: authority, control/daemon, and runtime/scheduler/supervisor/
+  entrypoint subphases, each with one exclusive Codex writer and coordinator
+  verification before the next begins.
+- Rejected: retry the original all-of-W2 prompt unchanged.
+- Why: the first W2 worker stopped after one lock-layer slice and left every
+  other gate incomplete. Bounded serial subphases preserve one authority
+  design while fitting the worker's demonstrated execution horizon.
