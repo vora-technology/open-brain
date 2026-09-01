@@ -11,17 +11,17 @@
 
 ## Current milestone
 
-- Milestone: P2-W4 optional reference connector seam
-- Status: verified; code committed; evidence commit pending
-- Allowed scope: app-owned internal manifest/discovery/registry/run contracts, explicit per-profile allow-listing, host-metered capture/transport/checkpoint capabilities, synthetic YouTube reference proof, real explicit JOB-029 process composition, provider-none defaults, and UTC-stable adjacent verification
-- Stop condition: P2-W5 starts before P2-W4 has a clean verified checkpoint and independent READY review
-- Code checkpoint: `70deb02` internal connector seam, explicit JOB-029 composition, receipt-bound checkpoint acceptance, and synthetic YouTube proof
-- Result: the default profile discovers no connector; explicit JOB-029 composition loads one allow-listed internal YouTube connector only after configuration and egress gates; fetch, discovery, extraction, submission, and checkpoint evidence are host-bound; checkpoint acceptance requires the exact sink-issued receipt, delivery ID, and source reference; replay and duplicate delivery remain idempotent
+- Milestone: P2-W5 complete Phase 2 boundary reconciliation
+- Status: implementation verified and committed; governed evidence commit and final clean-commit review pending
+- Allowed scope: zero-debt ownership, isolated engine imports, bounded representation capabilities, public-result projection, default app entrypoints, Phase 1 journey, documentation/gotcha reconciliation, final verification, review, PR, and merge
+- Stop condition: PR or merge begins before one clean candidate passes every final gate and a fresh independent Codex review returns READY with P0/P1/P2 at 0/0/0
+- Code checkpoint: `555ae02` truthful zero-debt classification, app-owned default entrypoints, minimized task capabilities, encoded/typed public-result projection, engine isolation, docs, and regressions
+- Result: all runtime files have one owner; architecture debt and dynamic reviews are empty; the default CLI/HTTP/MCP path imports no legacy or connector modules; public task results hide raw/encoded protected values and storage-derived paths without changing Portable bytes; the default profile remains provider-none and connector-free
 
 ## Last verification
 
-- Command: P2-W4 focused Pytest; repository Ruff; strict MyPy; `make verify`; `git diff --check`; fresh independent receipt-bound Codex review
-- Result: passed 122 focused tests, Ruff, strict MyPy on 433 source files, 2,962 total tests, wheel/sdist builds, artifact policy, diff integrity, and independent READY review with no demonstrated in-scope high/medium finding
+- Command: exact P2-W5 engine-isolation and focused suites; installed Phase 1 cross-process journey; repository Ruff; strict MyPy; `make verify`; `git diff --check`; owner-approved release audit
+- Result: passed 1 isolation test, 222 focused architecture/residue/Portable/engine/service/connector tests, the installed journey, Ruff, strict MyPy on 439 source files, 2,975 total tests, wheel/sdist builds, artifact policy, diff integrity, and the owner-approved release audit
 
 ## Decision log
 
@@ -47,6 +47,12 @@
 - Chosen: require a sink-issued receipt identity, delivery ID, and source reference before a `SEEN` YouTube record can become `ACCEPTED`. Rejected: generic checkpoint replacement or connector-asserted commitment. Reason: replay state may advance only after the exact durable capture is evidenced.
 - Chosen: compose the YouTube connector lazily in the real JOB-029 process path only when an absolute configuration reference is explicit. Rejected: package-default registration or test-only composition. Reason: the installed journey must work while the provider-none/default profile remains connector-free and egress-off performs no config, media, or transport work.
 - Chosen: locate the unique portability capture recursively instead of hard-coding a local calendar month. Rejected: preserving a wall-clock/UTC boundary assumption. Reason: canonical bytes and identity remain exact across UTC month rollover.
+- Chosen: classify the retained YouTube proof as five single-owner connector components instead of preserving the mapper's provisional one-file connector count. Rejected: labeling media, extractor, poll-state, or runtime files as shipping app/engine internals merely to match provisional arithmetic. Reason: the actual source graph and shared connector capability boundary are authoritative.
+- Chosen: extract the default `single-user-local` composition and process startup into app-owned `phase1_application` and `phase1_entrypoints`, leaving predecessor and scheduled behavior behind explicit legacy facades. Rejected: package scripts that import the legacy monolith before selecting the current path. Reason: package entry-point metadata is a runtime dependency edge and must obey the same default/legacy boundary.
+- Chosen: give each CLI family one task protocol, the UI only `Phase1TaskSet`, HTTP only capture, MCP scoped retrieval plus metadata feedback, and public jobs a capture-only sink. Rejected: representation access to `EngineTaskSet.profile` or portability. Reason: composition may retain the full set, but each consumer receives only its required authority.
+- Chosen: apply one engine-owned output projection to bounded raw/percent/HTML-decoded protected values, digests, credentials, absolute paths, space slugs, and canonical paths, and make retrieval explanations generic. Rejected: renderer-specific redaction or query-term echo. Reason: every typed/JSON/text/HTML surface must consume the same safe result without altering durable or Portable bytes.
+- Chosen: forward non-representation prefix flags to the selected CLI adapter and reject unsupported dry runs before mutation. Rejected: silently dropping `--dry-run` when it appears before the family name. Reason: argument placement cannot turn a non-mutating request into a write.
+- Chosen: load the one allow-listed optional cloud module at the retained composition boundary while constructing the SDK client only after privacy and credential checks. Rejected: engine-owned dynamic imports or unrelated module-preload requirements. Reason: authorized compatibility remains functional without adding architecture debt or changing the provider-none default.
 
 ## Dispatch ledger
 
@@ -68,7 +74,11 @@
 - P2-W4 implementation/review: two implementation attempts plus eight independent review passes drove repairs for descriptor boundaries, global budgets, exact-value poisoning, real JOB-029 composition, host-owned metering, atomic discovery reservation, and receipt-bound checkpoint acceptance
 - P2-W4 final review: `W4-RECEIPT-BOUND-FINAL-REVIEW-01` returned READY with no demonstrated in-scope high/medium finding
 - P2-W4 children: 15 total, 0 active. Three recorded overrides were required because successive mandatory fresh reviews found new in-scope defects after the normal budget was exhausted. No Claude-family or other non-Codex agent was dispatched.
+- P2-W5 mapping/reconciliation: four Codex mappers plus one Codex reconciler; complete
+- P2-W5 implementation: separate Codex source and documentation workers completed the zero-debt source/security/classification and docs/gotcha changes; coordinator reproduced the worker-local macOS sandbox limitation and the exact test passed
+- P2-W5 pre-review: one fresh read-only Codex review returned NEEDS_FIX with P0/P1/P2 `0/2/2`; one Codex repair worker and coordinator changes resolved installed legacy loading, encoded/query residue, direct typed path residue, cloud loading, command-specific help, and prefix dry-run safety
+- P2-W5 children: 9 total, 0 active before final review. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit this P2-W4 evidence, verify and push the exact checkpoint, then execute P2-W5 with a fresh Codex-only milestone budget.
+Commit this P2-W5 evidence, rerun every final gate on the clean candidate, then dispatch the fresh read-only Codex architecture/privacy review of that exact commit.
