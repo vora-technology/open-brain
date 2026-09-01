@@ -812,6 +812,26 @@ def validate_portable_root(
     )
 
 
+def validate_portable_file_set(files: Mapping[str, bytes], *, tenant_id: str) -> None:
+    """Validate exact Portable v1 payload bytes without requiring an export manifest."""
+
+    if (
+        not isinstance(files, Mapping)
+        or not isinstance(tenant_id, str)
+        or not tenant_id
+        or any(
+            not isinstance(path, str) or not isinstance(payload, bytes)
+            for path, payload in files.items()
+        )
+    ):
+        raise PortableValidationError("Portable file set is invalid")
+    snapshot = dict(files)
+    if "portable-manifest.json" in snapshot:
+        raise PortableValidationError("Portable file set must not contain an export manifest")
+    _validate_file_inventory(snapshot)
+    _validate_semantics(snapshot, {"tenant_id": tenant_id})
+
+
 def export_portable_tree(source: Path, destination: Path) -> None:
     """Copy a validated export exactly, excluding all operational state."""
     snapshot = validated_portable_snapshot(source)

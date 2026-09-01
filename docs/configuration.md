@@ -24,6 +24,17 @@ The retained roots are explicit and distinct:
 any retained root. Backup data, immutable manifests, and replay reservations are written
 there; private configuration supplies the real host path.
 
+Phase 3 appliance recovery uses that separate destination for immutable backup publication only.
+Portable export remains a distinct owner-requested data contract and does not reuse backup IDs,
+backup manifests, or restore semantics. Backup includes exact Portable bytes, required
+`.open-brain/state/phase1.sqlite3` snapshots produced through the SQLite backup API, and bounded
+immutable appliance evidence and completed scheduler run receipts. It excludes mutable scheduler
+state, credentials, indexes, sockets, locks, supervisor state, temporary or staging data, and live
+SQLite sidecars such as `-wal`, `-shm`, or `-journal`. Restore and Portable import both target a
+fresh empty disposable root first; only the restored appliance generates a new local owner
+credential, initializes fresh scheduler state, and rebuilds indexes before a later live replacement
+decision.
+
 `host.identity` is required on a writer host. Scheduled manifests pass the single
 `OPEN_BRAIN_CONFIG` reference to the process entry point, and backup writers run only when
 that identity matches the durable canonical-writer record in `state_root`.

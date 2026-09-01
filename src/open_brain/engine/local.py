@@ -13,8 +13,10 @@ from open_brain.storage.locks import FileLease
 from open_brain.storage.sqlite import SchemaError, connect_database_read_only
 
 from .authority import require_daemon_authority
+from .backup import BackupTasks
 from .capture import CaptureOperations, CaptureTasks
 from .contracts import (
+    BackupFault,
     CaptureAction,
     CaptureFault,
     CaptureReceipt,
@@ -52,6 +54,7 @@ from .local_store import _LocalStore
 from .maintenance import PHASE1_STATE_DATABASE, PHASE1_STATE_SCHEMA_VERSION, inspect_phase1_state
 from .normalization import _done, _utc_now
 from .portability import PortabilityTasks
+from .reconciliation import ReconciliationTasks
 from .retrieval import RetrievalOperations, RetrievalTasks, ScopedRetrieval
 from .review import ReviewOperations, ReviewTasks
 from .spaces import InboxSpaceTasks, SpaceOperations
@@ -120,7 +123,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         self,
         profile: LocalEngineContext,
         *,
-        faults: Collection[CaptureFault | PortabilityFault],
+        faults: Collection[CaptureFault | PortabilityFault | BackupFault],
         clock: Callable[[], datetime],
         enrichment_provider: EnrichmentProvider | None,
         validate_mutation_authority: Callable[[], None] | None = None,
@@ -159,6 +162,8 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         self.review = ReviewTasks(self)
         self.retrieval = RetrievalTasks(self)
         self.portability = PortabilityTasks(self)
+        self.backup = BackupTasks(self)
+        self.reconciliation = ReconciliationTasks(self)
         daemon_mutation_path = DaemonMutationPath.reserved(profile.root)
         phase1 = Phase1TaskSet(
             capture=self.capture,
@@ -173,6 +178,8 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             review=self.review,
             retrieval=self.retrieval,
             portability=self.portability,
+            backup=self.backup,
+            reconciliation=self.reconciliation,
             daemon_mutation_path=daemon_mutation_path,
             phase1=phase1,
         )
@@ -182,7 +189,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         cls,
         profile: LocalEngineContext,
         *,
-        faults: Collection[CaptureFault | PortabilityFault] | None = None,
+        faults: Collection[CaptureFault | PortabilityFault | BackupFault] | None = None,
         clock: Callable[[], datetime] | None = None,
         enrichment_provider: EnrichmentProvider | None = None,
         validate_mutation_authority: Callable[[], None] | None = None,
@@ -232,7 +239,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
                 recovered += 1
         return recovered
 
-    def _fault(self, point: CaptureFault | PortabilityFault) -> None:
+    def _fault(self, point: CaptureFault | PortabilityFault | BackupFault) -> None:
         if point in self._faults:
             self._faults.remove(point)
             raise InjectedFault(point)
@@ -244,7 +251,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
 def open_local_engine(
     profile: LocalEngineContext,
     *,
-    faults: Collection[CaptureFault | PortabilityFault] | None = None,
+    faults: Collection[CaptureFault | PortabilityFault | BackupFault] | None = None,
     clock: Callable[[], datetime] | None = None,
     enrichment_provider: EnrichmentProvider | None = None,
 ) -> EngineTaskSet:
@@ -261,7 +268,7 @@ def open_authoritative_local_engine(
     profile: LocalEngineContext,
     authority: object | None,
     *,
-    faults: Collection[CaptureFault | PortabilityFault] | None = None,
+    faults: Collection[CaptureFault | PortabilityFault | BackupFault] | None = None,
     clock: Callable[[], datetime] | None = None,
     enrichment_provider: EnrichmentProvider | None = None,
 ) -> EngineTaskSet:

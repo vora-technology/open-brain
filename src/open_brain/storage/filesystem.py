@@ -370,6 +370,136 @@ def read_confined(
         os.close(root_fd)
 
 
+def read_confined_tree(
+    *,
+    root: Path,
+    relative: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
+    maximum_entries: int,
+    maximum_file_bytes: int,
+    maximum_total_bytes: int,
+) -> tuple[tuple[PurePosixPath, bytes], ...]:
+    """Read one bounded regular-file tree through pinned no-follow descriptors."""
+
+    for value in (maximum_entries, maximum_file_bytes, maximum_total_bytes):
+        if type(value) is not int or value <= 0:
+            raise ValueError("invalid confined tree limit")
+    parts = _validated_parts(relative)
+    root_fd = _open_root(root, expected_root_identity)
+    directory_fd = -1
+    counters = [0, 0]
+    files: list[tuple[PurePosixPath, bytes]] = []
+    try:
+        try:
+            directory_fd = _open_parent(root_fd, parts, create=False)
+        except FileNotFoundError:
+            return ()
+        _read_confined_tree_descriptor(
+            directory_fd,
+            (),
+            files,
+            counters,
+            maximum_entries=maximum_entries,
+            maximum_file_bytes=maximum_file_bytes,
+            maximum_total_bytes=maximum_total_bytes,
+        )
+        return tuple(sorted(files, key=lambda item: item[0].as_posix()))
+    finally:
+        if directory_fd >= 0:
+            os.close(directory_fd)
+        os.close(root_fd)
+
+
+def _read_confined_tree_descriptor(
+    directory_fd: int,
+    parts: tuple[str, ...],
+    files: list[tuple[PurePosixPath, bytes]],
+    counters: list[int],
+    *,
+    maximum_entries: int,
+    maximum_file_bytes: int,
+    maximum_total_bytes: int,
+) -> None:
+    try:
+        entries = os.scandir(directory_fd)
+    except OSError:
+        raise DurabilityError("confined tree scan failed") from None
+    with entries:
+        for entry in entries:
+            counters[0] += 1
+            if counters[0] > maximum_entries:
+                raise StorageError("stored tree exceeds bounded entry limit")
+            try:
+                observed = entry.stat(follow_symlinks=False)
+            except OSError:
+                raise DurabilityError("confined tree scan failed") from None
+            if stat.S_ISDIR(observed.st_mode):
+                try:
+                    child_fd = _open_child_directory(directory_fd, entry.name, create=False)
+                except FileNotFoundError:
+                    raise RootConfinementError("confined tree identity changed") from None
+                try:
+                    current = os.fstat(child_fd)
+                    if (current.st_dev, current.st_ino) != (observed.st_dev, observed.st_ino):
+                        raise RootConfinementError("confined tree identity changed")
+                    _read_confined_tree_descriptor(
+                        child_fd,
+                        (*parts, entry.name),
+                        files,
+                        counters,
+                        maximum_entries=maximum_entries,
+                        maximum_file_bytes=maximum_file_bytes,
+                        maximum_total_bytes=maximum_total_bytes,
+                    )
+                finally:
+                    os.close(child_fd)
+                continue
+            if not stat.S_ISREG(observed.st_mode) or observed.st_nlink != 1:
+                raise RootConfinementError("confined tree contains an unsafe entry")
+            if observed.st_size > maximum_file_bytes:
+                raise StorageError("stored tree file exceeds bounded size")
+            try:
+                file_fd = os.open(entry.name, _FILE_READ_FLAGS, dir_fd=directory_fd)
+            except OSError:
+                raise RootConfinementError("confined tree file is unsafe") from None
+            try:
+                before = os.fstat(file_fd)
+                if (
+                    not stat.S_ISREG(before.st_mode)
+                    or before.st_nlink != 1
+                    or (before.st_dev, before.st_ino) != (observed.st_dev, observed.st_ino)
+                ):
+                    raise RootConfinementError("confined tree identity changed")
+                payload = _read_fd(file_fd, maximum_bytes=maximum_file_bytes)
+                after = os.fstat(file_fd)
+                if (
+                    (
+                        after.st_dev,
+                        after.st_ino,
+                        after.st_nlink,
+                        after.st_size,
+                        after.st_mtime_ns,
+                        after.st_ctime_ns,
+                    )
+                    != (
+                        before.st_dev,
+                        before.st_ino,
+                        before.st_nlink,
+                        before.st_size,
+                        before.st_mtime_ns,
+                        before.st_ctime_ns,
+                    )
+                    or len(payload) != before.st_size
+                ):
+                    raise RootConfinementError("confined tree file changed during read")
+            finally:
+                os.close(file_fd)
+            counters[1] += len(payload)
+            if counters[1] > maximum_total_bytes:
+                raise StorageError("stored tree exceeds bounded total size")
+            files.append((PurePosixPath(*parts, entry.name), payload))
+
+
 def confined_unlink(
     *,
     root: Path,

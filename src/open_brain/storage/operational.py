@@ -6,8 +6,10 @@ from .filesystem import (
     WriteState,
     atomic_replace,
     atomic_write_new,
+    capture_root_identity,
     confined_unlink,
     read_confined,
+    read_confined_tree,
 )
 
 __all__ = [
@@ -16,6 +18,8 @@ __all__ = [
     "WriteState",
     "atomic_replace",
     "atomic_write_new",
+    "capture_root_identity",
     "confined_unlink",
     "read_confined",
+    "read_confined_tree",
 ]

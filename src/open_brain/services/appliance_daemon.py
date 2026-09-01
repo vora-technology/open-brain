@@ -39,7 +39,12 @@ from .appliance_application import ApplianceApplication
 from .appliance_auth import ApplianceBrowserSessionStore, derive_appliance_credential
 from .appliance_history import read_appliance_run_history
 from .appliance_init import APPLIANCE_OWNER_CREDENTIAL
-from .appliance_scheduler import ApplianceScheduler, ApplianceSchedulerInterruptedError
+from .appliance_recovery import ApplianceRecoveryService
+from .appliance_scheduler import (
+    ApplianceJobResult,
+    ApplianceScheduler,
+    ApplianceSchedulerInterruptedError,
+)
 from .appliance_status import read_appliance_status
 from .http_server import (
     HttpRouteMode,
@@ -59,6 +64,7 @@ from .runtime import (
 CONTROL_SCHEMA_VERSION: Final[int] = 1
 CONTROL_ACTION_CAPTURE_TEXT: Final[str] = "capture.accept.text"
 CONTROL_ACTION_CLI_DISPATCH: Final[str] = "cli.dispatch"
+CONTROL_ACTION_RECOVERY_REQUEST: Final[str] = "recovery.request"
 CONTROL_ACTION_STATUS_READ: Final[str] = "status.read"
 CONTROL_STATUS_ACCEPTED: Final[str] = "accepted"
 CONTROL_STATUS_COMPLETED: Final[str] = "completed"
@@ -350,6 +356,116 @@ class StatusControlReceipt:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class RecoveryControlRequest:
+    operation: str
+    request_id: str
+    destination: str
+    source: str | None = None
+    action: str = CONTROL_ACTION_RECOVERY_REQUEST
+    schema_version: int = CONTROL_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            self.action != CONTROL_ACTION_RECOVERY_REQUEST
+            or self.schema_version != CONTROL_SCHEMA_VERSION
+        ):
+            raise ApplianceControlProtocolError("unsupported request envelope")
+        _validate_recovery_operation(self.operation)
+        _validate_recovery_request_id(self.operation, self.request_id)
+        _validate_control_path(self.destination, envelope="request")
+        if self.operation == "portable-import":
+            if self.source is None:
+                raise ApplianceControlProtocolError("invalid request envelope")
+            _validate_control_path(self.source, envelope="request")
+        elif self.source is not None:
+            raise ApplianceControlProtocolError("invalid request envelope")
+        _validate_control_size(self.to_dict(), envelope="request")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "action": self.action,
+            "destination": self.destination,
+            "operation": self.operation,
+            "request_id": self.request_id,
+            "schema_version": self.schema_version,
+            "source": self.source,
+        }
+
+    def to_bytes(self) -> bytes:
+        return canonical_json_bytes(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, payload: bytes) -> RecoveryControlRequest:
+        value = _parse_control_bytes(payload, envelope="request")
+        if set(value) != {
+            "action",
+            "destination",
+            "operation",
+            "request_id",
+            "schema_version",
+            "source",
+        }:
+            raise ApplianceControlProtocolError("invalid request envelope")
+        source = value.get("source")
+        if source is not None and not isinstance(source, str):
+            raise ApplianceControlProtocolError("invalid request envelope")
+        return cls(
+            action=_required_str(value, "action", envelope="request"),
+            destination=_required_str(value, "destination", envelope="request"),
+            operation=_required_str(value, "operation", envelope="request"),
+            request_id=_required_str(value, "request_id", envelope="request"),
+            schema_version=_required_int(value, "schema_version", envelope="request"),
+            source=source,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class RecoveryControlReceipt:
+    operation: str
+    request_id: str
+    status: str
+    action: str = CONTROL_ACTION_RECOVERY_REQUEST
+    schema_version: int = CONTROL_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            self.action != CONTROL_ACTION_RECOVERY_REQUEST
+            or self.schema_version != CONTROL_SCHEMA_VERSION
+        ):
+            raise ApplianceControlProtocolError("unsupported receipt envelope")
+        _validate_recovery_operation(self.operation)
+        _validate_recovery_request_id(self.operation, self.request_id)
+        if self.status not in {"scheduled", "completed"}:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        _validate_control_size(self.to_dict(), envelope="receipt")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "action": self.action,
+            "operation": self.operation,
+            "request_id": self.request_id,
+            "schema_version": self.schema_version,
+            "status": self.status,
+        }
+
+    def to_bytes(self) -> bytes:
+        return canonical_json_bytes(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, payload: bytes) -> RecoveryControlReceipt:
+        value = _parse_control_bytes(payload, envelope="receipt")
+        if set(value) != {"action", "operation", "request_id", "schema_version", "status"}:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        return cls(
+            action=_required_str(value, "action", envelope="receipt"),
+            operation=_required_str(value, "operation", envelope="receipt"),
+            request_id=_required_str(value, "request_id", envelope="receipt"),
+            schema_version=_required_int(value, "schema_version", envelope="receipt"),
+            status=_required_str(value, "status", envelope="receipt"),
+        )
+
+
 class ApplianceDaemon:
     """Own one root authority, one confined control socket, and one mutation path."""
 
@@ -374,7 +490,7 @@ class ApplianceDaemon:
         _validate_timeout(connection_timeout)
         self._root = root
         self._application_factory = application_factory or _open_mutating_application
-        self._scheduler_factory = scheduler_factory or _open_scheduler
+        self._scheduler_factory = scheduler_factory
         self._connection_timeout = connection_timeout
         self._profile: LocalEngineContext | None = None
         self._authority: DaemonAuthorityCapability | None = None
@@ -420,7 +536,11 @@ class ApplianceDaemon:
                     raise
                 raise ApplianceDaemonConflictError("appliance daemon already active") from error
             application = self._application_factory(self._root, authority)
-            scheduler = self._scheduler_factory(self._root, profile, authority)
+            scheduler = (
+                _open_scheduler(self._root, profile, authority, application)
+                if self._scheduler_factory is None
+                else self._scheduler_factory(self._root, profile, authority)
+            )
             _ensure_run_directory(_run_directory(self._root))
             cleanup_stale_control_socket(profile, authority)
             listener = _bind_listener(self.socket_path)
@@ -710,6 +830,19 @@ def request_status(
     )
 
 
+def request_recovery_job(
+    root: Path,
+    request: RecoveryControlRequest,
+    *,
+    timeout: float = 1.0,
+) -> RecoveryControlReceipt:
+    if not isinstance(request, RecoveryControlRequest):
+        raise ValueError("invalid appliance recovery request")
+    return RecoveryControlReceipt.from_bytes(
+        _request_bytes(root, request.to_bytes(), timeout=timeout)
+    )
+
+
 def _open_mutating_application(
     root: Path,
     authority: DaemonAuthorityCapability,
@@ -721,9 +854,22 @@ def _open_scheduler(
     root: Path,
     profile: LocalEngineContext,
     authority: DaemonAuthorityCapability,
+    application: ApplianceApplication,
 ) -> ApplianceScheduler:
+    recovery = ApplianceRecoveryService(root, application)
     return ApplianceScheduler(
         profile,
+        handlers={
+            "backup-create": lambda context: recovery.handle_job("backup-create", context),
+            "markdown-reconcile": (
+                lambda _context: ApplianceJobResult.completed()
+                if application.mutations is not None
+                and application.mutations.reconciliation.reconcile().status == "reconciled"
+                else ApplianceJobResult.empty()
+            ),
+            "portable-export": lambda context: recovery.handle_job("portable-export", context),
+            "portable-import": lambda context: recovery.handle_job("portable-import", context),
+        },
         engine_recoverer=lambda: recover_authoritative_local_engine(profile, authority),
     )
 
@@ -847,6 +993,40 @@ def _validate_control_command(value: str) -> None:
         raise ApplianceControlProtocolError("unsupported action")
 
 
+def _validate_recovery_operation(value: str) -> None:
+    if value not in {"backup-create", "portable-export", "portable-import"}:
+        raise ApplianceControlProtocolError("unsupported action")
+
+
+def _validate_recovery_request_id(operation: str, value: str) -> None:
+    prefix = {
+        "backup-create": "backup",
+        "portable-export": "export",
+        "portable-import": "import",
+    }.get(operation)
+    if prefix is None:
+        raise ApplianceControlProtocolError("unsupported action")
+    marker = prefix + "_"
+    if not isinstance(value, str) or not value.startswith(marker):
+        raise ApplianceControlProtocolError("invalid request envelope")
+    try:
+        identifier = uuid.UUID(value.removeprefix(marker))
+    except ValueError as error:
+        raise ApplianceControlProtocolError("invalid request envelope") from error
+    if identifier.version != 4 or value != f"{prefix}_{identifier}":
+        raise ApplianceControlProtocolError("invalid request envelope")
+
+
+def _validate_control_path(value: str, *, envelope: str) -> None:
+    if (
+        not isinstance(value, str)
+        or not value
+        or "\x00" in value
+        or not Path(value).is_absolute()
+    ):
+        raise ApplianceControlProtocolError(f"invalid {envelope} envelope")
+
+
 def _validate_argv(value: tuple[str, ...]) -> None:
     if not isinstance(value, tuple) or any(
         not isinstance(argument, str) or not argument or "\x00" in argument for argument in value
@@ -895,7 +1075,7 @@ def _lstat_path(path: Path) -> os.stat_result:
 
 def _parse_request(
     payload: bytes,
-) -> ControlRequest | CliControlRequest | StatusControlRequest:
+) -> ControlRequest | CliControlRequest | StatusControlRequest | RecoveryControlRequest:
     value = _parse_control_bytes(payload, envelope="request")
     action = _required_str(value, "action", envelope="request")
     if action == CONTROL_ACTION_CAPTURE_TEXT:
@@ -904,6 +1084,8 @@ def _parse_request(
         return CliControlRequest.from_bytes(payload)
     if action == CONTROL_ACTION_STATUS_READ:
         return StatusControlRequest.from_bytes(payload)
+    if action == CONTROL_ACTION_RECOVERY_REQUEST:
+        return RecoveryControlRequest.from_bytes(payload)
     raise ApplianceControlProtocolError("unsupported action")
 
 
@@ -969,10 +1151,41 @@ def _capture_receipt(
     )
 
 
+def _recovery_receipt(
+    self: ApplianceDaemon,
+    request: RecoveryControlRequest,
+) -> RecoveryControlReceipt:
+    application = self._application
+    scheduler = self._scheduler
+    if application is None or scheduler is None:
+        raise RuntimeError("appliance daemon is not running")
+    recovery = application.recovery(scheduler=scheduler)
+    destination = Path(request.destination)
+    if request.operation == "backup-create":
+        submission = recovery.request_backup(destination, backup_id=request.request_id)
+    elif request.operation == "portable-export":
+        submission = recovery.request_portable_export(
+            destination,
+            export_id=request.request_id,
+        )
+    else:
+        assert request.source is not None
+        submission = recovery.request_portable_import(
+            Path(request.source),
+            destination,
+            import_id=request.request_id,
+        )
+    return RecoveryControlReceipt(
+        operation=request.operation,
+        request_id=request.request_id,
+        status=submission.status,
+    )
+
+
 def _dispatch_request(
     self: ApplianceDaemon,
-    request: ControlRequest | CliControlRequest | StatusControlRequest,
-) -> ControlReceipt | CliControlReceipt | StatusControlReceipt:
+    request: ControlRequest | CliControlRequest | StatusControlRequest | RecoveryControlRequest,
+) -> ControlReceipt | CliControlReceipt | StatusControlReceipt | RecoveryControlReceipt:
     application = self._application
     if application is None:
         raise RuntimeError("appliance daemon is not running")
@@ -980,7 +1193,9 @@ def _dispatch_request(
         return _capture_receipt(request, application)
     if isinstance(request, CliControlRequest):
         return _cli_receipt(request, application)
-    return _status_receipt(self)
+    if isinstance(request, StatusControlRequest):
+        return _status_receipt(self)
+    return _recovery_receipt(self, request)
 
 
 def main(
@@ -1032,9 +1247,12 @@ __all__ = [
     "CliControlRequest",
     "CONTROL_ACTION_CAPTURE_TEXT",
     "CONTROL_ACTION_CLI_DISPATCH",
+    "CONTROL_ACTION_RECOVERY_REQUEST",
     "CONTROL_ACTION_STATUS_READ",
     "ControlRequest",
     "ControlReceipt",
+    "RecoveryControlReceipt",
+    "RecoveryControlRequest",
     "StatusControlReceipt",
     "StatusControlRequest",
     "acquire_control_socket_authority",
@@ -1042,6 +1260,7 @@ __all__ = [
     "main",
     "request_cli_dispatch",
     "request_control",
+    "request_recovery_job",
     "request_status",
 ]
 

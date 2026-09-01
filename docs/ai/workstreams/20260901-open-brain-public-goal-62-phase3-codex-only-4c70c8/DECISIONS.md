@@ -110,3 +110,45 @@
   source-checkout implementation.
 - Why: the W2 contract requires source-checkout adapter evidence, while this
   goal explicitly forbids touching real services or production state.
+
+## D-012: keep listener ownership inside the daemon lifecycle
+
+- Chosen: compose and start the one managed HTTP server inside the appliance
+  daemon, with one close path and the exact configured browser origin shared
+  by status and UI authentication.
+- Rejected: expose a public, separately startable HTTP lifecycle beside the
+  daemon.
+- Why: a second lifecycle would bypass daemon authority, permit inconsistent
+  bind/origin state, and violate the one-listener topology.
+
+## D-013: treat private binding and run history as fail-closed capabilities
+
+- Chosen: require explicit external TLS termination plus an exact HTTPS
+  origin for private binding, and accept run-history names only from the
+  fixed scheduler inventory or validated connector jobs.
+- Rejected: infer HTTPS from bind addresses or display arbitrary directory
+  names found below the run-history root.
+- Why: transport security is deployment evidence, not an address heuristic;
+  filesystem names are untrusted metadata and must not become UI output.
+
+## D-014: back up immutable app receipts, not mutable scheduler state
+
+- Chosen: include only exact-schema appliance init/export evidence and
+  completed metadata-only scheduler run receipts. Recreate mutable scheduler
+  state after restore.
+- Rejected: copy `appliance-scheduler/state.json` or accept arbitrary canonical
+  JSON at an allow-listed app-state path.
+- Why: retry claims mutate scheduler state and would change an otherwise
+  replay-identical backup. Exact metadata schemas also prevent credentials or
+  unbounded fields from being smuggled through a trusted filename.
+
+## D-015: submit recovery jobs through the daemon's existing application
+
+- Chosen: add bounded recovery request/receipt envelopes to the owner-only
+  Unix control socket and bind the default scheduler handlers to the
+  application's already-authorized engine task set.
+- Rejected: construct a second mutating application for scheduler jobs or
+  expose only an in-process recovery method that owner control cannot reach.
+- Why: one daemon must retain one authority, one application state, and one
+  mutation path. Backup, Portable export, and Portable import remain distinct
+  durable jobs on that path.

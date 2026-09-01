@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from open_brain.cli._common import CommandFamilyAdapter
 from open_brain.cli.phase1 import build_phase1_command_adapters
@@ -27,6 +28,11 @@ from open_brain.integrations.ports import (
 )
 from open_brain.profile import open_existing_single_user_local
 
+from .appliance_recovery import ApplianceRecoveryService
+
+if TYPE_CHECKING:
+    from .appliance_scheduler import ApplianceScheduler
+
 
 class ApplianceRetrievalFeedback:
     """Metadata-only feedback acknowledgement for the offline appliance MCP view."""
@@ -44,6 +50,7 @@ class ApplianceRetrievalFeedback:
 
 @dataclass(frozen=True, slots=True)
 class ApplianceApplication:
+    root: Path = field(repr=False)
     retrieval: ScopedRetrievalTask
     feedback: ApplianceRetrievalFeedback = field(default_factory=ApplianceRetrievalFeedback)
     mutations: EngineTaskSet | None = field(default=None, init=False)
@@ -57,7 +64,7 @@ class ApplianceApplication:
     ) -> ApplianceApplication:
         profile = open_existing_single_user_local(root)
         retrieval = open_local_read_view(profile, allowed_space_ids=allowed_space_ids)
-        return cls(retrieval=retrieval)
+        return cls(root=profile.root, retrieval=retrieval)
 
     @classmethod
     def open_mutating(
@@ -67,7 +74,7 @@ class ApplianceApplication:
     ) -> ApplianceApplication:
         profile = open_existing_single_user_local(root)
         mutations = open_authoritative_local_engine(profile, authority)
-        application = cls(retrieval=mutations.retrieval)
+        application = cls(root=profile.root, retrieval=mutations.retrieval)
         object.__setattr__(application, "mutations", mutations)
         return application
 
@@ -105,6 +112,17 @@ class ApplianceApplication:
 
     def page_reader(self) -> _AppliancePageReader:
         return _AppliancePageReader(self.retrieval)
+
+    def recovery(
+        self,
+        *,
+        scheduler: ApplianceScheduler | None = None,
+    ) -> ApplianceRecoveryService:
+        return ApplianceRecoveryService(
+            self.root,
+            self,
+            scheduler=scheduler,
+        )
 
 
 @dataclass(frozen=True, slots=True)

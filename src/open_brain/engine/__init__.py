@@ -38,6 +38,9 @@ from .authority import (
     require_daemon_authority,
 )
 from .contracts import (
+    BackupFault,
+    BackupReceipt,
+    BackupTask,
     CaptureReceipt,
     CaptureTask,
     InboxSpaceTask,
@@ -47,6 +50,8 @@ from .contracts import (
     PortabilityFault,
     PortabilityReceipt,
     PortabilityTask,
+    ReconciliationReceipt,
+    ReconciliationTask,
     RetrievalTask,
     ReviewTask,
     ScopedRetrievalTask,
@@ -93,6 +98,9 @@ from .maintenance import (
 
 __all__ = [
     "BrainEngine",
+    "BackupFault",
+    "BackupReceipt",
+    "BackupTask",
     "CaptureAction",
     "CaptureEnvelope",
     "CapturePipeline",
@@ -142,6 +150,8 @@ __all__ = [
     "Provenance",
     "ProviderMode",
     "ReadViewUnavailableError",
+    "ReconciliationReceipt",
+    "ReconciliationTask",
     "ReferencePayload",
     "recover_authoritative_local_engine",
     "RawAssetRef",

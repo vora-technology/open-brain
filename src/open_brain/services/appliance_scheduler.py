@@ -34,7 +34,13 @@ _MAXIMUM_CONNECTORS: Final[int] = 8
 MAXIMUM_RETAINED_RUN_RECEIPTS: Final[int] = 8
 _MAXIMUM_PRUNE_ENTRIES: Final[int] = MAXIMUM_RETAINED_RUN_RECEIPTS * 4
 _FIXED_JOB_NAMES = frozenset(
-    {"backup-create", "engine-recover", "markdown-reconcile", "portable-export"}
+    {
+        "backup-create",
+        "engine-recover",
+        "markdown-reconcile",
+        "portable-export",
+        "portable-import",
+    }
 )
 _JOB_STATUS = frozenset({"completed", "deferred", "empty", "failed"})
 _JOB_RESULT_STATUS = frozenset({"completed", "deferred", "empty"})
@@ -264,8 +270,9 @@ class ApplianceScheduler:
             return ApplianceJobResult.completed() if recovered > 0 else ApplianceJobResult.empty()
         if job_name == "markdown-reconcile":
             return ApplianceJobResult.deferred("w4_owned")
-        if job_name in {"portable-export", "backup-create"} or job_name.startswith(
-            "connector-run:"
+        if (
+            job_name in {"portable-export", "portable-import", "backup-create"}
+            or job_name.startswith("connector-run:")
         ):
             return ApplianceJobResult.deferred("handler_deferred")
         raise ValueError("unknown appliance scheduler job")
@@ -360,6 +367,7 @@ def _inventory(connector_names: tuple[str, ...]) -> tuple[ApplianceScheduledJob,
             for name in connector_names
         ),
         ApplianceScheduledJob("portable-export", recurring=False, interval_seconds=None),
+        ApplianceScheduledJob("portable-import", recurring=False, interval_seconds=None),
         ApplianceScheduledJob("backup-create", recurring=False, interval_seconds=None),
     )
 

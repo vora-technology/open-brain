@@ -67,6 +67,21 @@ generated local credential into host-only cookies plus CSRF, and page reads stay
 engine retrieval surface instead of importing storage adapters into the app layer. Private-network
 binds require explicit opt-in, explicit external HTTPS termination, and an exact external browser
 origin; the documented remote path remains an authenticated SSH tunnel to the loopback listener.
+Phase 3 W4 adds engine-owned direct-Markdown reconciliation and immutable backup tasks plus
+app-owned recovery orchestration. `engine/reconciliation.py` scans only canonical owner Markdown
+under `content/spaces/`, rejects symlinks, special files, malformed replacements, and over-budget
+inputs, and updates retrieval state without rewriting owner content. `engine/backup.py` and
+`engine/backup_ports.py` publish immutable manifests last at a separate destination, include exact
+Portable bytes plus required SQLite-backup-API snapshots and bounded immutable appliance run
+receipts, and
+exclude credentials, indexes, sockets, locks, supervisor state, temporary data, and live SQLite
+sidecars. `services/appliance_recovery.py` keeps backup/restore separate from Portable export/import,
+restores only into a proven empty disposable root, regenerates a purpose-scoped local credential,
+rebuilds the index, and runs doctor/status reads through the appliance authority boundary. The
+daemon control socket submits durable owner-requested `backup-create`, `portable-export`, and
+`portable-import` jobs to the scheduler attached to the daemon's existing application. They are
+replay-safe requests, not recurring background work. Mutable scheduler state is recreated after a
+restore so retry bookkeeping cannot change the identity of an already published backup.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that

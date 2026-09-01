@@ -39,6 +39,7 @@ def test_scheduler_inventory_is_exact_without_legacy_job_catalog_dependency(
         "engine-recover",
         "markdown-reconcile",
         "portable-export",
+        "portable-import",
         "backup-create",
     ]
     assert [job.name for job in inventory if job.recurring] == [
@@ -64,17 +65,21 @@ def test_scheduler_defers_owner_requested_jobs_without_making_them_recurring(
     scheduler = ApplianceScheduler(profile, now=_NOW)
 
     scheduler.request("portable-export")
+    scheduler.request("portable-import")
     receipts = scheduler.run_due(now=_NOW)
 
     assert [(receipt.job_name, receipt.status) for receipt in receipts] == [
         ("engine-recover", "empty"),
         ("markdown-reconcile", "deferred"),
         ("portable-export", "deferred"),
+        ("portable-import", "deferred"),
     ]
     state = scheduler.read_state()
     jobs = cast(dict[str, dict[str, object]], state["jobs"])
     assert jobs["portable-export"]["next_due_at"] is None
     assert jobs["portable-export"]["recurring"] is False
+    assert jobs["portable-import"]["next_due_at"] is None
+    assert jobs["portable-import"]["recurring"] is False
 
 
 def test_scheduler_rejects_unallowlisted_connector_names_and_defaults_to_none(

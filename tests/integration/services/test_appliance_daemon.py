@@ -603,6 +603,7 @@ def test_daemon_owns_the_internal_scheduler_inventory_and_persists_run_evidence(
         "engine-recover",
         "markdown-reconcile",
         "portable-export",
+        "portable-import",
     ]
     recover_runs = root / APPLIANCE_SCHEDULER_DIRECTORY / "runs" / "engine-recover"
     reconcile_runs = root / APPLIANCE_SCHEDULER_DIRECTORY / "runs" / "markdown-reconcile"

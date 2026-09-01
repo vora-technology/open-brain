@@ -43,6 +43,8 @@ from .normalization import (
     _text,
 )
 
+_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+
 
 class CaptureAction(StrEnum):
     QUICK = "quick"
@@ -93,6 +95,17 @@ class PortabilityFault(StrEnum):
     AFTER_PROMOTION = "after_promotion"
 
 
+class BackupFault(StrEnum):
+    AFTER_STAGE_CREATED = "after_stage_created"
+    AFTER_BACKUP_FILE = "after_backup_file"
+    AFTER_MANIFEST = "after_manifest"
+    BEFORE_PROMOTION = "before_promotion"
+    AFTER_PROMOTION = "after_promotion"
+    AFTER_RESTORE_FILE = "after_restore_file"
+    BEFORE_RESTORE_PROMOTION = "before_restore_promotion"
+    AFTER_RESTORE_PROMOTION = "after_restore_promotion"
+
+
 class MutationAuthorityOwner(StrEnum):
     APPLIANCE_DAEMON = "appliance_daemon"
 
@@ -136,7 +149,7 @@ class DaemonMutationPath:
 class InjectedFault(RuntimeError):
     """Synthetic process interruption at one named durable boundary."""
 
-    def __init__(self, point: CaptureFault | PortabilityFault) -> None:
+    def __init__(self, point: CaptureFault | PortabilityFault | BackupFault) -> None:
         self.point = point
         super().__init__(point.value)
 
@@ -579,6 +592,51 @@ class PortabilityReceipt:
             type(self.index_generation) is not int or self.index_generation < 1
         ):
             raise ValueError("invalid portability index generation")
+
+
+@dataclass(frozen=True, slots=True)
+class BackupReceipt:
+    """Bounded public outcome for one engine-owned backup operation."""
+
+    backup_id: str
+    created_at: str
+    manifest_digest_sha256: str
+    status: str
+    portable_files: int
+    sqlite_snapshots: int
+    app_state_files: int
+    duplicate: bool = False
+
+    def __post_init__(self) -> None:
+        _portable_id(self.backup_id, "backup")
+        if not isinstance(self.created_at, str) or not self.created_at:
+            raise ValueError("invalid backup receipt timestamp")
+        if not isinstance(self.manifest_digest_sha256, str) or _HEX64.fullmatch(
+            self.manifest_digest_sha256
+        ) is None:
+            raise ValueError("invalid backup receipt digest")
+        if self.status not in {"created", "verified", "restored"}:
+            raise ValueError("invalid backup receipt status")
+        for value in (self.portable_files, self.sqlite_snapshots, self.app_state_files):
+            if type(value) is not int or value < 0:
+                raise ValueError("invalid backup receipt count")
+
+
+@dataclass(frozen=True, slots=True)
+class ReconciliationReceipt:
+    """Bounded public outcome for canonical Markdown reconciliation."""
+
+    status: str
+    scanned_files: int
+    page_updates: int
+    space_updates: int
+
+    def __post_init__(self) -> None:
+        if self.status not in {"reconciled", "noop"}:
+            raise ValueError("invalid reconciliation receipt status")
+        for value in (self.scanned_files, self.page_updates, self.space_updates):
+            if type(value) is not int or value < 0:
+                raise ValueError("invalid reconciliation receipt count")
 
 
 @dataclass(frozen=True, slots=True)
@@ -1089,6 +1147,18 @@ class PortabilityTask(Protocol):
     def rebuild_index(self) -> PortabilityReceipt: ...
 
 
+class BackupTask(Protocol):
+    def create(self, destination: Path, *, backup_id: str) -> BackupReceipt: ...
+
+    def verify(self, source: Path) -> BackupReceipt: ...
+
+    def restore(self, source: Path, destination: Path) -> BackupReceipt: ...
+
+
+class ReconciliationTask(Protocol):
+    def reconcile(self) -> ReconciliationReceipt: ...
+
+
 @dataclass(frozen=True, slots=True)
 class Phase1TaskSet:
     """The minimum task capabilities shared by the Phase 1 representations."""
@@ -1109,6 +1179,8 @@ class EngineTaskSet:
     review: ReviewTask
     retrieval: RetrievalTask
     portability: PortabilityTask
+    backup: BackupTask
+    reconciliation: ReconciliationTask
     daemon_mutation_path: DaemonMutationPath
     phase1: Phase1TaskSet
 

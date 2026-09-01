@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0 and `P3-W0` through `P3-W3` clean checkpoints complete.
+- Status: in progress; Gate 0 and `P3-W0` through `P3-W4` clean checkpoints complete.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -33,5 +33,9 @@
 - P3-W3 behavior evidence: the daemon owns the one HTTP listener; host-only sessions, exact origins, CSRF, and route-capability separation fail closed; CLI and UI share app state; page reads, status, doctor, and bounded run history pass through the composed service.
 - P3-W3 failure evidence: credentials stay out of URLs, HTML, logs, and result envelopes; private binding requires an exact HTTPS external origin and explicit encryption termination; unknown and cross-capability POST routes are rejected before body read.
 - P3-W3 verification: 99 focused and architecture tests, 45 post-fix daemon/scheduler/history/UI/auth/log/storage tests, full Ruff, strict MyPy on 464 source files, full sanitized `make verify` with 3,070 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
-- Current subphase: `P3-W4` ready after the W3 checkpoint commit and push.
-- Next action: dispatch one Codex W4 writer for recovery, direct-edit reconciliation, backup, disposable restore, and Portable orchestration.
+- P3-W4 status: clean checkpoint complete across direct-Markdown reconciliation, engine-owned backup creation and verification, atomic disposable restore, replacement preflight, and distinct Portable export/import jobs.
+- P3-W4 behavior evidence: backup manifests bind exact Portable bytes, SQLite backup-API snapshots, and schema-validated immutable app receipts; mutable scheduler state and credentials remain excluded. Restore regenerates credentials, initializes scheduler state, rebuilds retrieval, and checks appliance health only on disposable roots.
+- P3-W4 failure evidence: bounded no-follow scans reject missing, changed, symlinked, malformed, over-budget, or identity-shifted Markdown and app state. Backup/restore containment, invalid SQLite, forbidden inventory, credential-shaped app state, pre-promotion interruption, post-promotion replay, effect-before-receipt replay, and timestamp inversion all fail closed or replay safely.
+- P3-W4 verification: 96 focused tests, full Ruff, strict MyPy on 472 source files, full sanitized `make verify` with 3,091 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
+- Current subphase: `P3-W5` ready after the W4 checkpoint gates.
+- Next action: commit and push the W4 checkpoint, then dispatch one Codex W5 writer for source-checkout upgrade, uninstall, supervisor evidence, and the Phase 4 boundary lock.

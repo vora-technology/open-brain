@@ -159,3 +159,68 @@
 - No launchctl/systemctl command, real user unit, persistent daemon, TCP
   listener, production system, private predecessor, package publication,
   deployment, live Brain data, or unrelated PR was touched.
+
+## P3-W3: owner UI, browser security, and bounded history
+
+- Workers `P3-W3-IMPLEMENT-01` and `P3-W3-REPAIR-02` used Codex `gpt-5.4`
+  high with one exclusive writer at a time.
+- The first architecture run failed four tests because two new service files
+  were unclassified, internal imports were unresolved, and app composition
+  imported storage directly. The repair worker fixed those boundaries.
+- Coordinator review then added six red regressions for proposal-decision
+  routing, private HTTPS origin reporting, inconsistent listener
+  configuration, startup traceback leakage, and untrusted history job names.
+  The repaired regression block passed seven tests.
+- Final behavior evidence covers the daemon-owned listener, purpose-bound
+  host-only sessions, exact browser origins, CSRF, strict `/api` versus
+  `/share` route capabilities, page reads, shared CLI/UI status and doctor,
+  and bounded metadata-only history.
+- Final focused and architecture Pytest passed 99 tests. A separate post-fix
+  daemon, scheduler, history, UI, auth, log, and storage block passed 45 tests.
+- Full Ruff, strict MyPy on 464 source files, and `git diff --check` passed.
+  Sanitized `make verify` passed 3,070 tests, wheel/sdist builds, and artifact
+  policy.
+- Clean checkpoint commit `3691d04dc97f926b5a9aa0d1609d817e860b6d12`
+  is pushed to `origin/goal/open-brain-phase3`.
+- No persistent listener, real credential, production, private predecessor,
+  package publication, deployment, live Brain data, or unrelated PR was
+  touched.
+
+## P3-W4: recovery, reconciliation, backup, and Portable orchestration
+
+- Worker `P3-W4-IMPLEMENT-01` used Codex `gpt-5.4` high and reported 83
+  focused plus 58 architecture tests passing. It also reported four missing
+  proofs: replacement preflight, effect-before-receipt backup replay, SQLite
+  integrity validation, and explicit TOCTOU/overlap coverage.
+- Coordinator review added eight red regressions for invalid SQLite with a
+  matching digest, forbidden app-state inventory, backup/root containment,
+  unbounded scheduler receipts, explicit replacement preflight,
+  effect-before-receipt replay, deleted pages, and owner identity continuity.
+  All eight passed after repair.
+- A later checkpoint review added two more red regressions. One proved an
+  allow-listed app-state path could carry arbitrary credential-shaped JSON;
+  the other proved a long-lived recovery handler could record completion
+  before request time. Exact metadata schemas and monotonic completion time
+  now close both cases.
+- Backup creation uses descriptor-confined bounded scans, exact typed
+  manifests, SQLite backup-API snapshots plus `quick_check`, schema-validated
+  immutable app receipts, same-filesystem staging, and no-replace promotion.
+  Mutable scheduler state, credentials, indexes, sockets, locks, supervisor
+  files, staging data, and SQLite sidecars are excluded.
+- Reconciliation scans canonical owner Markdown through bounded no-follow
+  descriptors, preserves tenant/actor/role/space/page/provenance identity,
+  detects deletion and replacement, and updates only derived retrieval state.
+- App recovery verifies before restore, writes only to a proven empty
+  disposable root, acquires target authority, generates a fresh credential,
+  initializes fresh scheduler state, rebuilds the index, and runs doctor.
+  Replacement remains preflight-only; no live replacement API exists.
+- The daemon control socket accepts bounded owner requests for distinct
+  `backup-create`, `portable-export`, and `portable-import` jobs and routes
+  them to the scheduler attached to its existing application. Recovery
+  request and scheduler receipts remain path-free and replay safe.
+- Final focused Pytest passed 96 tests. Full Ruff, strict MyPy on 472 source
+  files, and `git diff --check` passed. Final sanitized `make verify` passed
+  3,091 tests, wheel/sdist builds, and artifact policy.
+- No real credential, persistent service, production system, private
+  predecessor, package publication, deployment, live Brain data, or unrelated
+  PR was touched.
