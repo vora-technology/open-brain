@@ -7,10 +7,13 @@ from hashlib import sha256
 from pathlib import Path
 from typing import cast
 
+import pytest
+
 from open_brain.capture.http import HttpRequest
 from open_brain.cli.phase1 import Phase1CommandAdapter
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.engine import CaptureAction, ReferencePayload, TextPayload
+from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.services.phase1_application import SingleUserLocalApplication
 
 
@@ -32,7 +35,14 @@ def test_single_user_local_application_owns_one_engine_task_set(tmp_path: Path) 
         clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
     )
     assert object.__getattribute__(handler, "capture") is application.tasks.capture
-    assert application.mcp_adapter().retrieval is application.tasks.retrieval
+    mcp = application.mcp_adapter()
+    assert mcp.retrieval is not application.tasks.retrieval
+    assert not callable(getattr(mcp.retrieval, "scoped", None))
+    with pytest.raises(ValueError, match="invalid engine MCP capabilities"):
+        EngineMcpAdapter(
+            retrieval=application.tasks.retrieval,
+            feedback=application.feedback,
+        )
     assert application.public_job_sink("JOB-005")._capture is application.tasks.capture
 
 
@@ -50,6 +60,9 @@ def test_mcp_fetch_hides_known_disallowed_results_like_unknown(tmp_path: Path) -
     result = allowed.call_tool("brain_query", {"question": "scoped token"})
     result_id = cast(list[dict[str, object]], result["results"])[0]["result_id"]
 
+    assert isinstance(result_id, str)
+    assert allowed.retrieval.fetch(result_id) is not None
+    assert default.retrieval.fetch(result_id) is None
     assert default.call_tool("brain_query", {"question": "scoped token"})["results"] == []
     assert default.call_tool("brain_fetch", {"result_id": result_id}) == default.call_tool(
         "brain_fetch", {"result_id": "unknown_result"}

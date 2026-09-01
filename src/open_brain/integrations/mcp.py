@@ -6,9 +6,9 @@ import re
 import secrets
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Literal, Protocol, TypedDict, cast
+from typing import Literal, TypedDict
 
-from open_brain.engine import RetrievalResult, RetrievalTask
+from open_brain.engine import RetrievalResult, ScopedRetrievalTask
 
 from .ports import (
     FeedbackOutcome,
@@ -46,14 +46,6 @@ class McpToolDefinition(TypedDict):
     name: str
     description: str
     inputSchema: McpInputSchema
-
-
-class _ScopedEngineRetrieval(Protocol):
-    def search(
-        self, query: str, *, limit: int = 10
-    ) -> tuple[RetrievalResult, ...]: ...
-
-    def fetch(self, result_id: str) -> RetrievalResult | None: ...
 
 
 @dataclass(slots=True)
@@ -192,16 +184,14 @@ def _require_opaque_id(value: str) -> None:
 class EngineMcpAdapter:
     """Read-only MCP representation over an injected engine retrieval capability."""
 
-    retrieval: RetrievalTask
+    retrieval: ScopedRetrievalTask
     feedback: RetrievalFeedback
-    allowed_space_ids: frozenset[str] = frozenset()
 
     def __post_init__(self) -> None:
         if (
-            not isinstance(self.allowed_space_ids, frozenset)
-            or not callable(getattr(self.retrieval, "search", None))
+            not callable(getattr(self.retrieval, "search", None))
             or not callable(getattr(self.retrieval, "fetch", None))
-            or not callable(getattr(self.retrieval, "scoped", None))
+            or callable(getattr(self.retrieval, "scoped", None))
             or not callable(getattr(self.feedback, "record", None))
         ):
             raise ValueError("invalid engine MCP capabilities")
@@ -279,19 +269,13 @@ class EngineMcpAdapter:
         except Exception:
             raise McpCallError("tool call failed") from None
 
-    def _scoped(self) -> _ScopedEngineRetrieval:
-        return cast(
-            _ScopedEngineRetrieval,
-            self.retrieval.scoped(allowed_space_ids=self.allowed_space_ids),
-        )
-
     def _query(self, arguments: Mapping[str, object]) -> dict[str, object]:
         _require_keys(arguments, required={"question"}, optional={"limit"})
         question = arguments["question"]
         limit = arguments.get("limit", 5)
         if not isinstance(question, str) or type(limit) is not int or not 1 <= limit <= 8:
             raise ValueError("invalid query")
-        results = self._scoped().search(question, limit=limit)
+        results = self.retrieval.search(question, limit=limit)
         return {
             "retrieval_id": "retrieval." + secrets.token_hex(16),
             "scope": IntegrationScope.WORK.value,
@@ -305,7 +289,7 @@ class EngineMcpAdapter:
         if not isinstance(result_id, str):
             raise ValueError("invalid result")
         _require_opaque_id(result_id)
-        result = self._scoped().fetch(result_id)
+        result = self.retrieval.fetch(result_id)
         return {"result": None if result is None else _engine_result(result)}
 
     def _feedback(self, arguments: Mapping[str, object]) -> dict[str, object]:

@@ -259,9 +259,10 @@ class SingleUserLocalApplication:
 
     def mcp_adapter(self, *, allowed_space_ids: frozenset[str] = frozenset()) -> EngineMcpAdapter:
         return EngineMcpAdapter(
-            retrieval=self.tasks.retrieval,
+            retrieval=self.tasks.retrieval.scoped(
+                allowed_space_ids=allowed_space_ids
+            ),
             feedback=self.feedback,
-            allowed_space_ids=allowed_space_ids,
         )
 
     def public_job_sink(self, job_id: str) -> PublicJobCaptureSink:

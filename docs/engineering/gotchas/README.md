@@ -395,3 +395,29 @@ Fix: Advance past policy-rejected rows, but retain the cursor at the eligible ro
 submission fails. Keep bounded retry evidence for both outcomes.
 
 Discovered: 2026-08-31.
+
+### MCP-001: Scope retrieval before capability injection
+
+Symptom: MCP tool calls enforce a space allow-list, but the adapter's stored retrieval attribute
+still exposes unrestricted search or fetch to other callers.
+
+Cause: The app injected the full retrieval task and asked the representation to derive a scope for
+each tool call.
+
+Fix: Derive the scoped retrieval capability at composition, inject only that capability, and reject
+objects that still expose the unrestricted `scoped` factory.
+
+Discovered: 2026-09-01.
+
+### INTEGRATION-001: Installed optional modules are not necessarily preloaded
+
+Symptom: An explicitly enabled optional integration reports `optional_dependency` even though its
+module is installed and importable.
+
+Cause: Availability checked `sys.modules`, which describes prior import state rather than installed
+module availability.
+
+Fix: At the reviewed app extension host, import the composition-declared module only after its
+capability is enabled. Keep disabled/default profiles import-free.
+
+Discovered: 2026-09-01.

@@ -98,10 +98,10 @@ PRIVATE_DENYLIST=/path/to/private-denylist.txt make audit
 | `OPEN_BRAIN_UI_BIND`, `OPEN_BRAIN_UI_PORT`, `OPEN_BRAIN_UI_ALLOW_PRIVATE` | Bounded local HTTP bind settings; defaults are `127.0.0.1`, `8788`, and `false` |
 
 The installed CLI reads `OPEN_BRAIN_ROOT` at its Phase 1 process boundary and does not import the
-retained legacy scheduler facade. MCP receives only retrieval plus the explicit space allow-list
-and metadata feedback; it does not receive profile, portability, or writer authority. Other
-composition roots must pass an explicit environment mapping. Core/config tests intentionally
-ignore ambient process variables.
+retained legacy scheduler facade. MCP receives an already space-scoped retrieval capability plus
+metadata feedback; it does not receive the unrestricted retrieval task, profile, portability, or
+writer authority. Other composition roots must pass an explicit environment mapping. Core/config
+tests intentionally ignore ambient process variables.
 
 ## Deployment
 

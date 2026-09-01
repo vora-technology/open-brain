@@ -4,6 +4,7 @@ import sys
 from collections.abc import Callable
 from dataclasses import FrozenInstanceError
 from hashlib import sha256
+from pathlib import Path
 
 import pytest
 
@@ -734,6 +735,26 @@ def test_optional_package_imports_remain_lazy() -> None:
 
     assert module_name not in sys.modules
     assert metadata.scope is IntegrationScope.PERSONAL
+
+
+def test_enabled_installed_optional_provider_loads_without_preload(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module_name = "synthetic_installed_optional_provider"
+    (tmp_path / f"{module_name}.py").write_text("AVAILABLE = True\n", encoding="utf-8")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.delitem(sys.modules, module_name, raising=False)
+    metadata = OptionalIntegrationMetadata(
+        capability=Capability.FINANCE,
+        import_path=module_name,
+    )
+
+    outcome = metadata.load(
+        config=IntegrationConfig(live_adapters=frozenset({Capability.FINANCE}))
+    )
+
+    assert outcome == IntegrationOutcome.available_for(capability=Capability.FINANCE)
+    assert module_name in sys.modules
 
 
 def test_synthetic_adapter_returns_declared_typed_outcome() -> None:

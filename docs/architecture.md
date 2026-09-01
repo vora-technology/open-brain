@@ -48,8 +48,16 @@ lease and observe only durable stages or atomically replaced files.
 
 `EngineTaskSet` is the composition object, not a representation capability. The Phase 1 UI gets
 the narrower Phase 1 task set, each CLI adapter gets its one task protocol, HTTP gets capture,
-MCP gets scoped retrieval plus app feedback, and public jobs get a `PublicJobCaptureSink`.
+MCP gets an already scoped retrieval capability plus app feedback, and public jobs get a
+`PublicJobCaptureSink`. The MCP adapter rejects an unrestricted retrieval task rather than storing
+it and applying scope only during calls.
 All of them share the underlying task identities created for the same root.
+
+Retained optional integration metadata is an app-owned extension host. It imports only the module
+named by composition metadata and only after that capability is explicitly enabled. Disabled
+integrations perform no import, while enabled installed modules do not depend on unrelated preload
+state. The nonliteral import site and its host role are recorded exactly in the package
+classification.
 
 The implemented application layers are:
 

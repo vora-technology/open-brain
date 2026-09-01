@@ -756,7 +756,9 @@
     "integrations/ports.py": {
       "owner": "app",
       "api": "internal",
-      "roles": []
+      "roles": [
+        "extension_host"
+      ]
     },
     "integrations/relationships.py": {
       "owner": "legacy",
@@ -1387,6 +1389,14 @@
       "roles": []
     }
   },
-  "dynamic_import_reviews": [],
+  "dynamic_import_reviews": [
+    {
+      "path": "integrations/ports.py",
+      "line": 917,
+      "owner": "app",
+      "allowed_host": true,
+      "rationale": "Loads one composition-declared optional module only after its capability is explicitly enabled; disabled adapters never invoke the loader."
+    }
+  ],
   "temporary_live_debt": []
 }

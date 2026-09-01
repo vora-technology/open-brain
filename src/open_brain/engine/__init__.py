@@ -40,6 +40,7 @@ from .contracts import (
     PortabilityTask,
     RetrievalTask,
     ReviewTask,
+    ScopedRetrievalTask,
     project_public_result_text,
     project_public_space,
 )
@@ -119,6 +120,7 @@ __all__ = [
     "RetrievalTask",
     "ReviewTask",
     "ScopedRetrieval",
+    "ScopedRetrievalTask",
     "ShareRequest",
     "ShareResponse",
     "ShareStatus",
