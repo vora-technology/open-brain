@@ -104,6 +104,7 @@ def allow_unix_domain_sockets(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def listen(self: socket.socket, backlog: int = 0) -> object:
         if self.family == socket.AF_UNIX:
+            assert backlog >= 2
             return _ORIGINAL_SOCKET_LISTEN(self, backlog)
         raise AssertionError("network access is forbidden in the Phase 2 test suite")
 

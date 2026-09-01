@@ -499,3 +499,17 @@ Fix: Resolve `/tmp` before creating deliberately short temporary roots. It becom
 portability. Treat the full multi-version Linux jobs as required evidence.
 
 Discovered: 2026-09-01.
+
+### CONTROL-001: Default Unix-socket backlog behavior varies by host
+
+Symptom: A partial client occupies the serial daemon reader and the next owner request gets
+`EAGAIN` on Linux, while the same stalled-client regression passes on macOS.
+
+Cause: Calling `listen()` without an explicit backlog left queue capacity to platform defaults.
+The accepted-client timeout bounded the first read but did not guarantee that the next connection
+could queue.
+
+Fix: Set an explicit bounded backlog larger than one and keep the accepted-client timeout. Assert
+the backlog in the stalled-client regression instead of adding sleeps or client-side retries.
+
+Discovered: 2026-09-01.

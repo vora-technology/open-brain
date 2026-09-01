@@ -312,3 +312,19 @@
   recovery, subprocess, UI, and log tests plus focused Ruff passed. The prior
   verdict remains invalidated; full gates and one fresh read-only override
   review are mandatory before the PR can merge.
+- Candidate `2ce8101244856732b9992e4b65a4c664cde49752` passed the same full
+  W6 gate with 3,114 tests, then fresh read-only `P3-W6-REREVIEW-02`
+  returned `READY`, P0/P1/P2 `0/0/0`, 12/12 complete. Its PR rerun passed
+  macOS, release audit, and all CodeQL checks; each Linux version reached
+  3,112 passed and one skipped before the same stalled-client test failed.
+- Linux reported `EAGAIN` when the next owner request connected while one
+  partial AF_UNIX client occupied the daemon reader. The accepted-client
+  timeout was bounded, but `listen()` used platform-default backlog capacity.
+  A local red assertion proved the listener passed backlog zero through the
+  test wrapper.
+- The coordinator repair adds one explicit bounded backlog constant and
+  asserts a queue capacity of at least two. The formerly red stalled-client
+  test passed, 20 consecutive stress repetitions passed, and the 40-test
+  affected daemon/recovery/subprocess/UI/log block, focused Ruff, strict MyPy
+  on 474 source files, and diff integrity passed. The `2ce8101` verdict is
+  invalidated; full gates and fresh D-020 rereview remain mandatory.

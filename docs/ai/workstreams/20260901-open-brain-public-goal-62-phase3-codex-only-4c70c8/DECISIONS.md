@@ -204,3 +204,17 @@
   fresh exact-SHA review after any material test repair. This recorded override
   is limited to the one mandatory reviewer; active concurrency remains one or
   less and no non-Codex participant is authorized.
+
+## D-020: harden the control listener and reserve a second CI rereview
+
+- Chosen: set a bounded control-socket listen backlog of 16, retain the
+  accepted-client timeout, assert backlog capacity in the stalled-client test,
+  and dispatch one fresh read-only Codex rereviewer after full gates.
+- Rejected: add a sleep, retry only in the test/client, accept failed Linux
+  checks, remove a required matrix job, or introduce an unbounded per-client
+  thread pool.
+- Why: the second PR run cleared all temporary-root failures but every Linux
+  version reproduced one real `EAGAIN` availability failure while macOS passed.
+  The twelve normal slots and D-019 override are consumed; green required CI
+  and exact-SHA post-repair review jointly require this one additional recorded
+  override. No implementation worker or non-Codex participant is added.

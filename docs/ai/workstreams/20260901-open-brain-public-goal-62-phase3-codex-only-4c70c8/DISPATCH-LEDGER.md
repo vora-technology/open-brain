@@ -1,9 +1,9 @@
 # Codex dispatch ledger
 
-- Milestone budget: six active children and twelve normal children; one mandatory read-only review override is recorded in D-019 after required Linux CI found a post-review defect.
+- Milestone budget: six active children and twelve normal children; mandatory read-only review overrides are recorded in D-019 and D-020 after successive required Linux CI runs found post-review defects.
 - Coordinator: Codex goal thread `01a05ba9-3673-7da1-807d-c22a9ef77570`, runtime-managed Codex model, owns integration, verification, Git, GitHub, and acceptance.
 - Active children: 0.
-- Total children reserved: 13; twelve normal slots are consumed and the sole override is reserved for `P3-W6-REREVIEW-02`.
+- Total children reserved: 14; twelve normal slots plus D-019 are consumed and the D-020 override is reserved for `P3-W6-REREVIEW-03`.
 - Non-Codex participants: 0.
 
 | Task | Role | Model | Effort | Scope | Status | Result |
@@ -20,7 +20,8 @@
 | `P3-W4-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W4 source/tests/docs, exclusive | complete with concerns | worker passed 83 focused and 58 architecture tests; coordinator repaired every reported gap plus app-state schema, timestamp, daemon-control, containment, and replay defects, then passed 96 focused/3,091 full tests; parent goal thread `01a05ba9-3673-7da1-807d-c22a9ef77570` |
 | `P3-W5-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W5 source/tests/docs/CI, exclusive | complete with concerns | worker passed 40 focused/58 architecture tests; coordinator repaired durable replay, evidence continuity, mandatory migrations, injected CLI reachability, crash rollback, and concurrent exclusion, then passed 47 focused/3,111 full tests; parent goal thread `01a05ba9-3673-7da1-807d-c22a9ef77570` |
 | `P3-W6-REVIEW-01` | independent review | `gpt-5.4` | high | exact candidate `9854f77`, read-only | complete | `READY`, P0/P1/P2 `0/0/0`, 12/12 complete; report `.scratch/P3-W6-REVIEW-01.report.md`; verdict invalidated only by the later Linux CI test repair |
-| `P3-W6-REREVIEW-02` | mandatory override review | `gpt-5.4` | high | repaired exact candidate, read-only | pending | sole D-019 override; prompt `.scratch/P3-W6-REREVIEW-02.prompt.md`; report `.scratch/P3-W6-REREVIEW-02.report.md`; dispatch waits for full repaired gates |
+| `P3-W6-REREVIEW-02` | mandatory override review | `gpt-5.4` | high | exact candidate `2ce8101`, read-only | complete | D-019 override returned `READY`, P0/P1/P2 `0/0/0`, 12/12 complete; later backlog repair invalidates the verdict; report `.scratch/P3-W6-REREVIEW-02.report.md` |
+| `P3-W6-REREVIEW-03` | mandatory override review | `gpt-5.4` | high | backlog-repaired exact candidate, read-only | pending | sole D-020 override; prompt `.scratch/P3-W6-REREVIEW-03.prompt.md`; report `.scratch/P3-W6-REREVIEW-03.report.md`; dispatch waits for full repaired gates |
 
 Every task uses `<agent-config-root>/bin/codex-dispatch.sh`.
 Workers do not push or merge. Implementation workers do not commit; the

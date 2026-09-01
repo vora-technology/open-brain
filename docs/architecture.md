@@ -55,7 +55,8 @@ standalone public HTTP entrypoint. `services/appliance_daemon.py`, `services/app
 `services/appliance_scheduler.py`, and `services/appliance_supervisors.py` now own the appliance
 control plane: one daemon acquires verified daemon-authority before mutating composition and socket
 binding, serves bounded canonical Unix-domain control requests through the owner-only
-`.open-brain/run/control.sock`, owns the recurring `engine-recover` and `markdown-reconcile`
+`.open-brain/run/control.sock` with a bounded listen backlog and accepted-client timeout, owns the
+recurring `engine-recover` and `markdown-reconcile`
 scheduler inventory under `.open-brain/state/appliance-scheduler/`, and renders deterministic
 launchd/systemd units that enter the daemon through the source-checkout-safe
 `open_brain.services.appliance_daemon` module with an explicit absolute root. Mutating Phase 1 CLI

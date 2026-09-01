@@ -72,6 +72,7 @@ MAXIMUM_CONTROL_ENVELOPE_BYTES: Final[int] = 4_096
 RUN_DIRECTORY_MODE: Final[int] = 0o700
 SOCKET_MODE: Final[int] = 0o600
 CONTROL_CONNECTION_TIMEOUT_SECONDS: Final[float] = 1.0
+CONTROL_SOCKET_BACKLOG: Final[int] = 16
 _DELIVERY_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$")
 _CONTROLLED_COMMANDS = frozenset({"capture", "inbox", "proposals", "query", "review", "spaces"})
 
@@ -918,7 +919,7 @@ def _bind_listener(path: Path) -> socket.socket:
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
         listener.bind(str(path))
-        listener.listen()
+        listener.listen(CONTROL_SOCKET_BACKLOG)
         os.chmod(path, SOCKET_MODE)
         return listener
     except OSError as error:
