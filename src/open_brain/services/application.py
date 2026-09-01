@@ -11,10 +11,7 @@ from pathlib import Path
 
 from open_brain.capture.distillation_worker import DistillationProcessStatus
 from open_brain.capture.egress import OutboundFetcher
-from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
 from open_brain.capture.http import BodyReader, ShareHttpHandler
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import FilesystemYouTubePollState
 from open_brain.capture.queue import read_pending_queue_snapshot
 from open_brain.capture.service import ProcessStatus
 from open_brain.cli._common import (
@@ -164,10 +161,6 @@ from open_brain.production.sqlite_backup import (
     probe_local_sqlite_backups,
 )
 from open_brain.production.transport import DnsPinnedHttpTransport, SystemResolver
-from open_brain.production.youtube_poll import (
-    ProductionYouTubePollRuntime,
-    load_private_youtube_config,
-)
 from open_brain.profile import compile_single_user_local
 from open_brain.providers.base import ProviderService
 from open_brain.review.maintenance import predecessor_curation_taxonomy
@@ -179,6 +172,12 @@ from open_brain.review.store import (
 from open_brain.services.capabilities import (
     ProductionApplication,
     compose_production_application,
+)
+from open_brain.services.connectors import (
+    ConnectorHost,
+    ConnectorOutcome,
+    ConnectorProfile,
+    RunContextFactory,
 )
 from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
 from open_brain.services.runtime import (
@@ -207,13 +206,33 @@ class SingleUserLocalApplication:
 
     tasks: EngineTaskSet
     feedback: MetadataOnlyRetrievalFeedback
+    connector_profile: ConnectorProfile = field(default_factory=ConnectorProfile)
+    connector_host: ConnectorHost = field(default_factory=ConnectorHost)
 
     @classmethod
-    def open(cls, root: Path) -> SingleUserLocalApplication:
+    def open(
+        cls,
+        root: Path,
+        *,
+        connector_profile: ConnectorProfile | None = None,
+        connector_host: ConnectorHost | None = None,
+    ) -> SingleUserLocalApplication:
+        selected_profile = ConnectorProfile() if connector_profile is None else connector_profile
+        selected_host = ConnectorHost() if connector_host is None else connector_host
+        if not isinstance(selected_profile, ConnectorProfile) or not isinstance(
+            selected_host, ConnectorHost
+        ):
+            raise ValueError("invalid connector application configuration")
         return cls(
             tasks=open_local_engine(compile_single_user_local(root)),
             feedback=MetadataOnlyRetrievalFeedback(),
+            connector_profile=selected_profile,
+            connector_host=selected_host,
         )
+
+    def discover_connectors(self) -> tuple[str, ...]:
+        """Enumerate allow-listed connector metadata without importing connector modules."""
+        return tuple(item.name for item in self.connector_host.discover(self.connector_profile))
 
     def cli_adapters(self) -> CommandAdapterRegistry:
         from open_brain.cli.phase1 import build_phase1_command_adapters
@@ -245,6 +264,10 @@ class SingleUserLocalApplication:
         )
 
     def public_job_sink(self, job_id: str) -> PublicJobCaptureSink:
+        return self.tasks.capture.public_job_sink(self.public_job_context(job_id))
+
+    def public_job_context(self, job_id: str) -> PublicJobCaptureContext:
+        """Return the validated non-owner capture actor used by one public job."""
         identities = {
             "JOB-005": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0005",
             "JOB-027": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0027",
@@ -255,7 +278,7 @@ class SingleUserLocalApplication:
         if identity is None:
             raise ValueError("unsupported public capture job")
         actor_id = "actor_" + identity
-        context = PublicJobCaptureContext.create(
+        return PublicJobCaptureContext.create(
             profile=self.tasks.profile,
             actor_id=actor_id,
             role_claim={
@@ -266,7 +289,6 @@ class SingleUserLocalApplication:
                 "tenant_id": self.tasks.profile.tenant_id,
             },
         )
-        return self.tasks.capture.public_job_sink(context)
 
 
 @dataclass(frozen=True, slots=True)
@@ -418,7 +440,7 @@ class ConfiguredScheduledAdapters:
     config: AppConfig
     clock: Clock
     environment: Mapping[str, object] = field(default_factory=dict)
-    youtube_media_adapter: YouTubeMediaAdapter | None = None
+    connector_context_factories: Mapping[str, RunContextFactory] = field(default_factory=dict)
     imessage_history_client: ImessageHistoryClient | None = None
     imessage_service_mode: bool = False
     http_server_factory: HttpServerFactory | None = None
@@ -439,7 +461,7 @@ class ConfiguredScheduledAdapters:
             if job_id in {"JOB-027", "JOB-028"}:
                 return self._dispatch_http_service(job_id, sink=sink)
             if job_id == "JOB-029":
-                return self._dispatch_youtube_poll(job_id=job_id, sink=sink)
+                return self._dispatch_youtube_poll(job_id=job_id)
         except Exception:
             return ScheduledDispatchResult.configuration(job_id)
         return ScheduledDispatchResult.completed(job_id)
@@ -547,29 +569,30 @@ class ConfiguredScheduledAdapters:
         self,
         *,
         job_id: str,
-        sink: PublicJobCaptureSink,
     ) -> ScheduledDispatchResult:
         reference = self.environment.get("OPEN_BRAIN_YOUTUBE_CONFIG")
-        if not isinstance(reference, str) or not reference:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or not Path(reference).is_absolute()
+        ):
+            return ScheduledDispatchResult.configuration(job_id)
+        if self.public_application is None:
+            return ScheduledDispatchResult.configuration(job_id)
+        context_factory = self.connector_context_factories.get("youtube")
+        if context_factory is None:
             return ScheduledDispatchResult.configuration(job_id)
         try:
-            poll_config = load_private_youtube_config(Path(reference))
-            if poll_config.requires_external_egress and not self.config.egress_enabled:
-                return ScheduledDispatchResult.configuration(job_id)
-            media_adapter = self.youtube_media_adapter
-            if media_adapter is None and poll_config.requires_external_egress:
-                media_adapter = compose_production_capture_media_adapter(config=self.config)
-            runtime = ProductionYouTubePollRuntime(
-                config=poll_config,
-                state=FilesystemYouTubePollState(self.config.state_root / "youtube-poll"),
-                sink=sink,
-                media_adapter=media_adapter or _UnavailableYouTubeMediaAdapter(),
-                clock=self.clock.now,
+            receipt = self.public_application.connector_host.run(
+                "youtube",
+                profile=self.public_application.connector_profile,
+                context_factory=context_factory,
             )
-            result = runtime.run(max_items=1_000)
         except Exception:
             return ScheduledDispatchResult.failed(job_id)
-        if result.stubbed_count:
+        if receipt.outcome is ConnectorOutcome.DEFERRED:
+            return ScheduledDispatchResult.completed(job_id)
+        if receipt.outcome is not ConnectorOutcome.COMPLETED or receipt.stubbed_count:
             return ScheduledDispatchResult.failed(job_id)
         return ScheduledDispatchResult.completed(job_id)
 
@@ -1609,16 +1632,6 @@ def _named_private_file(config: AppConfig, name: str) -> Path:
 class _SystemClock:
     def now(self) -> datetime:
         return _utc_now()
-
-
-class _UnavailableYouTubeMediaAdapter:
-    def playlist_items(self, url: str, *, command: MediaCommand) -> tuple[str, ...]:
-        del url, command
-        raise RuntimeError("YouTube media capability unavailable")
-
-    def media(self, video_id: str, *, command: MediaCommand) -> YouTubeMediaResult:
-        del video_id, command
-        raise RuntimeError("YouTube media capability unavailable")
 
 
 def _schema_snapshot(config: AppConfig) -> SchemaSnapshot:

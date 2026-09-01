@@ -6,7 +6,8 @@ import json
 import os
 import re
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from dataclasses import replace
 from pathlib import Path
 
 from open_brain.config import AppConfig, ConfigError
@@ -18,6 +19,19 @@ from open_brain.services.application import (
     _SystemClock,
     build_command_adapters,
     compose_production_application,
+)
+from open_brain.services.connectors import (
+    INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
+    ConnectorBudget,
+    ConnectorBudgetLimits,
+    ConnectorCaptureIdentity,
+    ConnectorHost,
+    ConnectorManifest,
+    ConnectorMetadataLogger,
+    ConnectorProfile,
+    ConnectorRegistry,
+    ConnectorRunContext,
+    RunContextFactory,
 )
 from open_brain.services.runtime import (
     ServiceConfigurationError,
@@ -90,12 +104,21 @@ def run_cli(
             command_adapters=_degraded_doctor_adapters(),
             scheduled_adapters=ConfigurationFailedScheduledAdapters(),
         )
+    connector_context_factories: Mapping[str, RunContextFactory] = {}
+    if public_application is not None and scheduled_job_id == "JOB-029":
+        public_application, connector_context_factories = _configure_youtube_connector(
+            application=public_application,
+            config=config,
+            environment=env,
+            clock=_SystemClock(),
+        )
     scheduled_adapters = ConfiguredScheduledAdapters(
         config,
         _SystemClock(),
         environment=env,
         imessage_service_mode=scheduled_job_id == "JOB-005",
         http_service_mode=scheduled_job_id in {"JOB-026", "JOB-027", "JOB-028"},
+        connector_context_factories=connector_context_factories,
         public_application=public_application,
     )
     route = scheduled_route_spec(
@@ -174,6 +197,101 @@ def _open_single_user_application(environment: Mapping[str, object]) -> SingleUs
     ):
         raise ValueError("invalid OPEN_BRAIN_ROOT")
     return SingleUserLocalApplication.open(Path(root))
+
+
+class _StaticConnectorEntryPoint:
+    def __init__(self, *, name: str, value: str, load: Callable[[], object]) -> None:
+        self.name = name
+        self.value = value
+        self._load = load
+
+    def load(self) -> object:
+        return self._load()
+
+
+class _StaticConnectorSource:
+    def __init__(self, entry: _StaticConnectorEntryPoint) -> None:
+        self._entry = entry
+
+    def entry_points(self, *, group: str) -> tuple[_StaticConnectorEntryPoint, ...]:
+        if group != INTERNAL_CONNECTOR_ENTRY_POINT_GROUP:
+            return ()
+        return (self._entry,)
+
+
+def _configure_youtube_connector(
+    *,
+    application: SingleUserLocalApplication,
+    config: AppConfig,
+    environment: Mapping[str, object],
+    clock: _SystemClock,
+) -> tuple[SingleUserLocalApplication, Mapping[str, RunContextFactory]]:
+    reference = environment.get("OPEN_BRAIN_YOUTUBE_CONFIG")
+    if (
+        not isinstance(reference, str)
+        or not reference
+        or "\x00" in reference
+        or not Path(reference).is_absolute()
+    ):
+        return application, {}
+
+    from open_brain.capture.poll import FilesystemYouTubePollState
+    from open_brain.production.media import compose_production_capture_media_adapter
+    from open_brain.production.youtube_poll import (
+        YouTubePollCheckpoint,
+        YouTubeReferenceConnector,
+        YouTubeReferenceTransport,
+        load_private_youtube_config,
+    )
+
+    profile = ConnectorProfile(
+        allow_list=("youtube",),
+        egress_enabled=config.egress_enabled,
+        budget_limits=ConnectorBudgetLimits(
+            max_fetches=50,
+            max_extractions=1_000,
+            max_submissions=1_000,
+        ),
+    )
+    entry = _StaticConnectorEntryPoint(
+        name="youtube",
+        value="open_brain.production.youtube_poll:YouTubeReferenceConnector",
+        load=YouTubeReferenceConnector,
+    )
+    configured_application = replace(
+        application,
+        connector_profile=profile,
+        connector_host=ConnectorHost(ConnectorRegistry(_StaticConnectorSource(entry))),
+    )
+
+    def context_factory(
+        manifest: ConnectorManifest,
+        budget: ConnectorBudget,
+        logger: ConnectorMetadataLogger,
+    ) -> ConnectorRunContext:
+        if manifest != YouTubeReferenceConnector.manifest:
+            raise ValueError("invalid YouTube connector manifest")
+        poll_config = load_private_youtube_config(Path(reference))
+        return ConnectorRunContext(
+            capture_identity=ConnectorCaptureIdentity(
+                "youtube",
+                "JOB-029",
+                configured_application.public_job_context("JOB-029"),
+            ),
+            capture_sink=configured_application.public_job_sink("JOB-029"),
+            transport=YouTubeReferenceTransport(
+                subscriptions=poll_config.subscriptions,
+                media_adapter=compose_production_capture_media_adapter(config=config),
+            ),
+            checkpoint=YouTubePollCheckpoint(
+                FilesystemYouTubePollState(config.state_root / "youtube-poll")
+            ),
+            clock=clock.now,
+            budget=budget,
+            metadata_logger=logger,
+        )
+
+    return configured_application, {"youtube": context_factory}
 
 
 def _mcp_allowed_space_ids(environment: Mapping[str, object]) -> frozenset[str]:

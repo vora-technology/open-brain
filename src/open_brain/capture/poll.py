@@ -7,7 +7,7 @@ import json
 import os
 import re
 import secrets
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
@@ -391,6 +391,23 @@ class PollRunResult:
     record: PollRecord
 
 
+class YouTubePollState(Protocol):
+    def request(
+        self,
+        record: PollRecord,
+        *,
+        reserve_create: Callable[[], bool] | None = None,
+    ) -> PollRequestResult: ...
+
+    def records(self) -> tuple[PollRecord, ...]: ...
+
+    def claim_next(self, *, now: datetime, lease_seconds: int) -> PollRecord | None: ...
+
+    def release(self, claimed: PollRecord) -> None: ...
+
+    def replace(self, previous: PollRecord, current: PollRecord) -> None: ...
+
+
 class FilesystemYouTubePollState:
     """One atomically-published state document for one canonical poller."""
 
@@ -401,14 +418,23 @@ class FilesystemYouTubePollState:
         self._path = root / "state.json"
         root.mkdir(mode=0o700, parents=True, exist_ok=True)
 
-    def request(self, record: PollRecord) -> PollRequestResult:
-        if not isinstance(record, PollRecord):
+    def request(
+        self,
+        record: PollRecord,
+        *,
+        reserve_create: Callable[[], bool] | None = None,
+    ) -> PollRequestResult:
+        if not isinstance(record, PollRecord) or (
+            reserve_create is not None and not callable(reserve_create)
+        ):
             raise ValueError("invalid poll record")
         with self._locked():
             records = self._load()
             existing = records.get(record.video_id)
             if existing is not None:
                 return PollRequestResult(PollRequestDisposition.DUPLICATE, existing)
+            if reserve_create is not None and not reserve_create():
+                raise ValueError("poll request budget exhausted")
             records[record.video_id] = record
             self._write(records)
             return PollRequestResult(PollRequestDisposition.CREATED, record)
@@ -553,12 +579,13 @@ class YouTubePoller:
     def __init__(
         self,
         *,
-        state: FilesystemYouTubePollState,
+        state: YouTubePollState,
         media_adapter: YouTubeMediaAdapter | None = None,
         max_attempts: int = 3,
         max_playlist_items: int = 50,
         reclassification_verifier: PrivacyReclassificationVerifier | None = None,
         lease_seconds: int = 900,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         if (
             not isinstance(max_attempts, int)
@@ -570,6 +597,7 @@ class YouTubePoller:
             or not isinstance(lease_seconds, int)
             or isinstance(lease_seconds, bool)
             or not 1 <= lease_seconds <= 3600
+            or (clock is not None and not callable(clock))
         ):
             raise ValueError("invalid poll configuration")
         self._state = state
@@ -578,6 +606,7 @@ class YouTubePoller:
         self._max_playlist_items = max_playlist_items
         self._reclassification_verifier = reclassification_verifier
         self._lease_seconds = lease_seconds
+        self._clock: Callable[[], datetime] = _utc_now if clock is None else clock
 
     def request_direct(self, envelope: CaptureEnvelope) -> PollRequestResult:
         if (
@@ -641,7 +670,7 @@ class YouTubePoller:
         privacy: PrivacyDecision,
         reclassification: PrivacyReclassificationProof | None = None,
     ) -> PollRunResult | None:
-        record = self._state.claim_next(now=datetime.now(UTC), lease_seconds=self._lease_seconds)
+        record = self._state.claim_next(now=self._clock(), lease_seconds=self._lease_seconds)
         if record is None:
             return None
         try:
@@ -715,6 +744,10 @@ def _utc_datetime(value: datetime) -> datetime:
     if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("invalid timestamp")
     return value.astimezone(UTC)
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 def _timestamp(value: datetime) -> str:

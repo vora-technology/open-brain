@@ -1,6 +1,7 @@
 """Task-shaped local engine facade for the Phase 1 vertical slice."""
 
 from open_brain.core.locks import LockScope
+from open_brain.core.models import ContentOrigin, PrivacyDecision, Provenance
 from open_brain.providers.base import ProviderMode
 
 from .contracts import (
@@ -47,6 +48,7 @@ __all__ = [
     "CaptureSubmission",
     "CaptureSubmissionPath",
     "CaptureTask",
+    "ContentOrigin",
     "DecisionOutcome",
     "EnrichmentProvider",
     "EnrichmentRequest",
@@ -62,10 +64,12 @@ __all__ = [
     "PortabilityFault",
     "PortabilityReceipt",
     "PortabilityTask",
+    "PrivacyDecision",
     "ProposalDraft",
     "PublicJobCaptureContext",
     "PublicJobCaptureSink",
     "PublicProvenance",
+    "Provenance",
     "ProviderMode",
     "ReferencePayload",
     "RetrievalResult",

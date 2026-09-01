@@ -275,9 +275,11 @@ def test_populated_live_root_round_trips_with_stable_identity_bytes_and_results(
     assert import_receipt.blobs == 1
     assert import_receipt.history_records >= 6
     assert _portable_bytes(exported) == _portable_bytes(imported)
-    event_record = json.loads(
-        (exported / "sources/captures/2026/08" / f"{event.capture_id}.json").read_bytes()
+    event_paths = tuple(
+        (exported / "sources/captures").rglob(f"{event.capture_id}.json")
     )
+    assert len(event_paths) == 1
+    event_record = json.loads(event_paths[0].read_bytes())
     assert event_record["payload_binding"]["kind"] == "inline"
     source_profile = compile_single_user_local(source)
     imported_profile = compile_single_user_local(imported)

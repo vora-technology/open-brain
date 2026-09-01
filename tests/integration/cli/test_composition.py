@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -15,6 +16,7 @@ import pytest
 from open_brain.capture.extractors.youtube import YouTubeMediaResult
 from open_brain.capture.media import MediaCommand
 from open_brain.capture.models import CaptureWorkItem
+from open_brain.capture.poll import FilesystemYouTubePollState
 from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import SCHEDULED_ROUTES, command_names
@@ -69,6 +71,12 @@ from open_brain.operations.index import IndexRoots, check_index
 from open_brain.operations.scheduler import EXPECTED_JOB_IDS
 from open_brain.operations.writer_jobs import WriterLease, get_writer_job_spec
 from open_brain.production.imessage import ImessageHistoryClient
+from open_brain.production.youtube_poll import (
+    YouTubePollCheckpoint,
+    YouTubeReferenceConnector,
+    YouTubeReferenceTransport,
+    load_private_youtube_config,
+)
 from open_brain.providers.base import ProviderService
 from open_brain.providers.deterministic import DeterministicDistillationProvider
 from open_brain.review.maintenance import (
@@ -89,6 +97,18 @@ from open_brain.services.application import (
     ConfiguredScheduledAdapters,
     SingleUserLocalApplication,
     build_command_adapters,
+)
+from open_brain.services.connectors import (
+    INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
+    ConnectorBudget,
+    ConnectorBudgetLimits,
+    ConnectorCaptureIdentity,
+    ConnectorHost,
+    ConnectorManifest,
+    ConnectorMetadataLogger,
+    ConnectorProfile,
+    ConnectorRegistry,
+    ConnectorRunContext,
 )
 from open_brain.services.entrypoints import run_cli as run
 from open_brain.services.http_server import HttpServerFactory
@@ -128,6 +148,87 @@ class _YouTubeMediaAdapter:
             caption_vtt="WEBVTT\n\n00:00.000 --> 00:01.000\nSynthetic transcript",
             captions_pending=False,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class _YouTubeConnectorEntryPoint:
+    name: str = "youtube"
+    value: str = "synthetic.youtube:connector"
+    connector: object = field(default_factory=YouTubeReferenceConnector)
+
+    def load(self) -> object:
+        return self.connector
+
+
+@dataclass(frozen=True, slots=True)
+class _YouTubeConnectorSource:
+    entry_point: _YouTubeConnectorEntryPoint = field(
+        default_factory=_YouTubeConnectorEntryPoint
+    )
+
+    def entry_points(self, *, group: str) -> tuple[_YouTubeConnectorEntryPoint, ...]:
+        assert group == INTERNAL_CONNECTOR_ENTRY_POINT_GROUP
+        return (self.entry_point,)
+
+
+def _youtube_connector_application(
+    *,
+    brain_root: Path,
+    config: AppConfig,
+    youtube_config: Path,
+    media: _YouTubeMediaAdapter,
+) -> tuple[
+    SingleUserLocalApplication,
+    dict[
+        str,
+        Callable[
+            [ConnectorManifest, ConnectorBudget, ConnectorMetadataLogger],
+            ConnectorRunContext,
+        ],
+    ],
+]:
+    profile = ConnectorProfile(
+        allow_list=("youtube",),
+        egress_enabled=config.egress_enabled,
+        budget_limits=ConnectorBudgetLimits(
+            max_fetches=50,
+            max_extractions=1_000,
+            max_submissions=1_000,
+        ),
+    )
+    application = SingleUserLocalApplication.open(
+        brain_root,
+        connector_profile=profile,
+        connector_host=ConnectorHost(ConnectorRegistry(_YouTubeConnectorSource())),
+    )
+
+    def context_factory(
+        manifest: ConnectorManifest,
+        budget: ConnectorBudget,
+        logger: ConnectorMetadataLogger,
+    ) -> ConnectorRunContext:
+        assert manifest == YouTubeReferenceConnector.manifest
+        poll_config = load_private_youtube_config(youtube_config)
+        return ConnectorRunContext(
+            capture_identity=ConnectorCaptureIdentity(
+                "youtube",
+                "JOB-029",
+                application.public_job_context("JOB-029"),
+            ),
+            capture_sink=application.public_job_sink("JOB-029"),
+            transport=YouTubeReferenceTransport(
+                subscriptions=poll_config.subscriptions,
+                media_adapter=media,
+            ),
+            checkpoint=YouTubePollCheckpoint(
+                FilesystemYouTubePollState(config.state_root / "youtube-poll")
+            ),
+            clock=FixedClock().now,
+            budget=budget,
+            metadata_logger=logger,
+        )
+
+    return application, {"youtube": context_factory}
 
 
 @dataclass
@@ -721,7 +822,12 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             )
         )
         path.chmod(0o600)
-    application = SingleUserLocalApplication.open(tmp_path / "brain")
+    application, context_factories = _youtube_connector_application(
+        brain_root=tmp_path / "brain",
+        config=config,
+        youtube_config=youtube_config,
+        media=_YouTubeMediaAdapter(),
+    )
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
@@ -736,6 +842,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             "OPEN_BRAIN_UI_TOKEN": "synthetic-ui-token",
             "OPEN_BRAIN_INGRESS_TOKEN": "synthetic-ingress-token",
         },
+        connector_context_factories=context_factories,
         imessage_history_client=_ImessageHistory(),
         public_application=application,
     )
@@ -825,7 +932,6 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
 
 def test_composed_youtube_poll_uses_private_reference_and_durable_engine_capture(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config = replace(_filesystem_config(tmp_path), egress_enabled=True)
     youtube_config = tmp_path / "youtube.json"
@@ -849,15 +955,18 @@ def test_composed_youtube_poll_uses_private_reference_and_durable_engine_capture
     )
     youtube_config.chmod(0o600)
     media = _YouTubeMediaAdapter()
-    monkeypatch.setattr(
-        "open_brain.services.application.compose_production_capture_media_adapter",
-        lambda **_: media,
+    application, context_factories = _youtube_connector_application(
+        brain_root=tmp_path / "brain",
+        config=config,
+        youtube_config=youtube_config,
+        media=media,
     )
-    application = SingleUserLocalApplication.open(tmp_path / "brain")
+
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
         environment={"OPEN_BRAIN_YOUTUBE_CONFIG": str(youtube_config)},
+        connector_context_factories=context_factories,
         public_application=application,
     )
 
@@ -868,17 +977,111 @@ def test_composed_youtube_poll_uses_private_reference_and_durable_engine_capture
     assert len(application.tasks.inbox.list()) == 1
 
 
+def test_process_entrypoint_composes_explicit_youtube_connector(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = replace(_filesystem_config(tmp_path), egress_enabled=True)
+    config_path = tmp_path / "open-brain.toml"
+    config_path.write_text(
+        "\n".join(
+            (
+                "[paths]",
+                f'work_root = "{config.work_root}"',
+                f'personal_root = "{config.personal_root}"',
+                f'capture_root = "{config.capture_root}"',
+                f'saved_content_root = "{config.saved_content_root}"',
+                f'state_root = "{config.state_root}"',
+                f'backup_root = "{config.backup_root}"',
+                "",
+                "[host]",
+                'identity = "synthetic-host"',
+                "",
+                "[providers]",
+                'default = "local"',
+                "cloud_enabled = false",
+                "",
+                "[egress]",
+                "enabled = true",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    youtube_config = tmp_path / "youtube.json"
+    youtube_config.write_bytes(
+        canonical_json_bytes(
+            {
+                "schema_version": 1,
+                "subscriptions": [
+                    {
+                        "url": "https://www.youtube.com/playlist?list=synthetic",
+                        "privacy": PrivacyDecision.create(
+                            tier=PrivacyTier.PUBLIC,
+                            reason=PrivacyReason.POLICY_PUBLIC,
+                            policy_version="privacy-v1",
+                            authority=Authority(cloud=False, external_egress=True),
+                        ).to_dict(),
+                    }
+                ],
+            }
+        )
+    )
+    youtube_config.chmod(0o600)
+    media = _YouTubeMediaAdapter()
+    monkeypatch.setattr(
+        "open_brain.production.media.compose_production_capture_media_adapter",
+        lambda *, config: media,
+    )
+    brain_root = tmp_path / "brain"
+
+    exit_code = run(
+        (
+            "capture",
+            "poll",
+            "--source=youtube",
+            "--mode=ingress",
+            "--json",
+        ),
+        environment={
+            "OPEN_BRAIN_CONFIG": str(config_path),
+            "OPEN_BRAIN_JOB_ID": "JOB-029",
+            "OPEN_BRAIN_ROOT": str(brain_root),
+            "OPEN_BRAIN_YOUTUBE_CONFIG": str(youtube_config),
+        },
+    )
+
+    assert exit_code is ExitCode.SUCCESS
+    assert media.calls == ["playlist", "video000001"]
+    assert len(SingleUserLocalApplication.open(brain_root).tasks.inbox.list()) == 1
+
+
 def test_composed_youtube_poll_requires_its_declared_environment_reference(
     tmp_path: Path,
 ) -> None:
+    config = replace(_filesystem_config(tmp_path), egress_enabled=True)
+    youtube_config = tmp_path / "youtube.json"
+    youtube_config.write_bytes(
+        canonical_json_bytes({"schema_version": 1, "subscriptions": []})
+    )
+    youtube_config.chmod(0o600)
+    media = _YouTubeMediaAdapter()
+    application, context_factories = _youtube_connector_application(
+        brain_root=tmp_path / "brain",
+        config=config,
+        youtube_config=youtube_config,
+        media=media,
+    )
     result = ConfiguredScheduledAdapters(
-        config=replace(_filesystem_config(tmp_path), egress_enabled=True),
+        config=config,
         clock=FixedClock(),
-        youtube_media_adapter=_YouTubeMediaAdapter(),
+        connector_context_factories=context_factories,
+        public_application=application,
     ).dispatch_capture(get_capture_job("JOB-029"))
 
     assert result.status is ScheduledDispatchStatus.FAILED
     assert result.exit_code == 78
+    assert media.calls == []
 
 
 def test_composed_imessage_ingress_uses_private_reference_and_durable_engine_capture(

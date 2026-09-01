@@ -12,27 +12,38 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import parse_qs, urlsplit
 
-from open_brain.capture.extractors.youtube import YouTubeMediaAdapter
+from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
+from open_brain.capture.media import MediaCommand
 from open_brain.capture.poll import (
     FilesystemYouTubePollState,
     PollItemState,
+    PollRecord,
     PollRequestDisposition,
     PollRequestOrigin,
-    PollRunResult,
+    PollRequestResult,
     YouTubePoller,
 )
-from open_brain.core.ids import canonical_json_bytes, canonicalize_source_url
-from open_brain.core.models import (
-    CaptureEnvelope,
-    CaptureSource,
-    CaptureWhyOrigin,
+from open_brain.engine import (
+    CaptureReceipt,
     ContentOrigin,
     PrivacyDecision,
     Provenance,
-    SourceType,
+    PublicJobCaptureSink,
+    ReferencePayload,
 )
-from open_brain.engine import PublicJobCaptureSink
-from open_brain.operations.capture_jobs import get_capture_job
+from open_brain.services.connectors import (
+    ConnectorBudget,
+    ConnectorBudgetLimits,
+    ConnectorCaptureIdentity,
+    ConnectorCaptureSink,
+    ConnectorManifest,
+    ConnectorMetadataLogger,
+    ConnectorOutcome,
+    ConnectorPayload,
+    ConnectorRunContext,
+    ConnectorRunEvidence,
+    ConnectorRunReceipt,
+)
 
 _MAX_CONFIG_BYTES = 64 * 1024
 _MAX_SUBSCRIPTIONS = 50
@@ -57,7 +68,7 @@ class YouTubeSubscription:
         if not isinstance(raw_url, str) or not isinstance(raw_privacy, Mapping):
             raise YouTubePollConfigError("invalid private YouTube config")
         try:
-            url = canonicalize_source_url(raw_url)
+            url = ReferencePayload(raw_url).url
             parsed = urlsplit(url)
             privacy = PrivacyDecision.from_dict(_mapping(raw_privacy))
         except (TypeError, ValueError) as error:
@@ -115,7 +126,7 @@ class YouTubePollConfig:
         return result
 
     def canonical_bytes(self) -> bytes:
-        return canonical_json_bytes(
+        return _canonical_json_bytes(
             {
                 "schema_version": 1,
                 "subscriptions": [item.to_dict() for item in self.subscriptions],
@@ -130,6 +141,310 @@ class ProductionYouTubePollResult:
     stubbed_count: int
     created_count: int
     duplicate_count: int
+
+
+class YouTubePollCheckpoint:
+    """Opaque connector checkpoint backed by the existing durable poll state."""
+
+    connector_name = "youtube"
+    __slots__ = ("__budget", "__checkpoint_committed", "__evidence", "__state")
+
+    def __init__(
+        self,
+        state: FilesystemYouTubePollState,
+        *,
+        budget: ConnectorBudget | None = None,
+        evidence: ConnectorRunEvidence | None = None,
+    ) -> None:
+        if not isinstance(state, FilesystemYouTubePollState) or (
+            budget is not None and type(budget) is not ConnectorBudget
+        ) or (
+            evidence is not None and type(evidence) is not ConnectorRunEvidence
+        ):
+            raise ValueError("invalid YouTube poll checkpoint")
+        self.__state = state
+        self.__budget = budget
+        self.__evidence = evidence
+        self.__checkpoint_committed = False
+
+    @property
+    def budget(self) -> ConnectorBudget | None:
+        return self.__budget
+
+    @property
+    def checkpoint_committed(self) -> bool:
+        return self.__checkpoint_committed
+
+    def bind_run(
+        self,
+        budget: ConnectorBudget,
+        evidence: ConnectorRunEvidence,
+    ) -> YouTubePollCheckpoint:
+        if (
+            self.__budget is not None
+            or self.__evidence is not None
+            or type(budget) is not ConnectorBudget
+            or type(evidence) is not ConnectorRunEvidence
+        ):
+            raise ValueError("invalid YouTube poll checkpoint budget")
+        self.__budget = budget
+        self.__evidence = evidence
+        return self
+
+    def request(
+        self,
+        record: PollRecord,
+        *,
+        reserve_create: Callable[[], bool] | None = None,
+    ) -> PollRequestResult:
+        if self.__budget is None or reserve_create is not None:
+            raise ValueError("YouTube discovery budget unavailable")
+        return self.__state.request(
+            record,
+            reserve_create=self.__budget._consume_discovery,
+        )
+
+    def records(self) -> tuple[PollRecord, ...]:
+        return self.__state.records()
+
+    def claim_next(self, *, now: datetime, lease_seconds: int) -> PollRecord | None:
+        return self.__state.claim_next(now=now, lease_seconds=lease_seconds)
+
+    def release(self, claimed: PollRecord) -> None:
+        self.__state.release(claimed)
+
+    def replace(self, previous: PollRecord, current: PollRecord) -> None:
+        if current.state is PollItemState.ACCEPTED:
+            raise ValueError("capture receipt required for checkpoint acceptance")
+        self.__state.replace(previous, current)
+
+    def commit_acceptance(
+        self,
+        previous: PollRecord,
+        *,
+        delivery_id: str,
+        receipt: CaptureReceipt,
+    ) -> PollRecord:
+        evidence = self.__evidence
+        expected_delivery_id = f"connector.youtube.{previous.video_id}"
+        if (
+            previous.state is not PollItemState.SEEN
+            or delivery_id != expected_delivery_id
+            or evidence is None
+            or not evidence.authorizes_checkpoint(
+                delivery_id,
+                previous.source_url,
+                receipt,
+            )
+        ):
+            raise ValueError("capture receipt required for checkpoint acceptance")
+        current = PollRecord.from_dict(
+            {
+                **previous.to_dict(),
+                "capture_id": receipt.capture_id,
+                "state": PollItemState.ACCEPTED.value,
+            }
+        )
+        self.__state.replace(previous, current)
+        self.__checkpoint_committed = True
+        return current
+
+
+class YouTubeReferenceTransport:
+    """The connector receives only approved subscriptions and injected media transport."""
+
+    __slots__ = ("__budget", "__media_adapter", "__subscriptions")
+    connector_name = "youtube"
+
+    def __init__(
+        self,
+        *,
+        subscriptions: tuple[YouTubeSubscription, ...],
+        media_adapter: YouTubeMediaAdapter,
+        budget: ConnectorBudget | None = None,
+    ) -> None:
+        if (
+            not isinstance(subscriptions, tuple)
+            or any(not isinstance(item, YouTubeSubscription) for item in subscriptions)
+            or not callable(getattr(media_adapter, "playlist_items", None))
+            or not callable(getattr(media_adapter, "media", None))
+            or (budget is not None and type(budget) is not ConnectorBudget)
+        ):
+            raise ValueError("invalid YouTube reference transport")
+        self.__subscriptions = subscriptions
+        self.__media_adapter = media_adapter
+        self.__budget = budget
+
+    @property
+    def subscriptions(self) -> tuple[YouTubeSubscription, ...]:
+        return self.__subscriptions
+
+    @property
+    def budget(self) -> ConnectorBudget | None:
+        return self.__budget
+
+    def bind_budget(self, budget: ConnectorBudget) -> YouTubeReferenceTransport:
+        if self.__budget is not None or type(budget) is not ConnectorBudget:
+            raise ValueError("invalid YouTube reference transport budget")
+        self.__budget = budget
+        return self
+
+    def playlist_items(self, url: str, *, command: MediaCommand) -> tuple[str, ...]:
+        if self.__budget is None or not self.__budget._consume_fetch():
+            return ()
+        return self.__media_adapter.playlist_items(url, command=command)
+
+    def media(self, video_id: str, *, command: MediaCommand) -> YouTubeMediaResult:
+        if self.__budget is None or not self.__budget._consume_extraction():
+            raise ValueError("YouTube extraction budget exhausted")
+        return self.__media_adapter.media(video_id, command=command)
+
+class YouTubeReferenceConnector:
+    """The synthetic reference proof, constrained to capture-only connector authority."""
+
+    manifest = ConnectorManifest(
+        schema_version=1,
+        name="youtube",
+        version="1",
+        payloads=(ConnectorPayload.REFERENCE_OR_FILE,),
+        schedules=("JOB-029",),
+        secrets=(),
+        action_authorities=(),
+        external_egress=True,
+    )
+
+    def run(self, context: ConnectorRunContext) -> ConnectorRunReceipt:
+        if (
+            not isinstance(context, ConnectorRunContext)
+            or context.capture_identity.connector_name != "youtube"
+            or context.capture_identity.job_id != "JOB-029"
+            or not isinstance(context.transport, YouTubeReferenceTransport)
+            or not isinstance(context.checkpoint, YouTubePollCheckpoint)
+        ):
+            raise ValueError("invalid YouTube connector context")
+        transport = context.transport
+        checkpoint = context.checkpoint
+        discovered = 0
+        for subscription in transport.subscriptions:
+            if not subscription.privacy.authority.external_egress:
+                continue
+            maximum = min(
+                context.budget.remaining_discoveries,
+                context.budget.remaining_extractions,
+                context.budget.remaining_submissions,
+                500,
+            )
+            if maximum < 1:
+                break
+            poller = YouTubePoller(
+                state=checkpoint,
+                media_adapter=transport,
+                max_playlist_items=maximum,
+                clock=context.clock,
+            )
+            requests = poller.request_playlist(
+                subscription.url,
+                privacy=subscription.privacy,
+                requested_at=context.clock(),
+            )
+            created_requests = sum(
+                request.disposition is PollRequestDisposition.CREATED for request in requests
+            )
+            discovered += created_requests
+
+        stubbed = 0
+        poller = YouTubePoller(
+            state=checkpoint,
+            media_adapter=transport,
+            max_playlist_items=1,
+            clock=context.clock,
+        )
+        while context.budget.remaining_extractions:
+            pending = next(
+                (
+                    record
+                    for record in checkpoint.records()
+                    if record.state is PollItemState.REQUESTED
+                    and record.privacy.authority.external_egress
+                ),
+                None,
+            )
+            if pending is None:
+                break
+            result = poller.poll_one(privacy=pending.privacy)
+            if result is None:
+                break
+            stubbed += result.record.state is PollItemState.STUBBED
+
+        created = 0
+        duplicates = 0
+        checkpoint_committed = False
+        for record in checkpoint.records():
+            if (
+                record.state is not PollItemState.SEEN
+                or record.origin is not PollRequestOrigin.PLAYLIST
+                or context.budget.remaining_submissions < 1
+            ):
+                continue
+            payload = _reference_payload(record)
+            delivery_id = f"connector.youtube.{record.video_id}"
+            receipt = context.capture_sink.submit(
+                payload,
+                delivery_id=delivery_id,
+                source_origin=ContentOrigin.THIRD_PARTY,
+                source_reference=payload.url,
+                provenance=Provenance.create(
+                    source_ref=payload.url,
+                    content_origin=ContentOrigin.THIRD_PARTY,
+                    owner_context="automation_absent",
+                ),
+                privacy=(
+                    record.reclassification.replacement
+                    if record.reclassification is not None
+                    else record.privacy
+                ),
+                title=record.extraction.metadata.title if record.extraction is not None else None,
+            )
+            checkpoint.commit_acceptance(
+                record,
+                delivery_id=delivery_id,
+                receipt=receipt,
+            )
+            checkpoint_committed = True
+            if receipt.duplicate:
+                duplicates += 1
+            else:
+                created += 1
+        context.metadata_logger.record("youtube.poll.completed")
+        if not any(
+            (
+                discovered,
+                context.budget.fetched_count,
+                context.budget.extracted_count,
+                context.budget.submitted_count,
+                stubbed,
+                created,
+                duplicates,
+            )
+        ):
+            return ConnectorRunReceipt.empty(
+                self.manifest.name,
+                metadata_count=context.metadata_logger.count,
+            )
+        return ConnectorRunReceipt(
+            connector_name=self.manifest.name,
+            outcome=ConnectorOutcome.COMPLETED,
+            failure_code=None,
+            discovered_count=discovered,
+            fetched_count=context.budget.fetched_count,
+            extracted_count=context.budget.extracted_count,
+            submitted_count=context.budget.submitted_count,
+            stubbed_count=stubbed,
+            created_count=created,
+            duplicate_count=duplicates,
+            checkpoint_committed=checkpoint_committed,
+            metadata_count=context.metadata_logger.count,
+        )
 
 
 class ProductionYouTubePollRuntime:
@@ -152,7 +467,7 @@ class ProductionYouTubePollRuntime:
         self._config = config
         self._state = state
         self._sink = sink
-        self._poller = YouTubePoller(state=state, media_adapter=media_adapter)
+        self._media_adapter = media_adapter
         self._clock = clock
 
     @property
@@ -166,67 +481,41 @@ class ProductionYouTubePollRuntime:
             or not 1 <= max_items <= 1_000
         ):
             raise ValueError("invalid YouTube poll batch")
-        discovered = 0
-        for subscription in self._config.subscriptions:
-            requests = self._poller.request_playlist(
-                subscription.url,
-                privacy=subscription.privacy,
-                requested_at=self._clock(),
+        budget = ConnectorBudget(
+            ConnectorBudgetLimits(
+                max_fetches=_MAX_SUBSCRIPTIONS,
+                max_extractions=max_items,
+                max_submissions=max_items,
             )
-            discovered += sum(
-                request.disposition is PollRequestDisposition.CREATED
-                for request in requests
-            )
-
-        polled = 0
-        stubbed = 0
-        for _ in range(max_items):
-            pending = next(
-                (
-                    record
-                    for record in self._state.records()
-                    if record.state is PollItemState.REQUESTED
+        )
+        evidence = ConnectorRunEvidence()
+        receipt = YouTubeReferenceConnector().run(
+            ConnectorRunContext(
+                capture_identity=ConnectorCaptureIdentity(
+                    "youtube",
+                    "JOB-029",
+                    self._sink.context,
                 ),
-                None,
-            )
-            if pending is None:
-                break
-            result = self._poller.poll_one(privacy=pending.privacy)
-            if not isinstance(result, PollRunResult):
-                break
-            polled += 1
-            stubbed += result.record.state is PollItemState.STUBBED
-
-        created = 0
-        duplicates = 0
-        application = get_capture_job("JOB-029")
-        for record in self._state.records():
-            if (
-                record.state is not PollItemState.SEEN
-                or record.origin is not PollRequestOrigin.PLAYLIST
-            ):
-                continue
-            append = application.submit(sink=self._sink, envelope=_playlist_envelope(record))
-            self._state.replace(
-                record,
-                type(record).from_dict(
-                    {
-                        **record.to_dict(),
-                        "capture_id": append.capture_id,
-                        "state": PollItemState.ACCEPTED.value,
-                    }
+                capture_sink=ConnectorCaptureSink(self._sink, budget, evidence),
+                transport=YouTubeReferenceTransport(
+                    subscriptions=self._config.subscriptions,
+                    media_adapter=self._media_adapter,
+                ).bind_budget(budget),
+                checkpoint=YouTubePollCheckpoint(self._state).bind_run(
+                    budget,
+                    evidence,
                 ),
+                clock=self._clock,
+                budget=budget,
+                metadata_logger=ConnectorMetadataLogger(),
             )
-            if append.disposition.value == "created":
-                created += 1
-            else:
-                duplicates += 1
+        )
         return ProductionYouTubePollResult(
-            discovered_count=discovered,
-            polled_count=polled,
-            stubbed_count=stubbed,
-            created_count=created,
-            duplicate_count=duplicates,
+            discovered_count=receipt.discovered_count,
+            polled_count=receipt.extracted_count,
+            stubbed_count=receipt.stubbed_count,
+            created_count=receipt.created_count,
+            duplicate_count=receipt.duplicate_count,
         )
 
 
@@ -279,42 +568,27 @@ def compose_production_youtube_poll_runtime(
     )
 
 
-def _playlist_envelope(record: object) -> CaptureEnvelope:
-    from open_brain.capture.poll import PollRecord
-
-    if not isinstance(record, PollRecord) or record.extraction is None:
+def _reference_payload(record: PollRecord) -> ReferencePayload:
+    if record.extraction is None:
         raise ValueError("invalid completed playlist record")
     extraction = record.extraction
     shared_text = extraction.transcript or extraction.text
     if (
-        extraction.source_type is not SourceType.YOUTUBE
-        or not shared_text.strip()
+        not shared_text.strip()
         or extraction.assets
     ):
         raise ValueError("invalid completed playlist extraction")
-    privacy = (
-        record.reclassification.replacement
-        if record.reclassification is not None
-        else record.privacy
-    )
-    return CaptureEnvelope.create(
-        source_type=SourceType.YOUTUBE,
-        content_kind=extraction.content_kind,
-        source_url=record.source_url,
-        title=extraction.metadata.title,
-        shared_text=shared_text,
-        captured_at=record.requested_at,
-        capture_why="",
-        capture_why_origin=CaptureWhyOrigin.AUTOMATION_ABSENT,
-        capture_source=CaptureSource.PLAYLIST,
-        provenance=Provenance.create(
-            source_ref=record.source_url,
-            content_origin=ContentOrigin.THIRD_PARTY,
-            owner_context=CaptureWhyOrigin.AUTOMATION_ABSENT,
-        ),
-        raw_assets=(),
-        privacy_decision=privacy,
-    )
+    return ReferencePayload(record.source_url, shared_text)
+
+
+def _canonical_json_bytes(value: object) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
 
 
 def _mapping(value: object) -> Mapping[str, object]:
@@ -335,9 +609,12 @@ def _reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
 __all__ = [
     "ProductionYouTubePollResult",
     "ProductionYouTubePollRuntime",
+    "YouTubePollCheckpoint",
     "YouTubePollConfig",
     "YouTubePollConfigError",
     "YouTubeSubscription",
+    "YouTubeReferenceConnector",
+    "YouTubeReferenceTransport",
     "compose_production_youtube_poll_runtime",
     "load_private_youtube_config",
 ]

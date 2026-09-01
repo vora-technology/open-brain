@@ -805,6 +805,11 @@ class PublicJobCaptureSink:
         self._capture = capture
         self._context = context
 
+    @property
+    def context(self) -> PublicJobCaptureContext:
+        """Expose only the validated capture actor and role claim bound to this sink."""
+        return self._context
+
     def submit(
         self,
         payload: Payload,
