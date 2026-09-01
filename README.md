@@ -2,7 +2,7 @@
 
 Open Brain is a local-first capture, provenance, review, and knowledge pipeline. It is being built as the single public implementation that will replace two private predecessor codebases after behavioral parity and a controlled production cutover.
 
-The Phase 2 boundary is one single-user local profile rooted at one private Brain directory. An engine task set supplies capture, inbox/spaces, review, retrieval, and Portable Brain operations to the CLI, authenticated HTTP/share, local UI, scoped stdio MCP, and public-job representations. The internal connector host is optional and empty by default. Private deployment configuration, live service state, migration evidence, and cutover receipts remain outside this repository.
+The Phase 3 source-checkout boundary is one single-user local appliance rooted at one private Brain directory. One daemon owns mutation authority, internal scheduling, and the authenticated local HTTP/UI surface. Engine tasks supply capture, inbox/spaces, review, retrieval, reconciliation, backup, and Portable Brain operations. Private deployment configuration, live service state, migration evidence, and cutover receipts remain outside this repository.
 
 ## Principles
 
@@ -24,6 +24,18 @@ permissions and reuses its stable local identity on later runs.
 
 ```bash
 export OPEN_BRAIN_ROOT="$HOME/open-brain-data"
+uv run open-brain init --json
+```
+
+Start the source-checkout daemon in one terminal:
+
+```bash
+uv run python -m open_brain.services.appliance_daemon --root "$OPEN_BRAIN_ROOT"
+```
+
+Then use the owner CLI from another terminal:
+
+```bash
 uv run open-brain spaces create "Projects" --delivery=setup-projects --json
 uv run open-brain capture quick text "Review the roadmap" --delivery=capture-roadmap --json
 uv run open-brain inbox list --json
@@ -65,11 +77,12 @@ The denylist contains one private term per line. Blank lines and lines beginning
 
 ## Status
 
-The Phase 2 in-place vertical slice supports one local Brain root, stable portable identities,
+The Phase 3 source-checkout appliance supports one local Brain root, stable portable identities,
 typed capture, spaces, inbox routing, sibling review proposals, terminal decisions, canonical
-Markdown publication, and lexical retrieval. The CLI, authenticated HTTP/share boundary, local
-UI, scoped MCP, and public-job sinks use bounded capabilities over the same engine task objects.
-With no model configured, captures remain usable and report `pending_enrichment`.
+Markdown publication, direct-edit reconciliation, lexical retrieval, immutable backup, disposable
+restore, and distinct Portable export/import. The CLI, authenticated HTTP/share boundary, local UI,
+scoped MCP, and public-job sinks use bounded capabilities over the same engine task objects. With
+no model configured, captures remain usable and report `pending_enrichment`.
 
 This is pre-alpha software. Phase 2 implements engine-level Portable Brain validation, export,
 clean-root import, and disposable index rebuild. Export and import preserve portable identities,
@@ -82,11 +95,12 @@ evidence binds accepted captures to checkpoint advancement.
 The public result projection exposes opaque IDs, bounded provenance, and safe titles/excerpts,
 not raw or encoded protected references, absolute paths, credentials, storage-derived slugs and
 paths, or bare SHA-256 tokens.
-Phase 2 does not include the Phase 3 appliance lifecycle: initialization, one supervised daemon,
-internal scheduling, launchd/systemd integration, backup/restore, upgrade, or uninstall. Phase 4
-defers the physical distributions and `packages/` split, isolated connector workers, public
-Connector SDK, signing, and bundler/native artifact work. Predecessor modules remain retained
-legacy compatibility code and are excluded from the default application path.
+Phase 3 also defines source-checkout upgrade, rollback, and data-preserving uninstall through an
+injected artifact lifecycle port, with launchd/systemd adapter evidence on Linux and macOS CI. The
+default native-artifact effect remains unavailable. Phase 4 owns physical distributions, clean-host
+and prior-artifact proofs, signing, publishing, the `packages/` split, isolated connector workers,
+and bundler/native artifact work. Predecessor modules remain retained legacy compatibility code and
+are excluded from the default application path.
 
 ## License
 

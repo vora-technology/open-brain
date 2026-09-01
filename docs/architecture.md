@@ -82,6 +82,17 @@ daemon control socket submits durable owner-requested `backup-create`, `portable
 `portable-import` jobs to the scheduler attached to the daemon's existing application. They are
 replay-safe requests, not recurring background work. Mutable scheduler state is recreated after a
 restore so retry bookkeeping cannot change the identity of an already published backup.
+Phase 3 W5 keeps upgrade and uninstall at the app boundary. `services/appliance_lifecycle.py`
+defines the typed `ArtifactLifecyclePort` for bounded candidate identity, compatibility preflight,
+activation, rollback, and removal receipts. Source checkout proves that orchestration only through
+injected fake or disposable adapters, verified backup plus disposable-restore preflight, versioned
+engine and app migration evidence, authority-preserving restart checks, post-migration doctor, and
+data-preserving uninstall. The default artifact effect boundary stays fail-closed; no shipping path
+in this monolith installs or removes a native artifact directly. A distinct kernel-backed lifecycle
+lease serializes owner requests, while canonical root-confined journals preserve request identity,
+stage, terminal receipt, conflict detection, and crash rollback across processes. The source-checkout
+CLI exposes upgrade and uninstall only when composition injects that lifecycle port; it does not run
+the self-restarting lifecycle inside the daemon control loop.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that
@@ -122,4 +133,7 @@ remain exact.
 Phase 3 owns the appliance lifecycle: initialization, one supervised daemon, internal scheduling,
 launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. Phase 4 owns
 the physical distributions and `packages/` split, isolated connector workers, the public Connector
-SDK and signing, and native artifact/bundler work. The retained monolith is the Phase 2 boundary.
+SDK and signing, and native artifact/bundler work. Phase 4 is also the first place allowed to add
+the real native-artifact adapter, prior-release artifact upgrade evidence, clean-host install-time
+claims, signed package residue scans, publication, or deployment. The retained monolith is the
+Phase 2 boundary.

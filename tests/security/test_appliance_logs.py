@@ -16,6 +16,10 @@ from open_brain.services.appliance_init import (
     APPLIANCE_OWNER_CREDENTIAL,
     initialize_appliance,
 )
+from open_brain.services.appliance_lifecycle import (
+    ApplianceLifecycleError,
+    ApplianceLifecycleFailureReceipt,
+)
 from open_brain.services.appliance_scheduler import (
     APPLIANCE_SCHEDULER_DIRECTORY,
     ApplianceRunReceipt,
@@ -150,6 +154,30 @@ def test_browser_run_history_route_stays_metadata_only_and_root_confined(tmp_pat
     assert "https://example.test/private?token=secret" not in rendered
     assert cookie not in rendered
     assert login_json["csrf_token"] not in rendered
+
+
+def test_appliance_lifecycle_failures_stay_bounded_for_log_envelopes() -> None:
+    error = ApplianceLifecycleError(
+        ApplianceLifecycleFailureReceipt(
+            operation="upgrade",
+            request_id="upgrade_123e4567-e89b-42d3-a456-4266141744aa",
+            status="failed",
+            failure_stage="doctor",
+            candidate_id="candidate_source-checkout-v110",
+            prior_candidate_id="candidate_current-v1",
+            active_candidate_id="candidate_current-v1",
+            rollback_state="rollback_failed",
+        )
+    )
+    rendered = json.dumps(error.receipt.to_dict(), sort_keys=True)
+
+    assert str(error) == "appliance lifecycle failed"
+    assert "/private/brain-root" not in rendered
+    assert "/private/backup-root" not in rendered
+    assert "/private/candidate-checkout" not in rendered
+    assert "password=secret" not in rendered
+    assert "RuntimeError" not in rendered
+    assert "/private/brain-root" not in str(error)
 
 
 def _wait_for(path: Path, *, timeout_seconds: float = 5.0) -> None:

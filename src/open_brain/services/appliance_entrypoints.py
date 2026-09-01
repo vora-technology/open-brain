@@ -10,6 +10,7 @@ import stat
 import sys
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Protocol
 
 from open_brain import __version__
 from open_brain.cli._common import (
@@ -30,6 +31,11 @@ from open_brain.services.appliance_daemon import (
 )
 from open_brain.services.appliance_init import ApplianceInitError, initialize_appliance
 from open_brain.services.appliance_lifecycle import (
+    ApplianceLifecycleError,
+    ApplianceUninstallReceipt,
+    ApplianceUpgradeReceipt,
+    ArtifactCandidate,
+    OwnerLifecycleRequest,
     dispatch_phase1_command,
     read_status_via_control,
     run_supervisor_action,
@@ -37,15 +43,34 @@ from open_brain.services.appliance_lifecycle import (
 from open_brain.services.appliance_status import read_appliance_status
 from open_brain.services.appliance_supervisors import SupervisorCommandError
 from open_brain.services.mcp_stdio import serve_stdio_mcp
+from open_brain.storage.operational import StorageError
 
 _PHASE1_COMMANDS = frozenset({"capture", "inbox", "proposals", "query", "review", "spaces"})
 _MCP_SPACE_ID = re.compile(r"space_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
+
+
+class LifecycleCommandPort(Protocol):
+    def upgrade(
+        self,
+        *,
+        owner_request: OwnerLifecycleRequest | None,
+        candidate: ArtifactCandidate,
+        backup_destination: Path,
+        disposable_root: Path,
+    ) -> ApplianceUpgradeReceipt: ...
+
+    def uninstall(
+        self,
+        *,
+        owner_request: OwnerLifecycleRequest | None,
+    ) -> ApplianceUninstallReceipt: ...
 
 
 def run_cli(
     argv: tuple[str, ...] | list[str] | None = None,
     *,
     environment: Mapping[str, object] | None = None,
+    lifecycle: LifecycleCommandPort | None = None,
 ) -> int:
     env = os.environ if environment is None else environment
     arguments = tuple(sys.argv[1:] if argv is None else argv)
@@ -90,6 +115,17 @@ def run_cli(
         if command == "supervisor":
             _write_json(_supervisor_payload(root, command_argv))
             return ExitCode.SUCCESS
+        if command in {"upgrade", "uninstall"}:
+            if lifecycle is None:
+                write_envelope(
+                    unavailable_envelope(command),
+                    json_output=json_output,
+                    stream=sys.stdout,
+                )
+                return ExitCode.FAILURE
+            lifecycle_receipt = _run_lifecycle_command(lifecycle, command, command_argv)
+            _write_json(lifecycle_receipt.to_dict())
+            return ExitCode.SUCCESS
         if command == "query":
             return _query(root, command_argv, json_output=json_output)
         if command in _PHASE1_COMMANDS:
@@ -102,10 +138,19 @@ def run_cli(
     except ApplianceInitError as error:
         _write_json(error.receipt.to_dict())
         return ExitCode.CONFIGURATION
+    except ApplianceLifecycleError as error:
+        _write_json(error.receipt.to_dict())
+        return ExitCode.FAILURE
     except (ProfileError, ReadViewUnavailableError):
         _write_json(_configuration_failure())
         return ExitCode.CONFIGURATION
-    except (ApplianceControlProtocolError, OSError, SupervisorCommandError, TimeoutError):
+    except (
+        ApplianceControlProtocolError,
+        OSError,
+        StorageError,
+        SupervisorCommandError,
+        TimeoutError,
+    ):
         write_envelope(
             adapter_failed_envelope(command),
             json_output=json_output,
@@ -171,6 +216,27 @@ def _parser() -> argparse.ArgumentParser:
         "supervisor",
         help="Discover or control the local appliance daemon unit.",
     )
+    upgrade_parser = subparsers.add_parser(
+        "upgrade",
+        help="Run owner-approved source-checkout upgrade orchestration.",
+    )
+    for option in (
+        "request-id",
+        "requested-at",
+        "candidate-id",
+        "version",
+        "backup-destination",
+        "disposable-root",
+    ):
+        upgrade_parser.add_argument(f"--{option}")
+    upgrade_parser.add_argument("--confirm-owner", action="store_true")
+    uninstall_parser = subparsers.add_parser(
+        "uninstall",
+        help="Remove source-checkout app state while preserving Brain data.",
+    )
+    uninstall_parser.add_argument("--request-id")
+    uninstall_parser.add_argument("--requested-at")
+    uninstall_parser.add_argument("--confirm-owner", action="store_true")
     for command in sorted(_PHASE1_COMMANDS):
         subparsers.add_parser(command, help=f"{command} commands")
     return parser
@@ -291,6 +357,46 @@ def _supervisor_payload(root: Path, argv: tuple[str, ...]) -> dict[str, object]:
     if len(argv) != 1:
         raise ValueError("invalid supervisor arguments")
     return run_supervisor_action(root, action=argv[0])
+
+
+def _run_lifecycle_command(
+    lifecycle: LifecycleCommandPort,
+    command: str,
+    argv: tuple[str, ...],
+) -> ApplianceUpgradeReceipt | ApplianceUninstallReceipt:
+    positional, options, flags = _request(argv)
+    if positional or flags != {"confirm-owner"}:
+        raise ValueError("explicit owner lifecycle request is required")
+    if command == "uninstall":
+        if set(options) != {"request-id", "requested-at"}:
+            raise ValueError("invalid uninstall request")
+        return lifecycle.uninstall(
+            owner_request=OwnerLifecycleRequest(
+                request_id=options["request-id"],
+                requested_at=options["requested-at"],
+            )
+        )
+    if command != "upgrade" or set(options) != {
+        "backup-destination",
+        "candidate-id",
+        "disposable-root",
+        "request-id",
+        "requested-at",
+        "version",
+    }:
+        raise ValueError("invalid upgrade request")
+    return lifecycle.upgrade(
+        owner_request=OwnerLifecycleRequest(
+            request_id=options["request-id"],
+            requested_at=options["requested-at"],
+        ),
+        candidate=ArtifactCandidate(
+            candidate_id=options["candidate-id"],
+            version=options["version"],
+        ),
+        backup_destination=Path(options["backup-destination"]),
+        disposable_root=Path(options["disposable-root"]),
+    )
 
 
 def _offline_query_envelope(

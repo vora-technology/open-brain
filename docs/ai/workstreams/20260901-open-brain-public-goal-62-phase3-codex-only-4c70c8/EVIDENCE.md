@@ -224,3 +224,40 @@
 - No real credential, persistent service, production system, private
   predecessor, package publication, deployment, live Brain data, or unrelated
   PR was touched.
+
+## P3-W5: upgrade, uninstall, host-family CI, and Phase 4 lock
+
+- Worker `P3-W5-IMPLEMENT-01` used Codex `gpt-5.4` high and passed 40 focused
+  plus 58 architecture tests. It reported two clean-exit gaps: replay existed
+  only in memory, and no owner CLI/daemon path could reach lifecycle
+  orchestration.
+- Coordinator review added four initial red regressions proving that process
+  restart reran upgrade/uninstall effects, mismatched recovery evidence was
+  accepted, incomplete migrations could succeed, and CLI injection was
+  absent. All four passed after repair.
+- Additional regressions prove activation effect-before-receipt recovery and
+  concurrent-process exclusion. A canonical root-confined journal records
+  request identity, stage, and terminal receipt; a distinct kernel-backed
+  lifecycle lease prevents an active request from being mistaken for a crash.
+  Interrupted forward work rolls back once, persists a bounded failure, and
+  does not repeat on later replay.
+- Upgrade now requires candidate/compatibility continuity, exact backup and
+  disposable-preflight identity/digest continuity, engine then app migration
+  receipts over the same version edge, candidate activation, active
+  supervisor status, and healthy doctor evidence. Every failed forward stage
+  records rollback disposition and cannot declare success.
+- Uninstall requires a separate confirmed owner request and orders daemon
+  stop, one supervisor-unit removal, then artifact-port removal. Root identity
+  and canonical/Portable bytes are preserved by default; no purge argument or
+  method exists.
+- The source-checkout CLI exposes typed upgrade/uninstall commands only
+  through an injected lifecycle port. Its default remains unavailable, so
+  Phase 3 has no native artifact effect. Linux full verification remains in
+  CI; a pinned macOS job runs lifecycle and launchd/systemd adapter evidence.
+- Final focused Pytest passed 47 tests. Architecture/lock Pytest passed 88
+  tests. Full Ruff, strict MyPy on 474 source files, and `git diff --check`
+  passed. Sanitized `make verify` passed 3,111 tests, wheel/sdist builds, and
+  artifact policy.
+- No launchctl/systemctl command, real supervisor unit, native artifact,
+  package publication, deployment, production system, private predecessor,
+  real credential, or live Brain data was touched.

@@ -152,3 +152,25 @@
 - Why: one daemon must retain one authority, one application state, and one
   mutation path. Backup, Portable export, and Portable import remain distinct
   durable jobs on that path.
+
+## D-016: run self-restarting lifecycle outside the daemon control loop
+
+- Chosen: expose upgrade and uninstall through the owner CLI only when
+  source-checkout composition injects an `ArtifactLifecyclePort`; keep the
+  default command path unavailable and fail closed.
+- Rejected: execute supervisor restart or removal from a request handler inside
+  the daemon that is being restarted or removed.
+- Why: lifecycle must preserve a response/rollback coordinator while daemon
+  authority transitions. Phase 3 proves the app contract with injected
+  adapters; Phase 4 supplies the real native-artifact composition.
+
+## D-017: pair lifecycle journals with a distinct root lease
+
+- Chosen: persist canonical bounded request/stage/terminal records below the
+  root and hold one kernel-backed `appliance-lifecycle` lease for the full
+  upgrade or uninstall attempt.
+- Rejected: in-memory replay, and treating every observed pending record as a
+  crashed process without proving that another process is not still active.
+- Why: the journal makes restart replay and conflict detection durable; the
+  lease distinguishes a crash from concurrency so a second process cannot
+  roll back active forward work.

@@ -103,5 +103,6 @@ snapshot; a later pathname read cannot substitute different bytes.
 canonical bytes, JSONL corrections, same-family supersession, cross-record receipt and digest
 chains, canonical-page privacy, root confinement, symlink rejection, operational exclusion, the
 complete checked-in fixture, semantic tamper rejection, and an exact-byte clean-root round trip.
-These helpers cover the engine contract. Phase 2 uses the engine task interface for the local
-journey; hosted runtime, backup/restore, upgrade, and uninstall orchestration remain deferred.
+These helpers cover the engine contract. Phase 3 composes backup/restore, upgrade, and uninstall as
+separate app-owned source-checkout lifecycles without changing Portable Brain semantics. Hosted
+runtime and native-artifact evidence remain deferred.

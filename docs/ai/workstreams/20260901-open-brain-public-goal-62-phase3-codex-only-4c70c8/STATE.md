@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0 and `P3-W0` through `P3-W4` clean checkpoints complete.
+- Status: in progress; Gate 0 and `P3-W0` through `P3-W5` clean checkpoints complete.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -37,5 +37,9 @@
 - P3-W4 behavior evidence: backup manifests bind exact Portable bytes, SQLite backup-API snapshots, and schema-validated immutable app receipts; mutable scheduler state and credentials remain excluded. Restore regenerates credentials, initializes scheduler state, rebuilds retrieval, and checks appliance health only on disposable roots.
 - P3-W4 failure evidence: bounded no-follow scans reject missing, changed, symlinked, malformed, over-budget, or identity-shifted Markdown and app state. Backup/restore containment, invalid SQLite, forbidden inventory, credential-shaped app state, pre-promotion interruption, post-promotion replay, effect-before-receipt replay, and timestamp inversion all fail closed or replay safely.
 - P3-W4 verification: 96 focused tests, full Ruff, strict MyPy on 472 source files, full sanitized `make verify` with 3,091 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
-- Current subphase: `P3-W5` ready after the W4 checkpoint gates.
-- Next action: commit and push the W4 checkpoint, then dispatch one Codex W5 writer for source-checkout upgrade, uninstall, supervisor evidence, and the Phase 4 boundary lock.
+- P3-W5 status: clean checkpoint complete across typed artifact lifecycle ports, explicit owner upgrade/uninstall requests, durable lifecycle journals, crash/concurrency-safe rollback, data-preserving removal, source-checkout CLI injection, and macOS/Linux CI evidence.
+- P3-W5 behavior evidence: upgrade binds compatible candidate, verified backup, matching disposable preflight, exact engine/app migrations, activation, active restart, and healthy doctor receipts. Uninstall orders stop, one supervisor removal, and artifact removal while preserving the root and exposing no purge surface.
+- P3-W5 failure evidence: missing owner confirmation, request conflicts, mismatched recovery evidence, incomplete migrations, forward-stage errors, rollback failure, effect-before-receipt interruption, concurrent lifecycle requests, path residue, and absent artifact composition all fail closed with bounded receipts.
+- P3-W5 verification: 47 focused tests, 88 architecture/lock tests, full Ruff, strict MyPy on 474 source files, full sanitized `make verify` with 3,111 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
+- Current subphase: `P3-W6` ready after the W5 checkpoint gates.
+- Next action: commit and push the W5 checkpoint, then run exact-candidate audits, gotcha capture, and the reserved fresh read-only Codex review.

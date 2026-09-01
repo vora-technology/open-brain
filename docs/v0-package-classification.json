@@ -1358,7 +1358,9 @@
     "services/appliance_lifecycle.py": {
       "owner": "app",
       "api": "internal",
-      "roles": []
+      "roles": [
+        "lifecycle"
+      ]
     },
     "services/appliance_recovery.py": {
       "owner": "app",

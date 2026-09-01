@@ -35,6 +35,13 @@ from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiRequest
 from open_brain.operations.scheduled_results import ScheduledDispatchResult
 from open_brain.services.appliance_init import APPLIANCE_OWNER_CREDENTIAL, initialize_appliance
+from open_brain.services.appliance_lifecycle import (
+    ApplianceLifecycleError,
+    ApplianceLifecycleFailureReceipt,
+    ApplianceUninstallReceipt,
+    ApplianceUpgradeReceipt,
+    LifecycleMigrationReceipt,
+)
 from open_brain.services.appliance_status import read_appliance_status
 from open_brain.services.mcp_stdio import serve_stdio_mcp
 from open_brain.services.phase1_application import SingleUserLocalApplication
@@ -375,3 +382,68 @@ def test_appliance_status_does_not_leak_private_paths_or_generated_credentials(
         protected=(credential, str(root)),
         digests=(sha256(credential.encode("utf-8")).hexdigest(),),
     )
+
+
+def test_appliance_lifecycle_receipts_do_not_leak_paths_or_raw_failures() -> None:
+    protected = (
+        "/private/brain-root",
+        "/private/backup-root",
+        "/private/candidate-checkout",
+        "password=secret",
+        "RuntimeError: secret",
+    )
+    digests = tuple(sha256(value.encode("utf-8")).hexdigest() for value in protected)
+    values = (
+        ApplianceUpgradeReceipt(
+            request_id="upgrade_123e4567-e89b-42d3-a456-4266141744ab",
+            status="upgraded",
+            candidate_id="candidate_source-checkout-v110",
+            prior_candidate_id="candidate_current-v1",
+            active_candidate_id="candidate_source-checkout-v110",
+            compatibility_state="compatible",
+            backup_id="backup_123e4567-e89b-42d3-a456-4266141744ac",
+            manifest_digest_sha256="a" * 64,
+            preflight_state="ready",
+            migrations=(
+                LifecycleMigrationReceipt(
+                    component="engine",
+                    from_version="1.0.0",
+                    to_version="1.1.0",
+                    status="applied",
+                ),
+                LifecycleMigrationReceipt(
+                    component="app",
+                    from_version="1.0.0",
+                    to_version="1.1.0",
+                    status="applied",
+                ),
+            ),
+            activation_state="activated",
+            restart_state="restarted",
+            doctor_state="healthy",
+        ).to_dict(),
+        ApplianceUninstallReceipt(
+            request_id="uninstall_123e4567-e89b-42d3-a456-4266141744ad",
+            status="uninstalled",
+            prior_candidate_id="candidate_current-v1",
+            daemon_stop_state="stopped",
+            supervisor_remove_state="removed",
+            artifact_remove_state="removed",
+            brain_root_state="preserved",
+        ).to_dict(),
+        ApplianceLifecycleError(
+            ApplianceLifecycleFailureReceipt(
+                operation="upgrade",
+                request_id="upgrade_123e4567-e89b-42d3-a456-4266141744ae",
+                status="failed",
+                failure_stage="doctor",
+                candidate_id="candidate_source-checkout-v110",
+                prior_candidate_id="candidate_current-v1",
+                active_candidate_id="candidate_current-v1",
+                rollback_state="rollback_failed",
+            )
+        ).receipt.to_dict(),
+    )
+
+    for value in values:
+        _assert_no_public_residue(value, protected=protected, digests=digests)

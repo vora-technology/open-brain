@@ -75,9 +75,11 @@ These are exit classes, not a promise that every command currently reaches every
 
 ## Current appliance boundary
 
-The Phase 3 appliance CLI adds `init`, `status`, and supervisor lifecycle commands around the six
-retained Phase 1 families. Upgrade, uninstall, and Portable export/import remain absent until their
-later Phase 3 waves. The retained Phase 0 parser is characterization data, not an installed
+The Phase 3 appliance CLI adds `init`, `status`, supervisor, `upgrade`, and `uninstall` commands
+around the six retained Phase 1 families. Upgrade and uninstall require explicit owner confirmation
+and an injected source-checkout lifecycle port; the default native-artifact effect fails closed.
+Portable export/import remain distinct app/daemon recovery operations rather than aliases of backup
+or lifecycle commands. The retained Phase 0 parser is characterization data, not an installed
 entrypoint.
 
 The same boundary applies to command-specific help snapshots and delegated `ledger`/`migrate` grammars: they remain concerns for later work rather than new Phase 0 behavior.

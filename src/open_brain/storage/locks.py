@@ -47,6 +47,7 @@ _IDENTITY = re.compile(r"[a-z][a-z0-9-]{0,63}")
 _BACKUP_PROFILES = frozenset({"capture", "full", "personal", "runtime-state"})
 _DISCRIMINATORS = {
     LockScope.DAEMON_AUTHORITY: frozenset({"daemon-authority"}),
+    LockScope.APPLIANCE_LIFECYCLE: frozenset({"appliance-lifecycle"}),
     LockScope.SHARED_WRITER: frozenset({"shared-writer"}),
     LockScope.INDEX: frozenset({"index"}),
     LockScope.BACKUP_PROFILE: _BACKUP_PROFILES,
@@ -61,6 +62,7 @@ _LOCK_DIRECTORY = ".open-brain-locks"
 _LOCK_FILE_NAMES = frozenset(
     {
         "lease.daemon-authority",
+        "lease.appliance-lifecycle",
         "lease.shared-writer",
         "lease.index",
         "lease.ingress",
