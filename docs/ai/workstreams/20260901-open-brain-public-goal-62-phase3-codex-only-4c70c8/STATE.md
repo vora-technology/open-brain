@@ -41,5 +41,6 @@
 - P3-W5 behavior evidence: upgrade binds compatible candidate, verified backup, matching disposable preflight, exact engine/app migrations, activation, active restart, and healthy doctor receipts. Uninstall orders stop, one supervisor removal, and artifact removal while preserving the root and exposing no purge surface.
 - P3-W5 failure evidence: missing owner confirmation, request conflicts, mismatched recovery evidence, incomplete migrations, forward-stage errors, rollback failure, effect-before-receipt interruption, concurrent lifecycle requests, path residue, and absent artifact composition all fail closed with bounded receipts.
 - P3-W5 verification: 47 focused tests, 88 architecture/lock tests, full Ruff, strict MyPy on 474 source files, full sanitized `make verify` with 3,111 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
-- Current subphase: `P3-W6` ready after the W5 checkpoint gates.
-- Next action: commit and push the W5 checkpoint, then run exact-candidate audits, gotcha capture, and the reserved fresh read-only Codex review.
+- P3-W5 clean checkpoint: `45fb70da13f23d7b5f02328c5e09a6abdc40d281`, pushed to `origin/goal/open-brain-phase3` and recorded on child goal `#62`.
+- Current subphase: `P3-W6` exact-candidate preparation; Phase 3 gotchas are captured and the final child slot is reserved for the fresh read-only Codex review.
+- Next action: commit the P3-W6 governance candidate, run every same-commit source/artifact/history gate with one synthetic canary, then review that exact SHA.

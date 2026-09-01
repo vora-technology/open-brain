@@ -261,3 +261,16 @@
 - No launchctl/systemctl command, real supervisor unit, native artifact,
   package publication, deployment, production system, private predecessor,
   real credential, or live Brain data was touched.
+- Clean checkpoint `45fb70da13f23d7b5f02328c5e09a6abdc40d281` is pushed to
+  `origin/goal/open-brain-phase3`; sanitized evidence is recorded on child
+  goal `#62`.
+
+## P3-W6: exact-candidate preparation
+
+- New backup and lifecycle surprises are captured in the repository gotcha
+  registry before the candidate commit.
+- The twelfth and final child slot is reserved for `P3-W6-REVIEW-01`, a fresh
+  read-only Codex review of the exact candidate SHA.
+- Same-commit test, static, build, source/artifact audit, history audit, and
+  diff evidence will be recorded against the immutable candidate after this
+  governance update is committed.
