@@ -327,6 +327,19 @@ supported ordering without runtime configuration.
 
 Discovered: 2026-08-31.
 
+### PRIVACY-004: Case-insensitive values have many reversible digests
+
+Symptom: A protected URL is removed regardless of case, but the SHA-256 of a case-varied spelling
+still appears in a public result.
+
+Cause: The projection knew the canonical value's digest but could not enumerate every
+case-equivalent preimage digest.
+
+Fix: Treat standalone SHA-256-shaped output tokens as private residue. Use prefixed opaque record
+IDs for public correlation instead of publishing bare content hashes.
+
+Discovered: 2026-08-31.
+
 ### PORTABLE-002: Promote the exact validated snapshot
 
 Symptom: Validation succeeds, but the bytes materialized or promoted during import/export differ

@@ -12,7 +12,7 @@
 ## Current milestone
 
 - Milestone: P2-W5 complete Phase 2 boundary reconciliation
-- Status: first exact clean-commit review findings repaired and locally verified; repair commit and fresh exact-commit rereview pending
+- Status: second exact clean-commit review found one P2 digest variant; the bounded fix and cross-surface regression are locally verified, with final commit and rereview pending
 - Allowed scope: zero-debt ownership, isolated engine imports, bounded representation capabilities, public-result projection, default app entrypoints, Phase 1 journey, documentation/gotcha reconciliation, final verification, review, PR, and merge
 - Stop condition: PR or merge begins before one clean candidate passes every final gate and a fresh independent Codex review returns READY with P0/P1/P2 at 0/0/0
 - Code checkpoint: `555ae02` truthful zero-debt classification, app-owned default entrypoints, minimized task capabilities, encoded/typed public-result projection, engine isolation, docs, and regressions
@@ -56,6 +56,7 @@
 - Chosen: compare protected output literals after bounded decoding with case-insensitive matching. Rejected: exact-case replacement that lets equivalent scheme/host variants survive. Reason: public projection must fail closed across representation changes even when the underlying source canonicalization differs.
 - Chosen: generate MCP retrieval IDs with cryptographic randomness independent of the query. Rejected: full or truncated query digests. Reason: dictionary-verifiable derivatives are not opaque metadata and can disclose private query membership.
 - Chosen: define a committed handoff's `head` as its enclosing Git candidate while separately naming the implementation checkpoint. Rejected: claiming a handoff file can contain the SHA of the commit that contains itself. Reason: self-referential Git hashes are impossible; the packet must state the distinction explicitly.
+- Chosen: remove every standalone SHA-256-shaped token from public task text after bounded decoding. Rejected: enumerating the unbounded digests of every case-equivalent protected value or exposing unrelated bare content hashes. Reason: bare hashes are dictionary-verifiable metadata; public correlation uses prefixed opaque IDs instead.
 
 ## Dispatch ledger
 
@@ -81,8 +82,9 @@
 - P2-W5 implementation: separate Codex source and documentation workers completed the zero-debt source/security/classification and docs/gotcha changes; coordinator reproduced the worker-local macOS sandbox limitation and the exact test passed
 - P2-W5 pre-review: one fresh read-only Codex review returned NEEDS_FIX with P0/P1/P2 `0/2/2`; one Codex repair worker and coordinator changes resolved installed legacy loading, encoded/query residue, direct typed path residue, cloud loading, command-specific help, and prefix dry-run safety
 - P2-W5 exact-candidate review: `W5-FINAL-REVIEW-01` returned NEEDS_FIX with P0/P1/P2 `0/2/2`; it demonstrated case-varied source residue, query-derived MCP IDs, root-required combined version flags, and an ambiguous handoff head
-- P2-W5 children: 10 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
+- P2-W5 exact-candidate rereview: `W5-FINAL-REREVIEW-01` passed all four prior-finding checks and returned NEEDS_FIX with P0/P1/P2 `0/0/1` for the bare digest of a case-varied protected reference
+- P2-W5 children: 11 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Verify and commit the exact-candidate review repairs, rerun every final gate on the new clean commit, then dispatch a fresh read-only Codex architecture/privacy rereview.
+Commit the bare-digest repair, rerun every final gate on the new clean commit, then use the final available fresh Codex review slot for the exact-candidate READY verdict.

@@ -31,8 +31,8 @@ keeps the retry cursor so later work is not starved and the evidence remains ret
 Ledger model text is untrusted. Sanitized leaves are one line, escaped, redaction-checked, directive-checked, and revalidated at merge and synthesis boundaries. Third-party source text can enter review records for audit, but owner-authored output contains only owner text and a deterministic opaque capture reference.
 
 All public task and representation results use an engine-owned projection after storage and
-ranking. It protects raw and bounded percent/HTML-encoded source references, their bare SHA-256
-digests, absolute POSIX/Windows paths, credential assignments, storage-derived space slugs and
+ranking. It protects raw and bounded percent/HTML-encoded source references, bare SHA-256-shaped
+tokens, absolute POSIX/Windows paths, credential assignments, storage-derived space slugs and
 canonical paths, and other protected literals while retaining useful searchable text, opaque IDs,
 and bounded provenance. Query explanations never echo query terms, and MCP retrieval IDs are
 random opaque values rather than hashes or other derivatives of the query. Renderers consume the

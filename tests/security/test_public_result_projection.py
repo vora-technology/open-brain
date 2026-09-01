@@ -15,9 +15,13 @@ def test_public_result_projection_redacts_bounded_percent_and_html_encodings() -
     protected = "https://example.test/private-reference"
     digest = sha256(protected.encode("utf-8")).hexdigest()
     case_varied = "HTTPS://EXAMPLE.TEST/private-reference"
+    case_varied_digest = sha256(case_varied.encode("utf-8")).hexdigest()
     html_encoded = "".join(f"&#{ord(character)};" for character in protected)
     html_case_varied = "".join(f"&#{ord(character)};" for character in case_varied)
     html_digest = "".join(f"&#x{ord(character):x};" for character in digest)
+    html_case_varied_digest = "".join(
+        f"&#x{ord(character):x};" for character in case_varied_digest
+    )
     encoded_values = (
         protected,
         case_varied,
@@ -27,8 +31,10 @@ def test_public_result_projection_redacts_bounded_percent_and_html_encodings() -
         html_encoded,
         html_case_varied,
         digest,
+        case_varied_digest,
         quote(digest, safe=""),
         html_digest,
+        html_case_varied_digest,
     )
 
     for value in encoded_values:

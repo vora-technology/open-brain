@@ -388,6 +388,7 @@ _PUBLIC_CREDENTIAL_ASSIGNMENT = re.compile(
 )
 _PUBLIC_POSIX_PATH = re.compile(r"(?<![:/\w])/(?:[^\s<>\"']+)")
 _PUBLIC_WINDOWS_PATH = re.compile(r"(?<![A-Za-z0-9])(?:[A-Za-z]:[\\/]|\\\\)[^\s<>\"']+")
+_PUBLIC_BARE_SHA256 = re.compile(r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])")
 _PUBLIC_LITERAL_MARKER = "[protected]"
 _PUBLIC_PATH_MARKER = "[private-path]"
 _PUBLIC_CREDENTIAL_MARKER = "[redacted]"
@@ -440,6 +441,7 @@ def project_public_result_text(
     result = _PUBLIC_CREDENTIAL_ASSIGNMENT.sub(
         rf"\1\2{_PUBLIC_CREDENTIAL_MARKER}", result
     )
+    result = _PUBLIC_BARE_SHA256.sub(_PUBLIC_LITERAL_MARKER, result)
     result = _PUBLIC_WINDOWS_PATH.sub(_PUBLIC_PATH_MARKER, result)
     return _PUBLIC_POSIX_PATH.sub(_PUBLIC_PATH_MARKER, result)
 
@@ -454,6 +456,7 @@ def _project_public_output_token(token: str, protected_values: frozenset[str]) -
     )
     contains_sensitive_shape = any(
         _PUBLIC_CREDENTIAL_ASSIGNMENT.search(variant) is not None
+        or _PUBLIC_BARE_SHA256.search(variant) is not None
         or _PUBLIC_WINDOWS_PATH.search(variant) is not None
         or _PUBLIC_POSIX_PATH.search(variant) is not None
         for variant in variants

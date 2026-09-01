@@ -54,10 +54,13 @@ def test_recursive_public_result_oracle_covers_every_retained_surface(tmp_path: 
     unc_path = "\\\\server\\share\\result.txt"
     credential = "api" + "_key=" + "A" * 32
     source = "https://example.test/private-reference"
-    protected = (absolute_path, windows_path, unc_path, credential, source)
-    digests = tuple(sha256(value.encode("utf-8")).hexdigest() for value in protected)
-    searchable = "useful residue regression text"
     case_varied_source = "HTTPS://EXAMPLE.TEST/private-reference"
+    protected = (absolute_path, windows_path, unc_path, credential, source)
+    digests = (
+        *(sha256(value.encode("utf-8")).hexdigest() for value in protected),
+        sha256(case_varied_source.encode("utf-8")).hexdigest(),
+    )
+    searchable = "useful residue regression text"
     encoded_source = quote(source, safe="")
     encoded_case_varied_source = quote(case_varied_source, safe="")
     encoded_source_digest = quote(sha256(source.encode("utf-8")).hexdigest(), safe="")

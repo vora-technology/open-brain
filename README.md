@@ -81,7 +81,7 @@ evidence binds accepted captures to checkpoint advancement.
 
 The public result projection exposes opaque IDs, bounded provenance, and safe titles/excerpts,
 not raw or encoded protected references, absolute paths, credentials, storage-derived slugs and
-paths, or reversible source-reference digests.
+paths, or bare SHA-256 tokens.
 Phase 2 does not include the Phase 3 appliance lifecycle: initialization, one supervised daemon,
 internal scheduling, launchd/systemd integration, backup/restore, upgrade, or uninstall. Phase 4
 defers the physical distributions and `packages/` split, isolated connector workers, public

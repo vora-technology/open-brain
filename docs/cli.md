@@ -69,5 +69,5 @@ input arguments are not emitted.
 
 Engine task results are projected before this representation serializes them. Titles and excerpts
 remain useful, while raw or encoded protected references, absolute paths, credentials, reversible
-digests, storage-derived space slugs, and canonical storage paths are replaced with bounded or
+bare SHA-256 tokens, storage-derived space slugs, and canonical storage paths are replaced with bounded or
 opaque values. Portable/source bytes are unchanged.
