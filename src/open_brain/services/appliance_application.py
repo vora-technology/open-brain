@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from open_brain.cli._common import CommandFamilyAdapter
+from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.engine import (
     EngineTaskSet,
     ScopedRetrievalTask,
@@ -61,3 +63,9 @@ class ApplianceApplication:
 
     def mcp_adapter(self) -> EngineMcpAdapter:
         return EngineMcpAdapter(retrieval=self.retrieval, feedback=self.feedback)
+
+    def cli_adapter(self, command: str) -> CommandFamilyAdapter | None:
+        mutations = self.mutations
+        if mutations is None:
+            return None
+        return build_phase1_command_adapters(mutations.phase1).get(command)

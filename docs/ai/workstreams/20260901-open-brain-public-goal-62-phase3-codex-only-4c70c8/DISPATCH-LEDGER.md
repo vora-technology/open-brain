@@ -3,7 +3,7 @@
 - Milestone budget: six active children, twelve total; no override.
 - Coordinator: Codex goal thread `01a05ba9-3673-7da1-807d-c22a9ef77570`, runtime-managed Codex model, owns integration, verification, Git, GitHub, and acceptance.
 - Active children: 0.
-- Total children reserved: 5.
+- Total children reserved: 7.
 - Non-Codex participants: 0.
 
 | Task | Role | Model | Effort | Scope | Status | Result |
@@ -13,8 +13,9 @@
 | `P3-W2-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W2 source/tests/docs, exclusive | complete with concerns | added distinct daemon lock scope and one unit test only; all remaining W2 gates explicitly incomplete |
 | `P3-W2-AUTHORITY-02` | implementation | `gpt-5.4` | high | W2 authority/engine composition, exclusive | complete | engine-issued root-bound capability, stale/second-daemon rejection, authorized mutation, and 91 focused tests passed |
 | `P3-W2-CONTROL-03` | implementation | `gpt-5.4` | high | W2 control socket/daemon, exclusive | complete | coordinator repaired root binding and client bounds; 130 focused tests, Ruff, MyPy on 452 files, and diff check passed |
-| `P3-W2-RUNTIME-04` | implementation | `gpt-5.4` | high | W2 scheduler/supervisors/entrypoints, exclusive | pending | control subphase verified; ready to dispatch |
-| `P3-W3-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W3 source/tests/docs, exclusive | pending | blocked on W2 |
+| `P3-W2-RUNTIME-04` | implementation | `gpt-5.4` | high | W2 scheduler/supervisors/entrypoints, exclusive | complete with concerns | worker focused gates passed, but coordinator found unsafe scheduler persistence, writer bypasses, authority shutdown race, and two full-suite failures |
+| `P3-W2-REPAIR-05` | implementation | `gpt-5.4` | high | W2 durability/entrypoint/supervisor repair, exclusive | complete | 16 red regressions; 119 repair and 158 plan-focused tests passed; coordinator hardening reached 178 focused/3,050 full tests |
+| `P3-W3-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W3 source/tests/docs, exclusive | pending | W2 clean checkpoint verified; ready to dispatch |
 | `P3-W4-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W4 source/tests/docs, exclusive | pending | blocked on W3 |
 | `P3-W5-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W5 source/tests/docs/CI, exclusive | pending | blocked on W4 |
 | `P3-W6-REVIEW-01` | independent review | `gpt-5.4` | high | exact candidate, read-only | pending | blocked on final gates |

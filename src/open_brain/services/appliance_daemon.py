@@ -1,39 +1,54 @@
 from __future__ import annotations
 
+import argparse
 import errno
 import json
 import os
 import re
 import socket
 import stat
+import sys
 import threading
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final
 
+from open_brain.cli._common import (
+    ExitCode,
+    adapter_failed_envelope,
+    validate_adapter_envelope,
+)
 from open_brain.engine import (
     DaemonAuthorityCapability,
     LocalEngineContext,
     TextPayload,
     acquire_daemon_authority,
     canonical_json_bytes,
+    recover_authoritative_local_engine,
     require_daemon_authority,
 )
 from open_brain.profile import open_existing_single_user_local
 
 from .appliance_application import ApplianceApplication
+from .appliance_scheduler import ApplianceScheduler, ApplianceSchedulerInterruptedError
+from .appliance_status import read_appliance_status
 
 CONTROL_SCHEMA_VERSION: Final[int] = 1
 CONTROL_ACTION_CAPTURE_TEXT: Final[str] = "capture.accept.text"
+CONTROL_ACTION_CLI_DISPATCH: Final[str] = "cli.dispatch"
+CONTROL_ACTION_STATUS_READ: Final[str] = "status.read"
 CONTROL_STATUS_ACCEPTED: Final[str] = "accepted"
+CONTROL_STATUS_COMPLETED: Final[str] = "completed"
 MAXIMUM_CONTROL_ENVELOPE_BYTES: Final[int] = 4_096
 RUN_DIRECTORY_MODE: Final[int] = 0o700
 SOCKET_MODE: Final[int] = 0o600
 CONTROL_CONNECTION_TIMEOUT_SECONDS: Final[float] = 1.0
 _DELIVERY_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$")
+_CONTROLLED_COMMANDS = frozenset({"capture", "inbox", "proposals", "query", "review", "spaces"})
 
 
 class ApplianceControlProtocolError(RuntimeError):
@@ -60,7 +75,7 @@ class ControlRequest:
     schema_version: int = CONTROL_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
-        _validate_control_action(self.action)
+        _validate_capture_action(self.action)
         if self.schema_version != CONTROL_SCHEMA_VERSION:
             raise ApplianceControlProtocolError("unsupported request envelope")
         _validate_delivery_id(self.delivery_id, envelope="request")
@@ -103,7 +118,7 @@ class ControlReceipt:
     schema_version: int = CONTROL_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
-        _validate_control_action(self.action)
+        _validate_capture_action(self.action)
         if self.status != CONTROL_STATUS_ACCEPTED or self.schema_version != CONTROL_SCHEMA_VERSION:
             raise ApplianceControlProtocolError("unsupported receipt envelope")
         _validate_delivery_id(self.delivery_id, envelope="receipt")
@@ -148,6 +163,174 @@ class ControlReceipt:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class CliControlRequest:
+    command: str
+    argv: tuple[str, ...]
+    action: str = CONTROL_ACTION_CLI_DISPATCH
+    schema_version: int = CONTROL_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            self.action != CONTROL_ACTION_CLI_DISPATCH
+            or self.schema_version != CONTROL_SCHEMA_VERSION
+        ):
+            raise ApplianceControlProtocolError("unsupported request envelope")
+        _validate_control_command(self.command)
+        _validate_argv(self.argv)
+        _validate_control_size(self.to_dict(), envelope="request")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "action": self.action,
+            "argv": list(self.argv),
+            "command": self.command,
+            "schema_version": self.schema_version,
+        }
+
+    def to_bytes(self) -> bytes:
+        return canonical_json_bytes(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, payload: bytes) -> CliControlRequest:
+        value = _parse_control_bytes(payload, envelope="request")
+        if set(value) != {"action", "argv", "command", "schema_version"}:
+            raise ApplianceControlProtocolError("invalid request envelope")
+        return cls(
+            action=_required_str(value, "action", envelope="request"),
+            argv=_required_argv(value, envelope="request"),
+            command=_required_str(value, "command", envelope="request"),
+            schema_version=_required_int(value, "schema_version", envelope="request"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class CliControlReceipt:
+    command: str
+    exit_code: int
+    envelope: dict[str, object]
+    action: str = CONTROL_ACTION_CLI_DISPATCH
+    status: str = CONTROL_STATUS_COMPLETED
+    schema_version: int = CONTROL_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.action != CONTROL_ACTION_CLI_DISPATCH or self.status != CONTROL_STATUS_COMPLETED:
+            raise ApplianceControlProtocolError("unsupported receipt envelope")
+        if self.schema_version != CONTROL_SCHEMA_VERSION:
+            raise ApplianceControlProtocolError("unsupported receipt envelope")
+        _validate_control_command(self.command)
+        if (
+            not isinstance(self.exit_code, int)
+            or isinstance(self.exit_code, bool)
+            or self.exit_code not in {int(code) for code in ExitCode}
+        ):
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        if type(self.envelope) is not dict:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        _validate_control_size(self.to_dict(), envelope="receipt")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "action": self.action,
+            "command": self.command,
+            "envelope": self.envelope,
+            "exit_code": self.exit_code,
+            "schema_version": self.schema_version,
+            "status": self.status,
+        }
+
+    def to_bytes(self) -> bytes:
+        return canonical_json_bytes(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, payload: bytes) -> CliControlReceipt:
+        value = _parse_control_bytes(payload, envelope="receipt")
+        if set(value) != {"action", "command", "envelope", "exit_code", "schema_version", "status"}:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        envelope = value.get("envelope")
+        if type(envelope) is not dict:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        return cls(
+            action=_required_str(value, "action", envelope="receipt"),
+            command=_required_str(value, "command", envelope="receipt"),
+            envelope=envelope,
+            exit_code=_required_int(value, "exit_code", envelope="receipt"),
+            schema_version=_required_int(value, "schema_version", envelope="receipt"),
+            status=_required_str(value, "status", envelope="receipt"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class StatusControlRequest:
+    action: str = CONTROL_ACTION_STATUS_READ
+    schema_version: int = CONTROL_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            self.action != CONTROL_ACTION_STATUS_READ
+            or self.schema_version != CONTROL_SCHEMA_VERSION
+        ):
+            raise ApplianceControlProtocolError("unsupported request envelope")
+        _validate_control_size(self.to_dict(), envelope="request")
+
+    def to_dict(self) -> dict[str, object]:
+        return {"action": self.action, "schema_version": self.schema_version}
+
+    def to_bytes(self) -> bytes:
+        return canonical_json_bytes(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, payload: bytes) -> StatusControlRequest:
+        value = _parse_control_bytes(payload, envelope="request")
+        if set(value) != {"action", "schema_version"}:
+            raise ApplianceControlProtocolError("invalid request envelope")
+        return cls(
+            action=_required_str(value, "action", envelope="request"),
+            schema_version=_required_int(value, "schema_version", envelope="request"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class StatusControlReceipt:
+    envelope: dict[str, object]
+    action: str = CONTROL_ACTION_STATUS_READ
+    status: str = CONTROL_STATUS_COMPLETED
+    schema_version: int = CONTROL_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.action != CONTROL_ACTION_STATUS_READ or self.status != CONTROL_STATUS_COMPLETED:
+            raise ApplianceControlProtocolError("unsupported receipt envelope")
+        if self.schema_version != CONTROL_SCHEMA_VERSION or type(self.envelope) is not dict:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        _validate_control_size(self.to_dict(), envelope="receipt")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "action": self.action,
+            "envelope": self.envelope,
+            "schema_version": self.schema_version,
+            "status": self.status,
+        }
+
+    def to_bytes(self) -> bytes:
+        return canonical_json_bytes(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, payload: bytes) -> StatusControlReceipt:
+        value = _parse_control_bytes(payload, envelope="receipt")
+        if set(value) != {"action", "envelope", "schema_version", "status"}:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        envelope = value.get("envelope")
+        if type(envelope) is not dict:
+            raise ApplianceControlProtocolError("invalid receipt envelope")
+        return cls(
+            action=_required_str(value, "action", envelope="receipt"),
+            envelope=envelope,
+            schema_version=_required_int(value, "schema_version", envelope="receipt"),
+            status=_required_str(value, "status", envelope="receipt"),
+        )
+
+
 class ApplianceDaemon:
     """Own one root authority, one confined control socket, and one mutation path."""
 
@@ -158,6 +341,13 @@ class ApplianceDaemon:
         application_factory: (
             Callable[[Path, DaemonAuthorityCapability], ApplianceApplication] | None
         ) = None,
+        scheduler_factory: (
+            Callable[
+                [Path, LocalEngineContext, DaemonAuthorityCapability],
+                ApplianceScheduler,
+            ]
+            | None
+        ) = None,
         connection_timeout: float = CONTROL_CONNECTION_TIMEOUT_SECONDS,
     ) -> None:
         if not isinstance(root, Path):
@@ -165,13 +355,19 @@ class ApplianceDaemon:
         _validate_timeout(connection_timeout)
         self._root = root
         self._application_factory = application_factory or _open_mutating_application
+        self._scheduler_factory = scheduler_factory or _open_scheduler
         self._connection_timeout = connection_timeout
         self._profile: LocalEngineContext | None = None
         self._authority: DaemonAuthorityCapability | None = None
         self._application: ApplianceApplication | None = None
+        self._scheduler: ApplianceScheduler | None = None
         self._listener: socket.socket | None = None
         self._exit_stack: ExitStack | None = None
         self._stop_event = threading.Event()
+        self._lifecycle_lock = threading.Lock()
+        self._operation_condition = threading.Condition()
+        self._active_operations = 0
+        self._stopping = True
 
     def __enter__(self) -> ApplianceDaemon:
         self.start()
@@ -185,6 +381,10 @@ class ApplianceDaemon:
         return _control_socket_path(self._root)
 
     def start(self) -> None:
+        with self._lifecycle_lock:
+            self._start()
+
+    def _start(self) -> None:
         if self._exit_stack is not None:
             raise RuntimeError("appliance daemon already started")
         profile = open_existing_single_user_local(self._root)
@@ -198,6 +398,7 @@ class ApplianceDaemon:
                     raise
                 raise ApplianceDaemonConflictError("appliance daemon already active") from error
             application = self._application_factory(self._root, authority)
+            scheduler = self._scheduler_factory(self._root, profile, authority)
             _ensure_run_directory(_run_directory(self._root))
             cleanup_stale_control_socket(profile, authority)
             listener = _bind_listener(self.socket_path)
@@ -207,9 +408,12 @@ class ApplianceDaemon:
         self._profile = profile
         self._authority = authority
         self._application = application
+        self._scheduler = scheduler
         self._listener = listener
         self._exit_stack = stack
         self._stop_event.clear()
+        with self._operation_condition:
+            self._stopping = False
 
     def serve_once(self, *, timeout: float = 0.1) -> bool:
         listener = self._listener
@@ -224,43 +428,49 @@ class ApplianceDaemon:
             if self._stop_event.is_set():
                 return False
             raise
-        with connection:
+        with connection, self._operation():
             connection.settimeout(self._connection_timeout)
-            request = ControlRequest.from_bytes(_read_bounded_bytes(connection))
-            assert self._application.mutations is not None
-            accepted = self._application.mutations.capture.accept(
-                TextPayload(request.text),
-                delivery_id=request.delivery_id,
-            )
-            _send_control_bytes(
-                connection,
-                ControlReceipt(
-                    delivery_id=request.delivery_id,
-                    capture_id=accepted.capture_id,
-                    state=accepted.state,
-                ).to_bytes(),
-            )
+            request = _parse_request(_read_bounded_bytes(connection))
+            _send_control_bytes(connection, _dispatch_request(self, request).to_bytes())
         return True
 
     def serve_until_stopped(self) -> None:
         while not self._stop_event.is_set():
             try:
+                if self._scheduler is not None:
+                    with self._operation():
+                        self._scheduler.run_due(now=datetime.now(UTC))
+                if self._stop_event.is_set():
+                    break
                 self.serve_once()
+            except ApplianceSchedulerInterruptedError:
+                continue
             except (ApplianceControlProtocolError, ConnectionError, TimeoutError):
                 continue
+            except RuntimeError:
+                if self._stop_event.is_set():
+                    break
+                raise
 
     def stop(self) -> None:
+        with self._lifecycle_lock:
+            self._stop()
+
+    def _stop(self) -> None:
         listener = self._listener
         profile = self._profile
         authority = self._authority
         stack = self._exit_stack
         if listener is None or profile is None or authority is None or stack is None:
             return
+        with self._operation_condition:
+            self._stopping = True
         self._stop_event.set()
         try:
             listener.close()
         finally:
             self._listener = None
+        self._wait_for_operations()
         try:
             cleanup_stale_control_socket(profile, authority)
         finally:
@@ -269,6 +479,26 @@ class ApplianceDaemon:
             self._profile = None
             self._authority = None
             self._application = None
+            self._scheduler = None
+
+    @contextmanager
+    def _operation(self) -> Iterator[None]:
+        with self._operation_condition:
+            if self._stopping:
+                raise RuntimeError("appliance daemon is stopping")
+            self._active_operations += 1
+        try:
+            yield
+        finally:
+            with self._operation_condition:
+                self._active_operations -= 1
+                if self._active_operations == 0:
+                    self._operation_condition.notify_all()
+
+    def _wait_for_operations(self) -> None:
+        with self._operation_condition:
+            while self._active_operations > 0:
+                self._operation_condition.wait()
 
 
 def cleanup_stale_control_socket(
@@ -327,11 +557,43 @@ def request_control(
         client.close()
 
 
+def request_cli_dispatch(
+    root: Path,
+    request: CliControlRequest,
+    *,
+    timeout: float = 1.0,
+) -> CliControlReceipt:
+    return CliControlReceipt.from_bytes(_request_bytes(root, request.to_bytes(), timeout=timeout))
+
+
+def request_status(
+    root: Path,
+    request: StatusControlRequest | None = None,
+    *,
+    timeout: float = 1.0,
+) -> StatusControlReceipt:
+    selected = StatusControlRequest() if request is None else request
+    return StatusControlReceipt.from_bytes(
+        _request_bytes(root, selected.to_bytes(), timeout=timeout)
+    )
+
+
 def _open_mutating_application(
     root: Path,
     authority: DaemonAuthorityCapability,
 ) -> ApplianceApplication:
     return ApplianceApplication.open_mutating(root, authority=authority)
+
+
+def _open_scheduler(
+    root: Path,
+    profile: LocalEngineContext,
+    authority: DaemonAuthorityCapability,
+) -> ApplianceScheduler:
+    return ApplianceScheduler(
+        profile,
+        engine_recoverer=lambda: recover_authoritative_local_engine(profile, authority),
+    )
 
 
 def _run_directory(root: Path) -> Path:
@@ -340,6 +602,26 @@ def _run_directory(root: Path) -> Path:
 
 def _control_socket_path(root: Path) -> Path:
     return _run_directory(root) / "control.sock"
+
+
+def _request_bytes(root: Path, payload: bytes, *, timeout: float) -> bytes:
+    if not isinstance(root, Path):
+        raise ValueError("invalid appliance root")
+    _validate_timeout(timeout)
+    client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client.settimeout(timeout)
+    try:
+        try:
+            client.connect(str(_control_socket_path(root)))
+        except OSError as error:
+            raise ApplianceControlUnavailableError(
+                "appliance control socket unavailable"
+            ) from error
+        client.sendall(payload)
+        client.shutdown(socket.SHUT_WR)
+        return _read_bounded_bytes(client)
+    finally:
+        client.close()
 
 
 def _ensure_run_directory(path: Path) -> None:
@@ -413,9 +695,31 @@ def _required_str(value: dict[str, object], key: str, *, envelope: str) -> str:
     return item
 
 
-def _validate_control_action(value: str) -> None:
+def _required_argv(value: dict[str, object], *, envelope: str) -> tuple[str, ...]:
+    item = value.get("argv")
+    if not isinstance(item, list) or any(
+        not isinstance(argument, str) or not argument or "\x00" in argument
+        for argument in item
+    ):
+        raise ApplianceControlProtocolError(f"invalid {envelope} envelope")
+    return tuple(item)
+
+
+def _validate_capture_action(value: str) -> None:
     if value != CONTROL_ACTION_CAPTURE_TEXT:
         raise ApplianceControlProtocolError("unsupported action")
+
+
+def _validate_control_command(value: str) -> None:
+    if value not in _CONTROLLED_COMMANDS:
+        raise ApplianceControlProtocolError("unsupported action")
+
+
+def _validate_argv(value: tuple[str, ...]) -> None:
+    if not isinstance(value, tuple) or any(
+        not isinstance(argument, str) or not argument or "\x00" in argument for argument in value
+    ):
+        raise ApplianceControlProtocolError("invalid request envelope")
 
 
 def _validate_delivery_id(value: str, *, envelope: str) -> None:
@@ -457,6 +761,100 @@ def _lstat_path(path: Path) -> os.stat_result:
     return path.lstat()
 
 
+def _parse_request(
+    payload: bytes,
+) -> ControlRequest | CliControlRequest | StatusControlRequest:
+    value = _parse_control_bytes(payload, envelope="request")
+    action = _required_str(value, "action", envelope="request")
+    if action == CONTROL_ACTION_CAPTURE_TEXT:
+        return ControlRequest.from_bytes(payload)
+    if action == CONTROL_ACTION_CLI_DISPATCH:
+        return CliControlRequest.from_bytes(payload)
+    if action == CONTROL_ACTION_STATUS_READ:
+        return StatusControlRequest.from_bytes(payload)
+    raise ApplianceControlProtocolError("unsupported action")
+
+
+def _cli_receipt(
+    request: CliControlRequest,
+    application: ApplianceApplication,
+) -> CliControlReceipt:
+    adapter = application.cli_adapter(request.command)
+    if adapter is None:
+        return _failed_cli_receipt(request.command)
+    try:
+        result = adapter.dispatch(request.argv)
+        envelope = validate_adapter_envelope(
+            request.command,
+            result.envelope,
+            argv=request.argv,
+        )
+        return CliControlReceipt(
+            command=request.command,
+            envelope=envelope,
+            exit_code=int(result.exit_code),
+        )
+    except Exception:
+        return _failed_cli_receipt(request.command)
+
+
+def _failed_cli_receipt(command: str) -> CliControlReceipt:
+    return CliControlReceipt(
+        command=command,
+        envelope=adapter_failed_envelope(command),
+        exit_code=int(ExitCode.FAILURE),
+    )
+
+
+def _status_receipt(root: Path) -> StatusControlReceipt:
+    return StatusControlReceipt(envelope=read_appliance_status(root).to_dict())
+
+
+def _capture_receipt(
+    request: ControlRequest,
+    application: ApplianceApplication,
+) -> ControlReceipt:
+    assert application.mutations is not None
+    accepted = application.mutations.capture.accept(
+        TextPayload(request.text),
+        delivery_id=request.delivery_id,
+    )
+    return ControlReceipt(
+        delivery_id=request.delivery_id,
+        capture_id=accepted.capture_id,
+        state=accepted.state,
+    )
+
+
+def _dispatch_request(
+    self: ApplianceDaemon,
+    request: ControlRequest | CliControlRequest | StatusControlRequest,
+) -> ControlReceipt | CliControlReceipt | StatusControlReceipt:
+    application = self._application
+    if application is None:
+        raise RuntimeError("appliance daemon is not running")
+    if isinstance(request, ControlRequest):
+        return _capture_receipt(request, application)
+    if isinstance(request, CliControlRequest):
+        return _cli_receipt(request, application)
+    return _status_receipt(self._root)
+
+
+def main(argv: tuple[str, ...] | list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m open_brain.services.appliance_daemon")
+    parser.add_argument("--root", required=True)
+    namespace = parser.parse_args(tuple(sys.argv[1:] if argv is None else argv))
+    root = Path(namespace.root)
+    if not root.is_absolute():
+        raise SystemExit(ExitCode.CONFIGURATION)
+    with ApplianceDaemon(root) as daemon:
+        try:
+            daemon.serve_until_stopped()
+        except KeyboardInterrupt:
+            daemon.stop()
+    return ExitCode.SUCCESS
+
+
 __all__ = [
     "MAXIMUM_CONTROL_ENVELOPE_BYTES",
     "ApplianceControlProtocolError",
@@ -464,10 +862,23 @@ __all__ = [
     "ApplianceControlUnavailableError",
     "ApplianceDaemon",
     "ApplianceDaemonConflictError",
+    "CliControlReceipt",
+    "CliControlRequest",
     "CONTROL_ACTION_CAPTURE_TEXT",
+    "CONTROL_ACTION_CLI_DISPATCH",
+    "CONTROL_ACTION_STATUS_READ",
     "ControlRequest",
     "ControlReceipt",
+    "StatusControlReceipt",
+    "StatusControlRequest",
     "acquire_control_socket_authority",
     "cleanup_stale_control_socket",
+    "main",
+    "request_cli_dispatch",
     "request_control",
+    "request_status",
 ]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

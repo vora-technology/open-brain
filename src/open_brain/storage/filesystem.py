@@ -175,16 +175,22 @@ def _open_parent(root_fd: int, parts: tuple[str, ...], *, create: bool) -> int:
         raise
 
 
-def _read_fd(file_fd: int) -> bytes:
+def _read_fd(file_fd: int, *, maximum_bytes: int | None = None) -> bytes:
     chunks: list[bytes] = []
+    total = 0
     while True:
         chunk = os.read(file_fd, 64 * 1024)
         if not chunk:
             return b"".join(chunks)
+        total += len(chunk)
+        if maximum_bytes is not None and total > maximum_bytes:
+            raise StorageError("stored content exceeds read limit")
         chunks.append(chunk)
 
 
-def _existing_bytes(parent_fd: int, name: str) -> bytes | None:
+def _existing_bytes(
+    parent_fd: int, name: str, *, maximum_bytes: int | None = None
+) -> bytes | None:
     try:
         file_fd = os.open(name, _FILE_READ_FLAGS, dir_fd=parent_fd)
     except FileNotFoundError:
@@ -196,7 +202,7 @@ def _existing_bytes(parent_fd: int, name: str) -> bytes | None:
     try:
         if not stat.S_ISREG(os.fstat(file_fd).st_mode):
             raise RootConfinementError("unsafe storage target")
-        return _read_fd(file_fd)
+        return _read_fd(file_fd, maximum_bytes=maximum_bytes)
     except OSError:
         raise DurabilityError("storage read failed") from None
     finally:
@@ -341,7 +347,14 @@ def read_confined(
     root: Path,
     relative: str | PurePosixPath,
     expected_root_identity: RootIdentity | None = None,
+    maximum_bytes: int | None = None,
 ) -> bytes | None:
+    if maximum_bytes is not None and (
+        not isinstance(maximum_bytes, int)
+        or isinstance(maximum_bytes, bool)
+        or maximum_bytes <= 0
+    ):
+        raise ValueError("invalid read limit")
     parts = _validated_parts(relative)
     root_fd = _open_root(root, expected_root_identity)
     parent_fd = -1
@@ -350,7 +363,7 @@ def read_confined(
             parent_fd = _open_parent(root_fd, parts[:-1], create=False)
         except FileNotFoundError:
             return None
-        return _existing_bytes(parent_fd, parts[-1])
+        return _existing_bytes(parent_fd, parts[-1], maximum_bytes=maximum_bytes)
     finally:
         if parent_fd >= 0:
             os.close(parent_fd)

@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0, `P3-W0`, and `P3-W1` clean checkpoints complete; `P3-W2` authority and control subphases verified.
+- Status: in progress; Gate 0 and `P3-W0` through `P3-W2` clean checkpoints complete.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -24,8 +24,10 @@
 - P3-W1 verification: 32 focused tests, focused Ruff, strict MyPy on 447 source files, full `make verify` with 2,999 tests, wheel/sdist builds, artifact policy, architecture ownership/debt, and diff integrity passed.
 - P3-W1 behavior gate: init is preflighted and idempotent over identity, spaces, content, credential, schema, and index; maintenance evidence is bounded; absent/newer read views make no mutation or writer acquisition.
 - P3-W1 failure gate: unsafe credentials are preserved and rejected, newer schemas are rejected before writer acquisition, legacy schema migration preserves content, nested writable roots initialize, and installed scripts remain on Phase 1.
-- P3-W2 status: authority and control subphases verified; runtime and full-wave gates remain pending.
+- P3-W2 status: clean checkpoint complete across authority, control, scheduler, supervisors, entrypoints, and restart recovery.
 - P3-W2 authority evidence: daemon lifetime lease is process-exclusive and distinct from shared writer; engine capability is issuer-created, root-bound, stale after exit, required by appliance mutation composition, and revalidated on every writer acquisition.
 - P3-W2 control evidence: owner-only confined Unix socket, bounded canonical envelopes and accepted-client timeouts, root-bound authority-gated stale cleanup, replacement detection, second-daemon exclusion, fail-closed clients, and lost-receipt replay without duplicate capture passed 130 focused tests, Ruff, strict MyPy on 452 source files, and diff hygiene.
-- Current subphase: `P3-W2-RUNTIME-04` pending after the control checkpoint.
-- Next action: dispatch one Codex runtime writer for the exact scheduler inventory, lifecycle adapters, installed entrypoint cutover, and daemon-only CLI routing.
+- P3-W2 runtime evidence: the profile-bound scheduler uses root-confined bounded atomic state and immutable receipts; daemon shutdown closes operation admission before releasing authority; restart replay preserves one capture and one publication; packaged and compatibility entrypoints cannot open a direct writer; launchd/systemd behavior is deterministic and fake-injected only.
+- P3-W2 verification: 178 focused tests, full Ruff, strict MyPy on 457 source files, full `make verify` with 3,050 tests, wheel/sdist builds, artifact policy, architecture ownership with no temporary debt, and diff integrity passed in a sanitized environment.
+- Current subphase: `P3-W3` ready after the W2 checkpoint commit and push.
+- Next action: dispatch one Codex W3 writer for owner UI parity, browser auth, HTTP route security, and bounded run history.

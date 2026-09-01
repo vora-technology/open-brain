@@ -272,6 +272,25 @@ def open_authoritative_local_engine(
     ).tasks
 
 
+def recover_authoritative_local_engine(
+    profile: LocalEngineContext,
+    authority: object | None,
+    *,
+    clock: Callable[[], datetime] | None = None,
+    enrichment_provider: EnrichmentProvider | None = None,
+) -> int:
+    """Replay durable engine transitions only while daemon authority remains active."""
+    require_daemon_authority(profile, authority)
+    engine = BrainEngine(
+        profile,
+        faults=set(),
+        clock=clock or _utc_now,
+        enrichment_provider=enrichment_provider,
+        validate_mutation_authority=lambda: require_daemon_authority(profile, authority),
+    )
+    return engine.recover()
+
+
 def open_local_read_view(
     profile: LocalEngineContext,
     *,
@@ -332,6 +351,7 @@ __all__ = [
     "PublicProvenance",
     "ReadViewUnavailableError",
     "ReferencePayload",
+    "recover_authoritative_local_engine",
     "RetrievalResult",
     "RetrievalTasks",
     "ReviewTasks",

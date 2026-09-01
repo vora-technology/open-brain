@@ -81,6 +81,7 @@ from .local import (
     open_authoritative_local_engine,
     open_local_engine,
     open_local_read_view,
+    recover_authoritative_local_engine,
 )
 from .maintenance import (
     PHASE1_STATE_SCHEMA_VERSION,
@@ -140,6 +141,7 @@ __all__ = [
     "ProviderMode",
     "ReadViewUnavailableError",
     "ReferencePayload",
+    "recover_authoritative_local_engine",
     "RawAssetRef",
     "RetrievalResult",
     "RetrievalTask",

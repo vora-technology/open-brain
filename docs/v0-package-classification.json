@@ -1335,6 +1335,16 @@
       "api": "internal",
       "roles": []
     },
+    "services/appliance_scheduler.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_supervisors.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
     "services/application.py": {
       "owner": "legacy",
       "api": "internal",
@@ -1396,6 +1406,11 @@
     "storage/filesystem.py": {
       "owner": "engine",
       "api": "internal",
+      "roles": []
+    },
+    "storage/operational.py": {
+      "owner": "engine",
+      "api": "public",
       "roles": []
     },
     "storage/frontmatter.py": {

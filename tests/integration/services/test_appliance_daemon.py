@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import inspect
+import json
 import socket
 import sqlite3
 import stat
 import tempfile
 import threading
+import time
 from collections.abc import Iterator
+from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+from typing import Any, cast
 
 import pytest
 
@@ -17,22 +21,32 @@ from open_brain.engine import (
     DaemonAuthorityRootMismatchError,
     DaemonAuthorityStaleError,
     LocalEngineContext,
+    ProposalDraft,
     TextPayload,
     acquire_daemon_authority,
+    open_local_engine,
 )
 from open_brain.engine.authority import DaemonAuthorityCapability
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain.services.appliance_application import ApplianceApplication
 from open_brain.services.appliance_daemon import (
+    MAXIMUM_CONTROL_ENVELOPE_BYTES,
     ApplianceControlSocketError,
     ApplianceControlUnavailableError,
     ApplianceDaemon,
     ApplianceDaemonConflictError,
+    CliControlReceipt,
+    CliControlRequest,
     ControlRequest,
     acquire_control_socket_authority,
     cleanup_stale_control_socket,
+    request_cli_dispatch,
 )
 from open_brain.services.appliance_lifecycle import submit_control_request
+from open_brain.services.appliance_scheduler import (
+    APPLIANCE_SCHEDULER_DIRECTORY,
+    ApplianceScheduler,
+)
 from open_brain.storage.locks import LockBusyError
 
 _ORIGINAL_SOCKET_BIND = socket.socket.bind
@@ -371,6 +385,36 @@ def test_restart_preserves_accepted_capture_identity_without_duplicate_state(
     )
 
 
+def test_daemon_owns_the_internal_scheduler_inventory_and_persists_run_evidence(
+    short_root: Path,
+) -> None:
+    root = short_root
+    _existing_profile(root)
+    state_path = root / APPLIANCE_SCHEDULER_DIRECTORY / "state.json"
+
+    with ApplianceDaemon(root) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and not state_path.exists():
+            time.sleep(0.05)
+        daemon.stop()
+        thread.join(timeout=5)
+
+    assert state_path.exists()
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    assert sorted(state["jobs"]) == [
+        "backup-create",
+        "engine-recover",
+        "markdown-reconcile",
+        "portable-export",
+    ]
+    recover_runs = root / APPLIANCE_SCHEDULER_DIRECTORY / "runs" / "engine-recover"
+    reconcile_runs = root / APPLIANCE_SCHEDULER_DIRECTORY / "runs" / "markdown-reconcile"
+    assert len(tuple(recover_runs.glob("*.json"))) == 1
+    assert len(tuple(reconcile_runs.glob("*.json"))) == 1
+
+
 def test_stalled_client_does_not_hold_the_daemon_control_loop(short_root: Path) -> None:
     root = short_root
     _existing_profile(root)
@@ -439,3 +483,262 @@ def test_restart_replays_commit_when_receipt_was_not_delivered(
 
     assert replay.capture_id == accepted_rows[0][0]
     assert _capture_rows(root, request.delivery_id) == accepted_rows
+
+
+def test_daemon_stop_waits_for_an_inflight_cli_mutation_before_releasing_authority(
+    short_root: Path,
+) -> None:
+    root = short_root
+    profile = _existing_profile(root)
+    started = threading.Event()
+    release = threading.Event()
+    receipt = {
+        "command": "spaces",
+        "spaces": [],
+        "status": "listed",
+    }
+
+    class BlockingAdapter:
+        def dispatch(self, argv: tuple[str, ...]) -> object:
+            assert argv == ("list",)
+            started.set()
+            assert release.wait(timeout=5)
+            return SimpleNamespace(envelope=receipt, exit_code=0)
+
+    class BlockingApplication:
+        mutations = None
+
+        def cli_adapter(self, command: str) -> BlockingAdapter | None:
+            return BlockingAdapter() if command == "spaces" else None
+
+    class NoOpScheduler:
+        def run_due(self, *, now: datetime) -> tuple[object, ...]:
+            del now
+            return ()
+
+    daemon = ApplianceDaemon(
+        root,
+        application_factory=lambda _root, _authority: cast(
+            ApplianceApplication,
+            BlockingApplication(),
+        ),
+        scheduler_factory=lambda _root, _profile, _authority: cast(
+            ApplianceScheduler,
+            NoOpScheduler(),
+        ),
+    )
+    daemon.start()
+    serve_thread = threading.Thread(target=daemon.serve_once, kwargs={"timeout": 5})
+    serve_thread.start()
+
+    result: dict[str, object] = {}
+    errors: list[BaseException] = []
+
+    def invoke() -> None:
+        try:
+            result["receipt"] = request_cli_dispatch(
+                root,
+                CliControlRequest(command="spaces", argv=("list",)),
+            )
+        except BaseException as error:  # pragma: no cover - test cleanup path
+            errors.append(error)
+
+    client_thread = threading.Thread(target=invoke)
+    client_thread.start()
+    stop_thread = threading.Thread(target=daemon.stop)
+    try:
+        assert started.wait(timeout=5)
+
+        stop_thread.start()
+        time.sleep(0.1)
+        assert stop_thread.is_alive()
+        with pytest.raises(LockBusyError, match="lease already held"), acquire_daemon_authority(
+            profile
+        ):
+            pass
+    finally:
+        release.set()
+        stop_thread.join(timeout=5)
+        serve_thread.join(timeout=5)
+        client_thread.join(timeout=5)
+        daemon.stop()
+
+    assert not errors
+    assert not stop_thread.is_alive()
+    assert not serve_thread.is_alive()
+    assert not client_thread.is_alive()
+    receipt_value = result["receipt"]
+    assert isinstance(receipt_value, CliControlReceipt)
+    assert receipt_value.envelope == receipt
+
+    with acquire_daemon_authority(profile):
+        pass
+
+
+def test_daemon_closes_operation_admission_before_releasing_authority(
+    short_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = short_root
+    profile = _existing_profile(root)
+    daemon = ApplianceDaemon(root)
+    daemon.start()
+    waiting = threading.Event()
+    release = threading.Event()
+    original_wait = daemon._wait_for_operations
+
+    def blocked_wait() -> None:
+        waiting.set()
+        assert release.wait(timeout=5)
+        original_wait()
+
+    monkeypatch.setattr(daemon, "_wait_for_operations", blocked_wait)
+    stop_thread = threading.Thread(target=daemon.stop)
+    stop_thread.start()
+    try:
+        assert waiting.wait(timeout=5)
+        with pytest.raises(RuntimeError, match="stopping"), daemon._operation():
+            pass
+        with pytest.raises(LockBusyError, match="lease already held"), acquire_daemon_authority(
+            profile
+        ):
+            pass
+    finally:
+        release.set()
+        stop_thread.join(timeout=5)
+
+    assert not stop_thread.is_alive()
+    with acquire_daemon_authority(profile):
+        pass
+
+
+def test_oversized_cli_result_returns_bounded_failure_without_stopping_daemon(
+    short_root: Path,
+) -> None:
+    root = short_root
+    _existing_profile(root)
+
+    class OversizedAdapter:
+        def dispatch(self, argv: tuple[str, ...]) -> object:
+            assert argv == ("synthetic",)
+            return SimpleNamespace(
+                envelope={
+                    "command": "query",
+                    "results": [{"excerpt": "x" * 5_000}],
+                    "status": "ok",
+                },
+                exit_code=0,
+            )
+
+    class QueryApplication:
+        mutations = None
+
+        def cli_adapter(self, command: str) -> OversizedAdapter | None:
+            return OversizedAdapter() if command == "query" else None
+
+    class NoOpScheduler:
+        def run_due(self, *, now: datetime) -> tuple[object, ...]:
+            del now
+            return ()
+
+    with ApplianceDaemon(
+        root,
+        application_factory=lambda _root, _authority: cast(
+            ApplianceApplication,
+            QueryApplication(),
+        ),
+        scheduler_factory=lambda _root, _profile, _authority: cast(
+            ApplianceScheduler,
+            NoOpScheduler(),
+        ),
+    ) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        receipt = request_cli_dispatch(
+            root,
+            CliControlRequest(command="query", argv=("synthetic",)),
+        )
+        daemon.stop()
+        thread.join(timeout=5)
+
+    assert not thread.is_alive()
+    assert receipt.exit_code == 1
+    assert receipt.envelope["command"] == "query"
+    assert receipt.envelope["status"] == "failed"
+    assert len(receipt.to_bytes()) <= MAXIMUM_CONTROL_ENVELOPE_BYTES
+
+
+def test_restart_replays_review_publication_when_cli_receipt_was_lost(
+    short_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = short_root
+    profile = _existing_profile(root)
+    engine = open_local_engine(profile)
+    space = engine.inbox.create_space("Review", delivery_id="delivery.appliance.review.space")
+    capture = engine.capture.accept(
+        TextPayload("Synthetic daemon review publication"),
+        delivery_id="delivery.appliance.review.capture",
+        space_id=space.space_id,
+    )
+    proposal = engine.review.propose(
+        capture.capture_id,
+        (ProposalDraft("Review", "Synthetic daemon publication"),),
+        delivery_id="delivery.appliance.review.proposal",
+    )[0]
+    request = CliControlRequest(
+        command="review",
+        argv=(
+            "approve",
+            proposal.proposal_id,
+            "--delivery=delivery.appliance.review.receipt",
+        ),
+    )
+
+    with ApplianceDaemon(root) as daemon:
+        client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        client.connect(str(daemon.socket_path))
+        client.sendall(request.to_bytes())
+        client.shutdown(socket.SHUT_WR)
+
+        with monkeypatch.context() as patch:
+            def lose_receipt(connection: socket.socket, payload: bytes) -> None:
+                del connection, payload
+                raise BrokenPipeError
+
+            patch.setattr(
+                "open_brain.services.appliance_daemon._send_control_bytes",
+                lose_receipt,
+            )
+            with pytest.raises(BrokenPipeError):
+                daemon.serve_once()
+        client.close()
+
+    assert len(tuple((root / "history" / "decisions").rglob("*.json"))) == 1
+    assert len(tuple((root / "history" / "publications").rglob("*.json"))) == 1
+    assert len(tuple((root / "content" / "spaces").rglob("page_*.md"))) == 1
+
+    with ApplianceDaemon(root) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        first = request_cli_dispatch(root, request)
+        daemon.stop()
+        thread.join(timeout=5)
+
+    with ApplianceDaemon(root) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        second = request_cli_dispatch(root, request)
+        daemon.stop()
+        thread.join(timeout=5)
+
+    for envelope in (first.envelope, second.envelope):
+        assert envelope["command"] == "review"
+        assert envelope["status"] == "decided"
+        assert envelope["state"] == "approved"
+    assert first.envelope["decision_id"] == second.envelope["decision_id"]
+    assert first.envelope["publication_id"] == second.envelope["publication_id"]
+    assert first.envelope["page_id"] == second.envelope["page_id"]
+    assert len(tuple((root / "history" / "decisions").rglob("*.json"))) == 1
+    assert len(tuple((root / "history" / "publications").rglob("*.json"))) == 1
+    assert len(tuple((root / "content" / "spaces").rglob("page_*.md"))) == 1

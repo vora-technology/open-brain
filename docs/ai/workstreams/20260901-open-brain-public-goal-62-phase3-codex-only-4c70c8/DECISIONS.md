@@ -71,3 +71,42 @@
 - Why: authority acquired for one Brain root must never authorize cleanup in
   another. One lifetime capability keeps composition and control-path cleanup
   on the same root-bound authority model.
+
+## D-008: reject the first W2 runtime candidate before checkpoint
+
+- Chosen: run a fresh repair pass plus coordinator hardening before any W2
+  commit, push, or issue comment.
+- Rejected: accept the worker's 148-test focused result as the W2 gate.
+- Why: direct review found unsafe scheduler persistence, writer-capable legacy
+  entrypoints, an authority shutdown race, and missing full-suite coverage.
+  The real suite also had two failures.
+
+## D-009: expose a narrow public operational-storage capability
+
+- Chosen: add `storage/operational.py` as the public no-follow atomic storage
+  facade used by the app-owned scheduler.
+- Rejected: keep an app-to-engine-internals exception in temporary live debt.
+- Rejected: duplicate dirfd, fsync, and atomic-replace logic inside services.
+- Why: scheduler state is app-owned, but the safety primitives are generic
+  storage capabilities. A narrow public facade preserves ownership direction
+  without duplicating security-sensitive code.
+
+## D-010: remove packaged legacy writer bypasses
+
+- Chosen: package only appliance CLI and read-only MCP entrypoints, and turn
+  `phase1_entrypoints.py` into a compatibility delegate.
+- Rejected: leave YouTube/project-commit bridge scripts or standalone Phase 1
+  HTTP/CLI/MCP paths installed alongside the daemon.
+- Why: W2's clean checkpoint requires every shipped/default mutation to reach
+  the one authoritative daemon and no public dependency on `JOB-001` through
+  `JOB-030`.
+
+## D-011: keep host supervisor effects injected in W2
+
+- Chosen: render deterministic launchd/systemd units and test every lifecycle
+  action through injected file and command adapters; default effect adapters
+  fail closed with bounded errors.
+- Rejected: invoke real launchctl/systemctl commands or user-unit writes during
+  source-checkout implementation.
+- Why: the W2 contract requires source-checkout adapter evidence, while this
+  goal explicitly forbids touching real services or production state.

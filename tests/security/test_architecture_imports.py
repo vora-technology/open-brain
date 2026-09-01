@@ -1,5 +1,6 @@
 import ast
 import json
+import tomllib
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -543,6 +544,44 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     assert compatibility_factory is compose_production_application
     assert ApplicationProductionApplication is CapabilityProductionApplication
     assert CompatibilityProductionApplication is ApplicationProductionApplication
+
+
+def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_free() -> None:
+    project = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+    scripts = project["scripts"]
+    phase1_entrypoints = (SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
+        encoding="utf-8"
+    )
+    appliance_entrypoints = (SOURCE_ROOT / "services" / "appliance_entrypoints.py").read_text(
+        encoding="utf-8"
+    )
+    scheduler = (SOURCE_ROOT / "services" / "appliance_scheduler.py").read_text(
+        encoding="utf-8"
+    )
+    classification = _load_classification()
+    files = _classified_files(classification)
+
+    assert scripts == {
+        "open-brain": "open_brain.services.appliance_entrypoints:run_cli",
+        "open-brain-mcp": "open_brain.services.appliance_entrypoints:run_mcp",
+    }
+    assert "SingleUserLocalApplication" not in phase1_entrypoints
+    assert "compose_http_from_config" not in phase1_entrypoints
+    assert "compose_mcp_from_config" not in phase1_entrypoints
+    assert "open_brain.production" not in phase1_entrypoints
+    assert "open_brain.operations" not in phase1_entrypoints
+    assert "open-brain-http" not in appliance_entrypoints
+    assert "JOB-00" not in appliance_entrypoints
+    assert "open_brain.storage.filesystem" not in scheduler
+    assert "open_brain.storage.operational" in scheduler
+    assert _metadata(files, "storage/operational.py") == {
+        "api": "public",
+        "owner": "engine",
+        "roles": [],
+    }
+    assert classification["temporary_live_debt"] == []
 
 
 SYNTHETIC_FILES: dict[str, dict[str, object]] = {

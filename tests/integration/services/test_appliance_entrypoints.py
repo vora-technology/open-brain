@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from open_brain.profile import compile_single_user_local
+from open_brain.services.appliance_daemon import (
+    ApplianceControlUnavailableError,
+    CliControlReceipt,
+    StatusControlReceipt,
+)
 from open_brain.services.appliance_entrypoints import run_cli, run_mcp
 from open_brain.services.appliance_init import initialize_appliance
+from open_brain.services.appliance_supervisors import SupervisorCommandError
 
 
 def test_appliance_cli_help_and_version_are_root_free(
@@ -51,3 +58,316 @@ def test_appliance_mcp_rejects_absent_schema_without_mutating_root(
     assert run_mcp() == 78
     assert not (root / ".open-brain" / "state" / "phase1.sqlite3").exists()
     assert not (root / ".open-brain" / ".open-brain-locks").exists()
+
+
+@pytest.mark.parametrize(
+    ("arguments", "command", "envelope"),
+    (
+        (
+            ("capture", "quick", "text", "Synthetic text", "--delivery=delivery.capture", "--json"),
+            "capture",
+            {
+                "canonical": False,
+                "capture_id": "capture_123e4567-e89b-42d3-a456-426614174101",
+                "command": "capture",
+                "duplicate": False,
+                "enrichment_state": "pending_enrichment",
+                "payload_family": "text",
+                "space_id": None,
+                "state": "inbox",
+                "status": "accepted",
+            },
+        ),
+        (
+            ("inbox", "list", "--json"),
+            "inbox",
+            {"captures": [], "command": "inbox", "status": "listed"},
+        ),
+        (
+            ("proposals", "list", "--json"),
+            "proposals",
+            {"command": "proposals", "proposals": [], "status": "listed"},
+        ),
+        (
+            (
+                "review",
+                "approve",
+                "proposal_123e4567-e89b-42d3-a456-426614174102",
+                "--delivery=delivery.review",
+                "--json",
+            ),
+            "review",
+            {
+                "action": "approve",
+                "command": "review",
+                "decision_id": "decision_123e4567-e89b-42d3-a456-426614174103",
+                "duplicate": False,
+                "page_id": "page_123e4567-e89b-42d3-a456-426614174104",
+                "proposal_id": "proposal_123e4567-e89b-42d3-a456-426614174102",
+                "publication_id": "publication_123e4567-e89b-42d3-a456-426614174105",
+                "state": "approved",
+                "status": "decided",
+            },
+        ),
+        (
+            ("spaces", "list", "--json"),
+            "spaces",
+            {"command": "spaces", "spaces": [], "status": "listed"},
+        ),
+    ),
+)
+def test_appliance_cli_routes_retained_phase1_families_only_through_control(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    arguments: tuple[str, ...],
+    command: str,
+    envelope: dict[str, object],
+) -> None:
+    root = tmp_path / "brain"
+    observed: list[object] = []
+
+    def dispatch(path: Path, *, command: str, argv: tuple[str, ...]) -> CliControlReceipt:
+        observed.extend((path, command, argv))
+        return CliControlReceipt(command=command, envelope=envelope, exit_code=0)
+
+    def forbidden(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        raise AssertionError("local mutation or offline fallback is forbidden")
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.dispatch_phase1_command",
+        dispatch,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.ApplianceApplication.open_read_only",
+        forbidden,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints._control_active",
+        lambda _root: True,
+    )
+
+    exit_code = run_cli(arguments, environment={"OPEN_BRAIN_ROOT": str(root)})
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == envelope
+    assert observed == [
+        root,
+        command,
+        tuple(argument for argument in arguments[1:] if argument != "--json"),
+    ]
+
+
+def test_appliance_status_prefers_control_when_the_daemon_is_active(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "brain"
+    observed: list[Path] = []
+
+    def status(path: Path) -> StatusControlReceipt:
+        observed.append(path)
+        return StatusControlReceipt(
+            envelope={
+                "maintenance": {"schema": {"state": "current", "version": 1}},
+                "owner_actor_id": "actor_123e4567-e89b-42d3-a456-426614174106",
+                "provider_mode": "none",
+                "status": "ok",
+                "tenant_id": "tenant_123e4567-e89b-42d3-a456-426614174107",
+            }
+        )
+
+    def forbidden(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        raise AssertionError("offline status fallback is forbidden while control is available")
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.read_status_via_control",
+        status,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.read_appliance_status",
+        forbidden,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints._control_active",
+        lambda _root: True,
+    )
+
+    exit_code = run_cli(("status", "--json"), environment={"OPEN_BRAIN_ROOT": str(root)})
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["status"] == "ok"
+    assert observed == [root]
+
+
+def test_appliance_supervisor_discovery_is_root_local_and_does_not_use_control(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "brain"
+    observed: list[tuple[Path, str]] = []
+
+    def discover(path: Path, *, action: str) -> dict[str, object]:
+        observed.append((path, action))
+        return {
+            "action": action,
+            "command": "supervisor",
+            "status": "ok",
+            "supervisor": "launchd",
+            "unit_name": "org.open-brain.appliance-daemon",
+        }
+
+    def forbidden(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        raise AssertionError(
+            "phase1 control dispatch is forbidden for root-local supervisor actions"
+        )
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.run_supervisor_action",
+        discover,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.dispatch_phase1_command",
+        forbidden,
+    )
+
+    exit_code = run_cli(
+        ("supervisor", "discover", "--json"),
+        environment={"OPEN_BRAIN_ROOT": str(root)},
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["command"] == "supervisor"
+    assert payload["action"] == "discover"
+    assert observed == [(root, "discover")]
+
+
+def test_appliance_query_falls_back_to_the_read_only_app_when_control_is_unavailable(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "brain"
+    initialize_appliance(root, starter_spaces=("Personal",))
+    observed: list[object] = []
+    open_read_only = run_mcp.__globals__["ApplianceApplication"].open_read_only
+
+    def unavailable(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        raise ApplianceControlUnavailableError("unavailable")
+
+    def record_read_only(
+        path: Path,
+        *,
+        allowed_space_ids: frozenset[str] = frozenset(),
+    ) -> object:
+        observed.append(path)
+        return open_read_only(path, allowed_space_ids=allowed_space_ids)
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.dispatch_phase1_command",
+        unavailable,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.ApplianceApplication.open_read_only",
+        record_read_only,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.ApplianceApplication.open_mutating",
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("local mutation is forbidden")
+        ),
+    )
+
+    exit_code = run_cli(
+        ("query", "synthetic", "--json"),
+        environment={"OPEN_BRAIN_ROOT": str(root)},
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["command"] == "query"
+    assert payload["status"] == "ok"
+    assert observed == [root]
+
+
+def test_appliance_cli_configuration_and_supervisor_failures_are_bounded(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert run_cli(("status", "--json"), environment={}) == 78
+    configuration = json.loads(capsys.readouterr().out)
+    assert configuration["status"] == "failed"
+    assert configuration["error"]["redacted"] is True
+
+    root = tmp_path / "private-root-canary"
+
+    def failed_supervisor(path: Path, *, action: str) -> dict[str, object]:
+        assert path == root
+        assert action == "install"
+        raise SupervisorCommandError(f"credential at {root}/token")
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.run_supervisor_action",
+        failed_supervisor,
+    )
+    assert run_cli(
+        ("supervisor", "install", "--json"),
+        environment={"OPEN_BRAIN_ROOT": str(root)},
+    ) == 1
+    failure = json.loads(capsys.readouterr().out)
+    rendered = json.dumps(failure, sort_keys=True)
+    assert failure["command"] == "supervisor"
+    assert failure["status"] == "failed"
+    assert "credential" not in rendered
+    assert str(root) not in rendered
+
+
+def test_appliance_offline_query_fails_boundedly_for_oversized_results(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "brain"
+    provenance = SimpleNamespace(as_dict=lambda: {"source_type": "note"})
+    result = SimpleNamespace(
+        capture_id="capture_123e4567-e89b-42d3-a456-426614174180",
+        excerpt="x" * 5_000,
+        explanation="synthetic",
+        payload_family="text",
+        provenance=provenance,
+        record_type="canonical",
+        result_id="result_123e4567-e89b-42d3-a456-426614174181",
+        space_id=None,
+        title="Synthetic",
+        trust="owner",
+    )
+    application = SimpleNamespace(
+        retrieval=SimpleNamespace(search=lambda *args, **kwargs: (result,))
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints._control_active",
+        lambda _root: False,
+    )
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.ApplianceApplication.open_read_only",
+        lambda _root: application,
+    )
+
+    assert run_cli(
+        ("query", "synthetic", "--json"),
+        environment={"OPEN_BRAIN_ROOT": str(root)},
+    ) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["command"] == "query"
+    assert payload["status"] == "failed"
+    assert "x" * 100 not in json.dumps(payload)

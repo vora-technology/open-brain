@@ -1,4 +1,4 @@
-"""Appliance entry points for init/status and read-only MCP during Phase 3 W1."""
+"""Appliance entry points for the Phase 3 daemon-owned appliance runtime."""
 
 from __future__ import annotations
 
@@ -6,19 +6,39 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 from collections.abc import Mapping
 from pathlib import Path
 
 from open_brain import __version__
-from open_brain.cli._common import ExitCode
+from open_brain.cli._common import (
+    ExitCode,
+    adapter_failed_envelope,
+    invalid_envelope,
+    redacted_error,
+    unavailable_envelope,
+    write_envelope,
+)
 from open_brain.engine import ReadViewUnavailableError
 from open_brain.profile import ProfileError
 from open_brain.services.appliance_application import ApplianceApplication
+from open_brain.services.appliance_daemon import (
+    MAXIMUM_CONTROL_ENVELOPE_BYTES,
+    ApplianceControlProtocolError,
+    ApplianceControlUnavailableError,
+)
 from open_brain.services.appliance_init import ApplianceInitError, initialize_appliance
+from open_brain.services.appliance_lifecycle import (
+    dispatch_phase1_command,
+    read_status_via_control,
+    run_supervisor_action,
+)
 from open_brain.services.appliance_status import read_appliance_status
+from open_brain.services.appliance_supervisors import SupervisorCommandError
 from open_brain.services.mcp_stdio import serve_stdio_mcp
 
+_PHASE1_COMMANDS = frozenset({"capture", "inbox", "proposals", "query", "review", "spaces"})
 _MCP_SPACE_ID = re.compile(r"space_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 
 
@@ -29,28 +49,73 @@ def run_cli(
 ) -> int:
     env = os.environ if environment is None else environment
     arguments = tuple(sys.argv[1:] if argv is None else argv)
-    parser_arguments = tuple(argument for argument in arguments if argument != "--json")
+    json_output = "--json" in arguments
+    if (
+        any(not isinstance(argument, str) or "\x00" in argument for argument in arguments)
+        or arguments.count("--json") > 1
+        or arguments.count("--dry-run") > 1
+    ):
+        write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
+        return ExitCode.USAGE
     root_free_exit = _root_free_exit(arguments)
     if root_free_exit is not None:
         return root_free_exit
-    parser = _parser()
-    namespace = parser.parse_args(parser_arguments)
-    root = _root_from_environment(env)
+    if "--dry-run" in arguments:
+        write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
+        return ExitCode.USAGE
+    command_index = next(
+        (index for index, argument in enumerate(arguments) if not argument.startswith("-")),
+        None,
+    )
+    if command_index is None:
+        write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
+        return ExitCode.USAGE
+    command = arguments[command_index]
+    command_argv = tuple(
+        argument for argument in arguments[command_index + 1 :] if argument != "--json"
+    )
     try:
-        if namespace.command == "init":
-            receipt = initialize_appliance(root, starter_spaces=tuple(namespace.starter_space))
+        root = _root_from_environment(env)
+    except ValueError:
+        _write_json(_configuration_failure())
+        return ExitCode.CONFIGURATION
+    try:
+        if command == "init":
+            receipt = initialize_appliance(root, starter_spaces=_starter_spaces(command_argv))
             _write_json(receipt.to_dict())
             return ExitCode.SUCCESS
-        if namespace.command == "status":
-            _write_json(read_appliance_status(root).to_dict())
+        if command == "status":
+            _write_json(_status_payload(root))
             return ExitCode.SUCCESS
-    except (ApplianceInitError, ProfileError, ReadViewUnavailableError) as error:
-        payload = error.receipt.to_dict() if isinstance(error, ApplianceInitError) else {
-            "status": "failed",
-            "detail": str(error),
-        }
-        _write_json(payload)
+        if command == "supervisor":
+            _write_json(_supervisor_payload(root, command_argv))
+            return ExitCode.SUCCESS
+        if command == "query":
+            return _query(root, command_argv, json_output=json_output)
+        if command in _PHASE1_COMMANDS:
+            return _dispatch_controlled_phase1(
+                root,
+                command,
+                command_argv,
+                json_output=json_output,
+            )
+    except ApplianceInitError as error:
+        _write_json(error.receipt.to_dict())
         return ExitCode.CONFIGURATION
+    except (ProfileError, ReadViewUnavailableError):
+        _write_json(_configuration_failure())
+        return ExitCode.CONFIGURATION
+    except (ApplianceControlProtocolError, OSError, SupervisorCommandError, TimeoutError):
+        write_envelope(
+            adapter_failed_envelope(command),
+            json_output=json_output,
+            stream=sys.stdout,
+        )
+        return ExitCode.FAILURE
+    except ValueError:
+        write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
+        return ExitCode.USAGE
+    write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
     return ExitCode.USAGE
 
 
@@ -89,7 +154,7 @@ def _root_free_exit(arguments: tuple[str, ...]) -> ExitCode | None:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="open-brain",
-        description="Phase 3 appliance init, status, and read-only MCP entry points.",
+        description="Phase 3 appliance CLI with daemon-owned mutations and read-only MCP.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--json", action="store_true", help="Write JSON output.")
@@ -102,6 +167,12 @@ def _parser() -> argparse.ArgumentParser:
         help="Create one optional starter space.",
     )
     subparsers.add_parser("status", help="Read bounded appliance status.")
+    subparsers.add_parser(
+        "supervisor",
+        help="Discover or control the local appliance daemon unit.",
+    )
+    for command in sorted(_PHASE1_COMMANDS):
+        subparsers.add_parser(command, help=f"{command} commands")
     return parser
 
 
@@ -135,3 +206,153 @@ def _mcp_allowed_space_ids(environment: Mapping[str, object]) -> frozenset[str]:
 
 def _write_json(value: Mapping[str, object]) -> None:
     sys.stdout.write(json.dumps(dict(value), sort_keys=True, separators=(",", ":")) + "\n")
+
+
+def _configuration_failure() -> dict[str, object]:
+    return {
+        "error": redacted_error("configuration_unavailable"),
+        "status": "failed",
+    }
+
+
+def _starter_spaces(argv: tuple[str, ...]) -> tuple[str, ...]:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--starter-space", action="append", default=[])
+    namespace, extras = parser.parse_known_args(argv)
+    if extras:
+        raise ValueError("invalid init arguments")
+    return tuple(namespace.starter_space)
+
+
+def _status_payload(root: Path) -> dict[str, object]:
+    if not _control_active(root):
+        return read_appliance_status(root).to_dict()
+    try:
+        return read_status_via_control(root).envelope
+    except ApplianceControlUnavailableError:
+        return read_appliance_status(root).to_dict()
+
+
+def _dispatch_controlled_phase1(
+    root: Path,
+    command: str,
+    argv: tuple[str, ...],
+    *,
+    json_output: bool,
+) -> int:
+    if not _control_active(root):
+        write_envelope(unavailable_envelope(command), json_output=json_output, stream=sys.stdout)
+        return ExitCode.FAILURE
+    try:
+        receipt = dispatch_phase1_command(root, command=command, argv=argv)
+    except ApplianceControlUnavailableError:
+        write_envelope(unavailable_envelope(command), json_output=json_output, stream=sys.stdout)
+        return ExitCode.FAILURE
+    write_envelope(receipt.envelope, json_output=json_output, stream=sys.stdout)
+    return int(receipt.exit_code)
+
+
+def _query(root: Path, argv: tuple[str, ...], *, json_output: bool) -> int:
+    if _control_active(root):
+        try:
+            receipt = dispatch_phase1_command(root, command="query", argv=argv)
+            write_envelope(receipt.envelope, json_output=json_output, stream=sys.stdout)
+            return int(receipt.exit_code)
+        except ApplianceControlUnavailableError:
+            pass
+    application = ApplianceApplication.open_read_only(root)
+    try:
+        envelope = _offline_query_envelope(application, argv)
+    except ValueError:
+        write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
+        return ExitCode.USAGE
+    if len(json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")) > (
+        MAXIMUM_CONTROL_ENVELOPE_BYTES
+    ):
+        write_envelope(
+            adapter_failed_envelope("query"),
+            json_output=json_output,
+            stream=sys.stdout,
+        )
+        return ExitCode.FAILURE
+    write_envelope(envelope, json_output=json_output, stream=sys.stdout)
+    return ExitCode.SUCCESS
+
+
+def _control_active(root: Path) -> bool:
+    try:
+        metadata = (root / ".open-brain" / "run" / "control.sock").lstat()
+    except OSError:
+        return False
+    return stat.S_ISSOCK(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode)
+
+
+def _supervisor_payload(root: Path, argv: tuple[str, ...]) -> dict[str, object]:
+    if len(argv) != 1:
+        raise ValueError("invalid supervisor arguments")
+    return run_supervisor_action(root, action=argv[0])
+
+
+def _offline_query_envelope(
+    application: ApplianceApplication,
+    argv: tuple[str, ...],
+) -> dict[str, object]:
+    positional, options, flags = _request(argv)
+    if len(positional) != 1 or flags or set(options) - {"space", "family", "type", "limit"}:
+        raise ValueError("invalid query arguments")
+    results = application.retrieval.search(
+        positional[0],
+        space_id=options.get("space"),
+        payload_family=options.get("family"),
+        record_type=options.get("type"),
+        limit=int(options.get("limit", "10")),
+    )
+    return {
+        "command": "query",
+        "results": [
+            {
+                "capture_id": result.capture_id,
+                "excerpt": result.excerpt,
+                "explanation": result.explanation,
+                "payload_family": result.payload_family,
+                "provenance": result.provenance.as_dict(),
+                "record_type": result.record_type,
+                "result_id": result.result_id,
+                "space_id": result.space_id,
+                "title": result.title,
+                "trust": result.trust,
+            }
+            for result in results
+        ],
+        "status": "ok",
+    }
+
+
+def _request(
+    argv: tuple[str, ...],
+) -> tuple[tuple[str, ...], dict[str, str], frozenset[str]]:
+    if not isinstance(argv, tuple) or any(
+        not isinstance(argument, str) or not argument or "\x00" in argument for argument in argv
+    ):
+        raise ValueError("invalid Phase 1 request")
+    positional: list[str] = []
+    options: dict[str, str] = {}
+    flags: set[str] = set()
+    for argument in argv:
+        if argument == "--json":
+            continue
+        if argument.startswith("--"):
+            key, marker, value = argument[2:].partition("=")
+            if marker:
+                if not key or not value or key in options or key in flags:
+                    raise ValueError("invalid Phase 1 request")
+                options[key] = value
+            else:
+                if not key or key in flags or key in options:
+                    raise ValueError("invalid Phase 1 request")
+                flags.add(key)
+            continue
+        if argument.startswith("-"):
+            raise ValueError("invalid Phase 1 request")
+        positional.append(argument)
+    return tuple(positional), options, frozenset(flags)

@@ -119,3 +119,43 @@
 - Scheduler, supervisor adapters, installed entrypoint cutover, real host
   service commands, network listeners, production, private predecessor, and
   live Brain data remained untouched.
+
+## P3-W2 runtime and repair subphases
+
+- `P3-W2-RUNTIME-04` implemented the first scheduler, supervisor, entrypoint,
+  and control-dispatch candidate. Its reported focused gate passed 148 tests,
+  Ruff, and strict MyPy on 456 files.
+- Coordinator review rejected that candidate as a checkpoint: scheduler state
+  used raw path writes without confinement or crash durability; shutdown could
+  release authority during an operation; legacy phase1 and auxiliary package
+  entrypoints still bypassed the daemon; and supervisor/CLI failures were not
+  fully bounded.
+- The first coordinator `make verify` confirmed two additional integration
+  failures: stale package characterization and a cross-process test that still
+  assumed direct installed-CLI writes. The suite result was 3,032 passed and
+  two failed.
+- `P3-W2-REPAIR-05` added 16 concrete red regressions, then passed 119 repair
+  tests and 158 plan-focused tests. It introduced bounded confined reads,
+  atomic scheduler state, immutable run receipts, receipt-before-state crash
+  replay, compatibility delegation, package-script cleanup, supervisor input
+  escaping, and disposable daemon restart evidence.
+- Coordinator hardening then bound the scheduler to `LocalEngineContext`,
+  capped connector/state size, moved its storage dependency behind a narrow
+  public operational-storage facade, removed temporary architecture debt,
+  closed operation admission before shutdown waits, bounded adapter/query and
+  supervisor failures, sanitized subprocess environments, and corrected stale
+  architecture/CLI documentation.
+- Restart evidence now covers a lost capture receipt and a lost review receipt:
+  repeated delivery identities preserve stable IDs with one capture, decision,
+  publication, and page. A concurrent stop keeps daemon authority until the
+  active operation exits and rejects any later operation admission.
+- Package metadata exposes only `open-brain` and read-only `open-brain-mcp`,
+  both on appliance entrypoints. The old phase1 entrypoints delegate to those
+  paths; standalone HTTP and legacy bridge scripts are not packaged.
+- Final focused Pytest: 178 passed. Full Ruff, strict MyPy on 457 source files,
+  and `git diff --check` passed.
+- Final sanitized `make verify`: 3,050 tests passed; wheel and sdist built; the
+  public artifact policy passed.
+- No launchctl/systemctl command, real user unit, persistent daemon, TCP
+  listener, production system, private predecessor, package publication,
+  deployment, live Brain data, or unrelated PR was touched.
