@@ -280,4 +280,3 @@ def _parse_timestamp(value: str) -> datetime:
     if not isinstance(value, str) or not value.endswith("Z"):
         raise ValueError("invalid timestamp")
     return datetime.fromisoformat(value[:-1] + "+00:00").astimezone(UTC)
-

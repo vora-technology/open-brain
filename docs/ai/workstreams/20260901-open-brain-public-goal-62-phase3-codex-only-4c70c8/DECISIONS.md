@@ -41,3 +41,13 @@
 - Rejected: report a missing queue as empty, which would be false evidence.
 - Why: W2 owns the new durable scheduler and can supply real bounded queue
   age without coupling the shipping engine to legacy capture operations.
+
+## D-005: fail fast in every remaining compound gate
+
+- Chosen: start every remaining multi-command verification and commit batch
+  with `set -euo pipefail`, then inspect the result before the next mutation.
+- Rejected: rely on the shell's default continue-on-error behavior.
+- Why: the W1 staged diff check correctly reported two EOF blank lines, but
+  the following commit command still ran. History is preserved; a follow-up
+  hygiene commit removes the lines, and future batches stop at the first
+  failed gate.

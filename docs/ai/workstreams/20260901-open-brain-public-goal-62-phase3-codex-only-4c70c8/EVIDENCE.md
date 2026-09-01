@@ -65,6 +65,9 @@
 - Final focused Pytest: 32 passed. Focused Ruff and strict MyPy passed.
 - Final full `make verify`: passed Ruff, MyPy, 2,999 tests, wheel/sdist builds,
   and artifact policy. `git diff --check` passed.
+- Commit hygiene: `9c147d2` contained two extra EOF blank lines because the
+  staged check did not stop its compound shell. A non-rewriting follow-up
+  removes both; all later compound gates use fail-fast shell settings.
 - Queue evidence is explicitly `unavailable` in W1 instead of falsely empty;
   W2 must supply the new scheduler-owned evidence without legacy imports.
 - No real credential, service, network, production, live Brain, private

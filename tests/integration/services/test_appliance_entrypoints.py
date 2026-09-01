@@ -51,4 +51,3 @@ def test_appliance_mcp_rejects_absent_schema_without_mutating_root(
     assert run_mcp() == 78
     assert not (root / ".open-brain" / "state" / "phase1.sqlite3").exists()
     assert not (root / ".open-brain" / ".open-brain-locks").exists()
-
