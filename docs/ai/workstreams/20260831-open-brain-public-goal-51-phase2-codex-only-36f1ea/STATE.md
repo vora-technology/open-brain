@@ -12,10 +12,10 @@
 ## Current milestone
 
 - Milestone: P2-W5 complete Phase 2 boundary reconciliation
-- Status: the first recorded-override exact review passed the dry-run fix and found two P2 capability/loading defects; scoped MCP injection and enabled optional-module loading repairs now pass every local gate and await a clean commit plus exact-commit rerun
+- Status: the first recorded-override exact review passed the dry-run fix and found two P2 capability/loading defects; scoped MCP injection and enabled optional-module loading repairs are committed at `0e236b0` and the enclosing evidence candidate awaits exact-commit gates plus the reserved fresh review
 - Allowed scope: zero-debt ownership, isolated engine imports, bounded representation capabilities, public-result projection, default app entrypoints, Phase 1 journey, documentation/gotcha reconciliation, final verification, review, PR, and merge
 - Stop condition: PR or merge begins before one clean candidate passes every final gate and a fresh independent Codex review returns READY with P0/P1/P2 at 0/0/0
-- Code checkpoint: `555ae02` truthful zero-debt classification, app-owned default entrypoints, minimized task capabilities, encoded/typed public-result projection, engine isolation, docs, and regressions
+- Code checkpoint: `0e236b0` closes the final review findings with scoped-only MCP storage, enabled installed optional-module loading, exact extension-host classification, regressions, docs, and gotchas
 - Result: all runtime files have one owner and temporary architecture debt remains empty; one exact reviewed app extension-host import preserves enabled optional-module behavior; the default CLI/HTTP/MCP path imports no legacy or connector modules; MCP stores only scoped retrieval; public task results hide raw/encoded protected values and storage-derived paths without changing Portable bytes; the default profile remains provider-none and connector-free
 
 ## Last verification
@@ -60,6 +60,7 @@
 - Chosen: reject unsupported global dry-run requests before constructing `SingleUserLocalApplication`. Rejected: opening a root and relying on an adapter to avoid the requested write. Reason: profile/engine initialization itself creates durable layout and operational state, so process-level non-mutation must precede composition.
 - Chosen: derive the caller's `ScopedRetrievalTask` in app composition and inject that capability into MCP. Rejected: storing the unrestricted retrieval task and deriving scope inside each tool method. Reason: the representation must not retain authority beyond its declared surface even when its normal calls apply filters.
 - Chosen: retain lazy import behavior at the explicitly reviewed app-owned optional-integration extension host after capability enablement. Rejected: treating `sys.modules` preload state as package availability or moving arbitrary loading into engine code. Reason: enabled installed modules must work while disabled/default profiles remain import-free and temporary architecture debt stays empty.
+- Chosen: authorize one second narrowly bounded read-only W5 review override after the first override found two new material P2 defects. Rejected: merging without the goal-required fresh post-repair verdict or reopening implementation fan-out. Reason: all normal slots are exhausted, and exactly one independent Codex review is still mandatory for completion.
 
 ## Dispatch ledger
 
@@ -88,8 +89,9 @@
 - P2-W5 exact-candidate rereview: `W5-FINAL-REREVIEW-01` passed all four prior-finding checks and returned NEEDS_FIX with P0/P1/P2 `0/0/1` for the bare digest of a case-varied protected reference
 - P2-W5 final normal-budget review: `W5-FINAL-READY-REVIEW-01` passed the digest and all earlier privacy/architecture checks, then returned NEEDS_FIX with P0/P1/P2 `0/0/1` because global dry-run opened the Brain root before adapter rejection
 - P2-W5 first override review: `W5-OVERRIDE-FINAL-REVIEW-01` passed the dry-run and every earlier recheck, then returned NEEDS_FIX with P0/P1/P2 `0/0/2` because MCP retained the unrestricted retrieval task and enabled installed optional integrations required an unrelated preload
-- P2-W5 children: 13 total, 0 active: 12 normal plus one recorded mandatory-review override. A fresh post-repair review requires one new narrowly recorded mandatory-review override. No Claude-family or other non-Codex agent was dispatched.
+- P2-W5 second override review: `W5-OVERRIDE-FINAL-REREVIEW-01` is reserved as one fresh read-only Codex review of the enclosing exact candidate; no implementation, exploration, or retry fan-out is authorized by this override
+- P2-W5 children: 14 total, 1 reserved: 12 normal plus two recorded mandatory-review overrides. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit the verified scoped-capability and optional-loader repair, rerun every final gate on the clean candidate, then record one narrowly bounded mandatory-review override and obtain the fresh exact-candidate READY verdict.
+Run every final gate on the clean enclosing candidate, then dispatch the one reserved read-only Codex reviewer and require an exact-candidate READY verdict with P0/P1/P2 `0/0/0`.
