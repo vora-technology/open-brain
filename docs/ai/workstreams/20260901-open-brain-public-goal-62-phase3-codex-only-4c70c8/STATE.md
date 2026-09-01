@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0 and `P3-W0` through `P3-W5` clean checkpoints complete; `P3-W6` audit repair is active before final review.
+- Status: in progress; Gate 0 and `P3-W0` through `P3-W5` clean checkpoints complete; `P3-W6` Linux CI portability repair is active before mandatory rereview.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -42,5 +42,6 @@
 - P3-W5 failure evidence: missing owner confirmation, request conflicts, mismatched recovery evidence, incomplete migrations, forward-stage errors, rollback failure, effect-before-receipt interruption, concurrent lifecycle requests, path residue, and absent artifact composition all fail closed with bounded receipts.
 - P3-W5 verification: 47 focused tests, 88 architecture/lock tests, full Ruff, strict MyPy on 474 source files, full sanitized `make verify` with 3,111 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
 - P3-W5 clean checkpoint: `45fb70da13f23d7b5f02328c5e09a6abdc40d281`, pushed to `origin/goal/open-brain-phase3` and recorded on child goal `#62`.
-- Current subphase: `P3-W6` release/history-audit repair; the first candidate passed tests, static checks, and builds but failed before review on current and historical path/IP residue.
-- Next action: verify the exact digest-bound history policy and current-tree redactions, commit a repaired candidate, rerun every same-commit gate, then review that exact SHA.
+- P3-W6 reviewed candidate: `9854f77fac5c0fa8e4a38c5a81821b88f1862c42` passed every local gate and a fresh read-only Codex audit at `READY`, P0/P1/P2 `0/0/0`, 12/12 complete. PR `#4` then invalidated that acceptance state when all three Linux jobs exposed macOS-only temporary-root fixtures.
+- Current subphase: replace five test-only `/private/tmp` roots with canonical `Path("/tmp").resolve()` roots, record the CI evidence, and use one mandatory read-only review override after full gates pass.
+- Next action: verify and commit the Linux portability repair, rerun the exact-candidate gates, dispatch `P3-W6-REREVIEW-02`, then update PR `#4` and require every check to pass.

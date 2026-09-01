@@ -413,7 +413,7 @@ def test_ui_authenticates_before_mutating_or_parsing_private_body(tmp_path: Path
 
 def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path: Path) -> None:
     del tmp_path
-    with tempfile.TemporaryDirectory(prefix="ob-", dir="/private/tmp") as directory:
+    with tempfile.TemporaryDirectory(prefix="ob-", dir=Path("/tmp").resolve()) as directory:
         root = Path(directory) / "brain"
         initialize_appliance(root, starter_spaces=())
         environment = {

@@ -293,3 +293,22 @@
   and the real reachable-history audit. An independent policy reconciliation
   proved the allow-list has exactly the 28 observed tuples with no missing or
   extra entry. Full exact-candidate gates still follow the repair commit.
+- Candidate `9854f77fac5c0fa8e4a38c5a81821b88f1862c42` then passed the
+  complete W6 gate: 39 focused tests, Ruff, strict MyPy on 474 source files,
+  all 3,114 tests, wheel/sdist builds, artifact policy, source/artifact audit,
+  reachable-history audit, diff integrity, clean tree, and exact SHA.
+- Fresh read-only Codex task `P3-W6-REVIEW-01` returned `READY`, P0/P1/P2
+  `0/0/0`, with 12/12 requirements complete and no findings. PR `#4` was
+  opened on that exact SHA.
+- PR CI passed macOS source-checkout lifecycle coverage, release audit, and
+  every CodeQL check. Python 3.12, 3.13, and 3.14 Linux jobs failed because
+  five daemon/UI/recovery/subprocess tests created short Unix-socket roots
+  below macOS-only `/private/tmp`; Linux has no such directory. The common
+  result was 3,094 passed, one skipped, three failed, and 16 setup errors.
+- The first direct `/tmp` repair reproduced a macOS path-identity mismatch
+  because `/tmp` is a symlink there. The final coordinator-owned repair uses
+  canonical `Path("/tmp").resolve()` for those five test roots, yielding
+  `/private/tmp` on macOS and `/tmp` on Linux. All 40 affected daemon,
+  recovery, subprocess, UI, and log tests plus focused Ruff passed. The prior
+  verdict remains invalidated; full gates and one fresh read-only override
+  review are mandatory before the PR can merge.

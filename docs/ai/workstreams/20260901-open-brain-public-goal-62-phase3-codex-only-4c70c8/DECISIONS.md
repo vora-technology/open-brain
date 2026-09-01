@@ -190,3 +190,17 @@
   copy changed only by mechanical public-path redaction. The plan also changes
   its self-matching canary to a runtime-unique value; the final reviewer must
   verify that the gate remains equivalent or stronger.
+
+## D-019: reserve one post-CI read-only review override
+
+- Chosen: repair the five macOS-only temporary-root fixtures as coordinator
+  work, rerun every exact-candidate gate, and dispatch exactly one additional
+  fresh read-only Codex reviewer.
+- Rejected: merge with failed required Linux checks, treat test portability as
+  non-material, reuse the prior reviewer verdict, add an implementation
+  worker, or weaken/remove the Linux matrix.
+- Why: all twelve normal child slots were consumed when PR CI found the first
+  post-review defect. Goal `#62` simultaneously requires green Linux CI and a
+  fresh exact-SHA review after any material test repair. This recorded override
+  is limited to the one mandatory reviewer; active concurrency remains one or
+  less and no non-Codex participant is authorized.

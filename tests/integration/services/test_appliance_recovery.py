@@ -75,7 +75,7 @@ def allow_unix_domain_sockets(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def short_root() -> Iterator[Path]:
-    with tempfile.TemporaryDirectory(prefix="ob-", dir="/private/tmp") as directory:
+    with tempfile.TemporaryDirectory(prefix="ob-", dir=Path("/tmp").resolve()) as directory:
         yield Path(directory) / "brain"
 
 

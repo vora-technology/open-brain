@@ -62,7 +62,7 @@ def allow_unix_sockets_only(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_browser_run_history_route_stays_metadata_only_and_root_confined(tmp_path: Path) -> None:
     del tmp_path
-    with tempfile.TemporaryDirectory(prefix="ob-", dir="/private/tmp") as directory:
+    with tempfile.TemporaryDirectory(prefix="ob-", dir=Path("/tmp").resolve()) as directory:
         root = Path(directory) / "brain"
         initialize_appliance(root)
         browser = derive_appliance_credential(

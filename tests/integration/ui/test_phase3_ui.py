@@ -99,7 +99,7 @@ def test_daemon_owned_http_listener_proves_browser_auth_route_separation_and_sha
     tmp_path: Path,
 ) -> None:
     del tmp_path
-    with tempfile.TemporaryDirectory(prefix="ob-", dir="/private/tmp") as directory:
+    with tempfile.TemporaryDirectory(prefix="ob-", dir=Path("/tmp").resolve()) as directory:
         root = Path(directory) / "brain"
         initialize_appliance(root, starter_spaces=("Projects",))
         seed = (root / APPLIANCE_OWNER_CREDENTIAL).read_text(encoding="utf-8").strip()

@@ -485,3 +485,17 @@ SHA-256, normalized repository path, and allow-listable rule. Never permit crede
 denylist findings through that policy.
 
 Discovered: 2026-09-01.
+
+### CI-001: Short Unix-socket test roots must exist on every supported host
+
+Symptom: Daemon, UI, recovery, and subprocess tests pass on macOS but fail before setup on every
+Linux CI version.
+
+Cause: Tests shortened Unix-socket paths by creating temporary roots below macOS-specific
+`/private/tmp`, which is absent on Linux.
+
+Fix: Resolve `/tmp` before creating deliberately short temporary roots. It becomes canonical
+`/private/tmp` on macOS and remains `/tmp` on Linux, preserving both path identity and host
+portability. Treat the full multi-version Linux jobs as required evidence.
+
+Discovered: 2026-09-01.
