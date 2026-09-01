@@ -5,8 +5,9 @@ from __future__ import annotations
 import base64
 import html
 import json
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import cast
+from typing import Protocol, cast
 from urllib.parse import parse_qs, urlsplit
 
 from open_brain.capture.auth import BearerAuthenticator
@@ -21,8 +22,30 @@ from open_brain.engine import (
     TextPayload,
     project_public_space,
 )
+from open_brain.integrations.ui import page_response
+
+from .ports import PageReader
 
 _MAX_BODY = 1_500_000
+_MAX_HISTORY_LIMIT = 20
+
+
+class BrowserSession(Protocol):
+    csrf_token: str
+
+
+class BrowserSessionStore(Protocol):
+    def create_session(self, credential: str) -> BrowserSession: ...
+
+    def authenticate_session(self, *, cookie_header: str | None) -> bool: ...
+
+    def authenticate(self, *, cookie_header: str | None, csrf_token: str | None) -> bool: ...
+
+    def logout(self, *, cookie_header: str | None) -> bool: ...
+
+    def set_cookie_header(self, session: BrowserSession) -> str: ...
+
+    def clear_cookie_header(self) -> str: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,20 +66,51 @@ class Phase1UiResponse:
 class Phase1UiHandler:
     """Map authenticated local UI routes to injected engine task capabilities."""
 
-    def __init__(self, *, expected_bearer_token: str, tasks: Phase1TaskSet) -> None:
+    def __init__(
+        self,
+        *,
+        expected_bearer_token: str | None = None,
+        tasks: Phase1TaskSet,
+        browser_sessions: BrowserSessionStore | None = None,
+        allowed_origin: str | None = None,
+        page_reader: PageReader | None = None,
+        status_reader: Callable[[], Mapping[str, object]] | None = None,
+        history_reader: Callable[[int], Mapping[str, object]] | None = None,
+    ) -> None:
         if not isinstance(tasks, Phase1TaskSet):
             raise ValueError("invalid Phase 1 UI tasks")
-        self._authenticator = BearerAuthenticator(expected_bearer_token)
+        self._authenticator: BearerAuthenticator | None = None
+        if browser_sessions is None:
+            if not isinstance(expected_bearer_token, str):
+                raise ValueError("invalid Phase 1 UI tasks")
+            self._authenticator = BearerAuthenticator(expected_bearer_token)
+        else:
+            if (
+                expected_bearer_token is not None
+                or not callable(getattr(browser_sessions, "create_session", None))
+                or not callable(getattr(browser_sessions, "authenticate", None))
+                or not callable(getattr(browser_sessions, "logout", None))
+                or not callable(getattr(browser_sessions, "set_cookie_header", None))
+                or not callable(getattr(browser_sessions, "clear_cookie_header", None))
+                or not isinstance(allowed_origin, str)
+                or not allowed_origin
+                or not callable(status_reader)
+                or not callable(history_reader)
+                or page_reader is None
+                or not callable(getattr(page_reader, "read", None))
+            ):
+                raise ValueError("invalid Phase 1 UI tasks")
+            self._authenticator = None
+        self._browser_sessions = browser_sessions
+        self._allowed_origin = allowed_origin
+        self._page_reader = page_reader
+        self._status_reader = status_reader
+        self._history_reader = history_reader
         self.tasks = tasks
 
     def handle(self, request: Phase1UiRequest) -> Phase1UiResponse:
         if not isinstance(request, Phase1UiRequest):
             return _text(400, "invalid_request")
-        authorization = _authorization(request.headers)
-        if authorization is None:
-            return _text(400, "invalid_request")
-        if not self._authenticator.authenticate(authorization):
-            return _text(401, "unauthorized")
         if (
             not isinstance(request.method, str)
             or not isinstance(request.path, str)
@@ -65,16 +119,61 @@ class Phase1UiHandler:
             return _text(400, "invalid_request")
         if len(request.body) > _MAX_BODY:
             return _text(413, "payload_too_large")
+        preflight = self.preflight(request)
+        if preflight is not None:
+            return preflight
         try:
             if request.method == "GET":
                 return self._get(request.path)
             if request.method == "POST":
-                return self._post(request.path, request.body)
+                return self._post(request.path, request.body, request.headers)
             return _text(405, "method_not_allowed", allow="GET, POST")
         except ValueError:
             return _json(409, {"error": "request_conflict", "status": "failed"})
         except Exception:
             return _json(503, {"error": "service_unavailable", "status": "failed"})
+
+    def preflight(self, request: Phase1UiRequest) -> Phase1UiResponse | None:
+        headers = request.headers
+        if not isinstance(headers, tuple):
+            return _text(400, "invalid_request")
+        if self._browser_sessions is None:
+            authorization = _authorization(headers)
+            if authorization is None:
+                return _text(400, "invalid_request")
+            assert self._authenticator is not None
+            if self._authenticator.authenticate(authorization):
+                return None
+            return _text(401, "unauthorized")
+        if _authorization(headers) not in {None, ()}:
+            return _text(401, "unauthorized")
+        if request.method == "POST" and not _origin_allowed(headers, self._allowed_origin):
+            return _text(403, "invalid_origin")
+        if request.method == "POST" and not _known_post_path(request.path):
+            return _text(404, "not_found")
+        if request.method == "POST" and request.path == "/auth/login":
+            return None
+        try:
+            cookie_header = _single_header(headers, "cookie")
+            csrf_token = (
+                None
+                if request.method == "GET"
+                else _single_header(headers, "x-csrf-token")
+            )
+        except ValueError:
+            return _text(400, "invalid_request")
+        if request.method == "GET":
+            return (
+                None
+                if self._browser_sessions.authenticate_session(cookie_header=cookie_header)
+                else _text(401, "unauthorized")
+            )
+        if not self._browser_sessions.authenticate(
+            cookie_header=cookie_header,
+            csrf_token=csrf_token,
+        ):
+            return _text(401, "unauthorized")
+        return None
 
     def _get(self, path: str) -> Phase1UiResponse:
         parsed = urlsplit(path)
@@ -83,6 +182,17 @@ class Phase1UiHandler:
             return _json(200, {"status": "ok"})
         if parsed.path == "/" and not query:
             return _html(self._dashboard())
+        if parsed.path == "/api/status" and not query and self._status_reader is not None:
+            return _json(200, _mapping(self._status_reader()))
+        if parsed.path == "/api/doctor" and not query and self._status_reader is not None:
+            return _json(200, _mapping(self._status_reader()))
+        if (
+            parsed.path == "/api/runs"
+            and set(query) <= {"limit"}
+            and self._history_reader is not None
+        ):
+            limit = _history_limit(query.get("limit", "10"))
+            return _json(200, _mapping(self._history_reader(limit)))
         if parsed.path == "/api/inbox" and not query:
             return _json(
                 200,
@@ -171,9 +281,40 @@ class Phase1UiHandler:
                     "status": "ok",
                 },
             )
+        if parsed.path.startswith("/pages/") and not query and self._page_reader is not None:
+            response = page_response(self._page_reader, parsed.path.removeprefix("/pages/"))
+            return Phase1UiResponse(response.status, response.body, response.headers)
         return _text(404, "not_found")
 
-    def _post(self, path: str, body: bytes) -> Phase1UiResponse:
+    def _post(
+        self,
+        path: str,
+        body: bytes,
+        headers: tuple[tuple[str, str], ...],
+    ) -> Phase1UiResponse:
+        if path == "/auth/login":
+            if self._browser_sessions is None:
+                return _text(404, "not_found")
+            value = _body(body)
+            _keys(value, required={"credential"})
+            try:
+                session = self._browser_sessions.create_session(_string(value, "credential"))
+            except ValueError:
+                return _text(401, "unauthorized")
+            return _json(
+                200,
+                {"csrf_token": session.csrf_token, "status": "authenticated"},
+                extra_headers=(("Set-Cookie", self._browser_sessions.set_cookie_header(session)),),
+            )
+        if path == "/auth/logout":
+            if self._browser_sessions is None:
+                return _text(404, "not_found")
+            self._browser_sessions.logout(cookie_header=_single_header(headers, "cookie"))
+            return _json(
+                200,
+                {"status": "logged_out"},
+                extra_headers=(("Set-Cookie", self._browser_sessions.clear_cookie_header()),),
+            )
         value = _body(body)
         if path in {"/api/captures/quick", "/api/captures/canonical"}:
             metadata = {"capture_why", "intent", "space_id", "title"}
@@ -314,6 +455,23 @@ def _authorization(headers: object) -> tuple[str, ...] | None:
     return tuple(values)
 
 
+def _single_header(headers: tuple[tuple[str, str], ...], name: str) -> str | None:
+    values = [value for header_name, value in headers if header_name.casefold() == name.casefold()]
+    if not values:
+        return None
+    if len(values) != 1:
+        raise ValueError("invalid UI headers")
+    return values[0]
+
+
+def _origin_allowed(headers: tuple[tuple[str, str], ...], allowed_origin: str | None) -> bool:
+    try:
+        origin = _single_header(headers, "origin")
+    except ValueError:
+        return False
+    return isinstance(allowed_origin, str) and origin == allowed_origin
+
+
 def _body(payload: bytes) -> dict[str, object]:
     try:
         value = json.loads(payload.decode("utf-8"), object_pairs_hook=_unique_object)
@@ -425,6 +583,46 @@ def _query(value: str) -> dict[str, str]:
     return {key: items[0] for key, items in parsed.items()}
 
 
+def _mapping(value: Mapping[str, object]) -> dict[str, object]:
+    if not isinstance(value, Mapping):
+        raise ValueError("invalid UI mapping")
+    return dict(value)
+
+
+def _known_post_path(path: str) -> bool:
+    if path in {
+        "/auth/login",
+        "/auth/logout",
+        "/api/captures/quick",
+        "/api/captures/canonical",
+        "/api/spaces",
+    }:
+        return True
+    parts = tuple(part for part in path.split("/") if part)
+    return (
+        len(parts) == 4
+        and parts[:2] == ("api", "spaces")
+        and parts[3] == "rename"
+    ) or (
+        len(parts) == 4
+        and parts[:2] == ("api", "captures")
+        and parts[3] == "route"
+    ) or (
+        len(parts) == 4
+        and parts[:2] == ("api", "proposals")
+        and parts[3] == "decision"
+    )
+
+
+def _history_limit(value: str) -> int:
+    if not isinstance(value, str) or not value.isascii() or not value.isdigit():
+        raise ValueError("invalid UI query")
+    limit = int(value)
+    if not 1 <= limit <= _MAX_HISTORY_LIMIT:
+        raise ValueError("invalid UI query")
+    return limit
+
+
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
     result: dict[str, object] = {}
     for key, value in pairs:
@@ -434,11 +632,16 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
     return result
 
 
-def _json(status: int, value: dict[str, object]) -> Phase1UiResponse:
+def _json(
+    status: int,
+    value: Mapping[str, object],
+    *,
+    extra_headers: tuple[tuple[str, str], ...] = (),
+) -> Phase1UiResponse:
     return Phase1UiResponse(
         status=status,
         body=json.dumps(
-            value,
+            dict(value),
             sort_keys=True,
             separators=(",", ":"),
             ensure_ascii=False,
@@ -448,7 +651,8 @@ def _json(status: int, value: dict[str, object]) -> Phase1UiResponse:
             ("Content-Type", "application/json"),
             ("Cache-Control", "no-store"),
             ("X-Content-Type-Options", "nosniff"),
-        ),
+        )
+        + extra_headers,
     )
 
 

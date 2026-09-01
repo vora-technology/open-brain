@@ -13,6 +13,7 @@ from open_brain.storage.filesystem import read_confined
 from open_brain.storage.markdown import MarkdownFormatError, parse_markdown
 
 from .contracts import (
+    PageResult,
     PublicProvenance,
     RetrievalResult,
     RetrievalTask,
@@ -196,6 +197,42 @@ class RetrievalOperations(_LocalEngineOperations):
     def _fetch(
         self, result_id: str, *, allowed_space_ids: frozenset[str] | None = None
     ) -> RetrievalResult | None:
+        row = self._search_row(result_id, allowed_space_ids=allowed_space_ids)
+        if row is None:
+            return None
+        result = self._retrieval_result(row, query="", terms=())
+        return None if result is None else result[1]
+
+    def _read_page(
+        self,
+        result_id: str,
+        *,
+        allowed_space_ids: frozenset[str] | None = None,
+    ) -> PageResult | None:
+        row = self._search_row(result_id, allowed_space_ids=allowed_space_ids)
+        if row is None:
+            return None
+        document = self._resolved_document(row)
+        if document is None:
+            return None
+        title, body = document
+        capture = self._capture_row(cast(str, row["capture_id"]))
+        if capture is None:
+            return None
+        protected_literals = (cast(str, capture["source_reference"]),)
+        return PageResult(
+            page_id=cast(str, row["result_id"]),
+            title=project_public_result_text(title, protected_literals=protected_literals),
+            markdown=project_public_result_text(body, protected_literals=protected_literals),
+            trust=cast(str, row["trust"]),
+        )
+
+    def _search_row(
+        self,
+        result_id: str,
+        *,
+        allowed_space_ids: frozenset[str] | None,
+    ) -> sqlite3.Row | None:
         if allowed_space_ids is not None:
             if not allowed_space_ids:
                 return None
@@ -218,31 +255,15 @@ class RetrievalOperations(_LocalEngineOperations):
             row = connection.execute(sql, parameters).fetchone()
         finally:
             connection.close()
-        if row is None:
-            return None
-        result = self._retrieval_result(row, query="", terms=())
-        return None if result is None else result[1]
+        return cast(sqlite3.Row | None, row)
 
     def _retrieval_result(
         self, row: sqlite3.Row, *, query: str, terms: tuple[str, ...]
     ) -> tuple[int, RetrievalResult] | None:
-        title = cast(str, row["title"])
-        body = cast(str, row["body"])
-        canonical_path = cast(str | None, row["canonical_path"])
-        if canonical_path is not None:
-            payload = read_confined(
-                root=self.profile.root,
-                relative=canonical_path,
-                expected_root_identity=self.profile.root_identity,
-            )
-            if payload is None:
-                return None
-            try:
-                parsed = parse_markdown(payload)
-                title = cast(str, parsed.fields["title"])
-                body = parsed.body
-            except (KeyError, MarkdownFormatError, TypeError):
-                return None
+        document = self._resolved_document(row)
+        if document is None:
+            return None
+        title, body = document
         haystack = f"{title}\n{body}".casefold()
         phrase = query.casefold()
         if terms and not all(term in haystack for term in terms):
@@ -266,15 +287,7 @@ class RetrievalOperations(_LocalEngineOperations):
         ):
             return None
         capture_id = cast(str, row["capture_id"])
-        connection = self._store.connect()
-        try:
-            capture = connection.execute(
-                "SELECT source_origin, source_reference, provenance_json "
-                "FROM captures WHERE capture_id = ?",
-                (capture_id,),
-            ).fetchone()
-        finally:
-            connection.close()
+        capture = self._capture_row(capture_id)
         if capture is None:
             return None
         protected_literals = (cast(str, capture["source_reference"]),)
@@ -303,6 +316,39 @@ class RetrievalOperations(_LocalEngineOperations):
                 explanation=public_explanation,
             ),
         )
+
+    def _resolved_document(self, row: sqlite3.Row) -> tuple[str, str] | None:
+        title = cast(str, row["title"])
+        body = cast(str, row["body"])
+        canonical_path = cast(str | None, row["canonical_path"])
+        if canonical_path is None:
+            return title, body
+        payload = read_confined(
+            root=self.profile.root,
+            relative=canonical_path,
+            expected_root_identity=self.profile.root_identity,
+        )
+        if payload is None:
+            return None
+        try:
+            parsed = parse_markdown(payload)
+            return cast(str, parsed.fields["title"]), parsed.body
+        except (KeyError, MarkdownFormatError, TypeError):
+            return None
+
+    def _capture_row(self, capture_id: str) -> sqlite3.Row | None:
+        connection = self._store.connect()
+        try:
+            return cast(
+                sqlite3.Row | None,
+                connection.execute(
+                    "SELECT source_origin, source_reference, provenance_json "
+                    "FROM captures WHERE capture_id = ?",
+                    (capture_id,),
+                ).fetchone(),
+            )
+        finally:
+            connection.close()
 
 
 def _public_source_origin(capture: sqlite3.Row) -> str:
@@ -350,6 +396,9 @@ class RetrievalTasks:
     def fetch(self, result_id: str) -> RetrievalResult | None:
         return self._engine._fetch(result_id)
 
+    def read_page(self, result_id: str) -> PageResult | None:
+        return self._engine._read_page(result_id)
+
     def scoped(self, *, allowed_space_ids: frozenset[str]) -> ScopedRetrieval:
         return ScopedRetrieval(self, allowed_space_ids=allowed_space_ids)
 
@@ -385,6 +434,12 @@ class ScopedRetrieval:
 
     def fetch(self, result_id: str) -> RetrievalResult | None:
         return self._retrieval._engine._fetch(
+            result_id,
+            allowed_space_ids=self._allowed_space_ids,
+        )
+
+    def read_page(self, result_id: str) -> PageResult | None:
+        return self._retrieval._engine._read_page(
             result_id,
             allowed_space_ids=self._allowed_space_ids,
         )

@@ -6,9 +6,11 @@ import json
 import os
 import stat
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
+from urllib.parse import urlsplit
 
 from open_brain.capture.http import CaptureAcceptor, ShareHttpHandler
 from open_brain.config import (
@@ -18,10 +20,12 @@ from open_brain.config import (
     resolve_secret,
 )
 from open_brain.engine import EngineTaskSet, PublicJobCaptureSink
+from open_brain.engine.contracts import DaemonMutationPath
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ui import UiBindConfig
 
+from .appliance_auth import allowed_origin_for_host
 from .composition import (
     HttpLifecycle,
     StdioMcpLifecycle,
@@ -33,10 +37,61 @@ _SERVICE_SECRET_NAMES = frozenset(
     {_SERVICE_SECRET_NAME, "ui_service_token", "ingress_service_token"}
 )
 _MAXIMUM_SECRET_BYTES = 4_096
+APPLIANCE_RUN_DIRECTORY_MODE = 0o700
+APPLIANCE_CONTROL_SOCKET_MODE = 0o600
+RESERVED_APPLIANCE_APPLICATION_MODULE = "open_brain.services.appliance_application"
+RESERVED_APPLIANCE_ENTRYPOINT_MODULE = "open_brain.services.appliance_entrypoints"
+RESERVED_APPLIANCE_CLI_ENTRYPOINT = f"{RESERVED_APPLIANCE_ENTRYPOINT_MODULE}:run_cli"
+RESERVED_APPLIANCE_HTTP_ENTRYPOINT = f"{RESERVED_APPLIANCE_ENTRYPOINT_MODULE}:run_http"
+RESERVED_APPLIANCE_MCP_ENTRYPOINT = f"{RESERVED_APPLIANCE_ENTRYPOINT_MODULE}:run_mcp"
+_EXTERNAL_TLS_TERMINATION = "OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION"
+_EXTERNAL_ORIGIN = "OPEN_BRAIN_UI_EXTERNAL_ORIGIN"
 
 
 class ServiceConfigurationError(RuntimeError):
     """A service cannot start from the supplied non-secret configuration."""
+
+
+@dataclass(frozen=True, slots=True)
+class ApplianceHttpConfiguration:
+    bind: UiBindConfig
+    allowed_origin: str
+    external_encryption_terminated: bool
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.bind, UiBindConfig)
+            or not isinstance(self.allowed_origin, str)
+            or not self.allowed_origin
+            or type(self.external_encryption_terminated) is not bool
+        ):
+            raise ValueError("invalid HTTP service configuration")
+        try:
+            if self.bind.allow_private_network:
+                valid = (
+                    self.external_encryption_terminated
+                    and _https_origin(self.allowed_origin) == self.allowed_origin
+                )
+            else:
+                valid = (
+                    not self.external_encryption_terminated
+                    and self.allowed_origin
+                    == allowed_origin_for_host(self.bind.host, self.bind.port)
+                )
+        except ServiceConfigurationError:
+            valid = False
+        if not valid:
+            raise ValueError("invalid HTTP service configuration")
+
+
+@dataclass(frozen=True, slots=True)
+class ApplianceControlPlane:
+    application_module: str
+    entrypoint_module: str
+    cli_entrypoint: str
+    http_entrypoint: str
+    mcp_entrypoint: str
+    daemon_mutation_path: DaemonMutationPath
 
 
 class _SingleUserApplication(Protocol):
@@ -48,6 +103,21 @@ class _SingleUserApplication(Protocol):
     ) -> EngineMcpAdapter: ...
 
     def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler: ...
+
+
+def reserved_appliance_control_plane(
+    daemon_mutation_path: DaemonMutationPath,
+) -> ApplianceControlPlane:
+    if not isinstance(daemon_mutation_path, DaemonMutationPath):
+        raise ValueError("invalid appliance control plane")
+    return ApplianceControlPlane(
+        application_module=RESERVED_APPLIANCE_APPLICATION_MODULE,
+        entrypoint_module=RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
+        cli_entrypoint=RESERVED_APPLIANCE_CLI_ENTRYPOINT,
+        http_entrypoint=RESERVED_APPLIANCE_HTTP_ENTRYPOINT,
+        mcp_entrypoint=RESERVED_APPLIANCE_MCP_ENTRYPOINT,
+        daemon_mutation_path=daemon_mutation_path,
+    )
 
 
 def compose_mcp_from_config(
@@ -185,6 +255,58 @@ def bind_from_environment(environment: Mapping[str, str]) -> UiBindConfig:
         )
     except ValueError:
         raise ServiceConfigurationError("invalid HTTP service configuration") from None
+
+
+def appliance_http_configuration_from_environment(
+    environment: Mapping[str, str],
+) -> ApplianceHttpConfiguration:
+    bind = bind_from_environment(environment)
+    raw_terminated = environment.get(_EXTERNAL_TLS_TERMINATION, "false")
+    raw_external_origin = environment.get(_EXTERNAL_ORIGIN)
+    if not isinstance(raw_terminated, str) or raw_terminated not in {"true", "false"}:
+        raise ServiceConfigurationError("invalid HTTP service configuration")
+    terminated = raw_terminated == "true"
+    if bind.allow_private_network:
+        if not terminated:
+            raise ServiceConfigurationError("invalid HTTP service configuration")
+        allowed_origin = _https_origin(raw_external_origin)
+    else:
+        if terminated or raw_external_origin not in {None, ""}:
+            raise ServiceConfigurationError("invalid HTTP service configuration")
+        allowed_origin = allowed_origin_for_host(bind.host, bind.port)
+    try:
+        return ApplianceHttpConfiguration(
+            bind=bind,
+            allowed_origin=allowed_origin,
+            external_encryption_terminated=terminated,
+        )
+    except ValueError:
+        raise ServiceConfigurationError("invalid HTTP service configuration") from None
+
+
+def _https_origin(value: str | None) -> str:
+    if not isinstance(value, str) or not value:
+        raise ServiceConfigurationError("invalid HTTP service configuration")
+    try:
+        parsed = urlsplit(value)
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError:
+        raise ServiceConfigurationError("invalid HTTP service configuration") from None
+    if (
+        parsed.scheme != "https"
+        or not parsed.netloc
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+        or parsed.username is not None
+        or parsed.password is not None
+        or hostname is None
+    ):
+        raise ServiceConfigurationError("invalid HTTP service configuration")
+    if port is not None and not 1 <= port <= 65_535:
+        raise ServiceConfigurationError("invalid HTTP service configuration")
+    return value
 
 
 def _service_token(

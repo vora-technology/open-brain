@@ -4,6 +4,9 @@ import base64
 import json
 import os
 import subprocess
+import sys
+import tempfile
+import time
 from pathlib import Path
 from typing import cast
 
@@ -14,12 +17,23 @@ from open_brain.cli.main import main
 from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.engine import BrainEngine, ProposalDraft, ReferencePayload, TextPayload
+from open_brain.engine.contracts import (
+    DaemonMutationPathUnavailableError,
+    MutationAuthorityOwner,
+    MutationTransport,
+)
 from open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
     Phase1UiRequest,
     Phase1UiResponse,
 )
 from open_brain.profile import compile_single_user_local
+from open_brain.services.appliance_init import initialize_appliance
+from open_brain.services.phase1_application import SingleUserLocalApplication
+from open_brain.services.runtime import (
+    RESERVED_APPLIANCE_APPLICATION_MODULE,
+    RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
+)
 
 TOKEN = "synthetic-ui-token"
 AUTHORIZATION = (("Authorization", f"Bearer {TOKEN}"),)
@@ -138,6 +152,33 @@ def test_cli_and_ui_share_capture_space_routing_and_retrieval_ids(
     assert dashboard.status == 200
     assert quick_id.encode("utf-8") in dashboard.body
     assert canonical_id not in dashboard.body.decode("utf-8")
+
+
+def test_phase3_appliance_control_plane_is_reserved_and_fails_closed(
+    tmp_path: Path,
+) -> None:
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
+
+    control_plane = application.appliance_control_plane()
+
+    assert control_plane.application_module == RESERVED_APPLIANCE_APPLICATION_MODULE
+    assert control_plane.entrypoint_module == RESERVED_APPLIANCE_ENTRYPOINT_MODULE
+    assert control_plane.cli_entrypoint == "open_brain.services.appliance_entrypoints:run_cli"
+    assert control_plane.http_entrypoint == "open_brain.services.appliance_entrypoints:run_http"
+    assert control_plane.mcp_entrypoint == "open_brain.services.appliance_entrypoints:run_mcp"
+    assert control_plane.daemon_mutation_path.owner is MutationAuthorityOwner.APPLIANCE_DAEMON
+    assert (
+        control_plane.daemon_mutation_path.transport is MutationTransport.UNIX_DOMAIN_SOCKET
+    )
+    assert (
+        control_plane.daemon_mutation_path.socket_path
+        == tmp_path / "brain" / ".open-brain" / "run" / "control.sock"
+    )
+    with pytest.raises(
+        DaemonMutationPathUnavailableError,
+        match="daemon-only mutation path is reserved",
+    ):
+        control_plane.daemon_mutation_path.open()
 
 
 def test_cli_and_ui_accept_every_generic_payload_family_through_the_same_engine(
@@ -371,56 +412,182 @@ def test_ui_authenticates_before_mutating_or_parsing_private_body(tmp_path: Path
 
 
 def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path: Path) -> None:
-    root = tmp_path / "brain"
-    environment = dict(os.environ)
-    environment["OPEN_BRAIN_ROOT"] = str(root)
+    del tmp_path
+    with tempfile.TemporaryDirectory(prefix="ob-", dir=Path("/tmp").resolve()) as directory:
+        root = Path(directory) / "brain"
+        initialize_appliance(root, starter_spaces=())
+        environment = {
+            key: os.environ[key]
+            for key in ("HOME", "LANG", "LC_ALL", "PATH", "TMPDIR", "UV_CACHE_DIR")
+            if key in os.environ
+        }
+        environment.update(
+            {
+                "NO_COLOR": "1",
+                "OPEN_BRAIN_ROOT": str(root),
+                "OPEN_BRAIN_UI_PORT": str(_free_port()),
+                "PYTHONUTF8": "1",
+            }
+        )
+        socket_path = root / ".open-brain" / "run" / "control.sock"
 
-    created = subprocess.run(
-        [
-            "uv",
-            "run",
-            "open-brain",
-            "spaces",
-            "create",
-            "Process space",
-            "--delivery=process.space",
-            "--json",
-        ],
-        cwd=REPOSITORY_ROOT,
-        env=environment,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    space_id = json.loads(created.stdout)["space_id"]
-    captured = subprocess.run(
-        [
-            "uv",
-            "run",
-            "open-brain",
-            "capture",
-            "canonical",
-            "text",
-            "Process lexical token",
-            "--delivery=process.capture",
-            f"--space={space_id}",
-            "--json",
-        ],
-        cwd=REPOSITORY_ROOT,
-        env=environment,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    capture_id = json.loads(captured.stdout)["capture_id"]
-    queried = subprocess.run(
-        ["uv", "run", "open-brain", "query", "Process lexical token", "--json"],
-        cwd=REPOSITORY_ROOT,
-        env=environment,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    results = json.loads(queried.stdout)["results"]
+        def start_daemon() -> subprocess.Popen[str]:
+            process = subprocess.Popen(
+                [
+                    "uv",
+                    "run",
+                    "python",
+                    "-I",
+                    "-B",
+                    "-m",
+                    "open_brain.services.appliance_daemon",
+                    "--root",
+                    str(root),
+                ],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                if process.poll() is not None:
+                    assert process.stderr is not None
+                    raise AssertionError(process.stderr.read())
+                if socket_path.exists():
+                    return process
+                time.sleep(0.05)
+            process.terminate()
+            process.wait(timeout=5)
+            raise AssertionError("appliance daemon socket did not appear")
 
-    assert capture_id in {result["capture_id"] for result in results}
+        daemon = start_daemon()
+        try:
+            created = subprocess.run(
+                [
+                    "uv",
+                    "run",
+                    "open-brain",
+                    "spaces",
+                    "create",
+                    "Process space",
+                    "--delivery=process.space",
+                    "--json",
+                ],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            created_payload = json.loads(created.stdout)
+            space_id = created_payload["space_id"]
+
+            first_capture = subprocess.run(
+                [
+                    "uv",
+                    "run",
+                    "open-brain",
+                    "capture",
+                    "quick",
+                    "text",
+                    "Process lexical token",
+                    "--delivery=process.capture",
+                    f"--space={space_id}",
+                    "--json",
+                ],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            first_payload = json.loads(first_capture.stdout)
+            daemon.kill()
+            daemon.wait(timeout=5)
+
+            daemon = start_daemon()
+
+            replay_capture = subprocess.run(
+                [
+                    "uv",
+                    "run",
+                    "open-brain",
+                    "capture",
+                    "quick",
+                    "text",
+                    "Process lexical token",
+                    "--delivery=process.capture",
+                    f"--space={space_id}",
+                    "--json",
+                ],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            replay_payload = json.loads(replay_capture.stdout)
+            inbox = subprocess.run(
+                ["uv", "run", "open-brain", "inbox", "list", "--json"],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            listed_spaces = subprocess.run(
+                ["uv", "run", "open-brain", "spaces", "list", "--json"],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            queried = subprocess.run(
+                ["uv", "run", "open-brain", "query", "Process lexical token", "--json"],
+                cwd=REPOSITORY_ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        finally:
+            if daemon.poll() is None:
+                daemon.terminate()
+                try:
+                    daemon.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    daemon.kill()
+                    daemon.wait(timeout=5)
+
+        results = json.loads(queried.stdout)["results"]
+        captures = json.loads(inbox.stdout)["captures"]
+        spaces = json.loads(listed_spaces.stdout)["spaces"]
+
+        assert first_payload["capture_id"] == replay_payload["capture_id"]
+        assert replay_payload["duplicate"] is True
+        assert [capture["capture_id"] for capture in captures] == [first_payload["capture_id"]]
+        assert [space["space_id"] for space in spaces] == [space_id]
+        assert {result["capture_id"] for result in results} == {first_payload["capture_id"]}
+
+
+def _free_port() -> int:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import socket; "
+                "listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM); "
+                "listener.bind(('127.0.0.1', 0)); "
+                "print(listener.getsockname()[1]); "
+                "listener.close()"
+            ),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return int(result.stdout.strip())

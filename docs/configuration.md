@@ -24,6 +24,27 @@ The retained roots are explicit and distinct:
 any retained root. Backup data, immutable manifests, and replay reservations are written
 there; private configuration supplies the real host path.
 
+Phase 3 appliance recovery uses that separate destination for immutable backup publication only.
+Portable export remains a distinct owner-requested data contract and does not reuse backup IDs,
+backup manifests, or restore semantics. Backup includes exact Portable bytes, required
+`.open-brain/state/phase1.sqlite3` snapshots produced through the SQLite backup API, and bounded
+immutable appliance evidence and completed scheduler run receipts. It excludes mutable scheduler
+state, credentials, indexes, sockets, locks, supervisor state, temporary or staging data, and live
+SQLite sidecars such as `-wal`, `-shm`, or `-journal`. Restore and Portable import both target a
+fresh empty disposable root first; only the restored appliance generates a new local owner
+credential, initializes fresh scheduler state, and rebuilds indexes before a later live replacement
+decision.
+Phase 3 upgrade and uninstall orchestration stays app-owned and source-checkout scoped. The
+`ArtifactLifecyclePort` accepts only bounded candidate identity plus compatibility, activation,
+rollback, and removal receipts. Its default effect boundary is fail-closed, and the Phase 3 source
+tree ships only injected fake or disposable adapters. Phase 4 alone may add the native-artifact
+adapter, clean-host package proofs, signing, notarization, publication, prior-release artifact
+upgrade evidence, and residue claims. Upgrade and uninstall CLI commands therefore fail closed until
+composition injects a source-checkout lifecycle port. Accepted owner requests use one root-scoped
+lifecycle lease and bounded journals below `.open-brain/state/appliance-lifecycle/`; retries replay
+terminal receipts, conflicting identities fail, and interrupted forward work rolls back before the
+journal becomes terminal.
+
 `host.identity` is required on a writer host. Scheduled manifests pass the single
 `OPEN_BRAIN_CONFIG` reference to the process entry point, and backup writers run only when
 that identity matches the durable canonical-writer record in `state_root`.
@@ -64,7 +85,29 @@ sink-issued receipt, delivery ID, and source reference are bound.
 
 `OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS` is a JSON array of opaque space IDs. MCP gets only scoped
 retrieval and metadata feedback; search and fetch both enforce that allow-list. Set it to `[]` for
-the empty scope. The local HTTP bind defaults to `127.0.0.1:8788`; private-network binding needs
-explicit non-secret configuration and still rejects public or wildcard addresses.
+the empty scope. The appliance daemon owns the only public HTTP listener. Its non-secret bind
+configuration is:
+
+- `OPEN_BRAIN_UI_BIND`
+- `OPEN_BRAIN_UI_PORT`
+- `OPEN_BRAIN_UI_ALLOW_PRIVATE`
+
+Loopback uses the exact browser origin `http://<bind-host>:<bind-port>`. For remote access, create an
+authenticated SSH tunnel to that loopback listener:
+
+```console
+ssh -N -L 8788:127.0.0.1:8788 user@appliance-host
+```
+
+Then open `http://127.0.0.1:8788` locally. Do not put the appliance credential in the URL.
+Private-network binding is refused unless all of these are set exactly:
+
+- `OPEN_BRAIN_UI_ALLOW_PRIVATE=true`
+- `OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION=true`
+- `OPEN_BRAIN_UI_EXTERNAL_ORIGIN=https://...`
+
+The external origin must be a syntactically exact HTTPS origin with no path, query, fragment, or
+userinfo. Without that explicit external browser origin, private-network binding still rejects
+public or wildcard addresses.
 
 Ledger taxonomy is configuration, not model output. Each route binds a trusted path prefix to a synthetic-safe topic ID, label, and privacy tier. Unknown paths have no topic and retain fail-closed privacy authority.

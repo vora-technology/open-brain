@@ -421,3 +421,95 @@ Fix: At the reviewed app extension host, import the composition-declared module 
 capability is enabled. Keep disabled/default profiles import-free.
 
 Discovered: 2026-09-01.
+
+### BACKUP-001: Replay-identical backups cannot include mutable scheduler state
+
+Symptom: Replaying one backup request produces different app-state bytes even though the
+canonical Brain content did not change.
+
+Cause: The backup included scheduler cursors and claims that can advance while the request is
+being verified or replayed.
+
+Fix: Back up only schema-validated immutable run receipts. Recreate scheduler runtime state after
+restore instead of treating it as recoverable instance data.
+
+Discovered: 2026-09-01.
+
+### BACKUP-002: An allow-listed backup path does not validate its contents
+
+Symptom: A known app-state filename enters a backup with arbitrary JSON or credential-shaped
+content.
+
+Cause: Inventory validation treated the relative path as authority for every byte stored there.
+
+Fix: Give each allowed app-state artifact an exact bounded schema, reject extra fields, and scan
+validated values for forbidden residue before publishing the manifest.
+
+Discovered: 2026-09-01.
+
+### LIFECYCLE-001: A pending journal does not prove that its owner crashed
+
+Symptom: A concurrent lifecycle request sees a pending upgrade and rolls back work that another
+process is still performing.
+
+Cause: Durable intent records survive crashes, but they do not carry live process authority.
+
+Fix: Hold a distinct root-scoped kernel lease for the full lifecycle attempt. Recover a pending
+record only after acquiring that lease, and bind each staged effect and terminal receipt to the
+same request fingerprint.
+
+Discovered: 2026-09-01.
+
+### LIFECYCLE-002: A daemon cannot safely coordinate its own replacement
+
+Symptom: Upgrade or uninstall restarts or removes the daemon unit before the coordinator can
+record success, failure, or rollback evidence.
+
+Cause: The lifecycle coordinator runs inside the process and supervisor unit that it is replacing.
+
+Fix: Run lifecycle orchestration from a short-lived owner command outside the daemon, inject the
+artifact and supervisor ports, and keep the default source-checkout composition fail closed.
+
+Discovered: 2026-09-01.
+
+### AUDIT-002: Cleaning the current tree does not clean reachable history
+
+Symptom: The source tree is clean, but the public-history audit still reports an older planning
+path or synthetic private-network fixture.
+
+Cause: Replacing the current file leaves every earlier blob reachable, while broad path or rule
+exceptions would hide unrelated future residue.
+
+Fix: Sanitize the current tree and record only reviewed historical false positives by exact blob
+SHA-256, normalized repository path, and allow-listable rule. Never permit credential or private
+denylist findings through that policy.
+
+Discovered: 2026-09-01.
+
+### CI-001: Short Unix-socket test roots must exist on every supported host
+
+Symptom: Daemon, UI, recovery, and subprocess tests pass on macOS but fail before setup on every
+Linux CI version.
+
+Cause: Tests shortened Unix-socket paths by creating temporary roots below macOS-specific
+`/private/tmp`, which is absent on Linux.
+
+Fix: Resolve `/tmp` before creating deliberately short temporary roots. It becomes canonical
+`/private/tmp` on macOS and remains `/tmp` on Linux, preserving both path identity and host
+portability. Treat the full multi-version Linux jobs as required evidence.
+
+Discovered: 2026-09-01.
+
+### CONTROL-001: Default Unix-socket backlog behavior varies by host
+
+Symptom: A partial client occupies the serial daemon reader and the next owner request gets
+`EAGAIN` on Linux, while the same stalled-client regression passes on macOS.
+
+Cause: Calling `listen()` without an explicit backlog left queue capacity to platform defaults.
+The accepted-client timeout bounded the first read but did not guarantee that the next connection
+could queue.
+
+Fix: Set an explicit bounded backlog larger than one and keep the accepted-client timeout. Assert
+the backlog in the stalled-client regression instead of adding sleeps or client-side retries.
+
+Discovered: 2026-09-01.

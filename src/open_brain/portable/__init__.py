@@ -6,6 +6,7 @@ from .v1 import (
     PORTABLE_V1_SCHEMA_CATALOG_DIGEST,
     PortableValidationError,
     export_portable_tree,
+    validate_portable_file_set,
     validate_portable_root,
 )
 
@@ -14,5 +15,6 @@ __all__ = [
     "PortableValidationError",
     "export_portable_tree",
     "portable_canonical_json_bytes",
+    "validate_portable_file_set",
     "validate_portable_root",
 ]

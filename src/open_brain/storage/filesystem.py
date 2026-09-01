@@ -175,16 +175,22 @@ def _open_parent(root_fd: int, parts: tuple[str, ...], *, create: bool) -> int:
         raise
 
 
-def _read_fd(file_fd: int) -> bytes:
+def _read_fd(file_fd: int, *, maximum_bytes: int | None = None) -> bytes:
     chunks: list[bytes] = []
+    total = 0
     while True:
         chunk = os.read(file_fd, 64 * 1024)
         if not chunk:
             return b"".join(chunks)
+        total += len(chunk)
+        if maximum_bytes is not None and total > maximum_bytes:
+            raise StorageError("stored content exceeds read limit")
         chunks.append(chunk)
 
 
-def _existing_bytes(parent_fd: int, name: str) -> bytes | None:
+def _existing_bytes(
+    parent_fd: int, name: str, *, maximum_bytes: int | None = None
+) -> bytes | None:
     try:
         file_fd = os.open(name, _FILE_READ_FLAGS, dir_fd=parent_fd)
     except FileNotFoundError:
@@ -196,7 +202,7 @@ def _existing_bytes(parent_fd: int, name: str) -> bytes | None:
     try:
         if not stat.S_ISREG(os.fstat(file_fd).st_mode):
             raise RootConfinementError("unsafe storage target")
-        return _read_fd(file_fd)
+        return _read_fd(file_fd, maximum_bytes=maximum_bytes)
     except OSError:
         raise DurabilityError("storage read failed") from None
     finally:
@@ -341,7 +347,14 @@ def read_confined(
     root: Path,
     relative: str | PurePosixPath,
     expected_root_identity: RootIdentity | None = None,
+    maximum_bytes: int | None = None,
 ) -> bytes | None:
+    if maximum_bytes is not None and (
+        not isinstance(maximum_bytes, int)
+        or isinstance(maximum_bytes, bool)
+        or maximum_bytes <= 0
+    ):
+        raise ValueError("invalid read limit")
     parts = _validated_parts(relative)
     root_fd = _open_root(root, expected_root_identity)
     parent_fd = -1
@@ -350,10 +363,208 @@ def read_confined(
             parent_fd = _open_parent(root_fd, parts[:-1], create=False)
         except FileNotFoundError:
             return None
-        return _existing_bytes(parent_fd, parts[-1])
+        return _existing_bytes(parent_fd, parts[-1], maximum_bytes=maximum_bytes)
     finally:
         if parent_fd >= 0:
             os.close(parent_fd)
+        os.close(root_fd)
+
+
+def read_confined_tree(
+    *,
+    root: Path,
+    relative: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
+    maximum_entries: int,
+    maximum_file_bytes: int,
+    maximum_total_bytes: int,
+) -> tuple[tuple[PurePosixPath, bytes], ...]:
+    """Read one bounded regular-file tree through pinned no-follow descriptors."""
+
+    for value in (maximum_entries, maximum_file_bytes, maximum_total_bytes):
+        if type(value) is not int or value <= 0:
+            raise ValueError("invalid confined tree limit")
+    parts = _validated_parts(relative)
+    root_fd = _open_root(root, expected_root_identity)
+    directory_fd = -1
+    counters = [0, 0]
+    files: list[tuple[PurePosixPath, bytes]] = []
+    try:
+        try:
+            directory_fd = _open_parent(root_fd, parts, create=False)
+        except FileNotFoundError:
+            return ()
+        _read_confined_tree_descriptor(
+            directory_fd,
+            (),
+            files,
+            counters,
+            maximum_entries=maximum_entries,
+            maximum_file_bytes=maximum_file_bytes,
+            maximum_total_bytes=maximum_total_bytes,
+        )
+        return tuple(sorted(files, key=lambda item: item[0].as_posix()))
+    finally:
+        if directory_fd >= 0:
+            os.close(directory_fd)
+        os.close(root_fd)
+
+
+def _read_confined_tree_descriptor(
+    directory_fd: int,
+    parts: tuple[str, ...],
+    files: list[tuple[PurePosixPath, bytes]],
+    counters: list[int],
+    *,
+    maximum_entries: int,
+    maximum_file_bytes: int,
+    maximum_total_bytes: int,
+) -> None:
+    try:
+        entries = os.scandir(directory_fd)
+    except OSError:
+        raise DurabilityError("confined tree scan failed") from None
+    with entries:
+        for entry in entries:
+            counters[0] += 1
+            if counters[0] > maximum_entries:
+                raise StorageError("stored tree exceeds bounded entry limit")
+            try:
+                observed = entry.stat(follow_symlinks=False)
+            except OSError:
+                raise DurabilityError("confined tree scan failed") from None
+            if stat.S_ISDIR(observed.st_mode):
+                try:
+                    child_fd = _open_child_directory(directory_fd, entry.name, create=False)
+                except FileNotFoundError:
+                    raise RootConfinementError("confined tree identity changed") from None
+                try:
+                    current = os.fstat(child_fd)
+                    if (current.st_dev, current.st_ino) != (observed.st_dev, observed.st_ino):
+                        raise RootConfinementError("confined tree identity changed")
+                    _read_confined_tree_descriptor(
+                        child_fd,
+                        (*parts, entry.name),
+                        files,
+                        counters,
+                        maximum_entries=maximum_entries,
+                        maximum_file_bytes=maximum_file_bytes,
+                        maximum_total_bytes=maximum_total_bytes,
+                    )
+                finally:
+                    os.close(child_fd)
+                continue
+            if not stat.S_ISREG(observed.st_mode) or observed.st_nlink != 1:
+                raise RootConfinementError("confined tree contains an unsafe entry")
+            if observed.st_size > maximum_file_bytes:
+                raise StorageError("stored tree file exceeds bounded size")
+            try:
+                file_fd = os.open(entry.name, _FILE_READ_FLAGS, dir_fd=directory_fd)
+            except OSError:
+                raise RootConfinementError("confined tree file is unsafe") from None
+            try:
+                before = os.fstat(file_fd)
+                if (
+                    not stat.S_ISREG(before.st_mode)
+                    or before.st_nlink != 1
+                    or (before.st_dev, before.st_ino) != (observed.st_dev, observed.st_ino)
+                ):
+                    raise RootConfinementError("confined tree identity changed")
+                payload = _read_fd(file_fd, maximum_bytes=maximum_file_bytes)
+                after = os.fstat(file_fd)
+                if (
+                    (
+                        after.st_dev,
+                        after.st_ino,
+                        after.st_nlink,
+                        after.st_size,
+                        after.st_mtime_ns,
+                        after.st_ctime_ns,
+                    )
+                    != (
+                        before.st_dev,
+                        before.st_ino,
+                        before.st_nlink,
+                        before.st_size,
+                        before.st_mtime_ns,
+                        before.st_ctime_ns,
+                    )
+                    or len(payload) != before.st_size
+                ):
+                    raise RootConfinementError("confined tree file changed during read")
+            finally:
+                os.close(file_fd)
+            counters[1] += len(payload)
+            if counters[1] > maximum_total_bytes:
+                raise StorageError("stored tree exceeds bounded total size")
+            files.append((PurePosixPath(*parts, entry.name), payload))
+
+
+def confined_unlink(
+    *,
+    root: Path,
+    relative: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
+    require_existing: bool = False,
+) -> bool:
+    if type(require_existing) is not bool:
+        raise ValueError("invalid unlink requirement")
+    parts = _validated_parts(relative)
+    root_fd = _open_root(root, expected_root_identity)
+    lock_fd = -1
+    parent_fd = -1
+    try:
+        try:
+            lock_fd = os.open(".write.lock", _FILE_CREATE_FLAGS, 0o600, dir_fd=root_fd)
+        except FileExistsError:
+            try:
+                lock_fd = os.open(".write.lock", os.O_RDWR | os.O_NOFOLLOW, dir_fd=root_fd)
+            except OSError:
+                raise RootConfinementError("unsafe storage lock") from None
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        try:
+            parent_fd = _open_parent(root_fd, parts[:-1], create=False)
+        except FileNotFoundError:
+            if require_existing:
+                raise StorageError("unlink target missing") from None
+            return False
+        try:
+            file_fd = os.open(parts[-1], _FILE_READ_FLAGS, dir_fd=parent_fd)
+        except FileNotFoundError:
+            if require_existing:
+                raise StorageError("unlink target missing") from None
+            return False
+        except OSError as error:
+            if error.errno in {errno.ELOOP, errno.ENOTDIR}:
+                raise RootConfinementError("unsafe storage target") from None
+            raise DurabilityError("storage unlink failed") from None
+        try:
+            metadata = os.fstat(file_fd)
+            if not stat.S_ISREG(metadata.st_mode):
+                raise RootConfinementError("unsafe storage target")
+            current = os.stat(parts[-1], dir_fd=parent_fd, follow_symlinks=False)
+            if (
+                not stat.S_ISREG(current.st_mode)
+                or (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino)
+            ):
+                raise RootConfinementError("storage target replaced")
+            os.unlink(parts[-1], dir_fd=parent_fd)
+        finally:
+            os.close(file_fd)
+        os.fsync(parent_fd)
+        return True
+    except StorageError:
+        raise
+    except OSError:
+        raise DurabilityError("storage unlink failed") from None
+    finally:
+        if parent_fd >= 0:
+            os.close(parent_fd)
+        if lock_fd >= 0:
+            try:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            finally:
+                os.close(lock_fd)
         os.close(root_fd)
 
 

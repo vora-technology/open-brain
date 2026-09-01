@@ -1,8 +1,9 @@
 # Public CLI characterization
 
-This document records the retained Phase 0 parser and scheduled-route boundary. Phase 2 moved the
-installed CLI, HTTP, and MCP scripts to a six-family app-owned entrypoint; the 31-family parser
-below remains legacy compatibility evidence. The packaging subsection follows current metadata.
+This document records the retained Phase 0 parser and scheduled-route boundary. Phase 3 moves the
+installed CLI and MCP scripts to the appliance entrypoints and removes the standalone HTTP and
+legacy bridge scripts. The 31-family parser below remains compatibility evidence, while the
+packaging subsection follows current metadata.
 
 The machine-readable source is [`tests/fixtures/phase0/public_cli.json`](../tests/fixtures/phase0/public_cli.json). The focused characterization test compares that fixture with the live parser registry, scheduled route registry, static `pyproject.toml` metadata, and stable exit-code constants.
 
@@ -59,15 +60,10 @@ Several routes share a parser path and are distinguished by their options and jo
 
 ## Packaging and entry points
 
-The static package metadata identifies distribution `open-brain`, version `0.1.0`, and these seven console entry points:
+The static package metadata identifies distribution `open-brain`, version `0.1.0`, and these two Phase 3 console entry points:
 
-- `open-brain` → `open_brain.services.phase1_entrypoints:run_cli`
-- `open-brain-youtube-bridge` → `open_brain.production.youtube_bridge:main`
-- `open-brain-project-commit-queue` → `open_brain.production.project_commit_bridge:queue_main`
-- `open-brain-project-commit-relay` → `open_brain.production.project_commit_bridge:relay_main`
-- `open-brain-project-commit-bridge` → `open_brain.production.project_commit_bridge:bridge_main`
-- `open-brain-http` → `open_brain.services.phase1_entrypoints:run_http`
-- `open-brain-mcp` → `open_brain.services.phase1_entrypoints:run_mcp`
+- `open-brain` → `open_brain.services.appliance_entrypoints:run_cli`
+- `open-brain-mcp` → `open_brain.services.appliance_entrypoints:run_mcp`
 
 The test reads only the `[project]` and `[project.scripts]` tables from `pyproject.toml`. It does not inspect an installed environment, absolute paths, ignored files, or remote metadata.
 
@@ -77,8 +73,13 @@ Interactive CLI classes are `0` success, `1` failure, `2` usage, and `3` deferre
 
 These are exit classes, not a promise that every command currently reaches every class. The focused characterization test locks the numeric mapping to the current `ExitCode`, scheduled `ExitClass`, and scheduled dispatch contract.
 
-## Deliberately absent Phase 1 surface
+## Current appliance boundary
 
-The current CLI does not expose the product-contract command families for initialization and lifecycle management, including `init`, upgrade, uninstall, or Portable Brain export/import. They are documented here as absent. Phase 0 does not implement them.
+The Phase 3 appliance CLI adds `init`, `status`, supervisor, `upgrade`, and `uninstall` commands
+around the six retained Phase 1 families. Upgrade and uninstall require explicit owner confirmation
+and an injected source-checkout lifecycle port; the default native-artifact effect fails closed.
+Portable export/import remain distinct app/daemon recovery operations rather than aliases of backup
+or lifecycle commands. The retained Phase 0 parser is characterization data, not an installed
+entrypoint.
 
 The same boundary applies to command-specific help snapshots and delegated `ledger`/`migrate` grammars: they remain concerns for later work rather than new Phase 0 behavior.

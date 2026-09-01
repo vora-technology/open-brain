@@ -5,6 +5,8 @@ from enum import StrEnum
 
 class LockScope(StrEnum):
     NONE = "none"
+    DAEMON_AUTHORITY = "daemon-authority"
+    APPLIANCE_LIFECYCLE = "appliance-lifecycle"
     SHARED_WRITER = "shared-writer"
     INDEX = "index"
     BACKUP_PROFILE = "backup-profile"

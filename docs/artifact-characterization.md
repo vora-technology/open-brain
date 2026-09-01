@@ -63,5 +63,10 @@ redacted path, and rule ID. The owner declared no additional project-specific pr
 the clean public repository. Generic credential, private-IP, absolute-home, forbidden-path, and
 scan-limit rules run with a synthetic denylist in CI.
 
+Reviewed historical false positives may be recorded in
+`release/public-history-allowlist.json`. Each entry binds one SHA-256 blob digest, one normalized
+repository path, and one rule. Only `absolute-home-path` and `private-ip-address` are eligible;
+credential, denylist, forbidden-path, and scan-limit findings cannot be suppressed.
+
 The Phase 0 real-history result is recorded in
 [`docs/audits/2026-08-30-phase0-public-history-audit.md`](audits/2026-08-30-phase0-public-history-audit.md).

@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import json
+import re
 import subprocess
 import sys
 import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
 from hashlib import sha256
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from open_brain.dev.release_audit import (
     _load_denylist,
@@ -22,6 +24,12 @@ GIT_TIMEOUT_SECONDS = 60
 MAX_HISTORY_COMMITS = 10_000
 MAX_HISTORY_BLOBS = 100_000
 MAX_HISTORY_BYTES = 512 * 1024 * 1024
+HISTORY_ALLOWLIST_PATH = PurePosixPath("release/public-history-allowlist.json")
+MAX_HISTORY_ALLOWLIST_BYTES = 128 * 1024
+MAX_HISTORY_ALLOWLIST_ENTRIES = 256
+ALLOWLISTABLE_HISTORY_RULES = frozenset({"absolute-home-path", "private-ip-address"})
+_SHA256_RE = re.compile(r"[0-9a-f]{64}")
+_REASON_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,95}")
 
 
 @dataclass(frozen=True)
@@ -31,6 +39,79 @@ class HistoryFinding:
     commit: str
     path: str
     rule: str
+
+
+@dataclass(frozen=True)
+class _HistoryAllowance:
+    blob_sha256: str
+    path: str
+    rule: str
+
+
+def _string_mapping(value: object, *, error: str) -> dict[str, object]:
+    if not isinstance(value, dict) or not all(isinstance(key, str) for key in value):
+        raise ValueError(error)
+    return {str(key): item for key, item in value.items()}
+
+
+def _load_history_allowlist(repository: Path) -> frozenset[_HistoryAllowance]:
+    path = repository.joinpath(*HISTORY_ALLOWLIST_PATH.parts)
+    if not path.exists():
+        return frozenset()
+    if path.is_symlink() or not path.is_file():
+        raise ValueError("history audit allowlist must be a regular file")
+    payload = path.read_bytes()
+    if len(payload) > MAX_HISTORY_ALLOWLIST_BYTES:
+        raise ValueError("history audit allowlist size limit exceeded")
+    try:
+        raw_policy: object = json.loads(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("history audit allowlist is invalid") from error
+    policy = _string_mapping(raw_policy, error="history audit allowlist is invalid")
+    policy_version = policy["policy_version"]
+    if (
+        set(policy) != {"entries", "policy_version"}
+        or type(policy_version) is not int
+        or policy_version != 1
+    ):
+        raise ValueError("history audit allowlist policy is invalid")
+    raw_entries = policy["entries"]
+    if not isinstance(raw_entries, list) or len(raw_entries) > MAX_HISTORY_ALLOWLIST_ENTRIES:
+        raise ValueError("history audit allowlist entries are invalid")
+
+    entries: set[_HistoryAllowance] = set()
+    for raw_entry in raw_entries:
+        entry = _string_mapping(raw_entry, error="history audit allowlist entry is invalid")
+        if set(entry) != {"blob_sha256", "path", "reason", "rule"}:
+            raise ValueError("history audit allowlist entry is invalid")
+        blob_digest = entry["blob_sha256"]
+        raw_path = entry["path"]
+        reason = entry["reason"]
+        rule = entry["rule"]
+        if not isinstance(blob_digest, str) or _SHA256_RE.fullmatch(blob_digest) is None:
+            raise ValueError("history audit allowlist digest is invalid")
+        if not isinstance(raw_path, str):
+            raise ValueError("history audit allowlist path is invalid")
+        normalized_path = raw_path.replace("\\", "/")
+        parsed_path = PurePosixPath(normalized_path)
+        if (
+            raw_path != normalized_path
+            or not parsed_path.parts
+            or parsed_path.is_absolute()
+            or not raw_path.isprintable()
+            or ".." in parsed_path.parts
+            or parsed_path.as_posix() != raw_path
+        ):
+            raise ValueError("history audit allowlist path is invalid")
+        if not isinstance(reason, str) or _REASON_RE.fullmatch(reason) is None:
+            raise ValueError("history audit allowlist reason is invalid")
+        if not isinstance(rule, str) or rule not in ALLOWLISTABLE_HISTORY_RULES:
+            raise ValueError("history audit allowlist rule is invalid")
+        allowance = _HistoryAllowance(blob_digest, raw_path, rule)
+        if allowance in entries:
+            raise ValueError("history audit allowlist contains a duplicate entry")
+        entries.add(allowance)
+    return frozenset(entries)
 
 
 def _git(repository: Path, *args: str, input_data: bytes | None = None) -> bytes:
@@ -151,6 +232,7 @@ def audit_history(
     if not repository.is_dir():
         raise ValueError("repository must be an existing directory")
     terms = _load_denylist(denylist)
+    allowances = _load_history_allowlist(repository)
     occurrences = _history_occurrences(
         repository,
         maximum_commits=maximum_commits,
@@ -164,11 +246,14 @@ def audit_history(
     findings: set[HistoryFinding] = set()
     for object_id, blob_occurrences in occurrences.items():
         content_rules = set(content_rule_ids(blobs[object_id], terms))
+        blob_digest = sha256(blobs[object_id]).hexdigest()
         for commit, path in blob_occurrences:
             rules = content_rules | set(path_rule_ids(path))
             reported_path = _reported_path(path, terms)
             findings.update(
-                HistoryFinding(commit=commit, path=reported_path, rule=rule) for rule in rules
+                HistoryFinding(commit=commit, path=reported_path, rule=rule)
+                for rule in rules
+                if _HistoryAllowance(blob_digest, path, rule) not in allowances
             )
     return sorted(findings, key=lambda finding: (finding.commit, finding.path, finding.rule))
 

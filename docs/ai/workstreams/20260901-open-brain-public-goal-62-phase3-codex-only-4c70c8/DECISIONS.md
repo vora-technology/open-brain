@@ -1,0 +1,220 @@
+# Phase 3 execution decisions
+
+## D-001: use governed Codex wave dispatch instead of generic plan runners
+
+- Chosen: one serial Codex implementation worker per ordered wave, with the
+  coordinator integrating, running full gates, and committing checkpoints.
+- Rejected: `/run-plan`, because its configured worker tiers include
+  non-Codex models and it requires an interactive confirmation path that does
+  not produce the contract's Codex-only dispatch ledger.
+- Rejected: `/plan-to-pr`, because its workflow uses non-Codex agents, stops
+  at a draft PR, and forbids the gated merge required by goal `#62`.
+- Why: the goal contract's Codex-only auditability and merge endgame are
+  stricter than either generic runner.
+
+## D-002: reuse the planning checkout for implementation
+
+- Chosen: create `goal/open-brain-phase3` from freshly fetched `origin/main`
+  in the existing checkout after the planning workstream reached a validated
+  complete handoff.
+- Rejected: a second worktree, because no concurrent workstream owns this
+  checkout and no other worktree or overlapping branch exists.
+- Why: this preserves the reviewed untracked planning bundle without copying
+  files and keeps one coordinator-owned writer surface.
+
+## D-003: classify W1 runtime files before W2
+
+- Chosen: add all five W1 runtime modules to
+  `docs/v0-package-classification.json` and route public maintenance/read
+  contracts through `open_brain.engine` in W1.
+- Rejected: defer classification to W2 because the reviewed plan listed the
+  registry there.
+- Why: every wave must end with `make verify`, and repository architecture
+  tests require every runtime file and cross-owner import to be classified.
+  Deferral would knowingly leave W1 without a clean checkpoint.
+
+## D-004: report queue evidence as unavailable until W2 owns it
+
+- Chosen: keep the W1 queue field but report explicit `unavailable` state.
+- Rejected: import the retained `capture/queue.py` reader, which is classified
+  legacy and would create engine-to-app plus shipping-to-legacy violations.
+- Rejected: report a missing queue as empty, which would be false evidence.
+- Why: W2 owns the new durable scheduler and can supply real bounded queue
+  age without coupling the shipping engine to legacy capture operations.
+
+## D-005: fail fast in every remaining compound gate
+
+- Chosen: start every remaining multi-command verification and commit batch
+  with `set -euo pipefail`, then inspect the result before the next mutation.
+- Rejected: rely on the shell's default continue-on-error behavior.
+- Why: the W1 staged diff check correctly reported two EOF blank lines, but
+  the following commit command still ran. History is preserved; a follow-up
+  hygiene commit removes the lines, and future batches stop at the first
+  failed gate.
+
+## D-006: split W2 into serial verified subphases
+
+- Chosen: authority, control/daemon, and runtime/scheduler/supervisor/
+  entrypoint subphases, each with one exclusive Codex writer and coordinator
+  verification before the next begins.
+- Rejected: retry the original all-of-W2 prompt unchanged.
+- Why: the first W2 worker stopped after one lock-layer slice and left every
+  other gate incomplete. Bounded serial subphases preserve one authority
+  design while fitting the worker's demonstrated execution horizon.
+
+## D-007: use the engine authority capability for socket cleanup
+
+- Chosen: validate the same engine-issued, active, root-bound daemon
+  capability before stale socket cleanup.
+- Rejected: a second process-local socket witness that proved activity but
+  carried no root identity.
+- Why: authority acquired for one Brain root must never authorize cleanup in
+  another. One lifetime capability keeps composition and control-path cleanup
+  on the same root-bound authority model.
+
+## D-008: reject the first W2 runtime candidate before checkpoint
+
+- Chosen: run a fresh repair pass plus coordinator hardening before any W2
+  commit, push, or issue comment.
+- Rejected: accept the worker's 148-test focused result as the W2 gate.
+- Why: direct review found unsafe scheduler persistence, writer-capable legacy
+  entrypoints, an authority shutdown race, and missing full-suite coverage.
+  The real suite also had two failures.
+
+## D-009: expose a narrow public operational-storage capability
+
+- Chosen: add `storage/operational.py` as the public no-follow atomic storage
+  facade used by the app-owned scheduler.
+- Rejected: keep an app-to-engine-internals exception in temporary live debt.
+- Rejected: duplicate dirfd, fsync, and atomic-replace logic inside services.
+- Why: scheduler state is app-owned, but the safety primitives are generic
+  storage capabilities. A narrow public facade preserves ownership direction
+  without duplicating security-sensitive code.
+
+## D-010: remove packaged legacy writer bypasses
+
+- Chosen: package only appliance CLI and read-only MCP entrypoints, and turn
+  `phase1_entrypoints.py` into a compatibility delegate.
+- Rejected: leave YouTube/project-commit bridge scripts or standalone Phase 1
+  HTTP/CLI/MCP paths installed alongside the daemon.
+- Why: W2's clean checkpoint requires every shipped/default mutation to reach
+  the one authoritative daemon and no public dependency on `JOB-001` through
+  `JOB-030`.
+
+## D-011: keep host supervisor effects injected in W2
+
+- Chosen: render deterministic launchd/systemd units and test every lifecycle
+  action through injected file and command adapters; default effect adapters
+  fail closed with bounded errors.
+- Rejected: invoke real launchctl/systemctl commands or user-unit writes during
+  source-checkout implementation.
+- Why: the W2 contract requires source-checkout adapter evidence, while this
+  goal explicitly forbids touching real services or production state.
+
+## D-012: keep listener ownership inside the daemon lifecycle
+
+- Chosen: compose and start the one managed HTTP server inside the appliance
+  daemon, with one close path and the exact configured browser origin shared
+  by status and UI authentication.
+- Rejected: expose a public, separately startable HTTP lifecycle beside the
+  daemon.
+- Why: a second lifecycle would bypass daemon authority, permit inconsistent
+  bind/origin state, and violate the one-listener topology.
+
+## D-013: treat private binding and run history as fail-closed capabilities
+
+- Chosen: require explicit external TLS termination plus an exact HTTPS
+  origin for private binding, and accept run-history names only from the
+  fixed scheduler inventory or validated connector jobs.
+- Rejected: infer HTTPS from bind addresses or display arbitrary directory
+  names found below the run-history root.
+- Why: transport security is deployment evidence, not an address heuristic;
+  filesystem names are untrusted metadata and must not become UI output.
+
+## D-014: back up immutable app receipts, not mutable scheduler state
+
+- Chosen: include only exact-schema appliance init/export evidence and
+  completed metadata-only scheduler run receipts. Recreate mutable scheduler
+  state after restore.
+- Rejected: copy `appliance-scheduler/state.json` or accept arbitrary canonical
+  JSON at an allow-listed app-state path.
+- Why: retry claims mutate scheduler state and would change an otherwise
+  replay-identical backup. Exact metadata schemas also prevent credentials or
+  unbounded fields from being smuggled through a trusted filename.
+
+## D-015: submit recovery jobs through the daemon's existing application
+
+- Chosen: add bounded recovery request/receipt envelopes to the owner-only
+  Unix control socket and bind the default scheduler handlers to the
+  application's already-authorized engine task set.
+- Rejected: construct a second mutating application for scheduler jobs or
+  expose only an in-process recovery method that owner control cannot reach.
+- Why: one daemon must retain one authority, one application state, and one
+  mutation path. Backup, Portable export, and Portable import remain distinct
+  durable jobs on that path.
+
+## D-016: run self-restarting lifecycle outside the daemon control loop
+
+- Chosen: expose upgrade and uninstall through the owner CLI only when
+  source-checkout composition injects an `ArtifactLifecyclePort`; keep the
+  default command path unavailable and fail closed.
+- Rejected: execute supervisor restart or removal from a request handler inside
+  the daemon that is being restarted or removed.
+- Why: lifecycle must preserve a response/rollback coordinator while daemon
+  authority transitions. Phase 3 proves the app contract with injected
+  adapters; Phase 4 supplies the real native-artifact composition.
+
+## D-017: pair lifecycle journals with a distinct root lease
+
+- Chosen: persist canonical bounded request/stage/terminal records below the
+  root and hold one kernel-backed `appliance-lifecycle` lease for the full
+  upgrade or uninstall attempt.
+- Rejected: in-memory replay, and treating every observed pending record as a
+  crashed process without proving that another process is not still active.
+- Why: the journal makes restart replay and conflict detection durable; the
+  lease distinguishes a crash from concurrency so a second process cannot
+  roll back active forward work.
+
+## D-018: bind reviewed history exceptions to exact public blobs
+
+- Chosen: remove current-tree absolute roots, assemble private-network test
+  values and the W6 denylist canary at runtime, and allow only reviewed
+  historical `absolute-home-path` or `private-ip-address` findings keyed by
+  SHA-256, repository path, and rule.
+- Rejected: rewrite the already-pushed branch history, skip planning or test
+  path families, disable generic rules, or allow credential and denylist
+  findings.
+- Why: the first W6 audit found 102 historical occurrences across 28 exact
+  blobs. Digest-bound entries preserve the public-history gate without
+  suppressing a changed blob or any secret-bearing rule. The filed contract
+  copy changed only by mechanical public-path redaction. The plan also changes
+  its self-matching canary to a runtime-unique value; the final reviewer must
+  verify that the gate remains equivalent or stronger.
+
+## D-019: reserve one post-CI read-only review override
+
+- Chosen: repair the five macOS-only temporary-root fixtures as coordinator
+  work, rerun every exact-candidate gate, and dispatch exactly one additional
+  fresh read-only Codex reviewer.
+- Rejected: merge with failed required Linux checks, treat test portability as
+  non-material, reuse the prior reviewer verdict, add an implementation
+  worker, or weaken/remove the Linux matrix.
+- Why: all twelve normal child slots were consumed when PR CI found the first
+  post-review defect. Goal `#62` simultaneously requires green Linux CI and a
+  fresh exact-SHA review after any material test repair. This recorded override
+  is limited to the one mandatory reviewer; active concurrency remains one or
+  less and no non-Codex participant is authorized.
+
+## D-020: harden the control listener and reserve a second CI rereview
+
+- Chosen: set a bounded control-socket listen backlog of 16, retain the
+  accepted-client timeout, assert backlog capacity in the stalled-client test,
+  and dispatch one fresh read-only Codex rereviewer after full gates.
+- Rejected: add a sleep, retry only in the test/client, accept failed Linux
+  checks, remove a required matrix job, or introduce an unbounded per-client
+  thread pool.
+- Why: the second PR run cleared all temporary-root failures but every Linux
+  version reproduced one real `EAGAIN` availability failure while macOS passed.
+  The twelve normal slots and D-019 override are consumed; green required CI
+  and exact-SHA post-repair review jointly require this one additional recorded
+  override. No implementation worker or non-Codex participant is added.

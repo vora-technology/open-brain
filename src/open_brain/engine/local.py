@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 from collections.abc import Callable, Collection
 from datetime import datetime
 from hashlib import sha256
@@ -9,14 +10,19 @@ from hashlib import sha256
 from open_brain.providers.base import ProviderMode
 from open_brain.storage.filesystem import assert_root_identity
 from open_brain.storage.locks import FileLease
+from open_brain.storage.sqlite import SchemaError, connect_database_read_only
 
+from .authority import require_daemon_authority
+from .backup import BackupTasks
 from .capture import CaptureOperations, CaptureTasks
 from .contracts import (
+    BackupFault,
     CaptureAction,
     CaptureFault,
     CaptureReceipt,
     CaptureSubmission,
     CaptureSubmissionPath,
+    DaemonMutationPath,
     DecisionOutcome,
     DecisionRecord,
     EngineTaskSet,
@@ -29,6 +35,7 @@ from .contracts import (
     InjectedFault,
     LocalEngineContext,
     MeasurementPayload,
+    PageResult,
     Payload,
     Phase1TaskSet,
     PortabilityFault,
@@ -44,11 +51,69 @@ from .contracts import (
     TextPayload,
 )
 from .local_store import _LocalStore
+from .maintenance import PHASE1_STATE_DATABASE, PHASE1_STATE_SCHEMA_VERSION, inspect_phase1_state
 from .normalization import _done, _utc_now
 from .portability import PortabilityTasks
+from .reconciliation import ReconciliationTasks
 from .retrieval import RetrievalOperations, RetrievalTasks, ScopedRetrieval
 from .review import ReviewOperations, ReviewTasks
 from .spaces import InboxSpaceTasks, SpaceOperations
+
+
+class ReadViewUnavailableError(RuntimeError):
+    """The source-checkout read view cannot open the existing engine state safely."""
+
+
+class StateSchemaUnavailableError(RuntimeError):
+    """A mutating engine cannot safely open this existing state schema."""
+
+
+class _ReadOnlyStore:
+    def __init__(self, profile: LocalEngineContext) -> None:
+        self._profile = profile
+
+    def connect(self) -> sqlite3.Connection:
+        return connect_database_read_only(
+            root=self._profile.root,
+            database_name=PHASE1_STATE_DATABASE,
+            expected_root_identity=self._profile.root_identity,
+        )
+
+
+class _ReadOnlyRetrieval(RetrievalOperations):
+    def __init__(
+        self,
+        profile: LocalEngineContext,
+        *,
+        allowed_space_ids: frozenset[str],
+    ) -> None:
+        self.profile = profile
+        self._store = _ReadOnlyStore(profile)
+        self._allowed_space_ids = allowed_space_ids
+
+    def search(
+        self,
+        query: str,
+        *,
+        space_id: str | None = None,
+        payload_family: str | None = None,
+        record_type: str | None = None,
+        limit: int = 10,
+    ) -> tuple[RetrievalResult, ...]:
+        return self._search(
+            query,
+            space_id=space_id,
+            payload_family=payload_family,
+            record_type=record_type,
+            limit=limit,
+            allowed_space_ids=self._allowed_space_ids,
+        )
+
+    def fetch(self, result_id: str) -> RetrievalResult | None:
+        return self._fetch(result_id, allowed_space_ids=self._allowed_space_ids)
+
+    def read_page(self, result_id: str) -> PageResult | None:
+        return self._read_page(result_id, allowed_space_ids=self._allowed_space_ids)
 
 
 class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, RetrievalOperations):
@@ -58,9 +123,10 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         self,
         profile: LocalEngineContext,
         *,
-        faults: Collection[CaptureFault | PortabilityFault],
+        faults: Collection[CaptureFault | PortabilityFault | BackupFault],
         clock: Callable[[], datetime],
         enrichment_provider: EnrichmentProvider | None,
+        validate_mutation_authority: Callable[[], None] | None = None,
     ) -> None:
         if profile.provider_mode is ProviderMode.CLOUD:
             raise ValueError("Phase 1 local engine does not enable cloud enrichment")
@@ -70,7 +136,12 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             getattr(enrichment_provider, "enrich", None)
         ):
             raise ValueError("invalid enrichment provider")
+        if validate_mutation_authority is not None and not callable(validate_mutation_authority):
+            raise ValueError("invalid mutation authority validator")
         assert_root_identity(profile.root, profile.root_identity)
+        schema = inspect_phase1_state(profile)
+        if schema.state in {"invalid", "newer"}:
+            raise StateSchemaUnavailableError(f"local state schema is {schema.state}")
         self.profile = profile
         self._faults = set(faults)
         self._clock = clock
@@ -80,15 +151,20 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             profile.root / ".open-brain",
             lease_identity,
             clock=clock,
+            validate_acquire=validate_mutation_authority,
             parent_root_identity=profile.root_identity,
         )
         with self._writer_lease.acquire_shared_writer():
             self._store = _LocalStore(profile)
+            _ensure_phase1_state_schema(self._store)
         self.capture = CaptureTasks(self)
         self.inbox = InboxSpaceTasks(self)
         self.review = ReviewTasks(self)
         self.retrieval = RetrievalTasks(self)
         self.portability = PortabilityTasks(self)
+        self.backup = BackupTasks(self)
+        self.reconciliation = ReconciliationTasks(self)
+        daemon_mutation_path = DaemonMutationPath.reserved(profile.root)
         phase1 = Phase1TaskSet(
             capture=self.capture,
             inbox=self.inbox,
@@ -102,6 +178,9 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             review=self.review,
             retrieval=self.retrieval,
             portability=self.portability,
+            backup=self.backup,
+            reconciliation=self.reconciliation,
+            daemon_mutation_path=daemon_mutation_path,
             phase1=phase1,
         )
 
@@ -110,9 +189,10 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         cls,
         profile: LocalEngineContext,
         *,
-        faults: Collection[CaptureFault | PortabilityFault] | None = None,
+        faults: Collection[CaptureFault | PortabilityFault | BackupFault] | None = None,
         clock: Callable[[], datetime] | None = None,
         enrichment_provider: EnrichmentProvider | None = None,
+        validate_mutation_authority: Callable[[], None] | None = None,
     ) -> BrainEngine:
         if not isinstance(profile, LocalEngineContext):
             raise ValueError("invalid local profile")
@@ -121,6 +201,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             faults=faults or set(),
             clock=clock or _utc_now,
             enrichment_provider=enrichment_provider,
+            validate_mutation_authority=validate_mutation_authority,
         )
         with engine._writer_lease.acquire_shared_writer():
             engine._recover()
@@ -158,7 +239,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
                 recovered += 1
         return recovered
 
-    def _fault(self, point: CaptureFault | PortabilityFault) -> None:
+    def _fault(self, point: CaptureFault | PortabilityFault | BackupFault) -> None:
         if point in self._faults:
             self._faults.remove(point)
             raise InjectedFault(point)
@@ -170,7 +251,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
 def open_local_engine(
     profile: LocalEngineContext,
     *,
-    faults: Collection[CaptureFault | PortabilityFault] | None = None,
+    faults: Collection[CaptureFault | PortabilityFault | BackupFault] | None = None,
     clock: Callable[[], datetime] | None = None,
     enrichment_provider: EnrichmentProvider | None = None,
 ) -> EngineTaskSet:
@@ -181,6 +262,74 @@ def open_local_engine(
         clock=clock,
         enrichment_provider=enrichment_provider,
     ).tasks
+
+
+def open_authoritative_local_engine(
+    profile: LocalEngineContext,
+    authority: object | None,
+    *,
+    faults: Collection[CaptureFault | PortabilityFault | BackupFault] | None = None,
+    clock: Callable[[], datetime] | None = None,
+    enrichment_provider: EnrichmentProvider | None = None,
+) -> EngineTaskSet:
+    """Open one local root for mutation only while daemon lifetime authority remains active."""
+    require_daemon_authority(profile, authority)
+    return BrainEngine.open(
+        profile,
+        faults=faults,
+        clock=clock,
+        enrichment_provider=enrichment_provider,
+        validate_mutation_authority=lambda: require_daemon_authority(profile, authority),
+    ).tasks
+
+
+def recover_authoritative_local_engine(
+    profile: LocalEngineContext,
+    authority: object | None,
+    *,
+    clock: Callable[[], datetime] | None = None,
+    enrichment_provider: EnrichmentProvider | None = None,
+) -> int:
+    """Replay durable engine transitions only while daemon authority remains active."""
+    require_daemon_authority(profile, authority)
+    engine = BrainEngine(
+        profile,
+        faults=set(),
+        clock=clock or _utc_now,
+        enrichment_provider=enrichment_provider,
+        validate_mutation_authority=lambda: require_daemon_authority(profile, authority),
+    )
+    return engine.recover()
+
+
+def open_local_read_view(
+    profile: LocalEngineContext,
+    *,
+    allowed_space_ids: frozenset[str] = frozenset(),
+) -> _ReadOnlyRetrieval:
+    """Open the existing retrieval state read-only without recovery or lease acquisition."""
+    if not isinstance(profile, LocalEngineContext) or not isinstance(allowed_space_ids, frozenset):
+        raise ValueError("invalid local profile")
+    schema = inspect_phase1_state(profile)
+    if schema.state == "absent":
+        raise ReadViewUnavailableError("read-only state schema is absent")
+    if schema.state == "newer":
+        raise ReadViewUnavailableError("read-only state schema is newer than this application")
+    if schema.state != "current":
+        raise ReadViewUnavailableError("read-only state schema is invalid")
+    return _ReadOnlyRetrieval(profile, allowed_space_ids=allowed_space_ids)
+
+
+def _ensure_phase1_state_schema(store: _LocalStore) -> None:
+    connection = store.connect()
+    try:
+        version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+        if version < PHASE1_STATE_SCHEMA_VERSION:
+            connection.execute(f"PRAGMA user_version = {PHASE1_STATE_SCHEMA_VERSION}")
+    except (TypeError, ValueError, sqlite3.Error, SchemaError) as error:
+        raise ValueError("invalid local state schema") from error
+    finally:
+        connection.close()
 
 
 __all__ = [
@@ -211,13 +360,18 @@ __all__ = [
     "PublicJobCaptureContext",
     "PublicJobCaptureSink",
     "PublicProvenance",
+    "ReadViewUnavailableError",
     "ReferencePayload",
+    "recover_authoritative_local_engine",
     "RetrievalResult",
     "RetrievalTasks",
     "ReviewTasks",
     "RoutedCapture",
     "ScopedRetrieval",
     "SpaceRecord",
+    "StateSchemaUnavailableError",
     "TextPayload",
     "open_local_engine",
+    "open_authoritative_local_engine",
+    "open_local_read_view",
 ]

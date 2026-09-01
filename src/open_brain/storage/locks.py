@@ -46,6 +46,8 @@ class LockBusyError(LeaseError):
 _IDENTITY = re.compile(r"[a-z][a-z0-9-]{0,63}")
 _BACKUP_PROFILES = frozenset({"capture", "full", "personal", "runtime-state"})
 _DISCRIMINATORS = {
+    LockScope.DAEMON_AUTHORITY: frozenset({"daemon-authority"}),
+    LockScope.APPLIANCE_LIFECYCLE: frozenset({"appliance-lifecycle"}),
     LockScope.SHARED_WRITER: frozenset({"shared-writer"}),
     LockScope.INDEX: frozenset({"index"}),
     LockScope.BACKUP_PROFILE: _BACKUP_PROFILES,
@@ -59,6 +61,8 @@ _MAX_DESCRIPTOR_BYTES = 1024
 _LOCK_DIRECTORY = ".open-brain-locks"
 _LOCK_FILE_NAMES = frozenset(
     {
+        "lease.daemon-authority",
+        "lease.appliance-lifecycle",
         "lease.shared-writer",
         "lease.index",
         "lease.ingress",
@@ -219,6 +223,7 @@ class FileLease:
         *,
         backup_profile: str | None = None,
         clock: Clock | None = None,
+        validate_acquire: Callable[[], None] | None = None,
         parent_root_identity: RootIdentity | None = None,
         root_identity: RootIdentity | None = None,
         required_root_mode: int | None = None,
@@ -232,6 +237,8 @@ class FileLease:
             and backup_profile not in _BACKUP_PROFILES
             or clock is not None
             and not callable(clock)
+            or validate_acquire is not None
+            and not callable(validate_acquire)
             or parent_root_identity is not None
             and root_identity is not None
             or required_root_mode is not None
@@ -242,6 +249,7 @@ class FileLease:
         self._owner_identity_id = owner_identity_id
         self._backup_profile = backup_profile
         self._clock = _system_clock if clock is None else clock
+        self._validate_acquire = validate_acquire
         self._parent_root_identity = parent_root_identity
         self._root_identity = root_identity
         self._required_root_mode = required_root_mode
@@ -255,6 +263,8 @@ class FileLease:
     @contextmanager
     def acquire(self, scope: LockScope) -> Iterator[None]:
         discriminator = self._discriminator(scope)
+        if self._validate_acquire is not None:
+            self._validate_acquire()
         _require_record_lock_support()
         if self._root_identity is not None:
             root_fd = _open_root(self._state_root, self._root_identity)
@@ -314,6 +324,8 @@ class FileLease:
             _replace_descriptor(lock_fd, lock_directory_fd, descriptor.to_bytes())
             if created:
                 os.fsync(lock_directory_fd)
+            if self._validate_acquire is not None:
+                self._validate_acquire()
             yield
         except (LeaseError, StorageError):
             raise

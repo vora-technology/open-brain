@@ -613,6 +613,11 @@
       "api": "public",
       "roles": []
     },
+    "engine/authority.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
     "engine/capture.py": {
       "owner": "engine",
       "api": "internal",
@@ -623,12 +628,27 @@
       "api": "public",
       "roles": []
     },
+    "engine/backup.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/backup_ports.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
     "engine/local.py": {
       "owner": "engine",
       "api": "internal",
       "roles": []
     },
     "engine/local_store.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/maintenance.py": {
       "owner": "engine",
       "api": "internal",
       "roles": []
@@ -654,6 +674,11 @@
       "roles": []
     },
     "engine/portable_index.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/reconciliation.py": {
       "owner": "engine",
       "api": "internal",
       "roles": []
@@ -1295,6 +1320,63 @@
       "api": "internal",
       "roles": []
     },
+    "services/appliance_application.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_auth.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_daemon.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_entrypoints.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_init.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_history.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_status.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_lifecycle.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": [
+        "lifecycle"
+      ]
+    },
+    "services/appliance_recovery.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_scheduler.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_supervisors.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
     "services/application.py": {
       "owner": "legacy",
       "api": "internal",
@@ -1356,6 +1438,11 @@
     "storage/filesystem.py": {
       "owner": "engine",
       "api": "internal",
+      "roles": []
+    },
+    "storage/operational.py": {
+      "owner": "engine",
+      "api": "public",
       "roles": []
     },
     "storage/frontmatter.py": {

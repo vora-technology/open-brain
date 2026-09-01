@@ -18,8 +18,15 @@ from open_brain.core.ids import canonical_json_bytes
 from open_brain.integrations.ui import UiBindConfig
 from open_brain.services.http_server import HttpRouteMode
 from open_brain.services.phase1_application import SingleUserLocalApplication
-from open_brain.services.phase1_entrypoints import run_cli, run_http, run_mcp
+from open_brain.services.phase1_entrypoints import (
+    reserved_appliance_entrypoints,
+    run_cli,
+    run_http,
+    run_mcp,
+)
 from open_brain.services.runtime import (
+    RESERVED_APPLIANCE_APPLICATION_MODULE,
+    RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
     ServiceConfigurationError,
     compose_http_from_config,
     compose_mcp_from_config,
@@ -36,10 +43,20 @@ def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
     module_source = (root / "src" / "open_brain" / "__main__.py").read_text(encoding="utf-8")
 
     assert application.is_file()
-    assert scripts["open-brain"] == "open_brain.services.phase1_entrypoints:run_cli"
-    assert scripts["open-brain-http"] == "open_brain.services.phase1_entrypoints:run_http"
-    assert scripts["open-brain-mcp"] == "open_brain.services.phase1_entrypoints:run_mcp"
-    assert "from open_brain.services.phase1_entrypoints import run_cli" in module_source
+    assert scripts["open-brain"] == "open_brain.services.appliance_entrypoints:run_cli"
+    assert "open-brain-http" not in scripts
+    assert scripts["open-brain-mcp"] == "open_brain.services.appliance_entrypoints:run_mcp"
+    assert "from open_brain.services.appliance_entrypoints import run_cli" in module_source
+
+
+def test_phase3_appliance_entrypoint_names_are_reserved_without_repointing_scripts() -> None:
+    assert RESERVED_APPLIANCE_APPLICATION_MODULE == "open_brain.services.appliance_application"
+    assert RESERVED_APPLIANCE_ENTRYPOINT_MODULE == "open_brain.services.appliance_entrypoints"
+    assert reserved_appliance_entrypoints() == (
+        "open_brain.services.appliance_entrypoints:run_cli",
+        "open_brain.services.appliance_entrypoints:run_http",
+        "open_brain.services.appliance_entrypoints:run_mcp",
+    )
 
 
 def test_default_entrypoint_module_imports_are_legacy_free_in_a_fresh_process() -> None:
@@ -387,112 +404,67 @@ class _HttpLifecycle:
         return _HttpServer()
 
 
-def test_run_mcp_opens_exactly_one_root_app_and_injects_scoped_tasks(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def test_phase1_run_cli_delegates_to_the_appliance_cli_entrypoint(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    application = SingleUserLocalApplication.open(tmp_path / "brain")
     observed: list[object] = []
 
-    def open_application(root: Path) -> SingleUserLocalApplication:
-        observed.append(root)
-        return application
-
-    def compose_mcp(
+    def delegated(
+        argv: tuple[str, ...] | list[str] | None = None,
         *,
-        application: SingleUserLocalApplication,
-        allowed_space_ids: frozenset[str],
-    ) -> _McpLifecycle:
-        observed.extend((application, allowed_space_ids, application.tasks.retrieval))
-        return _McpLifecycle()
+        environment: dict[str, object] | None = None,
+    ) -> int:
+        observed.extend((argv, environment))
+        return 0
 
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.SingleUserLocalApplication.open",
-        open_application,
-    )
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.compose_mcp_from_config",
-        compose_mcp,
-    )
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.os.environ",
-        {
-            "OPEN_BRAIN_ROOT": str(tmp_path / "brain"),
-            "OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS": "[]",
-        },
-    )
+    monkeypatch.setattr("open_brain.services.phase1_entrypoints.appliance_run_cli", delegated)
+
+    environment = {"OPEN_BRAIN_ROOT": "/tmp/brain"}
+    assert run_cli(("status", "--json"), environment=environment) == 0
+    assert observed == [("status", "--json"), environment]
+
+
+def test_phase1_run_mcp_delegates_to_the_appliance_mcp_entrypoint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed = {"count": 0}
+
+    def delegated() -> int:
+        observed["count"] += 1
+        return 0
+
+    monkeypatch.setattr("open_brain.services.phase1_entrypoints.appliance_run_mcp", delegated)
 
     assert run_mcp() == 0
-    assert observed == [
-        tmp_path / "brain",
-        application,
-        frozenset(),
-        application.tasks.retrieval,
-    ]
+    assert observed == {"count": 1}
     source = inspect.getsource(run_mcp)
-    assert not any(
-        name in source
-        for name in ("ProductionApplication", "FilesystemWorkRetriever", "FilesystemCaptureQueue")
-    )
+    assert "SingleUserLocalApplication" not in source
+    assert "compose_mcp_from_config" not in source
 
 
-@pytest.mark.parametrize(
-    "environment",
-    (
-        {},
-        {"OPEN_BRAIN_ROOT": "relative"},
-        {"OPEN_BRAIN_ROOT": "/tmp/synthetic"},
-        {
-            "OPEN_BRAIN_ROOT": "/tmp/synthetic",
-            "OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS": "{}",
-        },
-    ),
-)
-def test_run_mcp_fails_closed_without_a_valid_root_and_allow_list(
-    monkeypatch: pytest.MonkeyPatch, environment: dict[str, str]
+def test_phase1_run_mcp_propagates_the_appliance_fail_closed_exit(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("open_brain.services.phase1_entrypoints.os.environ", environment)
-
+    monkeypatch.setattr(
+        "open_brain.services.phase1_entrypoints.appliance_run_mcp",
+        lambda: 78,
+    )
     assert run_mcp() == 78
 
 
-def test_run_http_opens_exactly_one_root_app_without_legacy_task_construction(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def test_phase1_run_http_fails_closed_via_the_appliance_stub_without_opening_a_writer(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    application = SingleUserLocalApplication.open(tmp_path / "brain")
-    config = _config(tmp_path, with_token=True)
-    observed: list[object] = []
+    observed = {"count": 0}
 
-    def open_application(root: Path) -> SingleUserLocalApplication:
-        observed.append(root)
-        return application
+    def delegated() -> int:
+        observed["count"] += 1
+        return 78
 
-    def compose_http(**kwargs: object) -> _HttpLifecycle:
-        selected = kwargs["application"]
-        assert isinstance(selected, SingleUserLocalApplication)
-        observed.extend((selected, selected.tasks.capture))
-        return _HttpLifecycle()
+    monkeypatch.setattr("open_brain.services.phase1_entrypoints.appliance_run_http", delegated)
 
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.SingleUserLocalApplication.open",
-        open_application,
-    )
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.AppConfig.load",
-        lambda *, environment: config,
-    )
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.compose_http_from_config",
-        compose_http,
-    )
-    monkeypatch.setattr(
-        "open_brain.services.phase1_entrypoints.os.environ",
-        {"OPEN_BRAIN_ROOT": str(tmp_path / "brain")},
-    )
-
-    assert run_http() == 0
-    assert observed == [tmp_path / "brain", application, application.tasks.capture]
+    assert run_http() == 78
+    assert observed == {"count": 1}
     source = inspect.getsource(run_http)
-    assert not any(
-        name in source
-        for name in ("ProductionApplication", "FilesystemWorkRetriever", "FilesystemCaptureQueue")
-    )
+    assert "SingleUserLocalApplication" not in source
+    assert "compose_http_from_config" not in source

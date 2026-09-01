@@ -8,7 +8,11 @@ import pytest
 
 import open_brain.profile as profile_module
 from open_brain.engine import ProviderMode
-from open_brain.profile import ProfileError, compile_single_user_local
+from open_brain.profile import (
+    ProfileError,
+    compile_single_user_local,
+    open_existing_single_user_local,
+)
 
 TENANT = "tenant_123e4567-e89b-42d3-a456-426614174000"
 ACTOR = "actor_123e4567-e89b-42d3-a456-426614174001"
@@ -192,3 +196,25 @@ def test_profile_layout_creation_stays_on_pinned_descriptor_after_path_swap(
     assert stat.S_IMODE(outside.stat().st_mode) == outside_mode
     assert list(outside.iterdir()) == []
     assert (root / ".open-brain-pinned" / "indexes").is_dir()
+
+
+def test_open_existing_single_user_local_requires_existing_portable_identity_without_creation(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "brain"
+
+    with pytest.raises(ProfileError, match="identity is missing|unavailable"):
+        open_existing_single_user_local(root)
+
+    assert not root.exists()
+
+
+def test_open_existing_single_user_local_reports_layout_only_identity_as_profile_error(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "brain"
+    root.mkdir(mode=0o700)
+    (root / "brain.toml").write_text("layout_version = 1\n", encoding="utf-8")
+
+    with pytest.raises(ProfileError, match="portable identity is missing"):
+        open_existing_single_user_local(root)

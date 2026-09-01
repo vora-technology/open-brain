@@ -107,6 +107,45 @@ def compile_single_user_local(
     )
 
 
+def open_existing_single_user_local(root: Path) -> SingleUserLocalProfile:
+    """Open one existing root read-only without creating layout or rewriting identity."""
+    if not isinstance(root, Path):
+        raise ProfileError("Brain root must be a path")
+    candidate = root.expanduser().absolute()
+    if not candidate.exists() or candidate.is_symlink():
+        raise ProfileError("portable identity is missing")
+    root_fd = -1
+    try:
+        root_fd = os.open(candidate, _DIRECTORY_FLAGS)
+        absolute_root = candidate.resolve(strict=True)
+        _assert_root_identity(absolute_root, root_fd)
+        metadata = os.fstat(root_fd)
+        if not stat.S_ISDIR(metadata.st_mode):
+            raise ProfileError("Brain root is unavailable")
+        identity = _load_existing_identity(root_fd)
+        root_identity = (metadata.st_dev, metadata.st_ino)
+    except (OSError, ProfileError) as error:
+        if isinstance(error, ProfileError):
+            raise
+        raise ProfileError("Brain root is unavailable") from error
+    finally:
+        if root_fd >= 0:
+            os.close(root_fd)
+    role_claim = _mapping(identity, "owner_role_claim")
+    capabilities = role_claim.get("capabilities")
+    assert isinstance(capabilities, list)
+    role_claim["capabilities"] = tuple(capabilities)
+    return LocalEngineContext(
+        root=absolute_root,
+        root_identity=root_identity,
+        tenant_id=_string(identity, "tenant_id"),
+        owner_actor_id=_string(identity, "owner_actor_id"),
+        owner_role_claim=MappingProxyType(role_claim),
+        provider_mode=ProviderMode.NONE,
+        starter_spaces=(),
+    )
+
+
 def _create_layout(root_fd: int) -> None:
     for relative in _LAYOUT_DIRECTORIES:
         descriptor = _open_directory_path(root_fd, relative.split("/"), create=True)
@@ -118,6 +157,13 @@ def _create_layout(root_fd: int) -> None:
             raise ProfileError("local profile file is unavailable") from error
         finally:
             os.close(descriptor)
+
+
+def _load_existing_identity(root_fd: int) -> dict[str, object]:
+    brain_payload = _read_file(root_fd, "brain.toml")
+    if brain_payload is None or brain_payload == _LAYOUT_ONLY_BRAIN_TOML:
+        raise ProfileError("portable identity is missing")
+    return _identity_from_brain_toml(brain_payload)
 
 
 def _preflight_layout(root_fd: int) -> None:

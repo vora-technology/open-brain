@@ -36,11 +36,64 @@ The app-owned `profile` module compiles one `single-user-local` Brain root into 
 engine-owned context. The engine does not import profile, CLI, UI, service, migration,
 or parity code.
 
-`services/phase1_application.py` is the default app composition root, and
-`services/phase1_entrypoints.py` owns the installed CLI, HTTP, and MCP processes.
+`services/phase1_application.py` is the retained Phase 1 composition root, and
+`services/phase1_entrypoints.py` is now a compatibility delegate to the appliance entrypoints for
+CLI and MCP while keeping HTTP fail-closed through the non-starting appliance stub.
 `services/application.py` and `services/entrypoints.py` retain predecessor and scheduled
 compatibility behind the legacy boundary; package metadata does not point a default process at
 either module.
+Phase 3 W1 adds app-owned appliance initialization and status reads. `services/appliance_init.py`
+preflights host/runtime/permissions/disk/provider mode/supervisor availability, creates one
+owner-only generated local credential outside `brain.toml`, and records an idempotent local init
+receipt. `services/appliance_application.py` and `services/appliance_entrypoints.py` expose a
+strictly non-mutating offline/MCP read path backed by `profile.open_existing_single_user_local()`
+and `engine.local.open_local_read_view()`, which reject absent or newer state schemas instead of
+creating, migrating, recovering, or acquiring writer authority.
+Phase 3 W2 cuts the installed `open-brain` script and `python -m open_brain` over to
+`services/appliance_entrypoints.py`, keeps `open-brain-mcp` on that read-only path, and removes a
+standalone public HTTP entrypoint. `services/appliance_daemon.py`, `services/appliance_lifecycle.py`,
+`services/appliance_scheduler.py`, and `services/appliance_supervisors.py` now own the appliance
+control plane: one daemon acquires verified daemon-authority before mutating composition and socket
+binding, serves bounded canonical Unix-domain control requests through the owner-only
+`.open-brain/run/control.sock` with a bounded listen backlog and accepted-client timeout, owns the
+recurring `engine-recover` and `markdown-reconcile`
+scheduler inventory under `.open-brain/state/appliance-scheduler/`, and renders deterministic
+launchd/systemd units that enter the daemon through the source-checkout-safe
+`open_brain.services.appliance_daemon` module with an explicit absolute root. Mutating Phase 1 CLI
+families never fall back to local writes; active reads prefer control and offline inspection stays
+on the read-only engine view.
+Phase 3 W3 keeps that ownership model for browser traffic. The appliance daemon composes and owns
+the single loopback HTTP listener while authority is active, browser sessions bootstrap from the
+generated local credential into host-only cookies plus CSRF, and page reads stay on the public
+engine retrieval surface instead of importing storage adapters into the app layer. Private-network
+binds require explicit opt-in, explicit external HTTPS termination, and an exact external browser
+origin; the documented remote path remains an authenticated SSH tunnel to the loopback listener.
+Phase 3 W4 adds engine-owned direct-Markdown reconciliation and immutable backup tasks plus
+app-owned recovery orchestration. `engine/reconciliation.py` scans only canonical owner Markdown
+under `content/spaces/`, rejects symlinks, special files, malformed replacements, and over-budget
+inputs, and updates retrieval state without rewriting owner content. `engine/backup.py` and
+`engine/backup_ports.py` publish immutable manifests last at a separate destination, include exact
+Portable bytes plus required SQLite-backup-API snapshots and bounded immutable appliance run
+receipts, and
+exclude credentials, indexes, sockets, locks, supervisor state, temporary data, and live SQLite
+sidecars. `services/appliance_recovery.py` keeps backup/restore separate from Portable export/import,
+restores only into a proven empty disposable root, regenerates a purpose-scoped local credential,
+rebuilds the index, and runs doctor/status reads through the appliance authority boundary. The
+daemon control socket submits durable owner-requested `backup-create`, `portable-export`, and
+`portable-import` jobs to the scheduler attached to the daemon's existing application. They are
+replay-safe requests, not recurring background work. Mutable scheduler state is recreated after a
+restore so retry bookkeeping cannot change the identity of an already published backup.
+Phase 3 W5 keeps upgrade and uninstall at the app boundary. `services/appliance_lifecycle.py`
+defines the typed `ArtifactLifecyclePort` for bounded candidate identity, compatibility preflight,
+activation, rollback, and removal receipts. Source checkout proves that orchestration only through
+injected fake or disposable adapters, verified backup plus disposable-restore preflight, versioned
+engine and app migration evidence, authority-preserving restart checks, post-migration doctor, and
+data-preserving uninstall. The default artifact effect boundary stays fail-closed; no shipping path
+in this monolith installs or removes a native artifact directly. A distinct kernel-backed lifecycle
+lease serializes owner requests, while canonical root-confined journals preserve request identity,
+stage, terminal receipt, conflict detection, and crash rollback across processes. The source-checkout
+CLI exposes upgrade and uninstall only when composition injects that lifecycle port; it does not run
+the self-restarting lifecycle inside the daemon control loop.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that
@@ -67,11 +120,10 @@ The implemented application layers are:
 - `ledger`: taxonomy-bound scan/stage records, opaque sanitized leaves, trusted citations, a metadata-only inflight journal, independently read-back-verified publication manifests, archive-first slimming, and atomically persisted structured synthesis outside writer locks.
 - `review`: closed reference/hold/review-only routing, owner-only terminal decisions, atomic approval/outbox persistence, opaque capture references, receipt-verified owner-output delivery, and predecessor-parity target edit/archive maintenance.
 
-Composition starts with no listener, scheduler, provider, connector, or network operation. The
-default application has no connector capability. The retained synthetic `JOB-029` proof is
-composed explicitly with an absolute private YouTube configuration reference and egress authority.
-It uses the internal connector contract, a capture-only public-job identity, and host-owned
-evidence to bind accepted capture receipts to checkpoint advancement.
+The retained Phase 2 compatibility composition starts with no listener, provider, connector, or
+network operation. Its synthetic `JOB-029` proof remains legacy characterization only and is not a
+packaged entry point. The Phase 3 appliance daemon instead owns the internal scheduler described
+above, with no connector jobs in the default profile.
 
 Public task results are projections produced after storage and ranking. They retain opaque IDs,
 bounded provenance, canonical-state visibility, and useful titles/excerpts while excluding raw or
@@ -82,4 +134,7 @@ remain exact.
 Phase 3 owns the appliance lifecycle: initialization, one supervised daemon, internal scheduling,
 launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. Phase 4 owns
 the physical distributions and `packages/` split, isolated connector workers, the public Connector
-SDK and signing, and native artifact/bundler work. The retained monolith is the Phase 2 boundary.
+SDK and signing, and native artifact/bundler work. Phase 4 is also the first place allowed to add
+the real native-artifact adapter, prior-release artifact upgrade evidence, clean-host install-time
+claims, signed package residue scans, publication, or deployment. The retained monolith is the
+Phase 2 boundary.

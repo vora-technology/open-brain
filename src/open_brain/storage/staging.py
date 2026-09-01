@@ -207,6 +207,47 @@ def destination_child_identity(
         os.close(parent_fd)
 
 
+def remove_empty_destination(
+    destination: Path,
+    *,
+    parent_identity: RootIdentity,
+    child_identity: RootIdentity,
+) -> None:
+    """Remove one pinned private empty directory before no-replace promotion."""
+
+    parent_fd = _open_absolute_directory(destination.parent, parent_identity)
+    child_fd = -1
+    try:
+        observed = os.stat(destination.name, dir_fd=parent_fd, follow_symlinks=False)
+        if not stat.S_ISDIR(observed.st_mode) or _identity(observed) != child_identity:
+            raise StagingError("disposable destination identity changed")
+        child_fd = os.open(destination.name, _DIRECTORY_FLAGS, dir_fd=parent_fd)
+        current = os.fstat(child_fd)
+        with os.scandir(child_fd) as entries:
+            destination_is_empty = next(entries, None) is None
+        if (
+            _identity(current) != child_identity
+            or stat.S_IMODE(current.st_mode) != 0o700
+            or not destination_is_empty
+        ):
+            raise StagingError("disposable destination must be empty and private")
+        os.close(child_fd)
+        child_fd = -1
+        observed = os.stat(destination.name, dir_fd=parent_fd, follow_symlinks=False)
+        if not stat.S_ISDIR(observed.st_mode) or _identity(observed) != child_identity:
+            raise StagingError("disposable destination identity changed")
+        os.rmdir(destination.name, dir_fd=parent_fd)
+        os.fsync(parent_fd)
+    except StagingError:
+        raise
+    except OSError as error:
+        raise StagingError("disposable destination cannot be removed safely") from error
+    finally:
+        if child_fd >= 0:
+            os.close(child_fd)
+        os.close(parent_fd)
+
+
 def _write_all(descriptor: int, payload: bytes) -> None:
     remaining = memoryview(payload)
     while remaining:
