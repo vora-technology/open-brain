@@ -133,8 +133,10 @@ remain exact.
 
 Phase 3 owns the appliance lifecycle: initialization, one supervised daemon, internal scheduling,
 launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. Phase 4 owns
-the physical distributions and `packages/` split, isolated connector workers, the public Connector
-SDK and signing, and native artifact/bundler work. Phase 4 is also the first place allowed to add
-the real native-artifact adapter, prior-release artifact upgrade evidence, clean-host install-time
-claims, signed package residue scans, publication, or deployment. The retained monolith is the
-Phase 2 boundary.
+the physical distributions and `packages/` split, a versioned provisional connector interface and
+conformance kit, isolated connector workers, connector signing, and native artifact/bundler work.
+A stable public Connector SDK compatibility promise remains blocked until the reference, event,
+and measurement proofs all pass. Phase 4 is also the first place allowed to add the real
+native-artifact adapter, prior-schema artifact upgrade evidence, clean-host install-time claims,
+signed package residue scans, and an owner-gated private deployment. Public package publication,
+tags, and releases remain Phase 5. The retained monolith is the Phase 2 boundary.
