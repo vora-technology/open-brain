@@ -34,6 +34,8 @@ from open_brain.engine import (
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiRequest
 from open_brain.operations.scheduled_results import ScheduledDispatchResult
+from open_brain.services.appliance_init import APPLIANCE_OWNER_CREDENTIAL, initialize_appliance
+from open_brain.services.appliance_status import read_appliance_status
 from open_brain.services.mcp_stdio import serve_stdio_mcp
 from open_brain.services.phase1_application import SingleUserLocalApplication
 
@@ -356,3 +358,20 @@ def _adapter(registry: Phase1CommandAdapterRegistry, name: str) -> CommandFamily
 
 def _json_bytes(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def test_appliance_status_does_not_leak_private_paths_or_generated_credentials(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "brain"
+    initialize_appliance(root, starter_spaces=("Personal",))
+    credential = (root / APPLIANCE_OWNER_CREDENTIAL).read_text(encoding="utf-8").strip()
+    status = read_appliance_status(root).to_dict()
+    rendered = json.dumps(status, sort_keys=True)
+
+    assert credential
+    _assert_no_public_residue(
+        rendered,
+        protected=(credential, str(root)),
+        digests=(sha256(credential.encode("utf-8")).hexdigest(),),
+    )

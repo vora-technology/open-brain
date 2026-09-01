@@ -21,3 +21,23 @@
   checkout and no other worktree or overlapping branch exists.
 - Why: this preserves the reviewed untracked planning bundle without copying
   files and keeps one coordinator-owned writer surface.
+
+## D-003: classify W1 runtime files before W2
+
+- Chosen: add all five W1 runtime modules to
+  `docs/v0-package-classification.json` and route public maintenance/read
+  contracts through `open_brain.engine` in W1.
+- Rejected: defer classification to W2 because the reviewed plan listed the
+  registry there.
+- Why: every wave must end with `make verify`, and repository architecture
+  tests require every runtime file and cross-owner import to be classified.
+  Deferral would knowingly leave W1 without a clean checkpoint.
+
+## D-004: report queue evidence as unavailable until W2 owns it
+
+- Chosen: keep the W1 queue field but report explicit `unavailable` state.
+- Rejected: import the retained `capture/queue.py` reader, which is classified
+  legacy and would create engine-to-app plus shipping-to-legacy violations.
+- Rejected: report a missing queue as empty, which would be false evidence.
+- Why: W2 owns the new durable scheduler and can supply real bounded queue
+  age without coupling the shipping engine to legacy capture operations.

@@ -46,6 +46,14 @@ and `services/appliance_entrypoints.py` as the future installed and module entry
 without repointing current scripts. The reserved daemon-only mutation path is the owner-only
 Unix-domain socket `.open-brain/run/control.sock`; Phase 2 surfaces may name that path but fail
 closed until the appliance daemon owns canonical writes.
+Phase 3 W1 adds app-owned appliance initialization and status reads without cutting installed
+scripts over yet. `services/appliance_init.py` preflights host/runtime/permissions/disk/provider
+mode/supervisor availability, creates one owner-only generated local credential outside
+`brain.toml`, and records an idempotent local init receipt. `services/appliance_application.py`
+and `services/appliance_entrypoints.py` now also expose a strictly non-mutating offline/MCP
+read path backed by `profile.open_existing_single_user_local()` and
+`engine.local.open_local_read_view()`, which reject absent or newer state schemas instead of
+creating, migrating, recovering, or acquiring writer authority.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that

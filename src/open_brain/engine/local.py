@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 from collections.abc import Callable, Collection
 from datetime import datetime
 from hashlib import sha256
@@ -9,6 +10,7 @@ from hashlib import sha256
 from open_brain.providers.base import ProviderMode
 from open_brain.storage.filesystem import assert_root_identity
 from open_brain.storage.locks import FileLease
+from open_brain.storage.sqlite import SchemaError, connect_database_read_only
 
 from .capture import CaptureOperations, CaptureTasks
 from .contracts import (
@@ -45,11 +47,65 @@ from .contracts import (
     TextPayload,
 )
 from .local_store import _LocalStore
+from .maintenance import PHASE1_STATE_DATABASE, PHASE1_STATE_SCHEMA_VERSION, inspect_phase1_state
 from .normalization import _done, _utc_now
 from .portability import PortabilityTasks
 from .retrieval import RetrievalOperations, RetrievalTasks, ScopedRetrieval
 from .review import ReviewOperations, ReviewTasks
 from .spaces import InboxSpaceTasks, SpaceOperations
+
+
+class ReadViewUnavailableError(RuntimeError):
+    """The source-checkout read view cannot open the existing engine state safely."""
+
+
+class StateSchemaUnavailableError(RuntimeError):
+    """A mutating engine cannot safely open this existing state schema."""
+
+
+class _ReadOnlyStore:
+    def __init__(self, profile: LocalEngineContext) -> None:
+        self._profile = profile
+
+    def connect(self) -> sqlite3.Connection:
+        return connect_database_read_only(
+            root=self._profile.root,
+            database_name=PHASE1_STATE_DATABASE,
+            expected_root_identity=self._profile.root_identity,
+        )
+
+
+class _ReadOnlyRetrieval(RetrievalOperations):
+    def __init__(
+        self,
+        profile: LocalEngineContext,
+        *,
+        allowed_space_ids: frozenset[str],
+    ) -> None:
+        self.profile = profile
+        self._store = _ReadOnlyStore(profile)
+        self._allowed_space_ids = allowed_space_ids
+
+    def search(
+        self,
+        query: str,
+        *,
+        space_id: str | None = None,
+        payload_family: str | None = None,
+        record_type: str | None = None,
+        limit: int = 10,
+    ) -> tuple[RetrievalResult, ...]:
+        return self._search(
+            query,
+            space_id=space_id,
+            payload_family=payload_family,
+            record_type=record_type,
+            limit=limit,
+            allowed_space_ids=self._allowed_space_ids,
+        )
+
+    def fetch(self, result_id: str) -> RetrievalResult | None:
+        return self._fetch(result_id, allowed_space_ids=self._allowed_space_ids)
 
 
 class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, RetrievalOperations):
@@ -72,6 +128,9 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         ):
             raise ValueError("invalid enrichment provider")
         assert_root_identity(profile.root, profile.root_identity)
+        schema = inspect_phase1_state(profile)
+        if schema.state in {"invalid", "newer"}:
+            raise StateSchemaUnavailableError(f"local state schema is {schema.state}")
         self.profile = profile
         self._faults = set(faults)
         self._clock = clock
@@ -85,6 +144,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         )
         with self._writer_lease.acquire_shared_writer():
             self._store = _LocalStore(profile)
+            _ensure_phase1_state_schema(self._store)
         self.capture = CaptureTasks(self)
         self.inbox = InboxSpaceTasks(self)
         self.review = ReviewTasks(self)
@@ -186,6 +246,36 @@ def open_local_engine(
     ).tasks
 
 
+def open_local_read_view(
+    profile: LocalEngineContext,
+    *,
+    allowed_space_ids: frozenset[str] = frozenset(),
+) -> _ReadOnlyRetrieval:
+    """Open the existing retrieval state read-only without recovery or lease acquisition."""
+    if not isinstance(profile, LocalEngineContext) or not isinstance(allowed_space_ids, frozenset):
+        raise ValueError("invalid local profile")
+    schema = inspect_phase1_state(profile)
+    if schema.state == "absent":
+        raise ReadViewUnavailableError("read-only state schema is absent")
+    if schema.state == "newer":
+        raise ReadViewUnavailableError("read-only state schema is newer than this application")
+    if schema.state != "current":
+        raise ReadViewUnavailableError("read-only state schema is invalid")
+    return _ReadOnlyRetrieval(profile, allowed_space_ids=allowed_space_ids)
+
+
+def _ensure_phase1_state_schema(store: _LocalStore) -> None:
+    connection = store.connect()
+    try:
+        version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+        if version < PHASE1_STATE_SCHEMA_VERSION:
+            connection.execute(f"PRAGMA user_version = {PHASE1_STATE_SCHEMA_VERSION}")
+    except (TypeError, ValueError, sqlite3.Error, SchemaError) as error:
+        raise ValueError("invalid local state schema") from error
+    finally:
+        connection.close()
+
+
 __all__ = [
     "BrainEngine",
     "CaptureAction",
@@ -214,6 +304,7 @@ __all__ = [
     "PublicJobCaptureContext",
     "PublicJobCaptureSink",
     "PublicProvenance",
+    "ReadViewUnavailableError",
     "ReferencePayload",
     "RetrievalResult",
     "RetrievalTasks",
@@ -221,6 +312,8 @@ __all__ = [
     "RoutedCapture",
     "ScopedRetrieval",
     "SpaceRecord",
+    "StateSchemaUnavailableError",
     "TextPayload",
     "open_local_engine",
+    "open_local_read_view",
 ]

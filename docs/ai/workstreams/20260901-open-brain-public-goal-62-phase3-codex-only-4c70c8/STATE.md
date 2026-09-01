@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0 and `P3-W0` clean checkpoints complete.
+- Status: in progress; Gate 0, `P3-W0`, and `P3-W1` clean checkpoints complete.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -21,5 +21,8 @@
 - P3-W0 verification: 92 focused tests, focused Ruff, strict MyPy on 439 source files, full `make verify` with 2,984 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
 - P3-W0 behavior gate: future appliance application/entrypoint names and the owner-only Unix-domain daemon mutation path are reserved; current Phase 2 scripts and behavior remain unchanged.
 - P3-W0 failure gate: no shipping import reaches legacy operations/release code, no Phase 4 packaging is required, and no control/writer/auth architecture fork remains.
-- Current wave: `P3-W1` pending after the W0 commit.
-- Next action: dispatch one Codex W1 writer for idempotent init, preflight, generated credential, engine maintenance reads, and non-mutating read view.
+- P3-W1 verification: 32 focused tests, focused Ruff, strict MyPy on 447 source files, full `make verify` with 2,999 tests, wheel/sdist builds, artifact policy, architecture ownership/debt, and diff integrity passed.
+- P3-W1 behavior gate: init is preflighted and idempotent over identity, spaces, content, credential, schema, and index; maintenance evidence is bounded; absent/newer read views make no mutation or writer acquisition.
+- P3-W1 failure gate: unsafe credentials are preserved and rejected, newer schemas are rejected before writer acquisition, legacy schema migration preserves content, nested writable roots initialize, and installed scripts remain on Phase 1.
+- Current wave: `P3-W2` pending after the W1 commit.
+- Next action: dispatch one Codex W2 writer for daemon authority, control transport, scheduler, supervisor adapters, and default entrypoint cutover.

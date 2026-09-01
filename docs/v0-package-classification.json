@@ -633,6 +633,11 @@
       "api": "internal",
       "roles": []
     },
+    "engine/maintenance.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
     "engine/materializer.py": {
       "owner": "engine",
       "api": "internal",
@@ -1291,6 +1296,26 @@
       "roles": []
     },
     "services/__init__.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_application.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_entrypoints.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_init.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_status.py": {
       "owner": "app",
       "api": "internal",
       "roles": []

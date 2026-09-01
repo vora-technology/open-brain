@@ -40,3 +40,32 @@
   tests started; the worker changed strategy to a disposable cache and then
   produced the required red/green evidence. Coordinator checks used the
   normal project environment and passed.
+
+## P3-W1: init and maintenance read seams
+
+- Worker: `P3-W1-IMPLEMENT-01`, Codex `gpt-5.4` high, exclusive W1 scope.
+- Worker red evidence: new appliance modules, read-view error, and existing
+  profile opener were absent; later Ruff and MyPy red checks found concrete
+  implementation defects.
+- Worker green evidence: 26 focused tests, focused Ruff, and strict MyPy on
+  447 source files passed.
+- Coordinator hardening red evidence: four new regressions demonstrated
+  nested-root preflight rejection, unsafe credential replacement,
+  newer-schema acceptance, and profile descriptor double-close.
+- Coordinator repairs: nearest-existing-ancestor permission check, real
+  supervisor executable detection, owner-file fail-closed handling, bounded
+  schema errors, direct pre-writer newer-schema rejection, legacy schema
+  migration, and single-close profile cleanup.
+- First full `make verify`: failed only three architecture tests because the
+  five new runtime files were unclassified and app code imported engine
+  internals. No product test failed.
+- Architecture repair: classified all new files, exported maintenance/read
+  contracts through `open_brain.engine`, removed app-to-engine-internal
+  imports, and removed the legacy capture-queue dependency.
+- Final focused Pytest: 32 passed. Focused Ruff and strict MyPy passed.
+- Final full `make verify`: passed Ruff, MyPy, 2,999 tests, wheel/sdist builds,
+  and artifact policy. `git diff --check` passed.
+- Queue evidence is explicitly `unavailable` in W1 instead of falsely empty;
+  W2 must supply the new scheduler-owned evidence without legacy imports.
+- No real credential, service, network, production, live Brain, private
+  predecessor, package publication, deployment, or unrelated PR was used.
