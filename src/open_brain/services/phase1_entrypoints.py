@@ -51,6 +51,9 @@ def run_cli(
     root_free_exit = _root_free_exit(arguments)
     if root_free_exit is not None:
         return root_free_exit
+    if "--dry-run" in arguments:
+        write_envelope(invalid_envelope(), json_output=json_output, stream=sys.stdout)
+        return ExitCode.USAGE
     try:
         application = _open_single_user_application(env)
     except (OSError, ValueError):

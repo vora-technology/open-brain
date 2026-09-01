@@ -7,10 +7,10 @@ milestone: p2-w5-complete-phase-2-boundary-reconciliation
 branch: goal/open-brain-phase2
 head: enclosing-git-head
 last_verified.command: exact P2-W5 isolation and focused suites; installed journey; Ruff; strict MyPy; make verify; git diff --check; owner-approved release audit
-last_verified.result: passed: 1 isolation test; 226 focused tests; installed journey; Ruff; strict MyPy on 439 files; 2,979 total tests; wheel/sdist; artifact policy; diff integrity; release audit
+last_verified.result: passed: 1 isolation test; 227 focused tests; installed journey; Ruff; strict MyPy on 439 files; 2,980 total tests; wheel/sdist; artifact policy; diff integrity; release audit
 changes: ["candidate head resolves to the Git commit enclosing this packet; implementation checkpoint is 555ae02","555ae02: zero architecture debt with truthful file ownership and fresh engine isolation","555ae02: minimum representation capabilities and app-owned default CLI/HTTP/MCP entrypoints","555ae02: raw/encoded/typed public-result projection with exact durable and Portable bytes preserved","555ae02: reconciled repository, architecture, portability, configuration, CLI, privacy, environment, plan, and gotcha documentation"]
 blocker: null
-next_action: Commit the verified bare-digest repair, rerun every final gate on the clean candidate, then obtain the final fresh exact-commit Codex READY verdict
+next_action: Verify and commit pre-composition dry-run rejection, rerun every final gate, then use one recorded mandatory-review override for the fresh exact-commit READY verdict
 safe_to_start_new_thread: true
 
 Emit this complete block as one packet; keep the heading and field names exact. Keep values bounded and redacted. This packet summarizes verified state; it does not override project instructions or machine-authoritative runner state.

@@ -292,12 +292,15 @@ Discovered: 2026-08-31.
 
 ### CLI-002: Prefix flags must survive family dispatch
 
-Symptom: `--dry-run` before a command family is discarded while the mutating adapter still runs.
+Symptom: `--dry-run` before a command family is discarded, or the process creates a Brain root
+and operational state before the adapter rejects the request.
 
-Cause: The process shell passed only arguments after the family name to the adapter.
+Cause: The process shell opened application composition before handling the global non-mutating
+flag, then passed only arguments after the family name to the adapter.
 
-Fix: Remove only representation-owned `--json`; forward every other prefix flag to the selected
-adapter and prove an unsupported dry run exits before mutation.
+Fix: Reject unsupported global dry-run requests before opening the application. Direct adapter
+dispatch still receives non-representation prefix flags, and the process regression must prove
+the requested root was never created.
 
 Discovered: 2026-08-31.
 

@@ -98,13 +98,9 @@ def test_cli_help_and_version_do_not_require_a_brain_root(
         assert capsys.readouterr().out == "open-brain 0.1.0\n"
 
 
-def test_global_dry_run_before_a_phase1_command_never_mutates(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    root = tmp_path / "brain"
-
-    exit_code = run_cli(
+@pytest.mark.parametrize(
+    "arguments",
+    (
         (
             "--dry-run",
             "capture",
@@ -114,13 +110,33 @@ def test_global_dry_run_before_a_phase1_command_never_mutates(
             "--delivery=dry-run.capture",
             "--json",
         ),
+        (
+            "capture",
+            "quick",
+            "text",
+            "synthetic non-mutating request",
+            "--delivery=dry-run.capture",
+            "--dry-run",
+            "--json",
+        ),
+    ),
+)
+def test_global_dry_run_before_composition_never_mutates(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    arguments: tuple[str, ...],
+) -> None:
+    root = tmp_path / "brain"
+
+    exit_code = run_cli(
+        arguments,
         environment={"OPEN_BRAIN_ROOT": str(root)},
     )
     output = json.loads(capsys.readouterr().out)
 
     assert exit_code == 2
     assert output["status"] == "invalid"
-    assert SingleUserLocalApplication.open(root).tasks.inbox.list() == ()
+    assert not root.exists()
 
 
 @pytest.mark.parametrize(
