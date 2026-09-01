@@ -64,7 +64,29 @@ sink-issued receipt, delivery ID, and source reference are bound.
 
 `OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS` is a JSON array of opaque space IDs. MCP gets only scoped
 retrieval and metadata feedback; search and fetch both enforce that allow-list. Set it to `[]` for
-the empty scope. The local HTTP bind defaults to `127.0.0.1:8788`; private-network binding needs
-explicit non-secret configuration and still rejects public or wildcard addresses.
+the empty scope. The appliance daemon owns the only public HTTP listener. Its non-secret bind
+configuration is:
+
+- `OPEN_BRAIN_UI_BIND`
+- `OPEN_BRAIN_UI_PORT`
+- `OPEN_BRAIN_UI_ALLOW_PRIVATE`
+
+Loopback uses the exact browser origin `http://<bind-host>:<bind-port>`. For remote access, create an
+authenticated SSH tunnel to that loopback listener:
+
+```console
+ssh -N -L 8788:127.0.0.1:8788 user@appliance-host
+```
+
+Then open `http://127.0.0.1:8788` locally. Do not put the appliance credential in the URL.
+Private-network binding is refused unless all of these are set exactly:
+
+- `OPEN_BRAIN_UI_ALLOW_PRIVATE=true`
+- `OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION=true`
+- `OPEN_BRAIN_UI_EXTERNAL_ORIGIN=https://...`
+
+The external origin must be a syntactically exact HTTPS origin with no path, query, fragment, or
+userinfo. Without that explicit external browser origin, private-network binding still rejects
+public or wildcard addresses.
 
 Ledger taxonomy is configuration, not model output. Each route binds a trusted path prefix to a synthetic-safe topic ID, label, and privacy tier. Unknown paths have no topic and retain fail-closed privacy authority.

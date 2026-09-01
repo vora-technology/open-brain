@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0 and `P3-W0` through `P3-W2` clean checkpoints complete.
+- Status: in progress; Gate 0 and `P3-W0` through `P3-W3` clean checkpoints complete.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -29,5 +29,9 @@
 - P3-W2 control evidence: owner-only confined Unix socket, bounded canonical envelopes and accepted-client timeouts, root-bound authority-gated stale cleanup, replacement detection, second-daemon exclusion, fail-closed clients, and lost-receipt replay without duplicate capture passed 130 focused tests, Ruff, strict MyPy on 452 source files, and diff hygiene.
 - P3-W2 runtime evidence: the profile-bound scheduler uses root-confined bounded atomic state and immutable receipts; daemon shutdown closes operation admission before releasing authority; restart replay preserves one capture and one publication; packaged and compatibility entrypoints cannot open a direct writer; launchd/systemd behavior is deterministic and fake-injected only.
 - P3-W2 verification: 178 focused tests, full Ruff, strict MyPy on 457 source files, full `make verify` with 3,050 tests, wheel/sdist builds, artifact policy, architecture ownership with no temporary debt, and diff integrity passed in a sanitized environment.
-- Current subphase: `P3-W3` ready after the W2 checkpoint commit and push.
-- Next action: dispatch one Codex W3 writer for owner UI parity, browser auth, HTTP route security, and bounded run history.
+- P3-W3 status: clean checkpoint complete across owner UI parity, browser auth, HTTP route security, status/doctor parity, and bounded metadata-only run history.
+- P3-W3 behavior evidence: the daemon owns the one HTTP listener; host-only sessions, exact origins, CSRF, and route-capability separation fail closed; CLI and UI share app state; page reads, status, doctor, and bounded run history pass through the composed service.
+- P3-W3 failure evidence: credentials stay out of URLs, HTML, logs, and result envelopes; private binding requires an exact HTTPS external origin and explicit encryption termination; unknown and cross-capability POST routes are rejected before body read.
+- P3-W3 verification: 99 focused and architecture tests, 45 post-fix daemon/scheduler/history/UI/auth/log/storage tests, full Ruff, strict MyPy on 464 source files, full sanitized `make verify` with 3,070 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
+- Current subphase: `P3-W4` ready after the W3 checkpoint commit and push.
+- Next action: dispatch one Codex W4 writer for recovery, direct-edit reconciliation, backup, disposable restore, and Portable orchestration.

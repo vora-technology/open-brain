@@ -19,11 +19,14 @@ require the HTTP credential. Its tools are `brain_query`, `brain_fetch`, and met
 `brain_retrieval_feedback`; retrieval is scoped by the explicit
 `OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS` JSON array; set it to `[]` for an empty scope.
 
-`open-brain-http` runs the bounded UI/share server. It requires exactly one named
-`service_token` secret reference in configuration. The secret is resolved only during
-HTTP composition and is never placed in a result or retained in application metadata.
-The listener defaults to `127.0.0.1:8788`; a private-network bind requires explicit
-non-secret bind configuration and still rejects public or wildcard addresses.
+There is no standalone `open-brain-http` writer process. `python -m open_brain.services.appliance_daemon`
+is the only public process that composes the bounded UI/share server, and it owns that listener for
+the life of the daemon-authority lease. Browser logins bootstrap from the generated local appliance
+credential into a host-only session cookie plus CSRF token. The listener defaults to
+`127.0.0.1:8788`; the documented remote path is an authenticated SSH tunnel to loopback. A
+private-network bind requires explicit opt-in plus `OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION=true`
+and an exact `OPEN_BRAIN_UI_EXTERNAL_ORIGIN=https://...` value. Without those settings the daemon
+refuses the bind.
 
 ## Commands
 

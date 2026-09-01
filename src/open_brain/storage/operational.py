@@ -6,6 +6,7 @@ from .filesystem import (
     WriteState,
     atomic_replace,
     atomic_write_new,
+    confined_unlink,
     read_confined,
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "WriteState",
     "atomic_replace",
     "atomic_write_new",
+    "confined_unlink",
     "read_confined",
 ]

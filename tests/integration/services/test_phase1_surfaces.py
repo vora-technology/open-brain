@@ -4,6 +4,7 @@ import base64
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -417,13 +418,14 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
         initialize_appliance(root, starter_spaces=())
         environment = {
             key: os.environ[key]
-            for key in ("HOME", "LANG", "LC_ALL", "PATH", "TMPDIR")
+            for key in ("HOME", "LANG", "LC_ALL", "PATH", "TMPDIR", "UV_CACHE_DIR")
             if key in os.environ
         }
         environment.update(
             {
                 "NO_COLOR": "1",
                 "OPEN_BRAIN_ROOT": str(root),
+                "OPEN_BRAIN_UI_PORT": str(_free_port()),
                 "PYTHONUTF8": "1",
             }
         )
@@ -569,3 +571,23 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
         assert [capture["capture_id"] for capture in captures] == [first_payload["capture_id"]]
         assert [space["space_id"] for space in spaces] == [space_id]
         assert {result["capture_id"] for result in results} == {first_payload["capture_id"]}
+
+
+def _free_port() -> int:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import socket; "
+                "listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM); "
+                "listener.bind(('127.0.0.1', 0)); "
+                "print(listener.getsockname()[1]); "
+                "listener.close()"
+            ),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return int(result.stdout.strip())

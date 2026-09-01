@@ -10,12 +10,14 @@ import threading
 import time
 from collections.abc import Iterator
 from datetime import datetime
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
 
+from open_brain.cli._common import ExitCode
 from open_brain.engine import (
     DaemonAuthorityError,
     DaemonAuthorityRootMismatchError,
@@ -40,13 +42,17 @@ from open_brain.services.appliance_daemon import (
     ControlRequest,
     acquire_control_socket_authority,
     cleanup_stale_control_socket,
+    main,
     request_cli_dispatch,
 )
+from open_brain.services.appliance_init import initialize_appliance
 from open_brain.services.appliance_lifecycle import submit_control_request
 from open_brain.services.appliance_scheduler import (
     APPLIANCE_SCHEDULER_DIRECTORY,
     ApplianceScheduler,
 )
+from open_brain.services.http_server import HttpServerFactory, HttpServerProtocol
+from open_brain.services.runtime import appliance_http_configuration_from_environment
 from open_brain.storage.locks import LockBusyError
 
 _ORIGINAL_SOCKET_BIND = socket.socket.bind
@@ -206,6 +212,195 @@ def test_daemon_holds_authority_creates_owner_only_socket_and_rejects_second_dae
         thread.join(timeout=5)
         assert not thread.is_alive()
 
+    with acquire_daemon_authority(profile):
+        pass
+
+
+def test_daemon_owns_exactly_one_http_listener_and_closes_it_before_releasing_authority(
+    short_root: Path,
+) -> None:
+    root = short_root
+    initialize_appliance(root)
+    profile = open_existing_single_user_local(root)
+    configuration = appliance_http_configuration_from_environment(
+        {
+            "OPEN_BRAIN_UI_BIND": "127.0.0.1",
+            "OPEN_BRAIN_UI_PORT": "8788",
+            "OPEN_BRAIN_UI_ALLOW_PRIVATE": "false",
+        }
+    )
+
+    class FakeHttpServer:
+        def __init__(self) -> None:
+            self.events: list[str] = []
+            self.started = threading.Event()
+            self.released = threading.Event()
+
+        def serve_forever(self, poll_interval: float = 0.5) -> None:
+            assert poll_interval == 0.5
+            self.events.append("serve")
+            self.started.set()
+            self.released.wait(timeout=5)
+
+        def shutdown(self) -> None:
+            self.events.append("shutdown")
+            self.released.set()
+
+        def server_close(self) -> None:
+            self.events.append("close")
+
+    fake_server = FakeHttpServer()
+    daemon = ApplianceDaemon(root)
+    assert not hasattr(daemon, "http_lifecycle")
+
+    with pytest.raises(RuntimeError, match="not running"):
+        daemon.start_http_listener(
+            configuration,
+            server_factory=lambda _address, _handler: fake_server,
+        )
+
+    daemon.start()
+    try:
+        daemon.start_http_listener(
+            configuration,
+            server_factory=lambda _address, _handler: fake_server,
+        )
+        assert fake_server.started.wait(timeout=5)
+        with pytest.raises(RuntimeError, match="already started"):
+            daemon.start_http_listener(
+                configuration,
+                server_factory=lambda _address, _handler: fake_server,
+            )
+        stop_thread = threading.Thread(target=daemon.stop)
+        stop_thread.start()
+        stop_thread.join(timeout=5)
+        assert not stop_thread.is_alive()
+        assert fake_server.events == ["serve", "shutdown", "close"]
+        with acquire_daemon_authority(profile):
+            pass
+    finally:
+        fake_server.released.set()
+        daemon.stop()
+
+
+def test_daemon_main_composes_default_http_configuration_with_injected_server(
+    short_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = short_root
+    initialize_appliance(root)
+    observed: list[tuple[str, int]] = []
+
+    class FakeHttpServer:
+        def __init__(self) -> None:
+            self.events: list[str] = []
+            self.started = threading.Event()
+            self.released = threading.Event()
+
+        def serve_forever(self, poll_interval: float = 0.5) -> None:
+            assert poll_interval == 0.5
+            self.events.append("serve")
+            self.started.set()
+            self.released.wait(timeout=5)
+
+        def shutdown(self) -> None:
+            self.events.append("shutdown")
+            self.released.set()
+
+        def server_close(self) -> None:
+            self.events.append("close")
+
+    fake_server = FakeHttpServer()
+
+    def factory(
+        address: tuple[str, int], _handler: type[BaseHTTPRequestHandler]
+    ) -> HttpServerProtocol:
+        observed.append(address)
+        return fake_server
+
+    def interrupt_after_http(_self: ApplianceDaemon) -> None:
+        assert fake_server.started.wait(timeout=5)
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(ApplianceDaemon, "serve_until_stopped", interrupt_after_http)
+
+    exit_code = main(
+        ["--root", str(root)],
+        environment={
+            "OPEN_BRAIN_UI_BIND": "127.0.0.1",
+            "OPEN_BRAIN_UI_PORT": "8788",
+            "OPEN_BRAIN_UI_ALLOW_PRIVATE": "false",
+        },
+        http_server_factory=cast(HttpServerFactory, factory),
+    )
+
+    assert exit_code == 0
+    assert observed == [("127.0.0.1", 8788)]
+    assert fake_server.events == ["serve", "shutdown", "close"]
+
+
+def test_daemon_main_can_disable_http_listener_for_unit_callers(
+    short_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = short_root
+    initialize_appliance(root)
+    called = {"count": 0}
+
+    def factory(
+        address: tuple[str, int], _handler: type[BaseHTTPRequestHandler]
+    ) -> HttpServerProtocol:
+        called["count"] += 1
+        raise AssertionError(address)
+
+    monkeypatch.setattr(
+        ApplianceDaemon,
+        "serve_until_stopped",
+        lambda _self: (_ for _ in ()).throw(KeyboardInterrupt),
+    )
+
+    exit_code = main(
+        ["--root", str(root)],
+        environment={
+            "OPEN_BRAIN_UI_BIND": "127.0.0.1",
+            "OPEN_BRAIN_UI_PORT": "8788",
+            "OPEN_BRAIN_UI_ALLOW_PRIVATE": "false",
+        },
+        http_server_factory=cast(HttpServerFactory, factory),
+        enable_http_listener=False,
+    )
+
+    assert exit_code == 0
+    assert called["count"] == 0
+
+
+def test_daemon_main_closes_authority_without_traceback_when_http_start_fails(
+    short_root: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = short_root
+    initialize_appliance(root)
+    profile = open_existing_single_user_local(root)
+
+    def fail_listener(
+        _address: tuple[str, int],
+        _handler: type[BaseHTTPRequestHandler],
+    ) -> HttpServerProtocol:
+        raise OSError("synthetic bind failure /private/runtime/canary")
+
+    assert (
+        main(
+            ["--root", str(root)],
+            environment={
+                "OPEN_BRAIN_UI_BIND": "127.0.0.1",
+                "OPEN_BRAIN_UI_PORT": "8788",
+                "OPEN_BRAIN_UI_ALLOW_PRIVATE": "false",
+            },
+            http_server_factory=cast(HttpServerFactory, fail_listener),
+        )
+        == ExitCode.CONFIGURATION
+    )
+    assert capsys.readouterr() == ("", "")
     with acquire_daemon_authority(profile):
         pass
 

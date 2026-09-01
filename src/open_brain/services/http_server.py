@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Callable
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from enum import StrEnum
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -103,8 +105,14 @@ class ShareHandlerFactory(Protocol):
     def __call__(self, body_reader: BodyReader) -> ShareHttpHandler: ...
 
 
+class OperationGate(Protocol):
+    """Return a context manager that holds the daemon mutation gate for one request."""
+
+    def __call__(self) -> AbstractContextManager[object]: ...
+
+
 class HttpService:
-    """Route only GET UI and POST share requests to injected safe handlers."""
+    """Route closed browser UI and share capability sets to injected safe handlers."""
 
     def __init__(
         self,
@@ -112,12 +120,20 @@ class HttpService:
         ui_handler: UiHandler | Phase1UiHandler,
         share_handler_factory: ShareHandlerFactory,
         config: HttpServiceConfig | None = None,
+        operation_gate: OperationGate | None = None,
     ) -> None:
-        if not callable(getattr(ui_handler, "handle", None)) or not callable(share_handler_factory):
+        if (
+            not callable(getattr(ui_handler, "handle", None))
+            or not callable(share_handler_factory)
+            or (operation_gate is not None and not callable(operation_gate))
+        ):
             raise ValueError("invalid HTTP service dependencies")
         self._ui_handler = ui_handler
         self._share_handler_factory = share_handler_factory
         self.config = config or HttpServiceConfig()
+        self._operation_gate: OperationGate = (
+            (lambda: nullcontext()) if operation_gate is None else operation_gate
+        )
 
     def dispatch(
         self,
@@ -135,6 +151,25 @@ class HttpService:
             or not _valid_headers(headers, self.config.maximum_header_bytes)
         ):
             return _text_response(400, "invalid_request")
+        try:
+            with self._operation_gate():
+                return self._dispatch(
+                    method=method,
+                    path=path,
+                    headers=headers,
+                    body_reader=body_reader,
+                )
+        except RuntimeError:
+            return _text_response(503, "service_unavailable")
+
+    def _dispatch(
+        self,
+        *,
+        method: str,
+        path: str,
+        headers: tuple[tuple[str, str], ...],
+        body_reader: BodyReader,
+    ) -> ServiceResponse:
         if method == "GET" and self.config.route_mode is not HttpRouteMode.SHARE_ONLY:
             if isinstance(self._ui_handler, Phase1UiHandler):
                 return _copy_response(
@@ -156,6 +191,35 @@ class HttpService:
                 else "GET, POST"
             )
             return _text_response(405, "method_not_allowed", allow=allow)
+        if _is_browser_post_path(path):
+            if self.config.route_mode is HttpRouteMode.SHARE_ONLY:
+                return _text_response(404, "not_found")
+            if isinstance(self._ui_handler, Phase1UiHandler):
+                preflight = self._ui_handler.preflight(Phase1UiRequest(method, path, headers))
+                if preflight is not None:
+                    return _copy_response(
+                        preflight,
+                        maximum_body_bytes=self.config.maximum_response_bytes,
+                    )
+                return _copy_response(
+                    self._ui_handler.handle(
+                        Phase1UiRequest(
+                            method,
+                            path,
+                            headers,
+                            _read_ui_body(
+                                body_reader,
+                                headers=headers,
+                                maximum_body_bytes=self.config.maximum_body_bytes,
+                                timeout_seconds=self.config.request_timeout_seconds,
+                            ),
+                        )
+                    ),
+                    maximum_body_bytes=self.config.maximum_response_bytes,
+                )
+            return _text_response(405, "method_not_allowed", allow="GET")
+        if not _is_share_post_path(path):
+            return _text_response(404, "not_found")
         if self.config.route_mode is HttpRouteMode.UI_ONLY:
             return _text_response(405, "method_not_allowed", allow="GET")
         content_length = _content_length(headers)
@@ -171,6 +235,35 @@ class HttpService:
             share_handler.handle(HttpRequest(method, path, headers)),
             maximum_body_bytes=self.config.maximum_response_bytes,
         )
+
+
+def _is_browser_post_path(path: str) -> bool:
+    return path in {"/auth/login", "/auth/logout"} or path.startswith("/api/")
+
+
+def _is_share_post_path(path: str) -> bool:
+    return path in {"/share", "/captures"}
+
+
+def _read_ui_body(
+    body_reader: BodyReader,
+    *,
+    headers: tuple[tuple[str, str], ...],
+    maximum_body_bytes: int,
+    timeout_seconds: float,
+) -> bytes:
+    content_length = _content_length(headers)
+    try:
+        body = body_reader(maximum_body_bytes, timeout_seconds)
+    except RequestReadTimeout:
+        return b""
+    if not isinstance(body, bytes):
+        return b""
+    if len(body) > maximum_body_bytes:
+        return body[: maximum_body_bytes + 1]
+    if content_length is not None and len(body) != content_length:
+        return b""
+    return body
 
 
 def _valid_headers(headers: object, maximum_bytes: int) -> bool:
@@ -261,6 +354,11 @@ class ManagedHttpServer:
 
     _server: HttpServerProtocol
     _closed: bool = False
+    _close_lock: threading.Lock = field(
+        default_factory=threading.Lock,
+        init=False,
+        repr=False,
+    )
 
     def serve_forever(self, poll_interval: float = 0.5) -> None:
         try:
@@ -274,10 +372,14 @@ class ManagedHttpServer:
         finally:
             self._close()
 
+    def close(self) -> None:
+        self._close()
+
     def _close(self) -> None:
-        if not self._closed:
-            self._server.server_close()
-            self._closed = True
+        with self._close_lock:
+            if not self._closed:
+                self._server.server_close()
+                self._closed = True
 
 
 def create_http_server(

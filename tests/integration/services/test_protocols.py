@@ -4,13 +4,16 @@ import io
 import json
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler
+from pathlib import Path
 from typing import cast
 
 import pytest
 
 from open_brain.capture.http import BodyReader, RequestReadTimeout, ShareHttpHandler
-from open_brain.engine import CaptureReceipt
+from open_brain.core.ids import canonical_json_bytes
+from open_brain.engine import CaptureReceipt, open_local_engine
 from open_brain.integrations.mcp import LocalStdioMcpAdapter
+from open_brain.integrations.phase1_ui import BrowserSessionStore, Phase1UiHandler
 from open_brain.integrations.ports import (
     FeedbackOutcome,
     PageDocument,
@@ -24,6 +27,11 @@ from open_brain.integrations.ports import (
     TrustLabel,
 )
 from open_brain.integrations.ui import UiHandler
+from open_brain.profile import compile_single_user_local
+from open_brain.services.appliance_auth import (
+    ApplianceBrowserSessionStore,
+    derive_appliance_credential,
+)
 from open_brain.services.http_server import (
     BoundedBodyReader,
     HttpService,
@@ -118,6 +126,12 @@ class _RecordingFeedback:
             outcome=request.outcome,
             result_count=len(request.result_ids),
         )
+
+
+class _NoPageReader:
+    def read(self, request: PageReadRequest) -> PageDocument | None:
+        del request
+        return None
 
 
 def _mcp_responses(
@@ -457,7 +471,177 @@ def test_http_service_routes_only_authenticated_ui_and_share_handlers_with_limit
         401,
         b'{"code":"unauthorized"}',
     )
-    assert (wrong_path.status, wrong_path.body) == (400, b'{"code":"invalid_request"}')
+    assert (wrong_path.status, wrong_path.body) == (404, b"not_found")
+
+
+def test_http_service_routes_browser_posts_to_the_ui_handler_before_share(tmp_path: Path) -> None:
+    engine = open_local_engine(compile_single_user_local(tmp_path / "brain"))
+    browser = derive_appliance_credential("synthetic-owner-seed", purpose="browser-bootstrap")
+    sessions = ApplianceBrowserSessionStore(expected_bootstrap_credential=browser)
+    share_capture = _Capture()
+    service = HttpService(
+        ui_handler=Phase1UiHandler(
+            tasks=engine.phase1,
+            browser_sessions=cast(BrowserSessionStore, sessions),
+            allowed_origin="http://127.0.0.1:8788",
+            page_reader=_NoPageReader(),
+            status_reader=lambda: {"status": "ok"},
+            history_reader=lambda _limit: {"runs": [], "status": "ok", "truncated": False},
+        ),
+        share_handler_factory=_share_factory(share_capture),
+        config=HttpServiceConfig(maximum_header_bytes=1_024, maximum_body_bytes=1_024),
+    )
+    login_body = canonical_json_bytes({"credential": browser})
+    login = service.dispatch(
+        method="POST",
+        path="/auth/login",
+        headers=(
+            ("Content-Length", str(len(login_body))),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+        ),
+        body_reader=_BodyReader(login_body),
+    )
+    cookie = dict(login.headers)["Set-Cookie"].split(";", 1)[0]
+    csrf_token = cast(dict[str, object], json.loads(login.body))["csrf_token"]
+    assert isinstance(csrf_token, str)
+
+    skipped_reader = _BodyReader(
+        canonical_json_bytes({"delivery_id": "bad.browser.route", "name": "Blocked"})
+    )
+    blocked = service.dispatch(
+        method="POST",
+        path="/api/spaces",
+        headers=(
+            ("Authorization", "Bearer synthetic-token"),
+            ("Content-Length", "52"),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+        ),
+        body_reader=skipped_reader,
+    )
+    created = service.dispatch(
+        method="POST",
+        path="/api/spaces",
+        headers=(
+            ("Cookie", cookie),
+            ("Content-Length", "53"),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+            ("X-CSRF-Token", csrf_token),
+        ),
+        body_reader=_BodyReader(
+            canonical_json_bytes({"delivery_id": "good.browser.route", "name": "Browser"})
+        ),
+    )
+
+    assert login.status == 200
+    assert blocked.status == 401
+    assert skipped_reader.calls == []
+    assert created.status == 200
+    assert share_capture.accepted == 0
+
+
+def test_http_service_rejects_unknown_and_cross_capability_browser_posts_before_body_read(
+    tmp_path: Path,
+) -> None:
+    engine = open_local_engine(compile_single_user_local(tmp_path / "brain"))
+    browser = derive_appliance_credential("synthetic-owner-seed", purpose="browser-bootstrap")
+    sessions = ApplianceBrowserSessionStore(expected_bootstrap_credential=browser)
+    share_capture = _Capture()
+    service = HttpService(
+        ui_handler=Phase1UiHandler(
+            tasks=engine.phase1,
+            browser_sessions=cast(BrowserSessionStore, sessions),
+            allowed_origin="http://127.0.0.1:8788",
+            page_reader=_NoPageReader(),
+            status_reader=lambda: {"status": "ok"},
+            history_reader=lambda _limit: {"runs": [], "status": "ok", "truncated": False},
+        ),
+        share_handler_factory=_share_factory(share_capture),
+        config=HttpServiceConfig(maximum_header_bytes=1_024, maximum_body_bytes=1_024),
+    )
+    login_body = canonical_json_bytes({"credential": browser})
+    login = service.dispatch(
+        method="POST",
+        path="/auth/login",
+        headers=(
+            ("Content-Length", str(len(login_body))),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+        ),
+        body_reader=_BodyReader(login_body),
+    )
+    cookie = dict(login.headers)["Set-Cookie"].split(";", 1)[0]
+    csrf_token = cast(dict[str, object], json.loads(login.body))["csrf_token"]
+    assert isinstance(csrf_token, str)
+
+    unknown_reader = _BodyReader(canonical_json_bytes({"delivery_id": "bad.unknown"}))
+    malformed_reader = _BodyReader(canonical_json_bytes({"delivery_id": "bad.malformed"}))
+    known_dynamic_reader = _BodyReader(b"{}")
+    share_reader = _BodyReader(
+        canonical_json_bytes({"url": "https://example.test/shared", "why": "browser only"})
+    )
+
+    unknown = service.dispatch(
+        method="POST",
+        path="/api/not-a-route",
+        headers=(
+            ("Cookie", cookie),
+            ("Content-Length", "29"),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+            ("X-CSRF-Token", csrf_token),
+        ),
+        body_reader=unknown_reader,
+    )
+    malformed = service.dispatch(
+        method="POST",
+        path="/api/captures/capture_synthetic/route/extra",
+        headers=(
+            ("Cookie", cookie),
+            ("Content-Length", "31"),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+            ("X-CSRF-Token", csrf_token),
+        ),
+        body_reader=malformed_reader,
+    )
+    known_dynamic = service.dispatch(
+        method="POST",
+        path="/api/proposals/proposal_synthetic/decision",
+        headers=(
+            ("Cookie", cookie),
+            ("Content-Length", "2"),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+            ("X-CSRF-Token", csrf_token),
+        ),
+        body_reader=known_dynamic_reader,
+    )
+    wrong_capability = service.dispatch(
+        method="POST",
+        path="/share",
+        headers=(
+            ("Cookie", cookie),
+            ("Content-Length", str(len(share_reader.body))),
+            ("Content-Type", "application/json"),
+            ("Origin", "http://127.0.0.1:8788"),
+            ("X-CSRF-Token", csrf_token),
+        ),
+        body_reader=share_reader,
+    )
+
+    assert unknown.status == 404
+    assert malformed.status == 404
+    assert known_dynamic.status == 409
+    assert wrong_capability.status == 401
+    assert unknown_reader.calls == []
+    assert malformed_reader.calls == []
+    assert known_dynamic_reader.calls != []
+    assert share_reader.calls == []
+    assert share_capture.accepted == 0
+    assert engine.phase1.inbox.list() == ()
 
 
 def test_http_service_rejects_oversized_response_during_direct_dispatch() -> None:

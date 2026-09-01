@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import stat
 import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ from open_brain.storage.operational import (
     WriteState,
     atomic_replace,
     atomic_write_new,
+    confined_unlink,
     read_confined,
 )
 
@@ -29,6 +31,11 @@ _SCHEMA_VERSION: Final[int] = 1
 _MAXIMUM_STATE_BYTES: Final[int] = 4_096
 _MAXIMUM_RECEIPT_BYTES: Final[int] = 2_048
 _MAXIMUM_CONNECTORS: Final[int] = 8
+MAXIMUM_RETAINED_RUN_RECEIPTS: Final[int] = 8
+_MAXIMUM_PRUNE_ENTRIES: Final[int] = MAXIMUM_RETAINED_RUN_RECEIPTS * 4
+_FIXED_JOB_NAMES = frozenset(
+    {"backup-create", "engine-recover", "markdown-reconcile", "portable-export"}
+)
 _JOB_STATUS = frozenset({"completed", "deferred", "empty", "failed"})
 _JOB_RESULT_STATUS = frozenset({"completed", "deferred", "empty"})
 _CONNECTOR_NAME = re.compile(r"^[a-z][a-z0-9-]{0,63}$")
@@ -86,7 +93,7 @@ class ApplianceRunReceipt:
     reason: str | None = None
 
     def __post_init__(self) -> None:
-        if self.status not in _JOB_STATUS:
+        if not is_appliance_job_name(self.job_name) or self.status not in _JOB_STATUS:
             raise ValueError("invalid appliance run receipt")
         _validate_run_id(self.run_id, error_message="invalid appliance run receipt")
         if not isinstance(self.attempt, int) or isinstance(self.attempt, bool) or self.attempt <= 0:
@@ -292,6 +299,11 @@ class ApplianceScheduler:
                 receipt.to_dict(),
                 maximum_bytes=_MAXIMUM_RECEIPT_BYTES,
             ),
+        )
+        _prune_run_receipts(
+            self._root,
+            root_identity=self._root_identity,
+            job_name=receipt.job_name,
         )
 
     def _read_run_receipt(
@@ -556,6 +568,39 @@ def _load_state(
     return _validated_state(value, inventory)
 
 
+def read_scheduler_snapshot(
+    root: Path,
+    root_identity: RootIdentity,
+    *,
+    now: datetime,
+) -> dict[str, object]:
+    payload = _read_scheduler_bytes(
+        root,
+        relative=APPLIANCE_SCHEDULER_STATE,
+        root_identity=root_identity,
+        maximum_bytes=_MAXIMUM_STATE_BYTES,
+    )
+    if payload is None:
+        return {
+            "active_count": 0,
+            "due_count": 0,
+            "jobs": [],
+            "queue_age_seconds": 0,
+            "state": "absent",
+        }
+    try:
+        state = _load_state(payload, _inventory(()))
+    except ValueError:
+        return {
+            "active_count": 0,
+            "due_count": 0,
+            "jobs": [],
+            "queue_age_seconds": 0,
+            "state": "invalid",
+        }
+    return _status_snapshot_from_state(state, now=now)
+
+
 def _load_run_receipt(payload: bytes, *, job_name: str) -> ApplianceRunReceipt:
     value = _load_canonical_json(payload, error_message="invalid appliance scheduler state")
     if type(value) is not dict or set(value) != {
@@ -622,6 +667,18 @@ def _validate_run_id(value: str, *, error_message: str) -> None:
 def _validate_reason_code(value: str | None, *, error_message: str) -> None:
     if value is not None and (not isinstance(value, str) or _REASON_CODE.fullmatch(value) is None):
         raise ValueError(error_message)
+
+
+def is_appliance_job_name(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    if value in _FIXED_JOB_NAMES:
+        return True
+    prefix = "connector-run:"
+    return (
+        value.startswith(prefix)
+        and _CONNECTOR_NAME.fullmatch(value.removeprefix(prefix)) is not None
+    )
 
 
 def _required_int(value: Mapping[str, object], key: str) -> int:
@@ -758,8 +815,120 @@ def _isoformat(value: datetime | None) -> str | None:
     return _isoformat_required(value)
 
 
+def _status_snapshot_from_state(
+    state: Mapping[str, object],
+    *,
+    now: datetime,
+) -> dict[str, object]:
+    jobs = cast(dict[str, dict[str, object]], state["jobs"])
+    rows: list[dict[str, object]] = []
+    due_at: list[datetime] = []
+    active_count = 0
+    for name in sorted(jobs):
+        row = jobs[name]
+        next_due_at = cast(str | None, row["next_due_at"])
+        parsed_due = None if next_due_at is None else _parse_timestamp(next_due_at)
+        if row["active_run_id"] is not None:
+            active_count += 1
+        if parsed_due is not None and parsed_due <= now:
+            due_at.append(parsed_due)
+        rows.append(
+            {
+                "active": row["active_run_id"] is not None,
+                "attempt": row["active_attempt"],
+                "last_status": row["last_status"],
+                "name": name,
+                "next_due_at": next_due_at,
+                "recurring": row["recurring"],
+            }
+        )
+    state_value = "running" if active_count else "due" if due_at else "idle"
+    return {
+        "active_count": active_count,
+        "due_count": len(due_at),
+        "jobs": rows,
+        "queue_age_seconds": (
+            0
+            if not due_at
+            else max(int((now - min(due_at)).total_seconds()), 0)
+        ),
+        "state": state_value,
+    }
+
+
+def _prune_run_receipts(
+    root: Path,
+    *,
+    root_identity: RootIdentity,
+    job_name: str,
+) -> None:
+    receipts_root = root / _RUNS_DIRECTORY / job_name
+    try:
+        root_metadata = receipts_root.lstat()
+    except FileNotFoundError:
+        return
+    except OSError:
+        raise ValueError("invalid appliance scheduler state") from None
+    if (
+        not is_appliance_job_name(job_name)
+        or stat.S_ISLNK(root_metadata.st_mode)
+        or not stat.S_ISDIR(root_metadata.st_mode)
+    ):
+        raise ValueError("invalid appliance scheduler state")
+    entries: list[tuple[int, str, PurePosixPath]] = []
+    try:
+        for index, entry in enumerate(receipts_root.iterdir(), start=1):
+            if index > _MAXIMUM_PRUNE_ENTRIES:
+                raise ValueError("invalid appliance scheduler state")
+            metadata = entry.lstat()
+            if (
+                stat.S_ISLNK(metadata.st_mode)
+                or not stat.S_ISREG(metadata.st_mode)
+                or not entry.name.endswith(".json")
+            ):
+                continue
+            relative = _RUNS_DIRECTORY / job_name / entry.name
+            rank = -1
+            payload = _read_scheduler_bytes(
+                root,
+                relative=relative,
+                root_identity=root_identity,
+                maximum_bytes=_MAXIMUM_RECEIPT_BYTES,
+            )
+            if payload is not None:
+                try:
+                    receipt = _load_run_receipt(payload, job_name=job_name)
+                except ValueError:
+                    receipt = None
+                if receipt is not None:
+                    rank = int(_parse_timestamp(receipt.finished_at).timestamp())
+            entries.append((rank, entry.name, relative))
+    except OSError:
+        raise ValueError("invalid appliance scheduler state") from None
+    entries.sort(reverse=True)
+    for _, _, relative in entries[MAXIMUM_RETAINED_RUN_RECEIPTS:]:
+        _unlink_scheduler_path(root, relative=relative, root_identity=root_identity)
+
+
+def _unlink_scheduler_path(
+    root: Path,
+    *,
+    relative: PurePosixPath,
+    root_identity: RootIdentity,
+) -> None:
+    try:
+        confined_unlink(
+            root=root,
+            relative=relative,
+            expected_root_identity=root_identity,
+        )
+    except StorageError:
+        raise ValueError("invalid appliance scheduler state") from None
+
+
 __all__ = [
     "APPLIANCE_SCHEDULER_DIRECTORY",
+    "MAXIMUM_RETAINED_RUN_RECEIPTS",
     "ApplianceJobResult",
     "ApplianceRunContext",
     "ApplianceRunReceipt",
@@ -767,4 +936,5 @@ __all__ = [
     "ApplianceScheduler",
     "ApplianceSchedulerInterruptedError",
     "ApplianceSchedulerRetryableError",
+    "is_appliance_job_name",
 ]

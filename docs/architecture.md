@@ -61,6 +61,12 @@ launchd/systemd units that enter the daemon through the source-checkout-safe
 `open_brain.services.appliance_daemon` module with an explicit absolute root. Mutating Phase 1 CLI
 families never fall back to local writes; active reads prefer control and offline inspection stays
 on the read-only engine view.
+Phase 3 W3 keeps that ownership model for browser traffic. The appliance daemon composes and owns
+the single loopback HTTP listener while authority is active, browser sessions bootstrap from the
+generated local credential into host-only cookies plus CSRF, and page reads stay on the public
+engine retrieval surface instead of importing storage adapters into the app layer. Private-network
+binds require explicit opt-in, explicit external HTTPS termination, and an exact external browser
+origin; the documented remote path remains an authenticated SSH tunnel to the loopback listener.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that

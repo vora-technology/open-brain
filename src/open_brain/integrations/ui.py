@@ -89,30 +89,35 @@ class UiHandler:
             )
         if not request.path.startswith("/pages/"):
             return _text_response(404, "not_found")
+        return page_response(self._page_reader, request.path.removeprefix("/pages/"))
 
-        try:
-            page_request = PageReadRequest(page_id=request.path.removeprefix("/pages/"))
-        except ValueError:
-            return _text_response(404, "not_found")
-        try:
-            page = self._page_reader.read(page_request)
-        except Exception:
-            return _text_response(503, "service_unavailable")
-        if page is None:
-            return _text_response(404, "not_found")
-        try:
-            validated_page = PageDocument(
-                page_id=page.page_id,
-                title=page.title,
-                markdown=page.markdown,
-                trust=page.trust,
-            )
-            if validated_page.page_id != page_request.page_id:
-                raise ValueError("page identifier mismatch")
-            body = _render_page(validated_page)
-        except (AttributeError, TypeError, ValueError):
-            return _text_response(503, "service_unavailable")
-        return _html_response(body)
+
+def page_response(page_reader: PageReader, page_id: str) -> UiResponse:
+    if not callable(getattr(page_reader, "read", None)):
+        return _text_response(503, "service_unavailable")
+    try:
+        page_request = PageReadRequest(page_id=page_id)
+    except ValueError:
+        return _text_response(404, "not_found")
+    try:
+        page = page_reader.read(page_request)
+    except Exception:
+        return _text_response(503, "service_unavailable")
+    if page is None:
+        return _text_response(404, "not_found")
+    try:
+        validated_page = PageDocument(
+            page_id=page.page_id,
+            title=page.title,
+            markdown=page.markdown,
+            trust=page.trust,
+        )
+        if validated_page.page_id != page_request.page_id:
+            raise ValueError("page identifier mismatch")
+        body = _render_page(validated_page)
+    except (AttributeError, TypeError, ValueError):
+        return _text_response(503, "service_unavailable")
+    return _html_response(body)
 
 
 def _is_private_address(address: IPv4Address | IPv6Address) -> bool:

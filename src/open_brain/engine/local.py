@@ -33,6 +33,7 @@ from .contracts import (
     InjectedFault,
     LocalEngineContext,
     MeasurementPayload,
+    PageResult,
     Payload,
     Phase1TaskSet,
     PortabilityFault,
@@ -107,6 +108,9 @@ class _ReadOnlyRetrieval(RetrievalOperations):
 
     def fetch(self, result_id: str) -> RetrievalResult | None:
         return self._fetch(result_id, allowed_space_ids=self._allowed_space_ids)
+
+    def read_page(self, result_id: str) -> PageResult | None:
+        return self._read_page(result_id, allowed_space_ids=self._allowed_space_ids)
 
 
 class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, RetrievalOperations):

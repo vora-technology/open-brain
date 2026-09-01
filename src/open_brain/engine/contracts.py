@@ -422,6 +422,14 @@ class RetrievalResult:
     explanation: str
 
 
+@dataclass(frozen=True, slots=True)
+class PageResult:
+    page_id: str
+    title: str
+    markdown: str
+    trust: str
+
+
 _PUBLIC_CREDENTIAL_ASSIGNMENT = re.compile(
     r"(?i)\b(api[_-]?key|access[_-]?token|client[_-]?secret|password|passwd|secret|token)"
     r"(\s*[:=]\s*)(?:\"[^\"\r\n]*\"|'[^'\r\n]*'|[^\s,;&]+)"
@@ -1048,6 +1056,8 @@ class ScopedRetrievalTask(Protocol):
 
     def fetch(self, result_id: str) -> RetrievalResult | None: ...
 
+    def read_page(self, result_id: str) -> PageResult | None: ...
+
 
 class RetrievalTask(Protocol):
     def search(
@@ -1061,6 +1071,8 @@ class RetrievalTask(Protocol):
     ) -> tuple[RetrievalResult, ...]: ...
 
     def fetch(self, result_id: str) -> RetrievalResult | None: ...
+
+    def read_page(self, result_id: str) -> PageResult | None: ...
 
     def scoped(self, *, allowed_space_ids: frozenset[str]) -> ScopedRetrievalTask: ...
 

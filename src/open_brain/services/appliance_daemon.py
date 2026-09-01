@@ -15,8 +15,9 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 
+from open_brain.capture.http import ShareHttpHandler
 from open_brain.cli._common import (
     ExitCode,
     adapter_failed_envelope,
@@ -31,11 +32,29 @@ from open_brain.engine import (
     recover_authoritative_local_engine,
     require_daemon_authority,
 )
+from open_brain.integrations.phase1_ui import BrowserSessionStore
 from open_brain.profile import open_existing_single_user_local
 
 from .appliance_application import ApplianceApplication
+from .appliance_auth import ApplianceBrowserSessionStore, derive_appliance_credential
+from .appliance_history import read_appliance_run_history
+from .appliance_init import APPLIANCE_OWNER_CREDENTIAL
 from .appliance_scheduler import ApplianceScheduler, ApplianceSchedulerInterruptedError
 from .appliance_status import read_appliance_status
+from .http_server import (
+    HttpRouteMode,
+    HttpServerFactory,
+    HttpService,
+    HttpServiceConfig,
+    ManagedHttpServer,
+    create_http_server,
+)
+from .runtime import (
+    ApplianceHttpConfiguration,
+    ServiceConfigurationError,
+    appliance_http_configuration_from_environment,
+    read_private_service_secret,
+)
 
 CONTROL_SCHEMA_VERSION: Final[int] = 1
 CONTROL_ACTION_CAPTURE_TEXT: Final[str] = "capture.accept.text"
@@ -361,6 +380,9 @@ class ApplianceDaemon:
         self._authority: DaemonAuthorityCapability | None = None
         self._application: ApplianceApplication | None = None
         self._scheduler: ApplianceScheduler | None = None
+        self._http_configuration: ApplianceHttpConfiguration | None = None
+        self._http_server: ManagedHttpServer | None = None
+        self._http_thread: threading.Thread | None = None
         self._listener: socket.socket | None = None
         self._exit_stack: ExitStack | None = None
         self._stop_event = threading.Event()
@@ -458,14 +480,33 @@ class ApplianceDaemon:
 
     def _stop(self) -> None:
         listener = self._listener
+        http_server = self._http_server
+        http_thread = self._http_thread
         profile = self._profile
         authority = self._authority
         stack = self._exit_stack
-        if listener is None or profile is None or authority is None or stack is None:
+        if (
+            listener is None
+            or profile is None
+            or authority is None
+            or stack is None
+        ):
             return
         with self._operation_condition:
             self._stopping = True
         self._stop_event.set()
+        if http_server is not None:
+            try:
+                http_server.shutdown()
+            finally:
+                self._http_server = None
+        if (
+            http_thread is not None
+            and http_thread.is_alive()
+            and http_thread is not threading.current_thread()
+        ):
+            http_thread.join()
+        self._http_thread = None
         try:
             listener.close()
         finally:
@@ -480,6 +521,7 @@ class ApplianceDaemon:
             self._authority = None
             self._application = None
             self._scheduler = None
+            self._http_configuration = None
 
     @contextmanager
     def _operation(self) -> Iterator[None]:
@@ -499,6 +541,96 @@ class ApplianceDaemon:
         with self._operation_condition:
             while self._active_operations > 0:
                 self._operation_condition.wait()
+
+    def _compose_http_service(
+        self,
+        configuration: ApplianceHttpConfiguration,
+        *,
+        clock: Callable[[], datetime] | None = None,
+        route_mode: HttpRouteMode = HttpRouteMode.COMBINED,
+    ) -> HttpService:
+        application = self._application
+        if (
+            application is None
+            or application.mutations is None
+            or not isinstance(configuration, ApplianceHttpConfiguration)
+            or not isinstance(route_mode, HttpRouteMode)
+        ):
+            raise RuntimeError("appliance daemon is not running")
+        now = (lambda: datetime.now(UTC)) if clock is None else clock
+        seed = read_private_service_secret(self._root / APPLIANCE_OWNER_CREDENTIAL)
+        browser_credential = derive_appliance_credential(seed, purpose="browser-bootstrap")
+        intake_credential = derive_appliance_credential(seed, purpose="intake-bearer")
+        sessions = ApplianceBrowserSessionStore(
+            expected_bootstrap_credential=browser_credential,
+            now=now,
+            secure_cookie=configuration.allowed_origin.startswith("https://"),
+        )
+        return HttpService(
+            ui_handler=application.ui_handler(
+                browser_sessions=cast(BrowserSessionStore, sessions),
+                allowed_origin=configuration.allowed_origin,
+                status_reader=lambda: read_appliance_status(
+                    self._root,
+                    bind=configuration.bind,
+                    allowed_origin=configuration.allowed_origin,
+                    external_encryption_terminated=(
+                        configuration.external_encryption_terminated
+                    ),
+                    daemon_authority_held=True,
+                    now=now,
+                ).to_dict(),
+                history_reader=lambda limit: read_appliance_run_history(
+                    self._root,
+                    limit=limit,
+                ).to_dict(),
+            ),
+            share_handler_factory=lambda body_reader: ShareHttpHandler(
+                expected_bearer_token=intake_credential,
+                capture=application.mutations.capture,
+                body_reader=body_reader,
+                clock=now,
+            ),
+            config=HttpServiceConfig(
+                bind=configuration.bind,
+                route_mode=route_mode,
+            ),
+            operation_gate=self._operation,
+        )
+
+    def start_http_listener(
+        self,
+        configuration: ApplianceHttpConfiguration,
+        *,
+        clock: Callable[[], datetime] | None = None,
+        route_mode: HttpRouteMode = HttpRouteMode.COMBINED,
+        server_factory: HttpServerFactory | None = None,
+    ) -> None:
+        with self._lifecycle_lock:
+            if self._exit_stack is None:
+                raise RuntimeError("appliance daemon is not running")
+            if self._http_server is not None or self._http_thread is not None:
+                raise RuntimeError("appliance HTTP listener already started")
+            server = create_http_server(
+                self._compose_http_service(
+                    configuration,
+                    clock=clock,
+                    route_mode=route_mode,
+                ),
+                server_factory=server_factory,
+            )
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            self._http_configuration = configuration
+            self._http_server = server
+            self._http_thread = thread
+            try:
+                thread.start()
+            except Exception:
+                self._http_configuration = None
+                self._http_server = None
+                self._http_thread = None
+                server.close()
+                raise
 
 
 def cleanup_stale_control_socket(
@@ -806,8 +938,19 @@ def _failed_cli_receipt(command: str) -> CliControlReceipt:
     )
 
 
-def _status_receipt(root: Path) -> StatusControlReceipt:
-    return StatusControlReceipt(envelope=read_appliance_status(root).to_dict())
+def _status_receipt(self: ApplianceDaemon) -> StatusControlReceipt:
+    configuration = self._http_configuration
+    return StatusControlReceipt(
+        envelope=read_appliance_status(
+            self._root,
+            bind=None if configuration is None else configuration.bind,
+            allowed_origin=None if configuration is None else configuration.allowed_origin,
+            external_encryption_terminated=(
+                False if configuration is None else configuration.external_encryption_terminated
+            ),
+            daemon_authority_held=True,
+        ).to_dict()
+    )
 
 
 def _capture_receipt(
@@ -837,21 +980,44 @@ def _dispatch_request(
         return _capture_receipt(request, application)
     if isinstance(request, CliControlRequest):
         return _cli_receipt(request, application)
-    return _status_receipt(self._root)
+    return _status_receipt(self)
 
 
-def main(argv: tuple[str, ...] | list[str] | None = None) -> int:
+def main(
+    argv: tuple[str, ...] | list[str] | None = None,
+    *,
+    environment: dict[str, str] | None = None,
+    http_server_factory: HttpServerFactory | None = None,
+    enable_http_listener: bool = True,
+) -> int:
     parser = argparse.ArgumentParser(prog="python -m open_brain.services.appliance_daemon")
     parser.add_argument("--root", required=True)
     namespace = parser.parse_args(tuple(sys.argv[1:] if argv is None else argv))
     root = Path(namespace.root)
     if not root.is_absolute():
         raise SystemExit(ExitCode.CONFIGURATION)
-    with ApplianceDaemon(root) as daemon:
-        try:
-            daemon.serve_until_stopped()
-        except KeyboardInterrupt:
-            daemon.stop()
+    env = os.environ if environment is None else environment
+    try:
+        http_configuration = (
+            None
+            if not enable_http_listener
+            else appliance_http_configuration_from_environment(env)
+        )
+    except ServiceConfigurationError:
+        return ExitCode.CONFIGURATION
+    try:
+        with ApplianceDaemon(root) as daemon:
+            if http_configuration is not None:
+                daemon.start_http_listener(
+                    http_configuration,
+                    server_factory=http_server_factory,
+                )
+            try:
+                daemon.serve_until_stopped()
+            except KeyboardInterrupt:
+                daemon.stop()
+    except (OSError, RuntimeError, ValueError):
+        return ExitCode.CONFIGURATION
     return ExitCode.SUCCESS
 
 

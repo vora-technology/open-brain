@@ -370,6 +370,74 @@ def read_confined(
         os.close(root_fd)
 
 
+def confined_unlink(
+    *,
+    root: Path,
+    relative: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
+    require_existing: bool = False,
+) -> bool:
+    if type(require_existing) is not bool:
+        raise ValueError("invalid unlink requirement")
+    parts = _validated_parts(relative)
+    root_fd = _open_root(root, expected_root_identity)
+    lock_fd = -1
+    parent_fd = -1
+    try:
+        try:
+            lock_fd = os.open(".write.lock", _FILE_CREATE_FLAGS, 0o600, dir_fd=root_fd)
+        except FileExistsError:
+            try:
+                lock_fd = os.open(".write.lock", os.O_RDWR | os.O_NOFOLLOW, dir_fd=root_fd)
+            except OSError:
+                raise RootConfinementError("unsafe storage lock") from None
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        try:
+            parent_fd = _open_parent(root_fd, parts[:-1], create=False)
+        except FileNotFoundError:
+            if require_existing:
+                raise StorageError("unlink target missing") from None
+            return False
+        try:
+            file_fd = os.open(parts[-1], _FILE_READ_FLAGS, dir_fd=parent_fd)
+        except FileNotFoundError:
+            if require_existing:
+                raise StorageError("unlink target missing") from None
+            return False
+        except OSError as error:
+            if error.errno in {errno.ELOOP, errno.ENOTDIR}:
+                raise RootConfinementError("unsafe storage target") from None
+            raise DurabilityError("storage unlink failed") from None
+        try:
+            metadata = os.fstat(file_fd)
+            if not stat.S_ISREG(metadata.st_mode):
+                raise RootConfinementError("unsafe storage target")
+            current = os.stat(parts[-1], dir_fd=parent_fd, follow_symlinks=False)
+            if (
+                not stat.S_ISREG(current.st_mode)
+                or (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino)
+            ):
+                raise RootConfinementError("storage target replaced")
+            os.unlink(parts[-1], dir_fd=parent_fd)
+        finally:
+            os.close(file_fd)
+        os.fsync(parent_fd)
+        return True
+    except StorageError:
+        raise
+    except OSError:
+        raise DurabilityError("storage unlink failed") from None
+    finally:
+        if parent_fd >= 0:
+            os.close(parent_fd)
+        if lock_fd >= 0:
+            try:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            finally:
+                os.close(lock_fd)
+        os.close(root_fd)
+
+
 def resolve_generated_path(
     root: Path,
     relative: str | PurePosixPath,
