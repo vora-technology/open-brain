@@ -21,6 +21,6 @@
 | `P3-W5-IMPLEMENT-01` | implementation | `gpt-5.4` | high | W5 source/tests/docs/CI, exclusive | complete with concerns | worker passed 40 focused/58 architecture tests; coordinator repaired durable replay, evidence continuity, mandatory migrations, injected CLI reachability, crash rollback, and concurrent exclusion, then passed 47 focused/3,111 full tests; parent goal thread `01a05ba9-3673-7da1-807d-c22a9ef77570` |
 | `P3-W6-REVIEW-01` | independent review | `gpt-5.4` | high | exact candidate, read-only | pending | final slot reserved; prompt `.scratch/P3-W6-REVIEW-01.prompt.md`; report `.scratch/P3-W6-REVIEW-01.report.md`; dispatch waits for immutable candidate and final gates |
 
-Every task uses `/Users/calebbolden/Projects/agent-config/bin/codex-dispatch.sh`.
+Every task uses `<agent-config-root>/bin/codex-dispatch.sh`.
 Workers do not push or merge. Implementation workers do not commit; the
 coordinator verifies and commits each wave. Reviewers are fresh and read-only.

@@ -4,13 +4,13 @@
 - Date: 2026-09-01
 - Baseline commit: `d93c6dae2a22ef028390f30c990b27968229178e`
 - Planning branch at grounding: `phase3-planning`
-- Plan path: `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
-- Product authority: `/Users/calebbolden/Projects/oss/open-brain-public/docs/v0-product-contract.md`
-- Architecture authority: `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/option-c-architecture.md`
-- Runtime target architecture: `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture/proposed-v0-system-architecture.md`
-- Current implemented boundary: `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- Predecessor plan: `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-2-deepen-modules-in-place.md`
-- Grounding note: `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/GROUNDING.md`
+- Plan path: `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
+- Product authority: `<repo-root>/docs/v0-product-contract.md`
+- Architecture authority: `<repo-root>/docs/plans/option-c-architecture.md`
+- Runtime target architecture: `<repo-root>/docs/architecture/proposed-v0-system-architecture.md`
+- Current implemented boundary: `<repo-root>/docs/architecture.md`
+- Predecessor plan: `<repo-root>/docs/plans/phase-2-deepen-modules-in-place.md`
+- Grounding note: `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/GROUNDING.md`
 - First independent review: `NEEDS_FIX`, P0/P1/P2 `1/4/0`; every finding is addressed in this revision
 
 ## Objective
@@ -44,13 +44,13 @@ The execution branch may exit Phase 3 only when all of the following are true in
 Precedence for execution:
 
 1. Runtime and user constraints in this plan.
-2. `/Users/calebbolden/Projects/oss/open-brain-public/CLAUDE.md`
-3. `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/GROUNDING.md`
-4. `/Users/calebbolden/Projects/oss/open-brain-public/docs/v0-product-contract.md`
-5. `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/option-c-architecture.md`
-6. `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture/proposed-v0-system-architecture.md`
-7. `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-8. `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-2-deepen-modules-in-place.md`
+2. `<repo-root>/CLAUDE.md`
+3. `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/GROUNDING.md`
+4. `<repo-root>/docs/v0-product-contract.md`
+5. `<repo-root>/docs/plans/option-c-architecture.md`
+6. `<repo-root>/docs/architecture/proposed-v0-system-architecture.md`
+7. `<repo-root>/docs/architecture.md`
+8. `<repo-root>/docs/plans/phase-2-deepen-modules-in-place.md`
 9. Current source, tests, package classification, CI, and `pyproject.toml` at `d93c6dae2a22ef028390f30c990b27968229178e`
 
 Phase 3 scope:
@@ -178,12 +178,12 @@ Intentional non-goals for shipping imports:
 
 ### Target doc and CI surfaces
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/engineering/gotchas/README.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/v0-package-classification.json`
-- `/Users/calebbolden/Projects/oss/open-brain-public/.github/workflows/ci.yml`
-- `/Users/calebbolden/Projects/oss/open-brain-public/.github/workflows/release-audit.yml`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/engineering/gotchas/README.md`
+- `<repo-root>/docs/v0-package-classification.json`
+- `<repo-root>/.github/workflows/ci.yml`
+- `<repo-root>/.github/workflows/release-audit.yml`
 
 ### Process topology
 
@@ -290,8 +290,8 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
 
 Work:
 
@@ -354,8 +354,8 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
 
 Work:
 
@@ -426,9 +426,9 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/v0-package-classification.json`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/v0-package-classification.json`
 
 Work:
 
@@ -495,8 +495,8 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
 
 Work:
 
@@ -562,9 +562,9 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/v0-package-classification.json`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/v0-package-classification.json`
 
 Work:
 
@@ -625,9 +625,9 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/.github/workflows/ci.yml`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/.github/workflows/ci.yml`
 
 Work:
 
@@ -682,10 +682,10 @@ Test surfaces:
 
 Doc and CI surfaces:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/engineering/gotchas/README.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/.github/workflows/ci.yml`
-- `/Users/calebbolden/Projects/oss/open-brain-public/.github/workflows/release-audit.yml`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/engineering/gotchas/README.md`
+- `<repo-root>/.github/workflows/ci.yml`
+- `<repo-root>/.github/workflows/release-audit.yml`
 
 Work:
 
@@ -701,7 +701,7 @@ uv run pytest -q tests/security/test_release_audit.py tests/security/test_releas
 uv run ruff check src/open_brain tests
 uv run mypy
 tmpdir="$(mktemp -d)"
-printf '%s\n' "phase3-private-canary" > "$tmpdir/private-denylist.txt"
+printf '%s%s\n' "phase3-audit-canary-" "$(git rev-parse HEAD)" > "$tmpdir/private-denylist.txt"
 make verify
 uv run python -m open_brain.dev.release_audit --root . --private-denylist "$tmpdir/private-denylist.txt" --artifacts dist/*
 uv run python -m open_brain.dev.public_history_audit --repository . --private-denylist "$tmpdir/private-denylist.txt"

@@ -8,10 +8,10 @@
 ## Finding
 
 `PHASE-3-GOAL-CONTRACT.md` named the nonexistent predecessor plan
-`/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-2-engine-and-surfaces.md`.
+`<repo-root>/docs/plans/phase-2-engine-and-surfaces.md`.
 The reviewed Phase 3 plan and planning grounding both identify the real Phase 2
 authority as
-`/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-2-deepen-modules-in-place.md`.
+`<repo-root>/docs/plans/phase-2-deepen-modules-in-place.md`.
 
 Required fix: replace the stale path and search the contract for any other
 stale predecessor-plan references.

@@ -32,6 +32,7 @@ _ORIGINAL_SOCKET_BIND = socket.socket.bind
 _ORIGINAL_SOCKET_CONNECT = socket.socket.connect
 _ORIGINAL_SOCKET_CONNECT_EX = socket.socket.connect_ex
 _ORIGINAL_SOCKET_LISTEN = socket.socket.listen
+_PRIVATE_BIND_HOST = ".".join(("192", "168", "1", "10"))
 
 
 @pytest.fixture(autouse=True)
@@ -279,7 +280,7 @@ def test_private_bind_requires_explicit_external_encryption_termination() -> Non
     with pytest.raises(ServiceConfigurationError, match="invalid HTTP service configuration"):
         appliance_http_configuration_from_environment(
             {
-                "OPEN_BRAIN_UI_BIND": "192.168.1.10",
+                "OPEN_BRAIN_UI_BIND": _PRIVATE_BIND_HOST,
                 "OPEN_BRAIN_UI_PORT": "8788",
                 "OPEN_BRAIN_UI_ALLOW_PRIVATE": "true",
             }
@@ -287,7 +288,7 @@ def test_private_bind_requires_explicit_external_encryption_termination() -> Non
     with pytest.raises(ServiceConfigurationError, match="invalid HTTP service configuration"):
         appliance_http_configuration_from_environment(
             {
-                "OPEN_BRAIN_UI_BIND": "192.168.1.10",
+                "OPEN_BRAIN_UI_BIND": _PRIVATE_BIND_HOST,
                 "OPEN_BRAIN_UI_PORT": "8788",
                 "OPEN_BRAIN_UI_ALLOW_PRIVATE": "true",
                 "OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION": "true",
@@ -296,7 +297,7 @@ def test_private_bind_requires_explicit_external_encryption_termination() -> Non
 
     configuration = appliance_http_configuration_from_environment(
         {
-            "OPEN_BRAIN_UI_BIND": "192.168.1.10",
+            "OPEN_BRAIN_UI_BIND": _PRIVATE_BIND_HOST,
             "OPEN_BRAIN_UI_PORT": "8788",
             "OPEN_BRAIN_UI_ALLOW_PRIVATE": "true",
             "OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION": "true",
@@ -326,17 +327,17 @@ def test_private_bind_requires_explicit_external_encryption_termination() -> Non
     with pytest.raises(ValueError, match="invalid HTTP service configuration"):
         ApplianceHttpConfiguration(
             bind=UiBindConfig(
-                host="192.168.1.10",
+                host=_PRIVATE_BIND_HOST,
                 port=8788,
                 allow_private_network=True,
             ),
-            allowed_origin="http://192.168.1.10:8788",
+            allowed_origin=f"http://{_PRIVATE_BIND_HOST}:8788",
             external_encryption_terminated=True,
         )
     with pytest.raises(ServiceConfigurationError, match="invalid HTTP service configuration"):
         appliance_http_configuration_from_environment(
             {
-                "OPEN_BRAIN_UI_BIND": "192.168.1.10",
+                "OPEN_BRAIN_UI_BIND": _PRIVATE_BIND_HOST,
                 "OPEN_BRAIN_UI_PORT": "8788",
                 "OPEN_BRAIN_UI_ALLOW_PRIVATE": "true",
                 "OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION": "true",

@@ -174,3 +174,19 @@
 - Why: the journal makes restart replay and conflict detection durable; the
   lease distinguishes a crash from concurrency so a second process cannot
   roll back active forward work.
+
+## D-018: bind reviewed history exceptions to exact public blobs
+
+- Chosen: remove current-tree absolute roots, assemble private-network test
+  values and the W6 denylist canary at runtime, and allow only reviewed
+  historical `absolute-home-path` or `private-ip-address` findings keyed by
+  SHA-256, repository path, and rule.
+- Rejected: rewrite the already-pushed branch history, skip planning or test
+  path families, disable generic rules, or allow credential and denylist
+  findings.
+- Why: the first W6 audit found 102 historical occurrences across 28 exact
+  blobs. Digest-bound entries preserve the public-history gate without
+  suppressing a changed blob or any secret-bearing rule. The filed contract
+  copy changed only by mechanical public-path redaction. The plan also changes
+  its self-matching canary to a runtime-unique value; the final reviewer must
+  verify that the gate remains equivalent or stronger.

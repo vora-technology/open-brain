@@ -1,9 +1,9 @@
 # Workstream State
 
 - ID: `20260901-open-brain-public-phase3-planning-3c6a30`
-- Repo root: /Users/calebbolden/Projects/oss/open-brain-public
+- Repo root: <repo-root>
 - Remote identity SHA-256 fingerprint: `cb5e9cd7ac71c16e5109717b4bc07f01aed1bbda2b18a99bfbc76f7bd98245bc`
-- Worktree: /Users/calebbolden/Projects/oss/open-brain-public
+- Worktree: <repo-root>
 - Branch: phase3-planning
 - Objective: Produce and independently review an executable Open Brain Phase 3 plan, then draft its child goal contract without implementation
 - Created date: 2026-09-01
@@ -12,8 +12,9 @@
 
 - Status: complete; executable Phase 3 plan and child `/goal` contract are independently reviewed `READY`, and child issue `cbolden15/agent-config#62` is filed but not launched.
 - Baseline: `d93c6dae2a22ef028390f30c990b27968229178e` equals freshly fetched `origin/main`; work remained on local branch `phase3-planning`.
-- Plan: `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`, SHA-256 `e842eac8a5a933d20405bc84bde0ecf87474c7d4317018f32ac6ef95ef0263b7`.
-- Contract: `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/PHASE-3-GOAL-CONTRACT.md`, filing SHA-256 `2153c1d772a6f4bdc6fe4484ad07cabfd63ba82afcc22c81eaa8cd5cf50f7af4`.
+- Plan: `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`; reviewed original SHA-256 `e842eac8a5a933d20405bc84bde0ecf87474c7d4317018f32ac6ef95ef0263b7`; current W6-audit-repaired SHA-256 `ec2d8a856c871977eb0c6f94fa87a97fc4b22a7961c6db14e5924e3be7553cf8`.
+- Contract: `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/PHASE-3-GOAL-CONTRACT.md`; filing SHA-256 `2153c1d772a6f4bdc6fe4484ad07cabfd63ba82afcc22c81eaa8cd5cf50f7af4`; current public-path-redacted SHA-256 `9d368a4d0a0d3bf60b4bc51c99cbc4938ef063ee81b7508041d675323fb2615e`.
+- Public-tree repair: local absolute roots were mechanically replaced with `<repo-root>`, and the W6 synthetic canary command was made runtime-unique after its literal example matched the plan itself. No requirement, boundary, or architecture text changed; the final fresh review covers the command delta.
 - Plan review: initial P0/P1/P2 `1/4/0`, focused rereview found one P2 audit omission, and final fresh read-only Codex review returned `READY` at P0/P1/P2/P3 `0/0/0/0`.
 - Contract review: initial fresh read-only Codex review found one stale Phase 2 path at P1; the correction was mechanically checked and a fresh rereview returned `READY` at P0/P1/P2/P3 `0/0/0/0`.
 - Verification: final `make verify` passed Ruff, strict MyPy on 439 source files, all 2,981 tests, wheel/sdist builds, and artifact policy; contract template/path checks passed.

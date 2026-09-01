@@ -274,3 +274,22 @@
 - Same-commit test, static, build, source/artifact audit, history audit, and
   diff evidence will be recorded against the immutable candidate after this
   governance update is committed.
+- Candidate `e1279d1d6d39c830b31e9a5783b765b38c592806` passed 36 focused
+  security tests, Ruff, strict MyPy on 474 source files, all 3,111 tests,
+  wheel/sdist builds, and artifact policy. The explicit release audit then
+  stopped the gate before review.
+- The failed audit found local absolute roots in Phase 3 planning/governance
+  documents, literal private-network addresses in two synthetic tests, and
+  one ignored local UV cache. A dynamic canary also replaced the plan's
+  self-matching example value.
+- Reachable-history diagnosis found 102 occurrences represented by 28 exact
+  blob/path/rule tuples. The repair redacts the current documents, assembles
+  private-bind fixtures at runtime, and permits only reviewed historical
+  `absolute-home-path` or `private-ip-address` findings through an exact
+  SHA-256 plus path plus rule policy. Credential and private-denylist rules
+  cannot be allow-listed.
+- Repair verification passed 37 affected release/history/UI/auth tests,
+  focused Ruff, strict MyPy on 474 source files, the current source audit,
+  and the real reachable-history audit. An independent policy reconciliation
+  proved the allow-list has exactly the 28 observed tuples with no missing or
+  extra entry. Full exact-candidate gates still follow the repair commit.

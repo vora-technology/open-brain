@@ -471,3 +471,17 @@ Fix: Run lifecycle orchestration from a short-lived owner command outside the da
 artifact and supervisor ports, and keep the default source-checkout composition fail closed.
 
 Discovered: 2026-09-01.
+
+### AUDIT-002: Cleaning the current tree does not clean reachable history
+
+Symptom: The source tree is clean, but the public-history audit still reports an older planning
+path or synthetic private-network fixture.
+
+Cause: Replacing the current file leaves every earlier blob reachable, while broad path or rule
+exceptions would hide unrelated future residue.
+
+Fix: Sanitize the current tree and record only reviewed historical false positives by exact blob
+SHA-256, normalized repository path, and allow-listable rule. Never permit credential or private
+denylist findings through that policy.
+
+Discovered: 2026-09-01.

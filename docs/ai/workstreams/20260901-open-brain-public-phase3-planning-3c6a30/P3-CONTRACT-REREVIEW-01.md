@@ -8,7 +8,7 @@
 ## Prior finding
 
 Resolved. The contract now names the existing predecessor plan at
-`/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-2-deepen-modules-in-place.md`
+`<repo-root>/docs/plans/phase-2-deepen-modules-in-place.md`
 and contains no reference to the stale `phase-2-engine-and-surfaces.md` path.
 
 ## Confirmed by the reviewer

@@ -1,20 +1,20 @@
 # Workstream State
 
 - ID: `20260901-open-brain-public-goal-62-phase3-codex-only-4c70c8`
-- Repo root: /Users/calebbolden/Projects/oss/open-brain-public
+- Repo root: <repo-root>
 - Remote identity SHA-256 fingerprint: `cb5e9cd7ac71c16e5109717b4bc07f01aed1bbda2b18a99bfbc76f7bd98245bc`
-- Worktree: /Users/calebbolden/Projects/oss/open-brain-public
+- Worktree: <repo-root>
 - Branch: goal/open-brain-phase3
 - Objective: Execute goal 62 Open Brain Phase 3 P3-W0 through P3-W6 with Codex-only workers and gated merge
 - Created date: 2026-09-01
 
 ## Milestone
 
-- Status: in progress; Gate 0 and `P3-W0` through `P3-W5` clean checkpoints complete.
+- Status: in progress; Gate 0 and `P3-W0` through `P3-W5` clean checkpoints complete; `P3-W6` audit repair is active before final review.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
-- Plan: `docs/plans/phase-3-appliance-control-plane.md`, SHA-256 `e842eac8a5a933d20405bc84bde0ecf87474c7d4317018f32ac6ef95ef0263b7`.
+- Plan: `docs/plans/phase-3-appliance-control-plane.md`; reviewed original SHA-256 `e842eac8a5a933d20405bc84bde0ecf87474c7d4317018f32ac6ef95ef0263b7`; current W6-audit-repaired SHA-256 `ec2d8a856c871977eb0c6f94fa87a97fc4b22a7961c6db14e5924e3be7553cf8`. The only technical delta is a runtime-unique synthetic canary command; the final fresh reviewer must accept it.
 - Baseline verification: `make verify` passed Ruff, strict MyPy on 439 source files, all 2,981 tests, wheel/sdist builds, and artifact policy.
 - GitHub baseline: unrelated Dependabot PR `vora-technology/open-brain#1` is open and untouched; protected `main` requires Python 3.12/3.13/3.14 CI and `public-artifacts`.
 - Scope: Codex-only source-checkout implementation. No Phase 4, publishing, release, deployment, production, private predecessor, real supervisor, credential, or live Brain action.
@@ -42,5 +42,5 @@
 - P3-W5 failure evidence: missing owner confirmation, request conflicts, mismatched recovery evidence, incomplete migrations, forward-stage errors, rollback failure, effect-before-receipt interruption, concurrent lifecycle requests, path residue, and absent artifact composition all fail closed with bounded receipts.
 - P3-W5 verification: 47 focused tests, 88 architecture/lock tests, full Ruff, strict MyPy on 474 source files, full sanitized `make verify` with 3,111 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
 - P3-W5 clean checkpoint: `45fb70da13f23d7b5f02328c5e09a6abdc40d281`, pushed to `origin/goal/open-brain-phase3` and recorded on child goal `#62`.
-- Current subphase: `P3-W6` exact-candidate preparation; Phase 3 gotchas are captured and the final child slot is reserved for the fresh read-only Codex review.
-- Next action: commit the P3-W6 governance candidate, run every same-commit source/artifact/history gate with one synthetic canary, then review that exact SHA.
+- Current subphase: `P3-W6` release/history-audit repair; the first candidate passed tests, static checks, and builds but failed before review on current and historical path/IP residue.
+- Next action: verify the exact digest-bound history policy and current-tree redactions, commit a repaired candidate, rerun every same-commit gate, then review that exact SHA.

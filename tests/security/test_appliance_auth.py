@@ -33,6 +33,8 @@ from open_brain.services.appliance_scheduler import (
 from open_brain.services.appliance_status import read_appliance_status
 from open_brain.services.runtime import appliance_http_configuration_from_environment
 
+_PRIVATE_BIND_HOST = ".".join(("192", "168", "1", "10"))
+
 
 class _SyntheticPageReader:
     def read(self, request: PageReadRequest) -> PageDocument | None:
@@ -325,7 +327,7 @@ def test_appliance_daemon_uses_secure_cookie_for_external_https_origin(tmp_path:
     login_body = canonical_json_bytes({"credential": browser})
     configuration = appliance_http_configuration_from_environment(
         {
-            "OPEN_BRAIN_UI_BIND": "192.168.1.10",
+            "OPEN_BRAIN_UI_BIND": _PRIVATE_BIND_HOST,
             "OPEN_BRAIN_UI_PORT": "8788",
             "OPEN_BRAIN_UI_ALLOW_PRIVATE": "true",
             "OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION": "true",

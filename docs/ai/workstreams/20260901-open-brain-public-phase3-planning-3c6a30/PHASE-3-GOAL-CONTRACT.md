@@ -8,9 +8,9 @@ Launch state: filing authorized; implementation not launched.
 ## 1. Outcome
 
 Autonomously implement the Open Brain Phase 3 appliance control plane in
-`/Users/calebbolden/Projects/oss/open-brain-public` from the independently
+`<repo-root>` from the independently
 reviewed plan at
-`/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
+`<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
 (SHA-256 `e842eac8a5a933d20405bc84bde0ecf87474c7d4317018f32ac6ef95ef0263b7`)
 until the complete acceptance contract below is verified. Use Codex for the
 coordinator and every delegated agent. Do not stop merely because a wave, PR,
@@ -24,23 +24,23 @@ merged to the public repository's `main` branch. Keep parent goal
 Work in these repositories only:
 
 - Product repository and working directory:
-  `/Users/calebbolden/Projects/oss/open-brain-public`
+  `<repo-root>`
 - Goal tracking repository: `cbolden15/agent-config`, limited to the child
   goal issue and sanitized progress on parent `cbolden15/agent-config#41`
 
 Read these project-truth files before changing anything:
 
-- `/Users/calebbolden/Projects/oss/open-brain-public/CLAUDE.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/v0-product-contract.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/option-c-architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture/proposed-v0-system-architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/architecture.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-2-deepen-modules-in-place.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/GROUNDING.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/P3-REVIEW-01.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/P3-REREVIEW-01.md`
-- `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/P3-FINAL-REVIEW-01.md`
+- `<repo-root>/CLAUDE.md`
+- `<repo-root>/docs/v0-product-contract.md`
+- `<repo-root>/docs/plans/option-c-architecture.md`
+- `<repo-root>/docs/architecture/proposed-v0-system-architecture.md`
+- `<repo-root>/docs/architecture.md`
+- `<repo-root>/docs/plans/phase-2-deepen-modules-in-place.md`
+- `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
+- `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/GROUNDING.md`
+- `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/P3-REVIEW-01.md`
+- `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/P3-REREVIEW-01.md`
+- `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30/P3-FINAL-REVIEW-01.md`
 
 Planning began from freshly fetched, clean `main` at
 `d93c6dae2a22ef028390f30c990b27968229178e`, equal to `origin/main` at that
@@ -140,7 +140,7 @@ as a separate verified unit.
 ### Same-commit and merge gate
 
 Run these checks against the exact candidate commit from
-`/Users/calebbolden/Projects/oss/open-brain-public`:
+`<repo-root>`:
 
 ```bash
 uv run pytest -q tests/security/test_release_audit.py tests/security/test_release_history_audit.py tests/security/test_no_network.py tests/security/test_provider_privacy.py tests/security/test_public_result_residue.py
@@ -185,7 +185,7 @@ same-commit requirement.
 This goal deliberately narrows that standing authority to:
 
 - Source, tests, documentation, CI, and repository-local build metadata in
-  `/Users/calebbolden/Projects/oss/open-brain-public` that directly implement
+  `<repo-root>` that directly implement
   the reviewed Phase 3 plan.
 - A feature branch and PR in `vora-technology/open-brain`, plus the child goal
   issue and sanitized parent progress in `cbolden15/agent-config`.
@@ -404,16 +404,16 @@ are not pause conditions.
 ## 11. Runtime
 
 - Coordinator: laptop Codex session in
-  `/Users/calebbolden/Projects/oss/open-brain-public`
+  `<repo-root>`
 - Agents: Codex-only sessions with explicit model and effort, dispatched by
   the coordinator and recorded in the workstream ledger
 - Branch prefix: `goal/open-brain-phase3`
 - Plan authority:
-  `/Users/calebbolden/Projects/oss/open-brain-public/docs/plans/phase-3-appliance-control-plane.md`
+  `<repo-root>/docs/plans/phase-3-appliance-control-plane.md`
   at SHA-256
   `e842eac8a5a933d20405bc84bde0ecf87474c7d4317018f32ac6ef95ef0263b7`
 - Planning workstream:
-  `/Users/calebbolden/Projects/oss/open-brain-public/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30`
+  `<repo-root>/docs/ai/workstreams/20260901-open-brain-public-phase3-planning-3c6a30`
 - Implementation workstream: create a new repository-local governed
   workstream for the child goal; do not reuse planning task IDs
 - Notifications: iMessage via the Mac mini bridge only for the required final

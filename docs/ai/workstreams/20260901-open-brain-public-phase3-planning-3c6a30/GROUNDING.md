@@ -2,7 +2,7 @@
 
 ## Verified repository state
 
-- Repository: `/Users/calebbolden/Projects/oss/open-brain-public`.
+- Repository: `<repo-root>`.
 - Planning branch: `phase3-planning`, created from clean `main`.
 - Baseline: `d93c6dae2a22ef028390f30c990b27968229178e`; freshly fetched `origin/main` is identical (`0` ahead, `0` behind).
 - Parent program: `cbolden15/agent-config#41`.
