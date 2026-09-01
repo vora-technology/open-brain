@@ -8,6 +8,7 @@ from typing import Literal
 
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.models import PrivacyTier
+from open_brain.engine import LockScope
 from open_brain.storage.filesystem import (
     DuplicateConflictError,
     RootConfinementError,
@@ -17,7 +18,7 @@ from open_brain.storage.filesystem import (
     read_confined,
 )
 
-from .models import DeploymentTarget, HostRole, LockScope
+from .models import DeploymentTarget, HostRole
 from .now import NowBuildResult, NowItem, NowProjectionInput, NowRoots, build_now, check_now
 from .writer_jobs import (
     EffectCommand,

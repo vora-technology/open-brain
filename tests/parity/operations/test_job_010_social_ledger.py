@@ -7,12 +7,12 @@ import pytest
 
 from open_brain.core.ids import CaptureId, ReviewId
 from open_brain.core.models import Intent, PrivacyTier
+from open_brain.engine import LockScope
 from open_brain.operations.catalog import get_job
 from open_brain.operations.models import (
     DeploymentTarget,
     HostRole,
     JobState,
-    LockScope,
 )
 from open_brain.operations.writer_jobs import (
     ApprovalBinding,

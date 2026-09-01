@@ -179,6 +179,8 @@ class ExitCode(IntEnum):
     FAILURE = 1
     USAGE = 2
     DEFERRED = 3
+    LOCK_HELD = 75
+    CONFIGURATION = 78
 
 
 class CommandDispatchResult(Protocol):
@@ -195,6 +197,12 @@ class CommandFamilyAdapter(Protocol):
     """Typed effect boundary for one selected public command family."""
 
     def dispatch(self, argv: tuple[str, ...]) -> CommandDispatchResult: ...
+
+
+class CommandAdapterLookup(Protocol):
+    """The narrow command-registry capability needed by the CLI process shell."""
+
+    def get(self, name: str) -> CommandFamilyAdapter | None: ...
 
 
 def redacted_error(code: str, _exception: Exception | None = None) -> dict[str, str | bool]:

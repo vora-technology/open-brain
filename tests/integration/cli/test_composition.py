@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -15,14 +16,10 @@ import pytest
 from open_brain.capture.extractors.youtube import YouTubeMediaResult
 from open_brain.capture.media import MediaCommand
 from open_brain.capture.models import CaptureWorkItem
+from open_brain.capture.poll import FilesystemYouTubePollState
 from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import SCHEDULED_ROUTES, command_names
-from open_brain.cli.composition import (
-    ConfiguredScheduledAdapters,
-    build_command_adapters,
-    run,
-)
 from open_brain.cli.main import main
 from open_brain.cli.scheduled import ScheduledDispatchStatus, dispatch_scheduled_route
 from open_brain.config import (
@@ -47,6 +44,7 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+from open_brain.engine import LockScope
 from open_brain.integrations.life_os import LifePlanRequest
 from open_brain.integrations.life_os_runtime import (
     LifeOSPlanningRuntime,
@@ -70,10 +68,15 @@ from open_brain.operations.backup_writer import (
 from open_brain.operations.capture_jobs import get_capture_job
 from open_brain.operations.catalog import get_job
 from open_brain.operations.index import IndexRoots, check_index
-from open_brain.operations.models import LockScope
 from open_brain.operations.scheduler import EXPECTED_JOB_IDS
 from open_brain.operations.writer_jobs import WriterLease, get_writer_job_spec
 from open_brain.production.imessage import ImessageHistoryClient
+from open_brain.production.youtube_poll import (
+    YouTubePollCheckpoint,
+    YouTubeReferenceConnector,
+    YouTubeReferenceTransport,
+    load_private_youtube_config,
+)
 from open_brain.providers.base import ProviderService
 from open_brain.providers.deterministic import DeterministicDistillationProvider
 from open_brain.review.maintenance import (
@@ -90,6 +93,24 @@ from open_brain.review.models import (
     ReviewState,
 )
 from open_brain.review.store import SqliteReviewStore
+from open_brain.services.application import (
+    ConfiguredScheduledAdapters,
+    SingleUserLocalApplication,
+    build_command_adapters,
+)
+from open_brain.services.connectors import (
+    INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
+    ConnectorBudget,
+    ConnectorBudgetLimits,
+    ConnectorCaptureIdentity,
+    ConnectorHost,
+    ConnectorManifest,
+    ConnectorMetadataLogger,
+    ConnectorProfile,
+    ConnectorRegistry,
+    ConnectorRunContext,
+)
+from open_brain.services.entrypoints import run_legacy_cli as run
 from open_brain.services.http_server import HttpServerFactory
 from open_brain.storage.locks import LockBusyError
 from open_brain.storage.sqlite import connect_database, migrate
@@ -127,6 +148,87 @@ class _YouTubeMediaAdapter:
             caption_vtt="WEBVTT\n\n00:00.000 --> 00:01.000\nSynthetic transcript",
             captions_pending=False,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class _YouTubeConnectorEntryPoint:
+    name: str = "youtube"
+    value: str = "synthetic.youtube:connector"
+    connector: object = field(default_factory=YouTubeReferenceConnector)
+
+    def load(self) -> object:
+        return self.connector
+
+
+@dataclass(frozen=True, slots=True)
+class _YouTubeConnectorSource:
+    entry_point: _YouTubeConnectorEntryPoint = field(
+        default_factory=_YouTubeConnectorEntryPoint
+    )
+
+    def entry_points(self, *, group: str) -> tuple[_YouTubeConnectorEntryPoint, ...]:
+        assert group == INTERNAL_CONNECTOR_ENTRY_POINT_GROUP
+        return (self.entry_point,)
+
+
+def _youtube_connector_application(
+    *,
+    brain_root: Path,
+    config: AppConfig,
+    youtube_config: Path,
+    media: _YouTubeMediaAdapter,
+) -> tuple[
+    SingleUserLocalApplication,
+    dict[
+        str,
+        Callable[
+            [ConnectorManifest, ConnectorBudget, ConnectorMetadataLogger],
+            ConnectorRunContext,
+        ],
+    ],
+]:
+    profile = ConnectorProfile(
+        allow_list=("youtube",),
+        egress_enabled=config.egress_enabled,
+        budget_limits=ConnectorBudgetLimits(
+            max_fetches=50,
+            max_extractions=1_000,
+            max_submissions=1_000,
+        ),
+    )
+    application = SingleUserLocalApplication.open(
+        brain_root,
+        connector_profile=profile,
+        connector_host=ConnectorHost(ConnectorRegistry(_YouTubeConnectorSource())),
+    )
+
+    def context_factory(
+        manifest: ConnectorManifest,
+        budget: ConnectorBudget,
+        logger: ConnectorMetadataLogger,
+    ) -> ConnectorRunContext:
+        assert manifest == YouTubeReferenceConnector.manifest
+        poll_config = load_private_youtube_config(youtube_config)
+        return ConnectorRunContext(
+            capture_identity=ConnectorCaptureIdentity(
+                "youtube",
+                "JOB-029",
+                application.public_job_context("JOB-029"),
+            ),
+            capture_sink=application.public_job_sink("JOB-029"),
+            transport=YouTubeReferenceTransport(
+                subscriptions=poll_config.subscriptions,
+                media_adapter=media,
+            ),
+            checkpoint=YouTubePollCheckpoint(
+                FilesystemYouTubePollState(config.state_root / "youtube-poll")
+            ),
+            clock=FixedClock().now,
+            budget=budget,
+            metadata_logger=logger,
+        )
+
+    return application, {"youtube": context_factory}
 
 
 @dataclass
@@ -210,14 +312,10 @@ def _optional_automation_environment(
     message_resource_ref: str = "messages_primary",
 ) -> dict[str, str]:
     life_os_config = tmp_path / "life-os.json"
-    life_os_config.write_bytes(
-        canonical_json_bytes({"schema_version": 1, "candidate_limit": 100})
-    )
+    life_os_config.write_bytes(canonical_json_bytes({"schema_version": 1, "candidate_limit": 100}))
     messages_config = tmp_path / "messages.json"
     messages_config.write_bytes(
-        canonical_json_bytes(
-            {"schema_version": 1, "resource_ref": message_resource_ref}
-        )
+        canonical_json_bytes({"schema_version": 1, "resource_ref": message_resource_ref})
     )
     for path in (life_os_config, messages_config):
         path.chmod(0o600)
@@ -409,54 +507,28 @@ def test_composition_root_wires_a_real_config_adapter_end_to_end() -> None:
 def test_composition_root_wires_every_public_command_family(tmp_path: Path) -> None:
     adapters = build_command_adapters(_filesystem_config(tmp_path))
 
-    assert tuple(sorted(adapters.adapters)) == command_names()
-
-
-@pytest.mark.parametrize(
-    ("route", "kind"),
-    [
-        ("state-backfill", "state_backfill"),
-        ("processed-at-backfill", "processed_at_backfill"),
-    ],
-)
-def test_composition_root_wires_configured_nonmutating_migration_plans(
-    route: str,
-    kind: str,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    adapters = build_command_adapters(_filesystem_config(tmp_path))
-
-    exit_code = main(("migrate", route, "--json"), command_adapters=adapters)
-
-    assert exit_code is ExitCode.SUCCESS
-    output = json.loads(capsys.readouterr().out)
-    assert output["status"] == "planned"
-    assert output["plan"]["kind"] == kind
-    assert "ready" not in output["plan"]
-
-
-def test_composition_root_rejects_unconfigured_content_layout_migration(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    adapters = build_command_adapters(_filesystem_config(tmp_path))
-
-    exit_code = main(
-        ("migrate", "content-layout", "--json"),
-        command_adapters=adapters,
+    assert tuple(sorted(adapters.adapters)) == tuple(
+        command for command in command_names() if command != "migrate"
     )
 
-    assert exit_code is ExitCode.USAGE
-    assert json.loads(capsys.readouterr().out) == {
-        "command": "migration",
-        "error": {
-            "code": "invalid_migration_request",
-            "message": "operation unavailable; details redacted",
-            "redacted": True,
-        },
-        "status": "invalid",
-    }
+
+def test_default_composition_excludes_pre_alpha_compatibility_routes(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    adapters = build_command_adapters(_filesystem_config(tmp_path))
+
+    assert {"migrate", "parity", "shadow"}.isdisjoint(adapters.adapters)
+    assert {"parity", "shadow"}.isdisjoint(command_names())
+    assert main(("migrate", "--json"), command_adapters=adapters) is ExitCode.FAILURE
+    assert json.loads(capsys.readouterr().out)["status"] == "unavailable"
+    for arguments in (
+        ("parity", "--json"),
+        ("shadow", "--json"),
+        ("doctor", "--cutover", "--json"),
+    ):
+        assert main(arguments, command_adapters=adapters) is ExitCode.USAGE
+        assert json.loads(capsys.readouterr().out)["status"] == "invalid"
 
 
 def test_composition_root_runs_confined_query_capture_and_proposals(
@@ -679,7 +751,7 @@ def test_run_classifies_scheduled_configuration_failure_as_exit_78(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -723,9 +795,7 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
     (config.work_root / "pages").mkdir()
     (config.state_root / "index").mkdir()
     youtube_config = tmp_path / "youtube.json"
-    youtube_config.write_bytes(
-        canonical_json_bytes({"schema_version": 1, "subscriptions": []})
-    )
+    youtube_config.write_bytes(canonical_json_bytes({"schema_version": 1, "subscriptions": []}))
     youtube_config.chmod(0o600)
     imessage_config = tmp_path / "imessage.json"
     imessage_config.write_bytes(
@@ -752,6 +822,12 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             )
         )
         path.chmod(0o600)
+    application, context_factories = _youtube_connector_application(
+        brain_root=tmp_path / "brain",
+        config=config,
+        youtube_config=youtube_config,
+        media=_YouTubeMediaAdapter(),
+    )
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
@@ -766,7 +842,9 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             "OPEN_BRAIN_UI_TOKEN": "synthetic-ui-token",
             "OPEN_BRAIN_INGRESS_TOKEN": "synthetic-ingress-token",
         },
+        connector_context_factories=context_factories,
         imessage_history_client=_ImessageHistory(),
+        public_application=application,
     )
     event_root = config.state_root / "events"
     review_root = config.state_root / "review"
@@ -798,12 +876,14 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
             created_at=FixedClock().now(),
             generation="runtime-2026-08-16" if job_id == "JOB-025" else None,
         )
-    assert adapters.dispatch_writer(
-        get_writer_job_spec("JOB-016")
-    ).status is ScheduledDispatchStatus.COMPLETED
-    assert adapters.dispatch_writer(
-        get_writer_job_spec("JOB-022")
-    ).status is ScheduledDispatchStatus.COMPLETED
+    assert (
+        adapters.dispatch_writer(get_writer_job_spec("JOB-016")).status
+        is ScheduledDispatchStatus.COMPLETED
+    )
+    assert (
+        adapters.dispatch_writer(get_writer_job_spec("JOB-022")).status
+        is ScheduledDispatchStatus.COMPLETED
+    )
     now_payload = (config.work_root / "NOW.md").read_bytes()
     for replica in (
         config.state_root / "now" / "edge" / "NOW.md",
@@ -828,14 +908,11 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
         )
     )
     monkeypatch.setattr(
-        "open_brain.cli.composition.inspect_published_references",
+        "open_brain.services.application.inspect_published_references",
         lambda **_: PublishedReferenceInspection(0, 0),
     )
 
-    results = tuple(
-        dispatch_scheduled_route(route, adapters)
-        for route in SCHEDULED_ROUTES
-    )
+    results = tuple(dispatch_scheduled_route(route, adapters) for route in SCHEDULED_ROUTES)
 
     assert tuple(route.job_id for route in SCHEDULED_ROUTES) == EXPECTED_JOB_IDS
     assert len(results) == 30
@@ -844,15 +921,17 @@ def test_production_composition_routes_every_catalog_job_without_unavailable(
         for result in results
         if result.status is not ScheduledDispatchStatus.COMPLETED
     )
-    assert len(
-        tuple((config.state_root / "operations" / "effects" / "prepared").glob("*.effect.json"))
-    ) == 4
+    assert (
+        len(
+            tuple((config.state_root / "operations" / "effects" / "prepared").glob("*.effect.json"))
+        )
+        == 4
+    )
     assert not (config.state_root / "operations" / "effects" / "empty").exists()
 
 
-def test_composed_youtube_poll_uses_private_reference_and_queues_transcript(
+def test_composed_youtube_poll_uses_private_reference_and_durable_engine_capture(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config = replace(_filesystem_config(tmp_path), egress_enabled=True)
     youtube_config = tmp_path / "youtube.json"
@@ -876,37 +955,136 @@ def test_composed_youtube_poll_uses_private_reference_and_queues_transcript(
     )
     youtube_config.chmod(0o600)
     media = _YouTubeMediaAdapter()
-    monkeypatch.setattr(
-        "open_brain.cli.composition.compose_production_capture_media_adapter",
-        lambda **_: media,
+    application, context_factories = _youtube_connector_application(
+        brain_root=tmp_path / "brain",
+        config=config,
+        youtube_config=youtube_config,
+        media=media,
     )
+
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
         environment={"OPEN_BRAIN_YOUTUBE_CONFIG": str(youtube_config)},
+        connector_context_factories=context_factories,
+        public_application=application,
     )
 
     result = adapters.dispatch_capture(get_capture_job("JOB-029"))
 
     assert result.status is ScheduledDispatchStatus.COMPLETED
     assert media.calls == ["playlist", "video000001"]
-    assert FilesystemCaptureQueue(config.capture_root).pending_snapshot().pending_count == 1
+    assert len(application.tasks.inbox.list()) == 1
+
+
+def test_process_entrypoint_composes_explicit_youtube_connector(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = replace(_filesystem_config(tmp_path), egress_enabled=True)
+    config_path = tmp_path / "open-brain.toml"
+    config_path.write_text(
+        "\n".join(
+            (
+                "[paths]",
+                f'work_root = "{config.work_root}"',
+                f'personal_root = "{config.personal_root}"',
+                f'capture_root = "{config.capture_root}"',
+                f'saved_content_root = "{config.saved_content_root}"',
+                f'state_root = "{config.state_root}"',
+                f'backup_root = "{config.backup_root}"',
+                "",
+                "[host]",
+                'identity = "synthetic-host"',
+                "",
+                "[providers]",
+                'default = "local"',
+                "cloud_enabled = false",
+                "",
+                "[egress]",
+                "enabled = true",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    youtube_config = tmp_path / "youtube.json"
+    youtube_config.write_bytes(
+        canonical_json_bytes(
+            {
+                "schema_version": 1,
+                "subscriptions": [
+                    {
+                        "url": "https://www.youtube.com/playlist?list=synthetic",
+                        "privacy": PrivacyDecision.create(
+                            tier=PrivacyTier.PUBLIC,
+                            reason=PrivacyReason.POLICY_PUBLIC,
+                            policy_version="privacy-v1",
+                            authority=Authority(cloud=False, external_egress=True),
+                        ).to_dict(),
+                    }
+                ],
+            }
+        )
+    )
+    youtube_config.chmod(0o600)
+    media = _YouTubeMediaAdapter()
+    monkeypatch.setattr(
+        "open_brain.production.media.compose_production_capture_media_adapter",
+        lambda *, config: media,
+    )
+    brain_root = tmp_path / "brain"
+
+    exit_code = run(
+        (
+            "capture",
+            "poll",
+            "--source=youtube",
+            "--mode=ingress",
+            "--json",
+        ),
+        environment={
+            "OPEN_BRAIN_CONFIG": str(config_path),
+            "OPEN_BRAIN_JOB_ID": "JOB-029",
+            "OPEN_BRAIN_ROOT": str(brain_root),
+            "OPEN_BRAIN_YOUTUBE_CONFIG": str(youtube_config),
+        },
+    )
+
+    assert exit_code is ExitCode.SUCCESS
+    assert media.calls == ["playlist", "video000001"]
+    assert len(SingleUserLocalApplication.open(brain_root).tasks.inbox.list()) == 1
 
 
 def test_composed_youtube_poll_requires_its_declared_environment_reference(
     tmp_path: Path,
 ) -> None:
+    config = replace(_filesystem_config(tmp_path), egress_enabled=True)
+    youtube_config = tmp_path / "youtube.json"
+    youtube_config.write_bytes(
+        canonical_json_bytes({"schema_version": 1, "subscriptions": []})
+    )
+    youtube_config.chmod(0o600)
+    media = _YouTubeMediaAdapter()
+    application, context_factories = _youtube_connector_application(
+        brain_root=tmp_path / "brain",
+        config=config,
+        youtube_config=youtube_config,
+        media=media,
+    )
     result = ConfiguredScheduledAdapters(
-        config=replace(_filesystem_config(tmp_path), egress_enabled=True),
+        config=config,
         clock=FixedClock(),
-        youtube_media_adapter=_YouTubeMediaAdapter(),
+        connector_context_factories=context_factories,
+        public_application=application,
     ).dispatch_capture(get_capture_job("JOB-029"))
 
     assert result.status is ScheduledDispatchStatus.FAILED
     assert result.exit_code == 78
+    assert media.calls == []
 
 
-def test_composed_imessage_ingress_uses_private_reference_and_appends_personal(
+def test_composed_imessage_ingress_uses_private_reference_and_durable_engine_capture(
     tmp_path: Path,
 ) -> None:
     config = _filesystem_config(tmp_path)
@@ -932,18 +1110,20 @@ def test_composed_imessage_ingress_uses_private_reference_and_appends_personal(
             }
         )
     )
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
     adapters = ConfiguredScheduledAdapters(
         config=config,
         clock=FixedClock(),
         environment={"OPEN_BRAIN_IMESSAGE_CONFIG": str(private_config)},
         imessage_history_client=history,
+        public_application=application,
     )
 
     result = adapters.dispatch_capture(get_capture_job("JOB-005"))
 
     assert result.status is ScheduledDispatchStatus.COMPLETED
     assert history.calls == 1
-    assert FilesystemCaptureQueue(config.capture_root).pending_snapshot().pending_count == 1
+    assert len(application.tasks.inbox.list()) == 1
 
 
 def test_composed_imessage_service_uses_keepalive_mode(
@@ -972,7 +1152,7 @@ def test_composed_imessage_service_uses_keepalive_mode(
             calls.append("forever")
 
     monkeypatch.setattr(
-        "open_brain.cli.composition.compose_production_imessage_ingress",
+        "open_brain.services.application.compose_production_imessage_ingress",
         lambda **_: _Runtime(),
     )
     adapters = ConfiguredScheduledAdapters(
@@ -980,6 +1160,7 @@ def test_composed_imessage_service_uses_keepalive_mode(
         clock=FixedClock(),
         environment={"OPEN_BRAIN_IMESSAGE_CONFIG": str(private_config)},
         imessage_service_mode=True,
+        public_application=SingleUserLocalApplication.open(tmp_path / "brain"),
     )
 
     result = adapters.dispatch_capture(get_capture_job("JOB-005"))
@@ -1044,6 +1225,7 @@ def test_composed_http_jobs_start_closed_route_lifecycles(
         },
         http_service_mode=True,
         http_server_factory=cast(HttpServerFactory, factory),
+        public_application=SingleUserLocalApplication.open(tmp_path / "brain"),
     )
 
     results = (
@@ -1093,8 +1275,7 @@ def test_composed_nightly_job_drains_work_capture_and_distills_locally(
         capture_why_origin=CaptureWhyOrigin.OWNER_AUTHORED,
         capture_source=CaptureSource.CLI,
         provenance=Provenance.create(
-            source_ref="urn:open-brain:text:sha256:"
-            + sha256(text.encode()).hexdigest(),
+            source_ref="urn:open-brain:text:sha256:" + sha256(text.encode()).hexdigest(),
             content_origin=ContentOrigin.OWNER_AUTHORED,
             owner_context=CaptureWhyOrigin.OWNER_AUTHORED,
         ),
@@ -1151,7 +1332,7 @@ def test_composed_backup_requires_the_matching_canonical_writer_record(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -1173,7 +1354,7 @@ def test_composed_backup_rejects_a_different_canonical_writer(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -1187,14 +1368,14 @@ def test_composed_backup_preserves_lock_contention_exit(
     def lock_busy(**_: object) -> None:
         raise LockBusyError("synthetic contention")
 
-    monkeypatch.setattr("open_brain.cli.composition.run_writer_job", lock_busy)
+    monkeypatch.setattr("open_brain.services.application.run_writer_job", lock_busy)
     exit_code = main(
         ("backup", "run", "--profile=capture", "--json"),
         scheduled_adapters=ConfiguredScheduledAdapters(config, FixedClock()),
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 75
+    assert exit_code is ExitCode.LOCK_HELD
     assert output["error"]["code"] == "scheduled_application_lock_held"
 
 
@@ -1217,7 +1398,7 @@ def test_backup_effect_holds_canonical_authority_for_the_complete_run(
             )
 
     monkeypatch.setattr(
-        "open_brain.cli.composition.run_writer_job",
+        "open_brain.services.application.run_writer_job",
         assert_authority_lock,
     )
 
@@ -1285,7 +1466,7 @@ def test_composed_index_requires_staged_output_root(
     )
     output = json.loads(capsys.readouterr().out)
 
-    assert exit_code == 78
+    assert exit_code is ExitCode.CONFIGURATION
     assert output["error"]["code"] == "scheduled_application_configuration"
 
 
@@ -1305,9 +1486,7 @@ def test_composed_optional_life_os_jobs_persist_and_reset_the_current_plan(
     reset = adapters.dispatch_optional(get_job("JOB-019"))
     runtime = LifeOSPlanningRuntime.bind(root=config.state_root)
 
-    assert midday.exit_code is ExitCode.SUCCESS
-    assert planned.exit_code is ExitCode.SUCCESS
-    assert reset.exit_code is ExitCode.SUCCESS
+    assert (midday.exit_code, planned.exit_code, reset.exit_code) == (0, 0, 0)
     midday_request = runtime.load(
         operation=LifeOSRuntimeOperation.MIDDAY,
         plan_date=FixedClock().now().date(),
@@ -1326,7 +1505,7 @@ def test_composed_optional_automation_jobs_require_owner_only_configs(
     config = _filesystem_config(tmp_path)
     adapters = ConfiguredScheduledAdapters(config, FixedClock())
 
-    assert adapters.dispatch_optional(get_job("JOB-004")).exit_code is ExitCode.FAILURE
+    assert adapters.dispatch_optional(get_job("JOB-004")).exit_code == 1
     assert adapters.dispatch_optional(get_job("JOB-017")).exit_code == 78
     assert adapters.dispatch_optional(get_job("JOB-020")).exit_code == 78
     assert adapters.dispatch_optional(get_job("JOB-024")).exit_code == 78
@@ -1353,8 +1532,7 @@ def test_composed_sqlite_backup_and_retention_are_real_read_only_operations(
     sqlite_result = adapters.dispatch_optional(get_job("JOB-004"))
     retention_result = adapters.dispatch_optional(get_job("JOB-024"))
 
-    assert sqlite_result.exit_code is ExitCode.SUCCESS
-    assert retention_result.exit_code is ExitCode.SUCCESS
+    assert (sqlite_result.exit_code, retention_result.exit_code) == (0, 0)
     assert database.read_bytes() == source_bytes
     assert not (config.backup_root / "backups").exists()
     assert (config.backup_root / "recovery-baseline.json").exists()
@@ -1432,7 +1610,7 @@ def test_composed_message_extract_writes_review_and_advances_cursor(
         )
         queued = reviews.get(review_id_for(capture_id, Intent.ACTION_CANDIDATE.value))
 
-    assert result.exit_code is ExitCode.SUCCESS
+    assert result.exit_code == 0
     assert state.current_cursor(resource_ref) == "cursor_002"
     assert queued is not None
     assert queued.proposal.source_ref == "content_001"
@@ -1468,7 +1646,7 @@ def test_composed_message_sync_dry_run_does_not_write_review_or_cursor(
     ).dispatch_optional(get_job("JOB-021"))
     state = PersistentMessagingCursorStore(root=config.state_root, clock=FixedClock())
 
-    assert result.exit_code is ExitCode.SUCCESS
+    assert result.exit_code == 0
     assert state.current_cursor(resource_ref) is None
     assert not (config.state_root / "review" / "review.sqlite3").exists()
 
@@ -1546,11 +1724,11 @@ def test_composed_doctor_has_a_fully_healthy_concrete_path(
             generation="runtime-2026-08-16" if job_id == "JOB-025" else None,
         )
     monkeypatch.setattr(
-        "open_brain.cli.composition.inspect_published_references",
+        "open_brain.services.application.inspect_published_references",
         lambda **_: PublishedReferenceInspection(0, 0),
     )
     monkeypatch.setattr(
-        "open_brain.cli.composition._utc_now",
+        "open_brain.services.application._utc_now",
         lambda: FixedClock().now(),
     )
 
@@ -1595,9 +1773,7 @@ def test_composed_doctor_rejects_a_different_canonical_writer(
         command_adapters=build_command_adapters(config),
     )
     output = json.loads(capsys.readouterr().out)
-    writer = next(
-        check for check in output["checks"] if check["probe"] == "writer-ownership"
-    )
+    writer = next(check for check in output["checks"] if check["probe"] == "writer-ownership")
 
     assert writer["state"] == "unhealthy"
     assert writer["finding_class"] == "writer-ownership-conflict"
@@ -1650,7 +1826,7 @@ def test_composition_binds_stale_reference_reader_to_doctor(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    import open_brain.cli.composition as composition_module
+    import open_brain.services.application as composition_module
 
     monkeypatch.setattr(
         composition_module,

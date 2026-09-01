@@ -250,3 +250,174 @@ Cause: Per-file atomic replacement was mistaken for one visible migration commit
 Fix: Stage and verify a complete generation off-path, hold an identity-bound exclusive lease, publish one atomic `CURRENT` pointer as the reader-visible commit, and use a durable journal to recover pre- and post-pointer crashes.
 
 Discovered: 2026-08-14.
+
+### PORTABLE-001: UTC partitions come from persisted recording time
+
+Symptom: A record near a month boundary is written under different partitions on hosts with
+different local time zones or after a retry.
+
+Cause: Partitioning used the process wall-clock month instead of the immutable acceptance or
+recording timestamp stored with the record.
+
+Fix: Normalize the persisted timestamp to UTC before deriving `YYYY/MM`. Occurrence-time
+corrections append a superseding row; they do not move the original record.
+
+Discovered: 2026-08-31.
+
+### ARCHITECTURE-002: Package entry points are runtime dependency edges
+
+Symptom: Static imports report zero architecture debt while the installed command imports a
+legacy composition module before selecting the current app path.
+
+Cause: Ownership checks classified Python files but did not verify the targets in package script
+metadata.
+
+Fix: Point default scripts directly at app-owned entrypoints and test their imports in a fresh
+process. Keep predecessor and scheduled behavior behind an explicit legacy facade.
+
+Discovered: 2026-08-31.
+
+### PRIVACY-002: Encoded residue must be compared after bounded decoding
+
+Symptom: A protected source reference is removed in raw form but survives in percent-encoded or
+HTML-entity form, or a query term is echoed by a result explanation.
+
+Cause: Projection compared only the stored literal and renderers treated encoded output as
+unrelated text.
+
+Fix: Apply bounded repeated percent/HTML decoding when checking public tokens, fail closed when
+decoding does not converge, protect exact digests, and keep query explanations generic.
+
+Discovered: 2026-08-31.
+
+### CLI-002: Prefix flags must survive family dispatch
+
+Symptom: `--dry-run` before a command family is discarded, or the process creates a Brain root
+and operational state before the adapter rejects the request.
+
+Cause: The process shell opened application composition before handling the global non-mutating
+flag, then passed only arguments after the family name to the adapter.
+
+Fix: Reject unsupported global dry-run requests before opening the application. Direct adapter
+dispatch still receives non-representation prefix flags, and the process regression must prove
+the requested root was never created.
+
+Discovered: 2026-08-31.
+
+### PRIVACY-003: A hash of private input is not an opaque ID
+
+Symptom: A metadata-only result omits the query text but returns a deterministic digest or digest
+prefix derived from it.
+
+Cause: A content hash was treated as an identifier even though callers can verify guesses against
+private input.
+
+Fix: Generate retrieval IDs independently with a cryptographic random source, return them only as
+opaque correlation values, and scan public results for full and truncated query digests.
+
+Discovered: 2026-08-31.
+
+### CLI-003: Root-free operations normalize representation flags first
+
+Symptom: `--version` works without configuration, but adding `--json` before or after it opens
+the application and fails for a missing Brain root.
+
+Cause: Root-free detection compared the raw argument tuple instead of removing the
+representation-owned output flag.
+
+Fix: Validate duplicate flags, remove `--json` before recognizing help/version, and test each
+supported ordering without runtime configuration.
+
+Discovered: 2026-08-31.
+
+### PRIVACY-004: Case-insensitive values have many reversible digests
+
+Symptom: A protected URL is removed regardless of case, but the SHA-256 of a case-varied spelling
+still appears in a public result.
+
+Cause: The projection knew the canonical value's digest but could not enumerate every
+case-equivalent preimage digest.
+
+Fix: Treat standalone SHA-256-shaped output tokens as private residue. Use prefixed opaque record
+IDs for public correlation instead of publishing bare content hashes.
+
+Discovered: 2026-08-31.
+
+### PORTABLE-002: Promote the exact validated snapshot
+
+Symptom: Validation succeeds, but the bytes materialized or promoted during import/export differ
+from the bytes that were checked.
+
+Cause: The operation validated a pathname and read it again after another process or filesystem
+transition changed the content.
+
+Fix: Retain one immutable validated snapshot, materialize and verify that snapshot, then perform
+the identity-bound atomic promotion. Retry evidence must bind to the same manifest and snapshot.
+
+Discovered: 2026-08-31.
+
+### CONNECTOR-001: Host evidence owns connector checkpoints
+
+Symptom: A connector reports successful fetches or checkpoint advancement that do not match the
+captures durably accepted by the Brain.
+
+Cause: Connector-mutated counters or receipt claims were treated as authoritative at the host
+boundary.
+
+Fix: Meter discovery, fetch, extraction, and submission at host-owned capabilities. Record the
+exact sink receipt with its delivery ID and source reference, and advance the checkpoint only when
+that evidence matches the host receipt.
+
+Discovered: 2026-08-31.
+
+### ARCHITECTURE-001: Line-numbered debt is a live coordinate
+
+Symptom: An import-debt report points to the wrong source line after a nearby edit, making a
+violation appear fixed or assigning it to the wrong code.
+
+Cause: Debt entries stored line numbers from an earlier source snapshot.
+
+Fix: Regenerate line-numbered debt from the current source tree after every source edit and verify
+the reported edge before accepting the classification or marking the debt resolved.
+
+Discovered: 2026-08-31.
+
+### INGRESS-001: Rejected pages must not starve later eligible rows
+
+Symptom: A rejected first row keeps the cursor pinned forever, so later eligible input is never
+processed; advancing the whole page can instead lose retry evidence when an eligible sink write
+fails.
+
+Cause: Cursor advancement treated a mixed page as all-or-nothing and did not distinguish policy
+rejection from durable sink failure.
+
+Fix: Advance past policy-rejected rows, but retain the cursor at the eligible row when its sink
+submission fails. Keep bounded retry evidence for both outcomes.
+
+Discovered: 2026-08-31.
+
+### MCP-001: Scope retrieval before capability injection
+
+Symptom: MCP tool calls enforce a space allow-list, but the adapter's stored retrieval attribute
+still exposes unrestricted search or fetch to other callers.
+
+Cause: The app injected the full retrieval task and asked the representation to derive a scope for
+each tool call.
+
+Fix: Derive the scoped retrieval capability at composition, inject only that capability, and reject
+objects that still expose the unrestricted `scoped` factory.
+
+Discovered: 2026-09-01.
+
+### INTEGRATION-001: Installed optional modules are not necessarily preloaded
+
+Symptom: An explicitly enabled optional integration reports `optional_dependency` even though its
+module is installed and importable.
+
+Cause: Availability checked `sys.modules`, which describes prior import state rather than installed
+module availability.
+
+Fix: At the reviewed app extension host, import the composition-declared module only after its
+capability is enabled. Keep disabled/default profiles import-free.
+
+Discovered: 2026-09-01.

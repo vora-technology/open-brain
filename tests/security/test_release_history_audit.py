@@ -93,6 +93,24 @@ def test_history_audit_fails_closed_for_oversized_and_binary_content(tmp_path: P
     assert "private-denylist-term" in rules
 
 
+def test_history_audit_accepts_explicit_no_additional_project_terms_marker(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "synthetic-history"
+    repository.mkdir()
+    git(repository, "init")
+    git(repository, "config", "user.name", "Synthetic Test")
+    git(repository, "config", "user.email", "synthetic@example.invalid")
+    denylist = tmp_path / "denylist.txt"
+    denylist.write_text("# no additional project terms\n", encoding="utf-8")
+    (repository / "safe.txt").write_text("synthetic public fixture", encoding="utf-8")
+    git(repository, "add", "safe.txt")
+    git(repository, "commit", "-m", "add synthetic fixture")
+
+    assert audit_history(repository, denylist) == []
+    assert main(["--repository", str(repository), "--private-denylist", str(denylist)]) == 0
+
+
 def test_history_audit_limits_fail_closed(tmp_path: Path) -> None:
     repository = tmp_path / "synthetic-history"
     repository.mkdir()

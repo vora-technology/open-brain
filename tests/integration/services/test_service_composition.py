@@ -5,8 +5,7 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from open_brain.capture.models import CaptureWorkItem
-from open_brain.core.ports import PutDisposition, PutResult
+from open_brain.engine import CaptureReceipt
 from open_brain.integrations.ports import (
     FeedbackOutcome,
     PageDocument,
@@ -59,13 +58,20 @@ class _Pages:
 
 
 @dataclass
-class _Queue:
-    items: list[CaptureWorkItem]
+class _Capture:
+    accepted: int = 0
 
-    def enqueue(self, item: CaptureWorkItem, *, item_id: str, payload_digest: str) -> PutResult:
-        del item_id, payload_digest
-        self.items.append(item)
-        return PutResult(PutDisposition.CREATED, "record.synthetic-001", "0" * 64)
+    def accept(self, payload: object, **kwargs: object) -> CaptureReceipt:
+        del payload, kwargs
+        self.accepted += 1
+        return CaptureReceipt(
+            capture_id="capture_synthetic",
+            payload_family="reference_or_file",
+            state="accepted",
+            enrichment_state="unavailable",
+            space_id=None,
+            canonical_path=None,
+        )
 
 
 @dataclass
@@ -86,22 +92,22 @@ class _Server:
 
 def _services(
     route_mode: HttpRouteMode = HttpRouteMode.COMBINED,
-) -> tuple[ProductionServices, _Retriever, _Feedback, _Queue]:
+) -> tuple[ProductionServices, _Retriever, _Feedback, _Capture]:
     retriever = _Retriever()
     feedback = _Feedback()
-    queue = _Queue([])
+    capture = _Capture()
     services = compose_production_services(
         ProductionServiceDependencies(
             retriever=retriever,
             feedback=feedback,
             page_reader=_Pages(),
-            share_queue=queue,
+            capture=capture,
             expected_bearer_token="synthetic-test-token",
             clock=lambda: datetime(2026, 8, 25, tzinfo=UTC),
             http_route_mode=route_mode,
         )
     )
-    return services, retriever, feedback, queue
+    return services, retriever, feedback, capture
 
 
 def test_composition_exposes_unstarted_work_only_mcp_and_lifecycle() -> None:
@@ -158,7 +164,7 @@ def test_composition_exposes_unstarted_work_only_mcp_and_lifecycle() -> None:
 
 
 def test_http_service_authenticates_ui_and_share_without_secret_residue() -> None:
-    services, _, _, queue = _services()
+    services, _, _, capture = _services()
 
     unauthenticated = services.http.dispatch(
         method="GET", path="/pages/page.synthetic-001", headers=(), body_reader=lambda _a, _b: b""
@@ -184,15 +190,15 @@ def test_http_service_authenticates_ui_and_share_without_secret_residue() -> Non
     assert unauthenticated.status == 401
     assert authenticated.status == 200
     assert shared.status == 202
-    assert len(queue.items) == 1
+    assert capture.accepted == 1
     rendered = repr((authenticated, shared))
     assert "synthetic-test-token" not in rendered
     assert "synthetic reason" not in rendered
 
 
 def test_http_route_modes_keep_ui_read_only_and_share_queue_only() -> None:
-    ui_services, _, _, ui_queue = _services(HttpRouteMode.UI_ONLY)
-    share_services, _, _, share_queue = _services(HttpRouteMode.SHARE_ONLY)
+    ui_services, _, _, ui_capture = _services(HttpRouteMode.UI_ONLY)
+    share_services, _, _, share_capture = _services(HttpRouteMode.SHARE_ONLY)
     payload = b'{"url":"https://example.test/article","why":"synthetic reason"}'
     headers = (
         ("Authorization", "Bearer synthetic-test-token"),
@@ -221,8 +227,8 @@ def test_http_route_modes_keep_ui_read_only_and_share_queue_only() -> None:
 
     assert blocked_share.status == blocked_ui.status == 405
     assert accepted_share.status == 202
-    assert ui_queue.items == []
-    assert len(share_queue.items) == 1
+    assert ui_capture.accepted == 0
+    assert share_capture.accepted == 1
 
 
 def test_composition_rejects_missing_concrete_dependencies() -> None:

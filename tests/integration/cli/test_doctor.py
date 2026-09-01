@@ -9,7 +9,6 @@ from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.doctor import DoctorCommandAdapter, show_doctor
 from open_brain.cli.main import main
-from open_brain.cli.phase6_adapters import CutoverDoctorCommandAdapter
 from open_brain.operations.doctor import DoctorRole, ProbeName, ProbeReading, run_doctor
 from open_brain.operations.models import DeploymentTarget
 
@@ -79,13 +78,10 @@ def test_plain_doctor_adapter_omits_reserved_readiness_claim(
     assert "cutover_ready" not in output
 
 
-def test_combined_doctor_adapter_routes_cutover_and_rejects_other_shapes(
+def test_plain_doctor_adapter_rejects_pre_alpha_cutover_and_other_shapes(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    adapter = DoctorCommandAdapter(
-        probes=_healthy_probes(),
-        cutover=CutoverDoctorCommandAdapter(),
-    )
+    adapter = DoctorCommandAdapter(probes=_healthy_probes())
     registry = CommandAdapterRegistry({"doctor": adapter})
 
     cutover_exit = main(
@@ -99,7 +95,7 @@ def test_combined_doctor_adapter_routes_cutover_and_rejects_other_shapes(
     )
     invalid_output = json.loads(capsys.readouterr().out)
 
-    assert cutover_exit is ExitCode.DEFERRED
-    assert cutover_output["status"] == "deferred"
+    assert cutover_exit is ExitCode.USAGE
+    assert cutover_output["status"] == "invalid"
     assert invalid_exit is ExitCode.USAGE
     assert invalid_output["status"] == "invalid"

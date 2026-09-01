@@ -12,8 +12,9 @@ from pathlib import Path
 from typing import Protocol
 
 from open_brain.core.models import PrivacyTier
+from open_brain.engine import LockScope
 
-from .models import DeploymentTarget, HostRole, LockScope
+from .models import DeploymentTarget, HostRole
 
 
 class NowError(RuntimeError):

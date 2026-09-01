@@ -9,12 +9,11 @@ from typing import cast
 
 import pytest
 
-from open_brain.cli._common import ExitCode
-from open_brain.cli._registry import CommandAdapterRegistry
+from open_brain.cli._common import CommandAdapterLookup, ExitCode
 from open_brain.cli.main import main
 from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import BrainEngine, ProposalDraft, TextPayload
+from open_brain.engine import BrainEngine, ProposalDraft, ReferencePayload, TextPayload
 from open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
     Phase1UiRequest,
@@ -33,7 +32,7 @@ def _engine(root: Path) -> BrainEngine:
 
 def _cli(
     capsys: pytest.CaptureFixture[str],
-    adapters: CommandAdapterRegistry,
+    adapters: CommandAdapterLookup,
     *argv: str,
 ) -> tuple[ExitCode, dict[str, object]]:
     exit_code = ExitCode(main([*argv, "--json"], command_adapters=adapters))
@@ -68,8 +67,8 @@ def test_cli_and_ui_share_capture_space_routing_and_retrieval_ids(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks.phase1)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks.phase1)
 
     exit_code, created = _cli(
         capsys,
@@ -146,8 +145,8 @@ def test_cli_and_ui_accept_every_generic_payload_family_through_the_same_engine(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks.phase1)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks.phase1)
     cli_requests = (
         ("text", "Synthetic CLI text"),
         (
@@ -235,13 +234,44 @@ def test_cli_and_ui_accept_every_generic_payload_family_through_the_same_engine(
     }
 
 
+def test_cli_and_ui_serialize_only_public_retrieval_provenance(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    engine = _engine(tmp_path / "brain")
+    adapters = build_phase1_command_adapters(engine.tasks.phase1)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks.phase1)
+    private_source = "https://example.test/private-engine-source"
+    capture = engine.capture.accept(
+        ReferencePayload(private_source, "Synthetic source-safe surface token"),
+        delivery_id="surface.safe-provenance",
+    )
+
+    _, cli = _cli(capsys, adapters, "query", "source-safe")
+    response, ui_value = _ui(ui, "GET", "/api/search?q=source-safe")
+    cli_item = cast(list[dict[str, object]], cli["results"])[0]
+    ui_item = cast(list[dict[str, object]], ui_value["results"])[0]
+
+    expected = {
+        "capture_id": capture.capture_id,
+        "source_origin": "third_party",
+        "source_record_id": capture.capture_id,
+    }
+    assert response.status == 200
+    assert cli_item["provenance"] == expected
+    assert ui_item["provenance"] == expected
+    assert private_source not in json.dumps({"cli": cli, "ui": ui_value})
+    assert "source_ref" not in json.dumps({"cli": cli, "ui": ui_value})
+    assert "sha256" not in json.dumps({"cli": cli, "ui": ui_value})
+
+
 def test_cli_and_ui_each_approve_reject_and_edit_with_shared_terminal_ids(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     engine = _engine(tmp_path / "brain")
-    adapters = build_phase1_command_adapters(engine)
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    adapters = build_phase1_command_adapters(engine.tasks.phase1)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks.phase1)
     space = engine.inbox.create_space("Review", delivery_id="surface.review.space")
     capture = engine.capture.accept(
         TextPayload("Synthetic six-way surface review"),
@@ -319,7 +349,7 @@ def test_cli_and_ui_each_approve_reject_and_edit_with_shared_terminal_ids(
 
 def test_ui_authenticates_before_mutating_or_parsing_private_body(tmp_path: Path) -> None:
     engine = _engine(tmp_path / "brain")
-    ui = Phase1UiHandler(expected_bearer_token=TOKEN, engine=engine)
+    ui = Phase1UiHandler(expected_bearer_token=TOKEN, tasks=engine.tasks.phase1)
     private_body = b'{"delivery_id":"unauthorized","text":"synthetic private body"}'
 
     unauthorized = ui.handle(

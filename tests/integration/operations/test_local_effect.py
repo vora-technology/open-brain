@@ -7,12 +7,12 @@ from pathlib import Path
 import pytest
 
 import open_brain.operations.local_effect as local_effect
+from open_brain.engine import LockScope
 from open_brain.operations.local_effect import (
     EmptyBatchApplication,
     FilesystemEmptyEffectCapability,
     FilesystemPreparedEffectCapability,
 )
-from open_brain.operations.models import LockScope
 from open_brain.operations.replay_journal import SqliteReplayJournal
 from open_brain.operations.writer_jobs import (
     EffectParameter,

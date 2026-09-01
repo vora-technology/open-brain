@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -130,6 +131,73 @@ def _private_provider_config(tmp_path: Path, *, endpoint: str) -> Path:
     )
     path.chmod(0o600)
     return path
+
+
+def test_enabled_optional_cloud_loads_without_preload_in_a_fresh_process() -> None:
+    source = Path(__file__).parents[3] / "src"
+    program = f"""
+import json
+import sys
+from types import SimpleNamespace
+
+sys.path.insert(0, {str(source)!r})
+from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain.core.ports import TextModelRequest
+from open_brain.production.providers import LocalProviderRuntimeConfig, ProviderComposition
+
+class LocalTransport:
+    def complete(self, **kwargs):
+        raise AssertionError(kwargs)
+
+class OpenAI:
+    def __init__(self, **kwargs):
+        self.responses = SimpleNamespace(
+            create=lambda **_kwargs: SimpleNamespace(output_text="fresh cloud result")
+        )
+
+assert "open_brain.providers.optional_cloud" not in sys.modules
+service = ProviderComposition(
+    config=LocalProviderRuntimeConfig(
+        provider_name="cloud",
+        cloud_enabled=True,
+        local_endpoint="http://127.0.0.1:11434/api",
+        local_model="synthetic-local",
+        cloud_module="open_brain.providers.optional_cloud",
+        cloud_model="synthetic-cloud",
+    ),
+    local_transport=LocalTransport(),
+    resolve_cloud_secret=lambda: "synthetic-credential",
+).build()
+assert "open_brain.providers.optional_cloud" in sys.modules
+sys.modules["openai"] = SimpleNamespace(OpenAI=OpenAI)
+request = TextModelRequest.create(
+    request_id="request.fresh-cloud",
+    purpose="synthetic",
+    prompt="safe prompt",
+    timeout_seconds=1.0,
+    max_output_bytes=64,
+)
+privacy = PrivacyDecision.create(
+    tier=PrivacyTier.PERSONAL,
+    reason=PrivacyReason.PERSONAL_CONFIRMED,
+    policy_version="privacy-v1",
+    authority=Authority(cloud=True, external_egress=False),
+    confirmation_ref="confirmation.fresh-cloud",
+)
+result = service.complete(request, privacy=privacy)
+payload = {{"error": result.error_code, "text": result.value.text if result.value else None}}
+print(json.dumps(payload))
+"""
+
+    completed = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", program],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(completed.stdout) == {"error": None, "text": "fresh cloud result"}
 
 
 def test_stdlib_local_transport_is_static_bounded_and_closes() -> None:

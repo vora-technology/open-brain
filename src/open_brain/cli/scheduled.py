@@ -4,86 +4,25 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Protocol, TextIO
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain.cli._common import redacted_error
 from open_brain.cli._registry import ScheduledRouteSpec
 from open_brain.operations.capture_jobs import CaptureJobApplication, get_capture_job
 from open_brain.operations.catalog import get_job
 from open_brain.operations.models import ExitClass, JobSpec
+from open_brain.operations.scheduled_results import ScheduledDispatchResult, ScheduledDispatchStatus
 from open_brain.operations.writer_jobs import WriterJobSpec, get_writer_job_spec
 
-
-class ScheduledDispatchStatus(StrEnum):
-    """Closed metadata-only outcomes for one scheduled route dispatch."""
-
-    COMPLETED = "completed"
-    FAILED = "failed"
-    UNAVAILABLE = "unavailable"
-
-
-@dataclass(frozen=True, slots=True)
-class ScheduledDispatchResult:
-    """A redaction-safe result returned by a scheduled application adapter."""
-
-    job_id: str
-    exit_code: int
-    status: ScheduledDispatchStatus
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.job_id, str) or not self.job_id.startswith("JOB-"):
-            raise ValueError("invalid scheduled dispatch job")
-        if not isinstance(self.exit_code, int) or self.exit_code not in {
-            int(ExitCode.SUCCESS),
-            int(ExitCode.FAILURE),
-            int(ExitClass.LOCK_HELD),
-            int(ExitClass.CONFIGURATION),
-        }:
-            raise ValueError("scheduled dispatch cannot return usage or deferred")
-        if not isinstance(self.status, ScheduledDispatchStatus):
-            raise ValueError("invalid scheduled dispatch status")
-        if (self.status is ScheduledDispatchStatus.COMPLETED) != (
-            self.exit_code == ExitCode.SUCCESS
-        ):
-            raise ValueError("scheduled dispatch status and exit disagree")
-
-    @classmethod
-    def completed(cls, job_id: str) -> ScheduledDispatchResult:
-        return cls(job_id, ExitCode.SUCCESS, ScheduledDispatchStatus.COMPLETED)
-
-    @classmethod
-    def failed(cls, job_id: str) -> ScheduledDispatchResult:
-        return cls(job_id, ExitCode.FAILURE, ScheduledDispatchStatus.FAILED)
-
-    @classmethod
-    def unavailable(cls, job_id: str) -> ScheduledDispatchResult:
-        return cls(job_id, ExitCode.FAILURE, ScheduledDispatchStatus.UNAVAILABLE)
-
-    @classmethod
-    def lock_held(cls, job_id: str) -> ScheduledDispatchResult:
-        return cls(job_id, ExitClass.LOCK_HELD, ScheduledDispatchStatus.FAILED)
-
-    @classmethod
-    def configuration(cls, job_id: str) -> ScheduledDispatchResult:
-        return cls(job_id, ExitClass.CONFIGURATION, ScheduledDispatchStatus.FAILED)
-
-    def to_envelope(self) -> dict[str, object]:
-        envelope: dict[str, object] = {
-            "command": self.job_id,
-            "status": self.status.value,
-        }
-        if self.status is not ScheduledDispatchStatus.COMPLETED:
-            if self.exit_code == ExitClass.LOCK_HELD:
-                error_code = "scheduled_application_lock_held"
-            elif self.exit_code == ExitClass.CONFIGURATION:
-                error_code = "scheduled_application_configuration"
-            elif self.status is ScheduledDispatchStatus.FAILED:
-                error_code = "scheduled_application_failed"
-            else:
-                error_code = "scheduled_application_unavailable"
-            envelope["error"] = redacted_error(error_code)
-        return envelope
+__all__ = [
+    "ScheduledApplicationAdapters",
+    "ScheduledDispatchResult",
+    "ScheduledDispatchStatus",
+    "UnavailableScheduledAdapters",
+    "dispatch_scheduled_route",
+    "scheduled_result_envelope",
+    "write_scheduled_result",
+]
 
 
 class ScheduledApplicationAdapters(Protocol):
@@ -139,6 +78,34 @@ def write_scheduled_result(
 ) -> None:
     """Write only closed, metadata-safe scheduled dispatch fields."""
     if json_output:
-        stream.write(json.dumps(result.to_envelope(), sort_keys=True, separators=(",", ":")) + "\n")
+        stream.write(
+            json.dumps(
+                scheduled_result_envelope(result),
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        )
         return
     stream.write(f"scheduled application {result.status.value}\n")
+
+
+def scheduled_result_envelope(result: ScheduledDispatchResult) -> dict[str, object]:
+    """Convert one owner record into the public CLI representation."""
+    if not isinstance(result, ScheduledDispatchResult):
+        raise ValueError("invalid scheduled dispatch result")
+    envelope: dict[str, object] = {
+        "command": result.job_id,
+        "status": result.status.value,
+    }
+    if result.status is not ScheduledDispatchStatus.COMPLETED:
+        if result.exit_code == ExitClass.LOCK_HELD:
+            error_code = "scheduled_application_lock_held"
+        elif result.exit_code == ExitClass.CONFIGURATION:
+            error_code = "scheduled_application_configuration"
+        elif result.status is ScheduledDispatchStatus.FAILED:
+            error_code = "scheduled_application_failed"
+        else:
+            error_code = "scheduled_application_unavailable"
+        envelope["error"] = redacted_error(error_code)
+    return envelope

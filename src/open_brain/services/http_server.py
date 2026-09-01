@@ -16,6 +16,7 @@ from open_brain.capture.http import (
     RequestReadTimeout,
     ShareHttpHandler,
 )
+from open_brain.integrations.phase1_ui import Phase1UiHandler, Phase1UiRequest
 from open_brain.integrations.ui import UiBindConfig, UiHandler, UiRequest
 
 DEFAULT_MAXIMUM_HEADER_BYTES = 8_192
@@ -108,11 +109,11 @@ class HttpService:
     def __init__(
         self,
         *,
-        ui_handler: UiHandler,
+        ui_handler: UiHandler | Phase1UiHandler,
         share_handler_factory: ShareHandlerFactory,
         config: HttpServiceConfig | None = None,
     ) -> None:
-        if not isinstance(ui_handler, UiHandler) or not callable(share_handler_factory):
+        if not callable(getattr(ui_handler, "handle", None)) or not callable(share_handler_factory):
             raise ValueError("invalid HTTP service dependencies")
         self._ui_handler = ui_handler
         self._share_handler_factory = share_handler_factory
@@ -135,6 +136,11 @@ class HttpService:
         ):
             return _text_response(400, "invalid_request")
         if method == "GET" and self.config.route_mode is not HttpRouteMode.SHARE_ONLY:
+            if isinstance(self._ui_handler, Phase1UiHandler):
+                return _copy_response(
+                    self._ui_handler.handle(Phase1UiRequest(method, path, headers)),
+                    maximum_body_bytes=self.config.maximum_response_bytes,
+                )
             return _copy_response(
                 self._ui_handler.handle(UiRequest(method, path, headers)),
                 maximum_body_bytes=self.config.maximum_response_bytes,

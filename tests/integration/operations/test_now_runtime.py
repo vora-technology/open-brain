@@ -9,7 +9,8 @@ import pytest
 
 import open_brain.operations.now_runtime as now_runtime
 from open_brain.core.models import PrivacyTier
-from open_brain.operations.models import DeploymentTarget, LockScope
+from open_brain.engine import LockScope
+from open_brain.operations.models import DeploymentTarget
 from open_brain.operations.now import NowItem, NowProjectionInput, NowRoots, check_now
 from open_brain.operations.now_runtime import (
     NowEffectCapability,

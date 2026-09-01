@@ -15,6 +15,7 @@ from open_brain.core.ports import Clock
 
 from .filesystem import (
     RootConfinementError,
+    RootIdentity,
     StorageError,
     StorageUnsupportedPlatformError,
     _open_parent,
@@ -170,12 +171,17 @@ def _connect_from_parent(parent_fd: int, name: str) -> sqlite3.Connection:
         os.close(original_directory_fd)
 
 
-def connect_database(*, root: Path, database_name: str | PurePosixPath) -> sqlite3.Connection:
+def connect_database(
+    *,
+    root: Path,
+    database_name: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
+) -> sqlite3.Connection:
     raw_database_name = str(database_name)
     if "%" in raw_database_name:
         raise RootConfinementError("unsafe database path")
     parts = _validated_parts(raw_database_name)
-    root_fd = _open_root(root)
+    root_fd = _open_root(root, expected_root_identity)
     parent_fd = -1
     try:
         _require_private_directory(root_fd)
@@ -222,10 +228,11 @@ def connect_database_read_only(
     *,
     root: Path,
     database_name: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
 ) -> sqlite3.Connection:
     """Open an existing root-confined SQLite database without creating or migrating it."""
     parts = _validated_parts(str(database_name))
-    root_fd = _open_root(root)
+    root_fd = _open_root(root, expected_root_identity)
     parent_fd = -1
     database_fd = -1
     try:

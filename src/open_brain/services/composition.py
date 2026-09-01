@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import BinaryIO
 
-from open_brain.capture.http import BodyReader, ShareHttpHandler, ShareQueue
-from open_brain.integrations.mcp import LocalStdioMcpAdapter
+from open_brain.capture.http import BodyReader, CaptureAcceptor, ShareHttpHandler
+from open_brain.integrations.mcp import EngineMcpAdapter, LocalStdioMcpAdapter
 from open_brain.integrations.ports import PageReader, RetrievalFeedback, WorkRetriever
 from open_brain.integrations.ui import UiBindConfig, UiHandler
 from open_brain.services.http_server import (
@@ -31,7 +31,7 @@ class ProductionServiceDependencies:
     retriever: WorkRetriever | None = None
     feedback: RetrievalFeedback | None = None
     page_reader: PageReader | None = None
-    share_queue: ShareQueue | None = None
+    capture: CaptureAcceptor | None = None
     expected_bearer_token: str | None = field(default=None, repr=False)
     clock: Callable[[], datetime] | None = None
     bind: UiBindConfig = field(default_factory=UiBindConfig)
@@ -42,7 +42,7 @@ class ProductionServiceDependencies:
 class StdioMcpLifecycle:
     """A startable stdio MCP service that does not own process streams."""
 
-    adapter: LocalStdioMcpAdapter
+    adapter: LocalStdioMcpAdapter | EngineMcpAdapter
 
     def serve(self, *, input_stream: BinaryIO, output_stream: BinaryIO) -> None:
         serve_stdio_mcp(
@@ -94,7 +94,7 @@ def compose_production_services(
     assert dependencies.retriever is not None
     assert dependencies.feedback is not None
     assert dependencies.page_reader is not None
-    assert dependencies.share_queue is not None
+    assert dependencies.capture is not None
     assert dependencies.expected_bearer_token is not None
     assert dependencies.clock is not None
     try:
@@ -108,7 +108,7 @@ def compose_production_services(
         )
         share_handler_factory = _ShareHandlerFactory(
             expected_bearer_token=dependencies.expected_bearer_token,
-            share_queue=dependencies.share_queue,
+            capture=dependencies.capture,
             clock=dependencies.clock,
         )
         http = HttpService(
@@ -134,8 +134,8 @@ def _valid_dependencies(value: object) -> bool:
         and callable(getattr(value.feedback, "record", None))
         and value.page_reader is not None
         and callable(getattr(value.page_reader, "read", None))
-        and value.share_queue is not None
-        and callable(getattr(value.share_queue, "enqueue", None))
+        and value.capture is not None
+        and callable(getattr(value.capture, "accept", None))
         and isinstance(value.expected_bearer_token, str)
         and bool(value.expected_bearer_token)
         and callable(value.clock)
@@ -149,13 +149,13 @@ class _ShareHandlerFactory(ShareHandlerFactory):
     """Create request-scoped share handlers without exposing the bearer token."""
 
     expected_bearer_token: str = field(repr=False)
-    share_queue: ShareQueue
+    capture: CaptureAcceptor
     clock: Callable[[], datetime]
 
     def __call__(self, body_reader: BodyReader) -> ShareHttpHandler:
         return ShareHttpHandler(
             expected_bearer_token=self.expected_bearer_token,
-            queue=self.share_queue,
+            capture=self.capture,
             clock=self.clock,
             body_reader=body_reader,
         )

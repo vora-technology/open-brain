@@ -1,8 +1,10 @@
 # Portable Brain v1
 
-Portable Brain v1 is the Phase 0 interchange evidence for one Brain root. It freezes the
-readable layout and serialized representations only. It does not implement capture,
-export, import, provider, connector, daemon, or hosted runtime behavior.
+Portable Brain v1 is the versioned interchange contract for one single-user Brain root. The
+engine implements validation, export, clean-root import, and disposable index rebuild over this
+layout. Portable operations preserve identities, exact source/canonical/history bytes, review
+chains, and append-only routing. They exclude operational state and do not provide daemon,
+backup/restore, upgrade, uninstall, provider, or hosted-runtime orchestration.
 
 ## Layout
 
@@ -14,12 +16,13 @@ export, import, provider, connector, daemon, or hosted runtime behavior.
   sources/captures/YYYY/MM/<capture-id>.json
   sources/batches/YYYY/MM/<batch-id>.jsonl
   sources/blobs/sha256/<first-two-hex>/<sha256>
-  history/{proposals,decisions,publications,actions}/YYYY/MM/<record-id>.json
+  history/{proposals,decisions,publications,actions,routes}/YYYY/MM/<record-id>.json
   portable-manifest.json
-  .open-brain/{state,indexes,run,credentials}/  # never portable
+  .open-brain/{state,indexes,run,credentials}/  # operational; never exported
 ```
 
-Date partitions use immutable acceptance or recording timestamps. Source occurrence-time
+Date partitions use immutable UTC acceptance or recording timestamps persisted with the record,
+not the local wall-clock month. Source occurrence-time
 corrections append a new event or measurement batch row with `supersedes`; they do not move
 or rewrite the original record.
 
@@ -41,18 +44,21 @@ as `0.5` and `-0.5` are valid; JSON numeric values, exponents, leading zeros, tr
 zeros, and negative zero are invalid. Role claims are immutable snapshots containing their stable
 claim and role IDs plus a sorted, unique capability list. Their tenant and actor IDs bind to the
 enclosing record. Receipt IDs bind to one subject, and each receipt digest covers its strict
-canonical `payload` object. Reusing a receipt ID with different bytes is invalid.
+canonical `payload` object. Reusing a receipt ID with different bytes is invalid. Routing an
+existing capture appends a route record. Later routes link to the route they supersede, so export
+and import preserve current space membership without rewriting the immutable source record.
 
 ## Schemas and fixture evidence
 
-The 14 Draft 2020-12 schemas are under `schemas/portable-brain/v1/`. They have immutable v1
+The 15 Draft 2020-12 schemas are under `schemas/portable-brain/v1/`. They have immutable v1
 URN identifiers and only local URN references. The conformance suite registers every schema with
 `jsonschema.Draft202012Validator` and format checking.
 
 The repository and both default Python artifacts include a synthetic populated root under
 `tests/fixtures/portable-brain/v1/brain-root`. It covers all four capture payload families,
 blob-backed originals, batch-backed event and measurement payloads, readable page frontmatter,
-page and action proposal/decision chains, publication and action results, and a SHA-256 manifest.
+page and action proposal/decision chains, routed space membership, publication and action results,
+and a SHA-256 manifest.
 The test factory reproduces this fixture byte for byte. Operational state is created only in a
 temporary test root and is excluded from exact-byte export; no `.open-brain` file is checked in.
 
@@ -74,10 +80,28 @@ bytes must equal the decision's effective page content and the exact file at `pu
 action request must equal the effective approved action proposal; its approval receipt binds the
 action ID, decision ID, and request digest, while the result has its own canonical digest.
 
+## Engine operations
+
+`PortabilityTask.validate(source)` validates one existing Portable root and returns a bounded
+receipt. `export(destination, export_id=...)` snapshots the live portable files, validates that
+immutable snapshot, stages a new destination, and promotes it only after exact-byte verification.
+`import_clean(source, destination, import_id=...)` validates one source snapshot, materializes a
+new clean root, restores the non-secret identity in `brain.toml`, rebuilds the disposable index,
+records retry evidence, and promotes the same validated snapshot. A conflicting or non-empty
+destination fails closed. Repeating an already completed operation returns a duplicate receipt.
+`rebuild_index()` updates only disposable index state and returns its generation in a bounded
+receipt.
+
+The export/import boundary excludes `.open-brain` credentials, SQLite databases, leases, run
+state, and indexes. Operational receipts may record counts and index generation, but never expose
+host paths or secret values. Validation, materialization, and promotion all use the same immutable
+snapshot; a later pathname read cannot substitute different bytes.
+
 ## Conformance boundary
 
 `tests/contract/test_portable_brain_v1.py` verifies schemas, lossless capture envelopes, strict
 canonical bytes, JSONL corrections, same-family supersession, cross-record receipt and digest
 chains, canonical-page privacy, root confinement, symlink rejection, operational exclusion, the
 complete checked-in fixture, semantic tamper rejection, and an exact-byte clean-root round trip.
-These helpers are contract validation, not a Phase 1 capture or hosted runtime interface.
+These helpers cover the engine contract. Phase 2 uses the engine task interface for the local
+journey; hosted runtime, backup/restore, upgrade, and uninstall orchestration remain deferred.

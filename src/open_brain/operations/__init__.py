@@ -1,5 +1,7 @@
 """Pure operations contracts and scheduler manifest rendering."""
 
+from open_brain.engine import LockScope
+
 from .catalog import JOB_CATALOG, JOBS_BY_ID, get_job
 from .models import (
     DeploymentTarget,
@@ -7,7 +9,6 @@ from .models import (
     HostRole,
     JobSpec,
     JobState,
-    LockScope,
     OperationsValidationError,
     OutputPolicy,
     RetryPolicy,

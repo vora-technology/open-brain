@@ -5,15 +5,17 @@ from dataclasses import dataclass, replace
 
 import pytest
 
-from open_brain.cli.scheduled import ScheduledDispatchResult, ScheduledDispatchStatus
+from open_brain.engine import LockScope
 from open_brain.operations.catalog import JOB_CATALOG
-from open_brain.operations.models import HostRole, LockScope
+from open_brain.operations.models import HostRole
 from open_brain.operations.production_bindings import (
     ApplicationFamily,
     BindingAuthority,
     ProductionBindingError,
     ProductionBindingInventory,
     ProductionJobBinding,
+    ScheduledDispatchResult,
+    ScheduledDispatchStatus,
     ScheduledInvocation,
     compose_production_bindings,
     dispatch_production_job,
@@ -59,6 +61,11 @@ def _capabilities() -> dict[str, RecordingCapability]:
         )
         for job in JOB_CATALOG
     }
+
+
+def test_scheduled_result_records_are_owned_by_operations() -> None:
+    assert ScheduledDispatchResult.__module__ == "open_brain.operations.scheduled_results"
+    assert ScheduledDispatchStatus.__module__ == "open_brain.operations.scheduled_results"
 
 
 def test_complete_synthetic_inventory_binds_and_dispatches_all_catalog_rows() -> None:
@@ -197,8 +204,7 @@ def test_dispatch_normalizes_lock_authority_and_capability_failures_without_erro
     assert locked.status is ScheduledDispatchStatus.FAILED
     assert failed.status is ScheduledDispatchStatus.FAILED
     assert unavailable.status is ScheduledDispatchStatus.FAILED
-    envelope = failed.to_envelope()
-    serialized = repr(envelope)
+    serialized = repr(failed)
     assert "synthetic-secret-value" not in serialized
     assert "/synthetic/private/production.log" not in serialized
 

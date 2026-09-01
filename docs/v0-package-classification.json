@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_root": "src/open_brain",
   "classification_terms": {
     "engine": "Current package is a Phase 0 engine candidate.",
@@ -13,160 +13,1390 @@
   "packages": {
     "capture": {
       "classification": "mixed",
-      "target_owner": "engine plus connector adapters",
-      "current_scope": "Durable capture, provenance, queues, and deterministic extraction share paths with source-specific media and provider coupling.",
-      "phase_1_action": "Separate the common capture envelope and deterministic workflow from source-specific adapters."
+      "target_owner": "app plus connector plus engine plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "cli": {
-      "classification": "app",
-      "target_owner": "app",
-      "current_scope": "Parser and terminal representation currently also construct adapters.",
-      "phase_1_action": "Split parsing and representation from composition."
+      "classification": "mixed",
+      "target_owner": "app plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "core": {
       "classification": "engine",
       "target_owner": "engine",
-      "current_scope": "Values, policies, identifiers, and ports form the current protected engine scope.",
-      "phase_1_action": "Add the v0 identities and public surface without exposing every port."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "dev": {
       "classification": "workspace",
-      "target_owner": "workspace tooling",
-      "current_scope": "Repository development and release-audit utilities.",
-      "phase_1_action": "Keep out of runtime dependency graphs and native artifacts."
+      "target_owner": "workspace",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "events": {
       "classification": "engine",
       "target_owner": "engine",
-      "current_scope": "Durable event values and occurrence-time behavior.",
-      "phase_1_action": "Keep persistence with the workflow that owns it."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "engine": {
       "classification": "engine",
       "target_owner": "engine",
-      "current_scope": "Phase 1 task facades, Portable v1 identities, local durable transitions, spaces, sibling review, publication, and lexical retrieval.",
-      "phase_1_action": "Keep the vertical slice behind Capture, Inbox/Spaces, Review, and Retrieval facades without importing app representations."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "integrations": {
       "classification": "mixed",
-      "target_owner": "engine, app, and connectors",
-      "current_scope": "Retrieval, UI and MCP representation, and external-system behavior share one package.",
-      "phase_1_action": "Separate retrieval, representations, and external normalizers by capability."
+      "target_owner": "app plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "ledger": {
-      "classification": "engine",
-      "target_owner": "engine",
-      "current_scope": "Knowledge, publication, receipts, and writer rules.",
-      "phase_1_action": "Retain unless the vertical slice proves a clearer knowledge/publication module."
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "migrate": {
       "classification": "legacy",
       "target_owner": "legacy",
-      "current_scope": "Predecessor import and migration behavior.",
-      "phase_1_action": "Retain only reviewed generic public importers in a shipping artifact."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "operations": {
-      "classification": "mixed",
-      "target_owner": "engine, app, legacy, and connectors",
-      "current_scope": "Maintenance sits beside cutover, shadow, predecessor parity, and connector jobs.",
-      "phase_1_action": "Extract by capability; do not rename the package wholesale."
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "parity": {
       "classification": "legacy",
       "target_owner": "legacy",
-      "current_scope": "Predecessor-parity harnesses and observations.",
-      "phase_1_action": "Keep outside app and release-acceptance dependencies."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "portable": {
       "classification": "engine",
-      "target_owner": "engine public Portable Brain surface",
-      "current_scope": "Portable v1 strict serialization and versioned interchange contracts.",
-      "phase_1_action": "Keep runtime import and export orchestration behind this public contract."
+      "target_owner": "engine",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "production": {
       "classification": "mixed",
-      "target_owner": "engine, app, and connectors",
-      "current_scope": "Canonical adapters, provider and daemon runtime, and source bridges are coupled.",
-      "phase_1_action": "Split local adapters, runtime adapters, and source bridges by owner."
+      "target_owner": "connector plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "providers": {
       "classification": "mixed",
-      "target_owner": "engine, app, and optional adapters",
-      "current_scope": "Provider port and deterministic behavior sit beside local HTTP and cloud implementations.",
-      "phase_1_action": "Keep the port and none behavior with engine; move transport implementations by owner."
+      "target_owner": "engine plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "release": {
-      "classification": "mixed",
-      "target_owner": "app, legacy, and workspace tooling",
-      "current_scope": "Installation lifecycle, replacement evidence, and artifact auditing are coupled.",
-      "phase_1_action": "Separate native lifecycle, legacy stabilization, and artifact conformance work."
+      "classification": "legacy",
+      "target_owner": "legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "review": {
-      "classification": "engine",
-      "target_owner": "engine",
-      "current_scope": "Proposal and decision behavior with durable review receipts.",
-      "phase_1_action": "Add independently decided sibling proposals; move UI and CLI representations to app."
+      "classification": "mixed",
+      "target_owner": "engine plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "services": {
-      "classification": "app",
-      "target_owner": "app",
-      "current_scope": "HTTP, UI, MCP process entry points, and composition roots.",
-      "phase_1_action": "Fold surfaces and composition into the app-owned boundary."
+      "classification": "mixed",
+      "target_owner": "app plus legacy",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     },
     "storage": {
-      "classification": "mixed",
-      "target_owner": "engine local implementation and app adapters",
-      "current_scope": "Local persistence imports operations lock types, so the package cannot yet be treated as an isolated engine adapter.",
-      "phase_1_action": "Move lock identity out of operations before extracting local adapters."
+      "classification": "engine",
+      "target_owner": "engine",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain only files classified outside legacy."
     }
   },
   "root_modules": {
     "__init__": {
       "classification": "engine",
-      "target_owner": "engine public surface",
-      "current_scope": "Package version and deliberately exported public values.",
-      "phase_1_action": "Keep the public surface explicit and small."
+      "target_owner": "engine",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     },
     "__main__": {
       "classification": "app",
       "target_owner": "app",
-      "current_scope": "The python -m open_brain entry point.",
-      "phase_1_action": "Keep with the app distribution entry point."
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     },
     "config": {
       "classification": "app",
-      "target_owner": "app profile",
-      "current_scope": "Private-deployment settings currently import ledger models.",
-      "phase_1_action": "Compile one Brain root without importing ledger models."
+      "target_owner": "app",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     },
     "profile": {
       "classification": "app",
-      "target_owner": "app profile",
-      "current_scope": "Compiles one selected Brain root into stable local identities, safe paths, starter spaces, and provider-none engine context.",
-      "phase_1_action": "Remain the application-owned single-user-local composition boundary."
+      "target_owner": "app",
+      "current_scope": "Generated from authoritative file ownership.",
+      "phase_1_action": "Retain the declared owner boundary."
     }
   },
-  "root_public_symbols": ["__version__"],
-  "dynamic_import_sites": [
-    {
-      "path": "integrations/ports.py",
-      "reason": "Loads one configured adapter through the explicit integration boundary."
-    },
-    {
-      "path": "providers/base.py",
-      "reason": "Loads the selected provider adapter after closed provider-policy checks."
-    },
-    {
-      "path": "providers/optional_cloud.py",
-      "reason": "Lazily imports the optional external OpenAI dependency after cloud authority checks."
-    }
+  "root_public_symbols": [
+    "__version__"
   ],
   "rules": [
     {
-      "id": "engine-to-interface",
-      "source_packages": ["core", "engine", "portable"],
-      "forbidden_classifications": ["app", "connector", "hosted", "legacy", "workspace"],
-      "rationale": "The current protected engine scope must not depend on application interfaces, optional connectors, hosted code, legacy behavior, or workspace tooling."
+      "id": "engine-to-app",
+      "source": {
+        "owners": [
+          "engine"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "owners": [
+              "app",
+              "connector",
+              "hosted",
+              "legacy",
+              "workspace"
+            ]
+          }
+        }
+      ],
+      "rationale": "Engine files cannot import application, connector, hosted, legacy, or workspace files."
+    },
+    {
+      "id": "app-to-engine-internals",
+      "source": {
+        "owners": [
+          "app"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "owners": [
+              "engine"
+            ],
+            "apis": [
+              "internal"
+            ]
+          }
+        }
+      ],
+      "rationale": "Application files import only declared public engine and Portable surfaces."
+    },
+    {
+      "id": "connector-capability-only",
+      "source": {
+        "owners": [
+          "connector"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "owners": [
+              "engine"
+            ],
+            "apis": [
+              "internal"
+            ],
+            "roles_none": [
+              "extension_contract"
+            ]
+          }
+        },
+        {
+          "target": {
+            "owners": [
+              "app",
+              "hosted",
+              "legacy",
+              "workspace"
+            ],
+            "roles_none": [
+              "extension_contract"
+            ]
+          }
+        }
+      ],
+      "rationale": "Connectors use only their extension contract and public engine values."
+    },
+    {
+      "id": "shipping-to-legacy",
+      "source": {
+        "owners": [
+          "engine",
+          "app",
+          "connector",
+          "hosted"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "owners": [
+              "legacy"
+            ]
+          }
+        }
+      ],
+      "rationale": "Default shipping owners cannot import predecessor-only code."
+    },
+    {
+      "id": "hosted-to-local-internals",
+      "source": {
+        "owners": [
+          "hosted"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "owners": [
+              "engine"
+            ],
+            "apis": [
+              "internal"
+            ]
+          }
+        },
+        {
+          "target": {
+            "owners": [
+              "app",
+              "connector",
+              "legacy",
+              "workspace"
+            ]
+          }
+        }
+      ],
+      "rationale": "Hosted code can use public engine and Portable surfaces, not local internals."
+    },
+    {
+      "id": "representation-to-adapters",
+      "source": {
+        "roles_any": [
+          "representation"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "roles_any": [
+              "adapter",
+              "composition",
+              "provider",
+              "store",
+              "transport",
+              "writer"
+            ]
+          }
+        }
+      ],
+      "rationale": "Representations cannot import concrete adapters or composition."
+    },
+    {
+      "id": "adapter-to-adapter",
+      "source": {
+        "roles_any": [
+          "adapter"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "roles_any": [
+              "adapter"
+            ]
+          },
+          "relation": "different-adapter-group"
+        }
+      ],
+      "rationale": "External adapter groups cannot import one another in either direction."
+    },
+    {
+      "id": "runtime-to-workspace",
+      "source": {
+        "owners": [
+          "engine",
+          "app",
+          "connector",
+          "hosted",
+          "legacy"
+        ]
+      },
+      "violations": [
+        {
+          "target": {
+            "owners": [
+              "workspace"
+            ]
+          }
+        }
+      ],
+      "rationale": "Runtime files cannot import development or workspace tooling."
     }
-  ]
+  ],
+  "files": {
+    "__init__.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "__main__.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/__init__.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/auth.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/distillation.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/distillation_worker.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/drain.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/egress.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/extractors/__init__.py": {
+      "owner": "connector",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/extractors/article.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/extractors/social.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/extractors/text.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/extractors/youtube.py": {
+      "owner": "connector",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/http.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/media.py": {
+      "owner": "connector",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/models.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/poll.py": {
+      "owner": "connector",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/queue.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/redaction.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "capture/service.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/__init__.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/_common.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/_registry.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/capture.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/config.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/doctor.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/explain.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/ledger.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/main.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/migrate.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/operations.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/phase1.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/phase1_registry.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/phase6_adapters.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/production_adapters.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/proposals.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/query.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/review.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/scheduled.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/social.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "cli/status.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "config.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "core/__init__.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "core/ids.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "core/locks.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "core/models.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "core/policy.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "core/ports.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "dev/__init__.py": {
+      "owner": "workspace",
+      "api": "internal",
+      "roles": []
+    },
+    "dev/artifact_policy.py": {
+      "owner": "workspace",
+      "api": "internal",
+      "roles": []
+    },
+    "dev/public_history_audit.py": {
+      "owner": "workspace",
+      "api": "internal",
+      "roles": []
+    },
+    "dev/release_audit.py": {
+      "owner": "workspace",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/__init__.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "engine/capture.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/contracts.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "engine/local.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/local_store.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/materializer.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/normalization.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/portability.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/portability_ports.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/portable_index.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/retrieval.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "engine/review.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "engine/spaces.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "events/__init__.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "events/store.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/__init__.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/config.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/context.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/dev_workflows.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/finance.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/hooks.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/life_os.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/life_os_runtime.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/mail_calendar.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/mcp.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/messaging.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/messaging_runtime.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/obsidian.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/phase1_ui.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/ports.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": [
+        "extension_host"
+      ]
+    },
+    "integrations/relationships.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/repository_identity.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/retrieval.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/runtime_audit.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "integrations/ui.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/__init__.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/age.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/embed.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/index.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/merge.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/models.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/reconcile.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/reinforce.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/render.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/requarantine.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/sanitize.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/scan.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/service.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/slim.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/stage.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/store.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/synthesis.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "ledger/synthesis_store.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "migrate/__init__.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "migrate/_models.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "migrate/_support.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "migrate/config.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "migrate/content.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "migrate/state.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/__init__.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/backup.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/backup_writer.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/capture_jobs.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/catalog.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/curation_runtime.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/cutover.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/cutover_doctor.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/cutover_verification.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/doctor.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/git_sync_runtime.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/index.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/index_writer.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/local_effect.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/models.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/now.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/now_runtime.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/optional_jobs.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/probes.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/production_bindings.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/recovery.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/render.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/replay_journal.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/retention.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/runlog.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/runlog_store.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/scheduled_results.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/scheduler.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/shadow.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/status.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "operations/writer_jobs.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "parity/__init__.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "parity/harness.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "parity/observation.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "parity/runner.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "portable/__init__.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "portable/v1.py": {
+      "owner": "engine",
+      "api": "public",
+      "roles": []
+    },
+    "production/__init__.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/application.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/assets.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/capture.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/capture_publication.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/curation.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/errors.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/git_sync.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/imessage.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/local_jobs.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/media.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/optional_automation.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/personal_capture.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/project_commit_bridge.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/providers.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/retention.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/runtime.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/sqlite_backup.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/transport.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/youtube_bridge.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "production/youtube_poll.py": {
+      "owner": "connector",
+      "api": "internal",
+      "roles": []
+    },
+    "profile.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "providers/__init__.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "providers/base.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "providers/deterministic.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "providers/local.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "providers/optional_cloud.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "providers/transcription.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "release/__init__.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "release/day_zero.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "release/evidence.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "release/installation.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "release/replacement.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "release/stabilization.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "review/__init__.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "review/maintenance.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "review/models.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "review/routing.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "review/service.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "review/store.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "services/__init__.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/application.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "services/capabilities.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "services/composition.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/connectors.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": [
+        "extension_contract",
+        "extension_host"
+      ]
+    },
+    "services/entrypoints.py": {
+      "owner": "legacy",
+      "api": "internal",
+      "roles": []
+    },
+    "services/http_server.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/mcp_stdio.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/phase1_application.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/phase1_entrypoints.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/runtime.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/__init__.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/filesystem.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/frontmatter.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/locks.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/markdown.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/sqlite.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/staging.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    },
+    "storage/writer_record.py": {
+      "owner": "engine",
+      "api": "internal",
+      "roles": []
+    }
+  },
+  "dynamic_import_reviews": [
+    {
+      "path": "integrations/ports.py",
+      "line": 917,
+      "owner": "app",
+      "allowed_host": true,
+      "rationale": "Loads one composition-declared optional module only after its capability is explicitly enabled; disabled adapters never invoke the loader."
+    }
+  ],
+  "temporary_live_debt": []
 }

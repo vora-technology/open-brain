@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import stat
 import subprocess
 import sys
@@ -10,8 +11,10 @@ from pathlib import Path
 
 import pytest
 
+import open_brain.storage.locks as storage_locks
+from open_brain.core.locks import LockScope
+from open_brain.engine import LockScope as EngineLockScope
 from open_brain.operations.index import IndexLease
-from open_brain.operations.models import LockScope
 from open_brain.operations.now import NowLease
 from open_brain.operations.writer_jobs import WriterLease
 from open_brain.storage.locks import (
@@ -24,11 +27,30 @@ from open_brain.storage.locks import (
 )
 
 
+def test_lock_scope_is_core_owned_and_storage_has_no_operations_dependency() -> None:
+    assert LockScope is EngineLockScope
+    assert LockScope.__module__ == "open_brain.core.locks"
+
+    storage_source = Path(storage_locks.__file__).read_text(encoding="utf-8")
+    imports = {
+        node.module
+        for node in ast.walk(ast.parse(storage_source))
+        if isinstance(node, ast.ImportFrom) and node.module is not None
+    }
+
+    assert "open_brain.core.locks" in imports
+    assert not any(
+        module == "open_brain.operations"
+        or module.startswith("open_brain.operations.")
+        for module in imports
+    )
+
+
 def _attempt_lease(root: Path, scope: LockScope, *, backup_profile: str | None = None) -> str:
     script = """
 from pathlib import Path
 import sys
-from open_brain.operations.models import LockScope
+from open_brain.core.locks import LockScope
 from open_brain.storage.locks import FileLease, LockBusyError
 
 root = Path(sys.argv[1])
@@ -212,7 +234,7 @@ def test_file_lease_is_released_when_the_holder_is_killed(tmp_path: Path) -> Non
 from pathlib import Path
 import sys
 import time
-from open_brain.operations.models import LockScope
+from open_brain.core.locks import LockScope
 from open_brain.storage.locks import FileLease
 
 root = Path(sys.argv[1])
@@ -303,7 +325,7 @@ def test_lock_state_snapshot_observes_a_subprocess_holder(tmp_path: Path) -> Non
 from pathlib import Path
 import sys
 import time
-from open_brain.operations.models import LockScope
+from open_brain.core.locks import LockScope
 from open_brain.storage.locks import FileLease
 
 root = Path(sys.argv[1])
@@ -368,7 +390,7 @@ from pathlib import Path
 import sys
 import time
 import open_brain.storage.locks as locks
-from open_brain.operations.models import LockScope
+from open_brain.core.locks import LockScope
 
 root = Path(sys.argv[1])
 marker = Path(sys.argv[2])

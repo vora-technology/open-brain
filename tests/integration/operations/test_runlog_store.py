@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from open_brain.cli.composition import run
 from open_brain.operations.catalog import get_job
 from open_brain.operations.runlog import RunMetadata
 from open_brain.operations.runlog_store import FilesystemRunLogStore, RunLogStoreError
+from open_brain.services.entrypoints import run_legacy_cli as run
 
 
 def _time(minute: int = 0) -> datetime:

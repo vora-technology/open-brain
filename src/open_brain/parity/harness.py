@@ -244,6 +244,8 @@ class CliExitClass(IntEnum):
     FAILURE = 1
     USAGE = 2
     DEFERRED = 3
+    LOCK_HELD = 75
+    CONFIGURATION = 78
 
 
 class DoctorProbe(StrEnum):
@@ -383,6 +385,8 @@ CLI_EXIT_CLASS_MAP = MappingProxyType(
         1: CliExitClass.FAILURE,
         2: CliExitClass.USAGE,
         3: CliExitClass.DEFERRED,
+        75: CliExitClass.LOCK_HELD,
+        78: CliExitClass.CONFIGURATION,
     }
 )
 DOCTOR_PROBE_MAP = MappingProxyType(

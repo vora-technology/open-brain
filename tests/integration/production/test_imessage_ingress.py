@@ -6,17 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from open_brain.capture.models import CaptureWorkItem
-from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import CaptureSource, PrivacyTier
-from open_brain.core.ports import PutResult
+from open_brain.engine import PublicJobCaptureSink
 from open_brain.production.imessage import (
     ImessageConfigError,
     ProductionImessageIngress,
     compose_production_imessage_ingress,
     load_private_imessage_config,
 )
+from open_brain.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 25, 12, 0, tzinfo=UTC)
 
@@ -91,12 +89,12 @@ def _history_payload() -> bytes:
 def test_imessage_ingress_filters_appends_then_advances_cursor_and_replays(
     tmp_path: Path,
 ) -> None:
-    queue = FilesystemCaptureQueue(tmp_path / "queue")
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     history = _History(_history_payload(), [])
     runtime = compose_production_imessage_ingress(
         config_path=_config(tmp_path / "imessage.json"),
         state_root=tmp_path / "state",
-        queue=queue,
+        sink=local.public_job_sink("JOB-005"),
         history_client=history,
     )
 
@@ -112,43 +110,92 @@ def test_imessage_ingress_filters_appends_then_advances_cursor_and_replays(
     assert history.cursors == [0, 5]
     assert "Synthetic retained message" not in repr(first)
     assert "owner@example.test" not in repr(first)
-    assert queue.pending_snapshot().pending_count == 2
-    lease = queue.claim(worker_id="synthetic", now=FIXED_TIME)
-    assert lease is not None
-    assert lease.item.envelope.capture_source is CaptureSource.INTEGRATION
-    assert lease.item.envelope.privacy_decision.tier is PrivacyTier.PERSONAL
-    assert lease.item.envelope.shared_text == "Synthetic retained message"
+    assert len(local.tasks.inbox.list()) == 2
 
 
-class _FailingQueue:
-    def enqueue(
-        self,
-        item: CaptureWorkItem,
-        *,
-        item_id: str,
-        payload_digest: str,
-    ) -> PutResult:
-        del item, item_id, payload_digest
-        raise RuntimeError("synthetic queue failure")
+@dataclass
+class _PagedHistory:
+    cursors: list[int]
+
+    def history(self, *, chat_id: str, after_rowid: int) -> bytes:
+        assert chat_id == "synthetic-chat"
+        self.cursors.append(after_rowid)
+        if after_rowid == 0:
+            return b"\n".join(
+                canonical_json_bytes(
+                    {
+                        "rowid": rowid,
+                        "chat_id": "synthetic-chat",
+                        "sender": "rejected@example.test",
+                        "text": "Synthetic rejected message",
+                        "timestamp": "2026-08-25T11:55:00Z",
+                    }
+                )
+                for rowid in range(1, 51)
+            )
+        if after_rowid == 50:
+            return canonical_json_bytes(
+                {
+                    "rowid": 51,
+                    "chat_id": "synthetic-chat",
+                    "sender": "owner@example.test",
+                    "text": "Synthetic retained after rejected page",
+                    "timestamp": "2026-08-25T11:56:00Z",
+                }
+            )
+        return b""
 
 
-def test_imessage_cursor_does_not_advance_when_queue_append_fails(tmp_path: Path) -> None:
-    history = _History(_history_payload(), [])
-    runtime = ProductionImessageIngress(
-        config=load_private_imessage_config(_config(tmp_path / "imessage.json")),
+def test_imessage_rejected_page_advances_without_starving_later_allowed_message(
+    tmp_path: Path,
+) -> None:
+    history = _PagedHistory([])
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
+    runtime = compose_production_imessage_ingress(
+        config_path=_config(tmp_path / "imessage.json"),
         state_root=tmp_path / "state",
-        queue=_FailingQueue(),
+        sink=local.public_job_sink("JOB-005"),
         history_client=history,
     )
 
-    with pytest.raises(RuntimeError, match="synthetic queue failure"):
-        runtime.run_once()
+    rejected = runtime.run_once()
+    accepted = runtime.run_once()
 
-    retry_queue = FilesystemCaptureQueue(tmp_path / "queue")
+    assert rejected.scanned_count == 50
+    assert rejected.created_count == 0
+    assert rejected.cursor_rowid == 50
+    assert accepted.scanned_count == 1
+    assert accepted.created_count == 1
+    assert accepted.cursor_rowid == 51
+    assert history.cursors == [0, 50]
+    assert len(local.tasks.inbox.list()) == 1
+
+
+def test_imessage_cursor_does_not_advance_when_sink_submission_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    history = _History(_history_payload(), [])
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
+    runtime = ProductionImessageIngress(
+        config=load_private_imessage_config(_config(tmp_path / "imessage.json")),
+        state_root=tmp_path / "state",
+        sink=local.public_job_sink("JOB-005"),
+        history_client=history,
+    )
+
+    with monkeypatch.context() as patched:
+        patched.setattr(
+            PublicJobCaptureSink,
+            "submit",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("sink failure")),
+        )
+        with pytest.raises(RuntimeError, match="sink failure"):
+            runtime.run_once()
+
     retry = ProductionImessageIngress(
         config=load_private_imessage_config(tmp_path / "imessage.json"),
         state_root=tmp_path / "state",
-        queue=retry_queue,
+        sink=local.public_job_sink("JOB-005"),
         history_client=history,
     ).run_once()
     assert retry.created_count == 2
@@ -174,10 +221,11 @@ def test_imessage_keepalive_retries_transient_failure_then_uses_idle_interval(
 ) -> None:
     history = _TransientHistory(_history_payload())
     sleeps: list[float] = []
+    local = SingleUserLocalApplication.open(tmp_path / "brain")
     runtime = ProductionImessageIngress(
         config=load_private_imessage_config(_config(tmp_path / "imessage.json")),
         state_root=tmp_path / "state",
-        queue=FilesystemCaptureQueue(tmp_path / "queue"),
+        sink=local.public_job_sink("JOB-005"),
         history_client=history,
     )
 
@@ -190,7 +238,7 @@ def test_imessage_keepalive_retries_transient_failure_then_uses_idle_interval(
 
     assert history.calls == 2
     assert sleeps == [11.0, 7.0]
-    assert FilesystemCaptureQueue(tmp_path / "queue").pending_snapshot().pending_count == 2
+    assert len(local.tasks.inbox.list()) == 2
 
 
 def test_imessage_config_requires_owner_only_regular_canonical_file(tmp_path: Path) -> None:

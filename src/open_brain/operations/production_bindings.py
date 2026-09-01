@@ -14,10 +14,16 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import Protocol
 
-from open_brain.cli.scheduled import ScheduledDispatchResult, ScheduledDispatchStatus
+from open_brain.engine import LockScope
 
 from .catalog import JOB_CATALOG, get_job
-from .models import HostRole, JobSpec, LockScope, WriterScope
+from .models import HostRole, JobSpec, WriterScope
+from .scheduled_results import (
+    ScheduledDispatchResult as ScheduledDispatchResult,
+)
+from .scheduled_results import (
+    ScheduledDispatchStatus as ScheduledDispatchStatus,
+)
 from .scheduler import EXPECTED_JOB_IDS, validate_job_catalog
 
 

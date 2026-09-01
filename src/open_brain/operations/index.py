@@ -16,8 +16,9 @@ from typing import Protocol
 
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.core.models import PrivacyDecision
+from open_brain.engine import LockScope
 
-from .models import DeploymentTarget, HostRole, LockScope
+from .models import DeploymentTarget, HostRole
 
 
 class IndexError(RuntimeError):

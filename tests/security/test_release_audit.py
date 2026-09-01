@@ -118,6 +118,15 @@ def test_missing_or_empty_denylist_fails_closed(tmp_path: Path) -> None:
     assert main(["--root", str(root), "--private-denylist", str(denylist)]) == 2
 
 
+def test_explicit_no_additional_project_terms_marker_is_accepted(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    denylist.write_text("# no additional project terms\n", encoding="utf-8")
+
+    assert audit(root, denylist) == []
+    assert main(["--root", str(root), "--private-denylist", str(denylist)]) == 0
+
+
 def test_tree_symlink_is_rejected(tmp_path: Path) -> None:
     root = tmp_path / "project"
     denylist = write_safe_tree(root)

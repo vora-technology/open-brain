@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from open_brain.engine import LockScope
 from open_brain.operations.catalog import get_job
 from open_brain.operations.doctor import (
     DoctorRole,
@@ -17,7 +18,6 @@ from open_brain.operations.doctor import (
 from open_brain.operations.models import (
     DeploymentTarget,
     HostRole,
-    LockScope,
     OutputPolicy,
     WriterScope,
 )
@@ -93,4 +93,3 @@ def test_job_001_finding_class_is_stable_for_each_synthetic_probe(
     assert result.exit_code == 1
     assert len(result.findings) == 1
     assert result.findings[0].finding_class is expected_finding
-

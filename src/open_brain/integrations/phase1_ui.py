@@ -10,16 +10,16 @@ from typing import cast
 from urllib.parse import parse_qs, urlsplit
 
 from open_brain.capture.auth import BearerAuthenticator
-from open_brain.core.ids import canonical_json_bytes
 from open_brain.engine import (
-    BrainEngine,
     CaptureAction,
     DecisionOutcome,
     EventPayload,
     FilePayload,
     MeasurementPayload,
+    Phase1TaskSet,
     ReferencePayload,
     TextPayload,
+    project_public_space,
 )
 
 _MAX_BODY = 1_500_000
@@ -41,13 +41,13 @@ class Phase1UiResponse:
 
 
 class Phase1UiHandler:
-    """Map authenticated local UI routes to the same concrete engine facades as CLI."""
+    """Map authenticated local UI routes to injected engine task capabilities."""
 
-    def __init__(self, *, expected_bearer_token: str, engine: BrainEngine) -> None:
-        if not isinstance(engine, BrainEngine):
-            raise ValueError("invalid Phase 1 UI engine")
+    def __init__(self, *, expected_bearer_token: str, tasks: Phase1TaskSet) -> None:
+        if not isinstance(tasks, Phase1TaskSet):
+            raise ValueError("invalid Phase 1 UI tasks")
         self._authenticator = BearerAuthenticator(expected_bearer_token)
-        self._engine = engine
+        self.tasks = tasks
 
     def handle(self, request: Phase1UiRequest) -> Phase1UiResponse:
         if not isinstance(request, Phase1UiRequest):
@@ -94,7 +94,7 @@ class Phase1UiHandler:
                             "space_id": item.space_id,
                             "state": item.state,
                         }
-                        for item in self._engine.inbox.list()
+                        for item in self.tasks.inbox.list()
                     ],
                     "status": "listed",
                 },
@@ -104,14 +104,19 @@ class Phase1UiHandler:
                 200,
                 {
                     "spaces": [
-                        {"name": space.name, "slug": space.slug, "space_id": space.space_id}
-                        for space in self._engine.inbox.spaces()
+                        {
+                            "name": projected.name,
+                            "slug": projected.slug,
+                            "space_id": projected.space_id,
+                        }
+                        for space in self.tasks.inbox.spaces()
+                        for projected in (project_public_space(space),)
                     ],
                     "status": "listed",
                 },
             )
         if parsed.path == "/api/proposals" and set(query) <= {"capture", "status"}:
-            proposals = self._engine.review.list(
+            proposals = self.tasks.review.list(
                 capture_id=query.get("capture"), status=query.get("status")
             )
             return _json(
@@ -138,7 +143,7 @@ class Phase1UiHandler:
             "type",
             "limit",
         }:
-            results = self._engine.retrieval.search(
+            results = self.tasks.retrieval.search(
                 query["q"],
                 space_id=query.get("space"),
                 payload_family=query.get("family"),
@@ -182,7 +187,7 @@ class Phase1UiHandler:
             canonical = path.endswith("canonical")
             if canonical and (not isinstance(payload, TextPayload) or space_id is None):
                 raise ValueError("canonical capture requires text and a space")
-            receipt = self._engine.capture.accept(
+            receipt = self.tasks.capture.accept(
                 payload,
                 delivery_id=_string(value, "delivery_id"),
                 action=(
@@ -210,14 +215,14 @@ class Phase1UiHandler:
             )
         if path == "/api/spaces":
             _keys(value, required={"delivery_id", "name"})
-            space = self._engine.inbox.create_space(
+            space = self.tasks.inbox.create_space(
                 _string(value, "name"), delivery_id=_string(value, "delivery_id")
             )
             return _json(200, {"space_id": space.space_id, "status": "created"})
         parts = tuple(part for part in path.split("/") if part)
         if len(parts) == 4 and parts[:2] == ("api", "spaces") and parts[3] == "rename":
             _keys(value, required={"delivery_id", "name"})
-            space = self._engine.inbox.rename_space(
+            space = self.tasks.inbox.rename_space(
                 parts[2],
                 _string(value, "name"),
                 delivery_id=_string(value, "delivery_id"),
@@ -225,7 +230,7 @@ class Phase1UiHandler:
             return _json(200, {"space_id": space.space_id, "status": "renamed"})
         if len(parts) == 4 and parts[:2] == ("api", "captures") and parts[3] == "route":
             _keys(value, required={"delivery_id", "space_id"})
-            routed = self._engine.inbox.route(
+            routed = self.tasks.inbox.route(
                 parts[2],
                 _string(value, "space_id"),
                 delivery_id=_string(value, "delivery_id"),
@@ -245,7 +250,7 @@ class Phase1UiHandler:
                 optional={"edited_markdown"},
             )
             outcome = DecisionOutcome(_string(value, "outcome"))
-            decision = self._engine.review.decide(
+            decision = self.tasks.review.decide(
                 parts[2],
                 outcome,
                 delivery_id=_string(value, "delivery_id"),
@@ -266,9 +271,9 @@ class Phase1UiHandler:
         return _text(404, "not_found")
 
     def _dashboard(self) -> bytes:
-        captures = self._engine.inbox.list()
-        spaces = self._engine.inbox.spaces()
-        proposals = self._engine.review.list()
+        captures = self.tasks.inbox.list()
+        spaces = self.tasks.inbox.spaces()
+        proposals = self.tasks.review.list()
         capture_items = "".join(
             f"<li><code>{html.escape(item.capture_id)}</code> {html.escape(item.state)}</li>"
             for item in captures
@@ -432,7 +437,13 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 def _json(status: int, value: dict[str, object]) -> Phase1UiResponse:
     return Phase1UiResponse(
         status=status,
-        body=canonical_json_bytes(value),
+        body=json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8"),
         headers=(
             ("Content-Type", "application/json"),
             ("Cache-Control", "no-store"),

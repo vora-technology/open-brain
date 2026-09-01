@@ -1,10 +1,8 @@
-"""Composition root wiring real domain services into the public CLI."""
+"""App-owned construction for CLI, HTTP, MCP, and scheduled capabilities."""
 
 from __future__ import annotations
 
-import os
-import sys
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -13,10 +11,8 @@ from pathlib import Path
 
 from open_brain.capture.distillation_worker import DistillationProcessStatus
 from open_brain.capture.egress import OutboundFetcher
-from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import FilesystemYouTubePollState
-from open_brain.capture.queue import FilesystemCaptureQueue, read_pending_queue_snapshot
+from open_brain.capture.http import BodyReader, ShareHttpHandler
+from open_brain.capture.queue import read_pending_queue_snapshot
 from open_brain.capture.service import ProcessStatus
 from open_brain.cli._common import (
     CommandDispatchResult,
@@ -24,30 +20,38 @@ from open_brain.cli._common import (
     redacted_error,
     unavailable_envelope,
 )
-from open_brain.cli._registry import CommandAdapterRegistry, scheduled_route_spec
+from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.config import ConfigCliResult, show_config
 from open_brain.cli.doctor import DoctorCommandAdapter
-from open_brain.cli.main import main
-from open_brain.cli.phase1 import build_phase1_command_adapters
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 from open_brain.cli.production_adapters import build_production_command_adapters
 from open_brain.cli.review import ReviewCommandAdapter
-from open_brain.cli.scheduled import ScheduledDispatchResult
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain.core.ports import Clock
-from open_brain.engine import BrainEngine
+from open_brain.engine import (
+    EngineTaskSet,
+    LockScope,
+    PublicJobCaptureContext,
+    PublicJobCaptureSink,
+    open_local_engine,
+)
 from open_brain.events.store import SqliteEventStore
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.life_os import LifePlanRequest, LifeResetRequest
 from open_brain.integrations.life_os_runtime import LifeOSPlanningRuntime
+from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.messaging_runtime import (
     PersistentMessagingCursorStore,
     PersistentMessagingRuntime,
     SqliteMessageInbox,
     SqliteReviewProposalWriter,
 )
+from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ports import Capability, ProviderSyncRequest, SyncStatus
+from open_brain.integrations.retrieval import MetadataOnlyRetrievalFeedback
 from open_brain.ledger.embed import embed_text
+from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy
 from open_brain.ledger.store import SqliteLedgerStore, inspect_published_references
 from open_brain.operations.backup import BackupError
 from open_brain.operations.backup_writer import (
@@ -80,7 +84,7 @@ from open_brain.operations.index import IndexError as IndexOperationError
 from open_brain.operations.index import IndexRoots, check_index
 from open_brain.operations.index_writer import IndexEffectCapability, IndexWriterApplication
 from open_brain.operations.local_effect import FilesystemPreparedEffectCapability
-from open_brain.operations.models import JobSpec, LockScope
+from open_brain.operations.models import JobSpec
 from open_brain.operations.now import NowItem, NowProjectionInput, NowRoots, check_now
 from open_brain.operations.now_runtime import (
     NowEffectCapability,
@@ -105,19 +109,12 @@ from open_brain.operations.probes import (
     writer_ownership_probe,
 )
 from open_brain.operations.replay_journal import SqliteReplayJournal
-from open_brain.operations.runlog import (
-    RunErrorClass,
-    RunMetadata,
-    RunOutcome,
-    classify_exit_code,
-)
-from open_brain.operations.runlog_store import FilesystemRunLogStore, RunLogStoreError
+from open_brain.operations.scheduled_results import ScheduledDispatchResult
 from open_brain.operations.writer_jobs import (
     WriterJobError,
     WriterJobSpec,
     run_writer_job,
 )
-from open_brain.production.application import compose_production_application
 from open_brain.production.capture import compose_production_capture_runtime
 from open_brain.production.curation import (
     ProductionCurationError,
@@ -165,10 +162,6 @@ from open_brain.production.sqlite_backup import (
     probe_local_sqlite_backups,
 )
 from open_brain.production.transport import DnsPinnedHttpTransport, SystemResolver
-from open_brain.production.youtube_poll import (
-    ProductionYouTubePollRuntime,
-    load_private_youtube_config,
-)
 from open_brain.profile import compile_single_user_local
 from open_brain.providers.base import ProviderService
 from open_brain.review.maintenance import predecessor_curation_taxonomy
@@ -177,13 +170,23 @@ from open_brain.review.store import (
     SqliteReviewStore,
     inspect_review_schema,
 )
-from open_brain.services.entrypoints import (
+from open_brain.services.capabilities import (
+    ProductionApplication,
+    compose_production_application,
+)
+from open_brain.services.connectors import (
+    ConnectorHost,
+    ConnectorOutcome,
+    ConnectorProfile,
+    RunContextFactory,
+)
+from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
+from open_brain.services.runtime import (
     ServiceConfigurationError,
     compose_http_from_config,
     load_private_http_bind_config,
     read_private_service_secret,
 )
-from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
 from open_brain.storage.locks import FileLease, LockBusyError, inspect_file_leases
 from open_brain.storage.sqlite import SCHEMA_VERSION, inspect_event_schema
 from open_brain.storage.writer_record import WriterRecordError, read_canonical_writer_record
@@ -194,6 +197,100 @@ _LOCK_STALE_AFTER_SECONDS = {
     LockScope.BACKUP_PROFILE: 86_400,
     LockScope.INGRESS: 300,
 }
+
+__all__ = ["ProductionApplication", "compose_production_application"]
+
+
+@dataclass(frozen=True, slots=True)
+class SingleUserLocalApplication:
+    """One app-owned local root exposing the engine's public task capabilities."""
+
+    tasks: EngineTaskSet
+    feedback: MetadataOnlyRetrievalFeedback
+    connector_profile: ConnectorProfile = field(default_factory=ConnectorProfile)
+    connector_host: ConnectorHost = field(default_factory=ConnectorHost)
+
+    @classmethod
+    def open(
+        cls,
+        root: Path,
+        *,
+        connector_profile: ConnectorProfile | None = None,
+        connector_host: ConnectorHost | None = None,
+    ) -> SingleUserLocalApplication:
+        selected_profile = ConnectorProfile() if connector_profile is None else connector_profile
+        selected_host = ConnectorHost() if connector_host is None else connector_host
+        if not isinstance(selected_profile, ConnectorProfile) or not isinstance(
+            selected_host, ConnectorHost
+        ):
+            raise ValueError("invalid connector application configuration")
+        return cls(
+            tasks=open_local_engine(compile_single_user_local(root)),
+            feedback=MetadataOnlyRetrievalFeedback(),
+            connector_profile=selected_profile,
+            connector_host=selected_host,
+        )
+
+    def discover_connectors(self) -> tuple[str, ...]:
+        """Enumerate allow-listed connector metadata without importing connector modules."""
+        return tuple(item.name for item in self.connector_host.discover(self.connector_profile))
+
+    def cli_adapters(self) -> Phase1CommandAdapterRegistry:
+        from open_brain.cli.phase1 import build_phase1_command_adapters
+
+        return build_phase1_command_adapters(self.tasks.phase1)
+
+    def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler:
+        return Phase1UiHandler(expected_bearer_token=expected_bearer_token, tasks=self.tasks.phase1)
+
+    def share_handler(
+        self,
+        *,
+        expected_bearer_token: str,
+        body_reader: BodyReader,
+        clock: Callable[[], datetime],
+    ) -> ShareHttpHandler:
+        return ShareHttpHandler(
+            expected_bearer_token=expected_bearer_token,
+            capture=self.tasks.capture,
+            clock=clock,
+            body_reader=body_reader,
+        )
+
+    def mcp_adapter(self, *, allowed_space_ids: frozenset[str] = frozenset()) -> EngineMcpAdapter:
+        return EngineMcpAdapter(
+            retrieval=self.tasks.retrieval.scoped(
+                allowed_space_ids=allowed_space_ids
+            ),
+            feedback=self.feedback,
+        )
+
+    def public_job_sink(self, job_id: str) -> PublicJobCaptureSink:
+        return self.tasks.capture.public_job_sink(self.public_job_context(job_id))
+
+    def public_job_context(self, job_id: str) -> PublicJobCaptureContext:
+        """Return the validated non-owner capture actor used by one public job."""
+        identities = {
+            "JOB-005": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0005",
+            "JOB-027": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0027",
+            "JOB-028": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0028",
+            "JOB-029": "c5b2a0d0-26a5-4a52-a4ee-8a2be15d0029",
+        }
+        identity = identities.get(job_id)
+        if identity is None:
+            raise ValueError("unsupported public capture job")
+        actor_id = "actor_" + identity
+        return PublicJobCaptureContext.create(
+            profile=self.tasks.profile,
+            actor_id=actor_id,
+            role_claim={
+                "actor_id": actor_id,
+                "capabilities": ["capture.accept"],
+                "role_claim_id": "role_claim_" + identity,
+                "role_id": "role_" + identity,
+                "tenant_id": self.tasks.profile.tenant_id,
+            },
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -345,28 +442,28 @@ class ConfiguredScheduledAdapters:
     config: AppConfig
     clock: Clock
     environment: Mapping[str, object] = field(default_factory=dict)
-    youtube_media_adapter: YouTubeMediaAdapter | None = None
+    connector_context_factories: Mapping[str, RunContextFactory] = field(default_factory=dict)
     imessage_history_client: ImessageHistoryClient | None = None
     imessage_service_mode: bool = False
     http_server_factory: HttpServerFactory | None = None
     http_service_mode: bool = False
     provider_service: ProviderService | None = None
+    public_application: SingleUserLocalApplication | None = None
 
     def dispatch_capture(self, application: object) -> ScheduledDispatchResult:
         job_id = getattr(getattr(application, "job", None), "id", "JOB-000")
         try:
-            queue = FilesystemCaptureQueue(self.config.capture_root)
-            snapshot = queue.pending_snapshot()
-            if snapshot.malformed_count:
-                return ScheduledDispatchResult.failed(job_id)
-            if job_id == "JOB-005":
-                return self._dispatch_imessage(job_id=job_id, queue=queue)
-            if job_id in {"JOB-027", "JOB-028"}:
-                return self._dispatch_http_service(job_id)
-            if job_id == "JOB-029":
-                return self._dispatch_youtube_poll(job_id=job_id, queue=queue)
             if job_id not in {"JOB-005", "JOB-027", "JOB-028", "JOB-029"}:
                 return ScheduledDispatchResult.configuration(job_id)
+            if self.public_application is None:
+                return ScheduledDispatchResult.configuration(job_id)
+            sink = self.public_application.public_job_sink(job_id)
+            if job_id == "JOB-005":
+                return self._dispatch_imessage(job_id=job_id, sink=sink)
+            if job_id in {"JOB-027", "JOB-028"}:
+                return self._dispatch_http_service(job_id, sink=sink)
+            if job_id == "JOB-029":
+                return self._dispatch_youtube_poll(job_id=job_id)
         except Exception:
             return ScheduledDispatchResult.configuration(job_id)
         return ScheduledDispatchResult.completed(job_id)
@@ -375,7 +472,7 @@ class ConfiguredScheduledAdapters:
         self,
         *,
         job_id: str,
-        queue: FilesystemCaptureQueue,
+        sink: PublicJobCaptureSink,
     ) -> ScheduledDispatchResult:
         reference = self.environment.get("OPEN_BRAIN_IMESSAGE_CONFIG")
         if not isinstance(reference, str) or not reference:
@@ -384,7 +481,7 @@ class ConfiguredScheduledAdapters:
             runtime = compose_production_imessage_ingress(
                 config_path=Path(reference),
                 state_root=self.config.state_root,
-                queue=queue,
+                sink=sink,
                 history_client=self.imessage_history_client,
             )
             if self.imessage_service_mode:
@@ -397,7 +494,12 @@ class ConfiguredScheduledAdapters:
             return ScheduledDispatchResult.failed(job_id)
         return ScheduledDispatchResult.completed(job_id)
 
-    def _dispatch_http_service(self, job_id: str) -> ScheduledDispatchResult:
+    def _dispatch_http_service(
+        self,
+        job_id: str,
+        *,
+        sink: PublicJobCaptureSink | None = None,
+    ) -> ScheduledDispatchResult:
         settings = {
             "JOB-026": (
                 "OPEN_BRAIN_UI_CONFIG",
@@ -428,18 +530,17 @@ class ConfiguredScheduledAdapters:
             if isinstance(key, str) and isinstance(value, str)
         }
         try:
-            application = compose_production_application(
-                config=self.config,
-                clock=self.clock.now,
-            )
+            if self.public_application is None:
+                return ScheduledDispatchResult.configuration(job_id)
             lifecycle = compose_http_from_config(
                 config=self.config,
-                application=application,
+                application=self.public_application,
                 environment=environment,
                 file_reader=read_private_service_secret,
                 bind=load_private_http_bind_config(Path(reference)),
                 secret_name=secret_name,
                 route_mode=route_mode,
+                capture=sink,
             )
             if not self.http_service_mode:
                 return ScheduledDispatchResult.completed(job_id)
@@ -470,29 +571,30 @@ class ConfiguredScheduledAdapters:
         self,
         *,
         job_id: str,
-        queue: FilesystemCaptureQueue,
     ) -> ScheduledDispatchResult:
         reference = self.environment.get("OPEN_BRAIN_YOUTUBE_CONFIG")
-        if not isinstance(reference, str) or not reference:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or not Path(reference).is_absolute()
+        ):
+            return ScheduledDispatchResult.configuration(job_id)
+        if self.public_application is None:
+            return ScheduledDispatchResult.configuration(job_id)
+        context_factory = self.connector_context_factories.get("youtube")
+        if context_factory is None:
             return ScheduledDispatchResult.configuration(job_id)
         try:
-            poll_config = load_private_youtube_config(Path(reference))
-            if poll_config.requires_external_egress and not self.config.egress_enabled:
-                return ScheduledDispatchResult.configuration(job_id)
-            media_adapter = self.youtube_media_adapter
-            if media_adapter is None and poll_config.requires_external_egress:
-                media_adapter = compose_production_capture_media_adapter(config=self.config)
-            runtime = ProductionYouTubePollRuntime(
-                config=poll_config,
-                state=FilesystemYouTubePollState(self.config.state_root / "youtube-poll"),
-                queue=queue,
-                media_adapter=media_adapter or _UnavailableYouTubeMediaAdapter(),
-                clock=self.clock.now,
+            receipt = self.public_application.connector_host.run(
+                "youtube",
+                profile=self.public_application.connector_profile,
+                context_factory=context_factory,
             )
-            result = runtime.run(max_items=1_000)
         except Exception:
             return ScheduledDispatchResult.failed(job_id)
-        if result.stubbed_count:
+        if receipt.outcome is ConnectorOutcome.DEFERRED:
+            return ScheduledDispatchResult.completed(job_id)
+        if receipt.outcome is not ConnectorOutcome.COMPLETED or receipt.stubbed_count:
             return ScheduledDispatchResult.failed(job_id)
         return ScheduledDispatchResult.completed(job_id)
 
@@ -979,6 +1081,7 @@ class ConfiguredScheduledAdapters:
             ):
                 composition = build_production_curation_batch(
                     config=self.config,
+                    taxonomy=_ledger_taxonomy(self.config),
                     now=now,
                     reviews=reviews,
                     events=events,
@@ -1427,6 +1530,7 @@ def build_command_adapters(
     )
     production = build_production_command_adapters(application.command_dependencies)
     adapters = dict(production.adapters)
+    adapters.pop("migrate", None)
     adapters.update(
         {
             "config": ConfigCommandAdapter(config=config),
@@ -1441,86 +1545,19 @@ def build_command_adapters(
     )
 
 
-def run(
-    argv: Sequence[str] | None = None,
-    *,
-    environment: Mapping[str, object] | None = None,
-) -> int:
-    """Load real configuration and dispatch through the pure CLI core.
-
-    This is the real process entry point: it performs the I/O that ``main``
-    deliberately does not (loading configuration from the environment). A
-    missing or invalid configuration degrades to the pre-existing unwired
-    behavior rather than crashing the process, so ``--version``/``--help``
-    and other commands are unaffected by configuration issues.
-    """
-    env = os.environ if environment is None else environment
-    phase1_root = env.get("OPEN_BRAIN_ROOT")
-    if isinstance(phase1_root, str) and phase1_root:
-        try:
-            profile = compile_single_user_local(Path(phase1_root))
-            engine = BrainEngine.open(profile)
-            return main(argv, command_adapters=build_phase1_command_adapters(engine))
-        except (OSError, ValueError, LockBusyError):
-            return main(argv)
-    try:
-        config = AppConfig.load(environment=env)
-    except ConfigError:
-        return main(
-            argv,
-            command_adapters=_degraded_doctor_adapters(),
-            scheduled_adapters=ConfigurationFailedScheduledAdapters(),
-        )
-    arguments = tuple(sys.argv[1:] if argv is None else argv)
-    scheduled_job_id = env.get("OPEN_BRAIN_JOB_ID")
-    scheduled_adapters = ConfiguredScheduledAdapters(
-        config,
-        _SystemClock(),
-        environment=env,
-        imessage_service_mode=scheduled_job_id == "JOB-005",
-        http_service_mode=scheduled_job_id in {"JOB-026", "JOB-027", "JOB-028"},
-    )
-    route = scheduled_route_spec(
-        arguments,
-        job_id=scheduled_job_id if isinstance(scheduled_job_id, str) else None,
-    )
-    if (
-        route is not None
-        and isinstance(scheduled_job_id, str)
-        and scheduled_job_id == route.job_id
-    ):
-        started_at = _utc_now()
-        exit_code = main(
-            argv,
-            scheduled_adapters=scheduled_adapters,
-            scheduled_job_id=scheduled_job_id,
-        )
-        finished_at = _utc_now()
-        try:
-            outcome = classify_exit_code(int(exit_code))
-            error_class = {
-                RunOutcome.SUCCEEDED: None,
-                RunOutcome.SKIPPED_LOCKED: RunErrorClass.LOCK_HELD,
-                RunOutcome.CONFIGURATION_FAILED: RunErrorClass.CONFIGURATION,
-                RunOutcome.FAILED: RunErrorClass.JOB_FAILURE,
-            }[outcome]
-            FilesystemRunLogStore(root=config.state_root).append(
-                RunMetadata.create(
-                    job_id=scheduled_job_id,
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    exit_code=int(exit_code),
-                    error_class=error_class,
-                    metrics={},
-                )
+def _ledger_taxonomy(config: AppConfig) -> LedgerTaxonomy:
+    taxonomy = config.ledger.taxonomy
+    return LedgerTaxonomy.create(
+        version=taxonomy.version,
+        routes=tuple(
+            LedgerRoute.create(
+                path_prefix=route.path_prefix,
+                topic_id=route.topic_id,
+                topic_label=route.topic_label,
+                privacy_tier=route.privacy_tier,
             )
-        except (RunLogStoreError, ValueError):
-            return ExitCode.FAILURE
-        return exit_code
-    return main(
-        argv,
-        command_adapters=build_command_adapters(config, environment=env),
-        scheduled_adapters=scheduled_adapters,
+            for route in taxonomy.routes
+        ),
     )
 
 
@@ -1597,16 +1634,6 @@ def _named_private_file(config: AppConfig, name: str) -> Path:
 class _SystemClock:
     def now(self) -> datetime:
         return _utc_now()
-
-
-class _UnavailableYouTubeMediaAdapter:
-    def playlist_items(self, url: str, *, command: MediaCommand) -> tuple[str, ...]:
-        del url, command
-        raise RuntimeError("YouTube media capability unavailable")
-
-    def media(self, video_id: str, *, command: MediaCommand) -> YouTubeMediaResult:
-        del video_id, command
-        raise RuntimeError("YouTube media capability unavailable")
 
 
 def _schema_snapshot(config: AppConfig) -> SchemaSnapshot:

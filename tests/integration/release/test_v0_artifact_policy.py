@@ -157,13 +157,13 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
         "bundler_candidate": "PyInstaller 6 onedir",
         "fallback": "Nuitka standalone",
         "published": [],
-        "status": "pending-phase-1-spike",
+        "status": "pending-phase-4-spike",
     }
 
 
-def test_artifact_characterization_document_marks_phase_one_work_pending() -> None:
+def test_artifact_characterization_document_marks_phase_four_work_pending() -> None:
     document = DOCUMENTATION_PATH.read_text(encoding="utf-8")
 
-    assert "Phase 1 pending" in document
+    assert "Phase 4 pending" in document
     assert "does not" in document
     assert "native artifact exists" in document

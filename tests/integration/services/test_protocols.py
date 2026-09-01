@@ -9,7 +9,7 @@ from typing import cast
 import pytest
 
 from open_brain.capture.http import BodyReader, RequestReadTimeout, ShareHttpHandler
-from open_brain.core.ports import PutDisposition, PutResult
+from open_brain.engine import CaptureReceipt
 from open_brain.integrations.mcp import LocalStdioMcpAdapter
 from open_brain.integrations.ports import (
     FeedbackOutcome,
@@ -313,14 +313,22 @@ def test_stdio_mcp_replaces_oversized_output_with_a_safe_bounded_error() -> None
     }
 
 
-class _Queue:
+class _Capture:
     def __init__(self) -> None:
-        self.enqueued = 0
+        self.accepted = 0
 
-    def enqueue(self, item: object, *, item_id: str, payload_digest: str) -> PutResult:
-        del item
-        self.enqueued += 1
-        return PutResult(PutDisposition.CREATED, item_id, payload_digest)
+    def accept(self, payload: object, **kwargs: object) -> CaptureReceipt:
+        del payload, kwargs
+        self.accepted += 1
+        return CaptureReceipt(
+            capture_id="capture_synthetic",
+            payload_family="reference_or_file",
+            state="accepted",
+            enrichment_state="unavailable",
+            space_id=None,
+            canonical_path=None,
+            duplicate=False,
+        )
 
 
 class _BodyReader:
@@ -336,11 +344,11 @@ class _BodyReader:
         return self.body
 
 
-def _share_factory(queue: _Queue) -> ShareHandlerFactory:
+def _share_factory(capture: _Capture) -> ShareHandlerFactory:
     def create(body_reader: BodyReader) -> ShareHttpHandler:
         return ShareHttpHandler(
             expected_bearer_token="synthetic-token",
-            queue=queue,
+            capture=capture,
             clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
             body_reader=body_reader,
         )
@@ -373,13 +381,13 @@ def _headers(body: bytes) -> tuple[tuple[str, str], ...]:
 
 
 def test_http_service_routes_only_authenticated_ui_and_share_handlers_with_limits() -> None:
-    queue = _Queue()
+    capture = _Capture()
     ui_handler = UiHandler(
         expected_bearer_token="synthetic-token", page_reader=_EmptyPageReader()
     )
     service = HttpService(
         ui_handler=ui_handler,
-        share_handler_factory=_share_factory(queue),
+        share_handler_factory=_share_factory(capture),
         config=HttpServiceConfig(maximum_header_bytes=1_024, maximum_body_bytes=1_024),
     )
     body = json.dumps(
@@ -439,7 +447,7 @@ def test_http_service_routes_only_authenticated_ui_and_share_handlers_with_limit
 
     assert (health.status, json.loads(health.body)) == (200, {"status": "ok"})
     assert shared.status == 202
-    assert queue.enqueued == 1
+    assert capture.accepted == 1
     assert (unauthorized.status, unauthorized.body) == (401, b"unauthorized")
     assert (invalid_method.status, invalid_method.body) == (405, b"method_not_allowed")
     assert oversized_headers.body == b"invalid_request"
@@ -458,7 +466,7 @@ def test_http_service_rejects_oversized_response_during_direct_dispatch() -> Non
             expected_bearer_token="synthetic-token",
             page_reader=_OversizedPageReader(),
         ),
-        share_handler_factory=_share_factory(_Queue()),
+        share_handler_factory=_share_factory(_Capture()),
         config=HttpServiceConfig(maximum_response_bytes=1_024),
     )
 
@@ -524,12 +532,12 @@ class _FakeHttpServer:
 
 
 def test_http_server_lifecycle_is_injectable_and_closes_without_a_listener() -> None:
-    queue = _Queue()
+    capture = _Capture()
     service = HttpService(
         ui_handler=UiHandler(
             expected_bearer_token="synthetic-token", page_reader=_EmptyPageReader()
         ),
-        share_handler_factory=_share_factory(queue),
+        share_handler_factory=_share_factory(capture),
     )
     fake_server = _FakeHttpServer()
     observed: list[tuple[tuple[str, int], type[BaseHTTPRequestHandler]]] = []

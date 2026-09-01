@@ -26,6 +26,7 @@ from open_brain.engine import (
 )
 from open_brain.profile import compile_single_user_local
 from open_brain.providers.base import ProviderMode
+from open_brain.storage.filesystem import RootConfinementError
 from open_brain.storage.locks import FileLease, LockBusyError
 from open_brain.storage.markdown import parse_markdown
 
@@ -42,9 +43,7 @@ def _validator(name: str) -> Draft202012Validator:
     registry = Registry().with_resources(
         (str(schema["$id"]), Resource.from_contents(schema)) for schema in schemas.values()
     )
-    return Draft202012Validator(
-        schemas[name], registry=registry, format_checker=_FORMAT_CHECKER
-    )
+    return Draft202012Validator(schemas[name], registry=registry, format_checker=_FORMAT_CHECKER)
 
 
 def _engine(
@@ -91,8 +90,7 @@ def test_no_model_accepts_every_payload_and_separates_quick_from_canonical(
     )
 
     receipts = [
-        engine.capture.accept(payload, delivery_id=f"delivery.{name}")
-        for name, payload in requests
+        engine.capture.accept(payload, delivery_id=f"delivery.{name}") for name, payload in requests
     ]
     canonical = engine.capture.accept(
         TextPayload("Synthetic notebook phrase"),
@@ -151,6 +149,25 @@ def test_mutation_fails_closed_while_another_canonical_writer_holds_the_root(
     assert engine.inbox.list() == ()
 
 
+def test_open_engine_rejects_runtime_root_replacement_before_io(tmp_path: Path) -> None:
+    selected = tmp_path / "selected"
+    replacement = tmp_path / "replacement"
+    engine = _engine(selected)
+    compile_single_user_local(replacement)
+    displaced = tmp_path / "displaced-selected"
+    selected.rename(displaced)
+    replacement.rename(selected)
+
+    with pytest.raises(RootConfinementError, match="identity changed"):
+        engine.capture.accept(
+            TextPayload("Must not reach replacement root"),
+            delivery_id="delivery.root-replaced",
+        )
+
+    assert not (selected / ".open-brain/state/phase1.sqlite3").exists()
+    assert (displaced / ".open-brain/state/phase1.sqlite3").exists()
+
+
 def test_third_party_reference_is_retrievable_source_until_approved(tmp_path: Path) -> None:
     engine = _engine(tmp_path / "brain")
     receipt = engine.capture.accept(
@@ -161,9 +178,7 @@ def test_third_party_reference_is_retrievable_source_until_approved(tmp_path: Pa
     results = engine.retrieval.search("external article")
 
     assert receipt.canonical_path is None
-    assert [(result.record_type, result.trust) for result in results] == [
-        ("source", "third_party")
-    ]
+    assert [(result.record_type, result.trust) for result in results] == [("source", "third_party")]
     assert results[0].provenance["capture_id"] == receipt.capture_id
 
 
@@ -263,16 +278,14 @@ def test_spaces_rename_and_route_without_changing_identities(tmp_path: Path) -> 
         capture.capture_id
     )
     assert engine.retrieval.search("space note")[0].space_id == space.space_id
-    assert (root / "content" / "spaces" / space.slug / "_space.md").is_file()
+    assert len(tuple((root / "content" / "spaces").rglob("_space.md"))) == 1
 
 
 @pytest.mark.parametrize(
     "fault",
     [CaptureFault.AFTER_SPACE_RESERVATION, CaptureFault.AFTER_SPACE_WRITE],
 )
-def test_space_creation_recovers_one_stable_identity(
-    tmp_path: Path, fault: CaptureFault
-) -> None:
+def test_space_creation_recovers_one_stable_identity(tmp_path: Path, fault: CaptureFault) -> None:
     root = tmp_path / fault.value
     engine = _engine(root, faults={fault})
 
@@ -280,9 +293,7 @@ def test_space_creation_recovers_one_stable_identity(
         engine.inbox.create_space("Recovery", delivery_id="delivery.space.recovery")
 
     reopened = _engine(root)
-    recovered = reopened.inbox.create_space(
-        "Recovery", delivery_id="delivery.space.recovery"
-    )
+    recovered = reopened.inbox.create_space("Recovery", delivery_id="delivery.space.recovery")
     assert reopened.inbox.spaces() == (recovered,)
     assert len(tuple((root / "content" / "spaces").rglob("_space.md"))) == 1
 
@@ -303,17 +314,19 @@ def test_space_routing_recovers_without_changing_capture_identity(
     engine = _engine(root, faults={fault})
 
     with pytest.raises(InjectedFault):
-        engine.inbox.route(
-            capture.capture_id, space_id, delivery_id="delivery.route.recovery"
-        )
+        engine.inbox.route(capture.capture_id, space_id, delivery_id="delivery.route.recovery")
 
     reopened = _engine(root)
     routed = reopened.inbox.route(
         capture.capture_id, space_id, delivery_id="delivery.route.recovery"
     )
     source = next((root / "sources" / "captures").rglob("*.json"))
+    routing = json.loads(next((root / "history" / "routes").rglob("*.json")).read_bytes())
     assert routed.capture_id == capture.capture_id
-    assert json.loads(source.read_bytes())["space_id"] == space_id
+    assert json.loads(source.read_bytes())["space_id"] is None
+    assert routing["capture_id"] == capture.capture_id
+    assert routing["space_id"] == space_id
+    assert routing["receipt"]["kind"] == "routing"
     assert reopened.retrieval.search("routed recovery")[0].space_id == space_id
 
 
@@ -400,9 +413,7 @@ def test_sibling_proposal_set_recovers_without_duplicate_outputs(
     engine = _engine(root, faults={fault})
 
     with pytest.raises(InjectedFault):
-        engine.review.propose(
-            capture.capture_id, drafts, delivery_id="delivery.proposal.recovery"
-        )
+        engine.review.propose(capture.capture_id, drafts, delivery_id="delivery.proposal.recovery")
 
     reopened = _engine(root)
     recovered = reopened.review.propose(
@@ -422,9 +433,7 @@ def test_sibling_proposal_set_recovers_without_duplicate_outputs(
         CaptureFault.AFTER_REVIEW_PUBLICATION_WRITE,
     ],
 )
-def test_terminal_decision_recovers_one_publication(
-    tmp_path: Path, fault: CaptureFault
-) -> None:
+def test_terminal_decision_recovers_one_publication(tmp_path: Path, fault: CaptureFault) -> None:
     root = tmp_path / fault.value
     setup = _engine(root, starter_spaces=("Recovery",))
     capture = setup.capture.accept(
@@ -515,9 +524,7 @@ def test_sibling_proposals_have_independent_terminal_results(tmp_path: Path) -> 
     assert len(tuple((root / "history" / "decisions").rglob("*.json"))) == 3
     assert len(tuple((root / "history" / "publications").rglob("*.json"))) == 2
     canonical_results = engine.retrieval.search("meaning", record_type="canonical")
-    assert {result.trust for result in canonical_results} == {
-        "reviewed"
-    }
+    assert {result.trust for result in canonical_results} == {"reviewed"}
 
 
 def test_retrieval_is_exact_lexical_typed_space_scoped_and_fresh_after_edit(
@@ -550,8 +557,8 @@ def test_retrieval_is_exact_lexical_typed_space_scoped_and_fresh_after_edit(
     assert all(result.provenance["capture_id"] for result in lexical)
     assert all(result.explanation for result in lexical)
 
-    assert first.canonical_path is not None
-    page = root / first.canonical_path
+    assert first.canonical_path == first.capture_id
+    page = next((root / "content" / "spaces").rglob("page_*.md"))
     page.write_text(
         page.read_text(encoding="utf-8").replace(
             "Exact synthetic phrase and lexical comet", "Fresh owner edit token"

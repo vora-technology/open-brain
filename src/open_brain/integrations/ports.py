@@ -899,7 +899,7 @@ class OptionalIntegrationMetadata:
             )
 
         try:
-            import_module(self.import_path)
+            _loaded_optional_module(self.import_path)
         except ModuleNotFoundError:
             return IntegrationOutcome.unavailable(
                 capability=self.capability,
@@ -911,6 +911,10 @@ class OptionalIntegrationMetadata:
                 reason=UnavailableReason.LOAD_FAILURE,
             )
         return IntegrationOutcome.available_for(capability=self.capability)
+
+
+def _loaded_optional_module(import_path: str) -> object:
+    return import_module(import_path)
 
 
 @dataclass(frozen=True, slots=True)

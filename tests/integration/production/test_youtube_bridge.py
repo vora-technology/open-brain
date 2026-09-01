@@ -10,7 +10,8 @@ from open_brain.capture.models import (
     ShareResponse,
     ShareStatus,
 )
-from open_brain.production.youtube_bridge import consume_youtube_spool
+from open_brain.production.youtube_bridge import PublicJobShareSubmitter, consume_youtube_spool
+from open_brain.services.application import SingleUserLocalApplication
 
 
 @dataclass
@@ -71,3 +72,20 @@ def test_consumer_leaves_invalid_record_for_recovery(tmp_path: Path) -> None:
     assert result.failed == 1
     assert record.exists()
     assert submitter.requests == []
+
+
+def test_public_youtube_submitter_uses_the_injected_job_sink(tmp_path: Path) -> None:
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
+    submitter = PublicJobShareSubmitter(application.public_job_sink("JOB-029"))
+
+    response = submitter.submit(
+        ShareRequest.create(
+            url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            why="Synthetic retained reason",
+            text="Synthetic retained transcript",
+            privacy_tier="work",
+        )
+    )
+
+    assert response.capture_id.startswith("capture_")
+    assert [item.capture_id for item in application.tasks.inbox.list()] == [response.capture_id]

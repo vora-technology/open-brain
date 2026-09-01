@@ -8,9 +8,10 @@ from pathlib import Path, PurePosixPath
 import pytest
 
 from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain.engine import LockScope
 from open_brain.operations.index import IndexRoots, check_index
 from open_brain.operations.index_writer import IndexEffectCapability, IndexWriterApplication
-from open_brain.operations.models import DeploymentTarget, LockScope
+from open_brain.operations.models import DeploymentTarget
 from open_brain.operations.replay_journal import SqliteReplayJournal
 from open_brain.operations.writer_jobs import (
     EffectCommand,

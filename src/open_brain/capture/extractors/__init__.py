@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from open_brain.core.models import RawAssetRef
+from open_brain.engine import RawAssetRef
 
 
 @dataclass(frozen=True, slots=True)

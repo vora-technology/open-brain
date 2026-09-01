@@ -7,6 +7,8 @@ import pytest
 from open_brain.config import (
     AppConfig,
     ConfigError,
+    LedgerRouteConfig,
+    LedgerTaxonomyConfig,
     NamedSecretRef,
     RetainedRootIdentities,
     RetainedRoots,
@@ -575,8 +577,21 @@ def test_example_config_contains_placeholders_only() -> None:
 def test_ledger_taxonomy_defaults_to_an_immutable_empty_versioned_config(tmp_path: Path) -> None:
     config = AppConfig.from_sources(explicit=_explicit_roots(tmp_path))
 
+    assert isinstance(config.ledger.taxonomy, LedgerTaxonomyConfig)
     assert config.ledger.taxonomy.version == "ledger-v1"
     assert config.ledger.taxonomy.routes == ()
+
+
+def test_ledger_route_configuration_is_owned_by_the_application() -> None:
+    route = LedgerRouteConfig.create(
+        path_prefix=("professional",),
+        topic_id="research",
+        topic_label="Research",
+        privacy_tier="work",
+    )
+
+    assert route.__class__.__module__ == "open_brain.config"
+    assert route.privacy_tier == "work"
 
 
 def test_ledger_taxonomy_loads_only_synthetic_relative_routes(tmp_path: Path) -> None:
@@ -601,7 +616,7 @@ def test_ledger_taxonomy_loads_only_synthetic_relative_routes(tmp_path: Path) ->
 
     route = config.ledger.taxonomy.routes[0]
     assert route.path_prefix == ("professional", "research")
-    assert route.privacy_tier is PrivacyTier.WORK
+    assert route.privacy_tier == PrivacyTier.WORK.value
 
 
 @pytest.mark.parametrize(

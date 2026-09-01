@@ -5,13 +5,12 @@ from __future__ import annotations
 import os
 import re
 import tomllib
+import unicodedata
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from typing import Final
-
-from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy, LedgerValidationError
 
 
 class ConfigError(ValueError):
@@ -281,14 +280,118 @@ def _validate_toml(data: Mapping[str, object]) -> dict[str, object]:
     return values
 
 
+_LEDGER_IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9_-]{0,127}$")
+_LEDGER_VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+_UNSAFE_LEDGER_LABEL = re.compile(r"[\#>*_`\[\]()<>|]")
+_LEDGER_PRIVACY_TIERS = frozenset({"public", "work", "personal"})
+
+
+def _ledger_text(value: object, *, field_name: str) -> str:
+    if not isinstance(value, str):
+        raise ConfigError(f"invalid {field_name}")
+    normalized = unicodedata.normalize("NFC", value)
+    if (
+        not normalized
+        or normalized.isspace()
+        or any(ord(character) < 32 for character in normalized)
+    ):
+        raise ConfigError(f"invalid {field_name}")
+    return normalized
+
+
+@dataclass(frozen=True, slots=True)
+class LedgerRouteConfig:
+    """Application-owned configuration for one ledger taxonomy route."""
+
+    path_prefix: tuple[str, ...]
+    topic_id: str
+    topic_label: str
+    privacy_tier: str | None
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        path_prefix: tuple[str, ...],
+        topic_id: str,
+        topic_label: str,
+        privacy_tier: str | None,
+    ) -> LedgerRouteConfig:
+        if not isinstance(path_prefix, tuple) or not path_prefix:
+            raise ConfigError("invalid ledger path prefix")
+        normalized_prefix = tuple(
+            _ledger_text(component, field_name="ledger path component")
+            for component in path_prefix
+        )
+        if any(
+            component in {".", ".."} or "/" in component or "\\" in component
+            for component in normalized_prefix
+        ):
+            raise ConfigError("invalid ledger path prefix")
+        normalized_id = _ledger_text(topic_id, field_name="ledger topic ID")
+        if not _LEDGER_IDENTIFIER.fullmatch(normalized_id):
+            raise ConfigError("invalid ledger topic ID")
+        normalized_label = _ledger_text(topic_label, field_name="ledger topic label")
+        if (
+            len(normalized_label) > 128
+            or any(not character.isprintable() for character in normalized_label)
+            or _UNSAFE_LEDGER_LABEL.search(normalized_label)
+        ):
+            raise ConfigError("invalid ledger topic label")
+        if privacy_tier is not None and privacy_tier not in _LEDGER_PRIVACY_TIERS:
+            raise ConfigError("invalid ledger route privacy tier")
+        return cls(normalized_prefix, normalized_id, normalized_label, privacy_tier)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "path_prefix": list(self.path_prefix),
+            "topic_id": self.topic_id,
+            "topic_label": self.topic_label,
+            "privacy_tier": self.privacy_tier,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class LedgerTaxonomyConfig:
+    """Application-owned immutable ledger taxonomy configuration."""
+
+    version: str
+    routes: tuple[LedgerRouteConfig, ...]
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        version: str,
+        routes: tuple[LedgerRouteConfig, ...],
+    ) -> LedgerTaxonomyConfig:
+        if not isinstance(version, str) or _LEDGER_VERSION.fullmatch(version) is None:
+            raise ConfigError("invalid ledger taxonomy version")
+        if not isinstance(routes, tuple) or any(
+            not isinstance(route, LedgerRouteConfig) for route in routes
+        ):
+            raise ConfigError("invalid ledger taxonomy routes")
+        prefixes = tuple(route.path_prefix for route in routes)
+        if len(prefixes) != len(set(prefixes)):
+            raise ConfigError("ambiguous ledger taxonomy routes")
+        return cls(version, tuple(sorted(routes, key=lambda route: route.path_prefix)))
+
+    @classmethod
+    def empty(cls) -> LedgerTaxonomyConfig:
+        return cls.create(version="ledger-v1", routes=())
+
+    def to_dict(self) -> dict[str, object]:
+        return {"version": self.version, "routes": [route.to_dict() for route in self.routes]}
+
+
 @dataclass(frozen=True, slots=True)
 class LedgerConfig:
-    """Immutable, fail-closed configuration for ledger taxonomy routing."""
+    """Immutable, fail-closed application configuration for ledger routing."""
 
-    taxonomy: LedgerTaxonomy = field(default_factory=LedgerTaxonomy.empty)
+    taxonomy: LedgerTaxonomyConfig = field(default_factory=LedgerTaxonomyConfig.empty)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.taxonomy, LedgerTaxonomy):
+        if not isinstance(self.taxonomy, LedgerTaxonomyConfig):
             raise ConfigError("invalid ledger configuration")
 
     def to_dict(self) -> dict[str, object]:
@@ -299,29 +402,29 @@ def _ledger_config(value: object) -> LedgerConfig:
     """Return a safe empty taxonomy whenever untrusted configuration is unusable."""
     try:
         if not isinstance(value, Mapping) or set(value) != {"version", "routes"}:
-            raise LedgerValidationError("invalid ledger taxonomy")
+            raise ConfigError("invalid ledger taxonomy")
         version = value["version"]
         routes_value = value["routes"]
         if not isinstance(routes_value, list):
-            raise LedgerValidationError("invalid ledger taxonomy routes")
+            raise ConfigError("invalid ledger taxonomy routes")
         routes = tuple(_ledger_route(route) for route in routes_value)
-        return LedgerConfig(taxonomy=LedgerTaxonomy.create(version=version, routes=routes))
-    except (KeyError, LedgerValidationError, TypeError, ValueError):
+        return LedgerConfig(taxonomy=LedgerTaxonomyConfig.create(version=version, routes=routes))
+    except (KeyError, ConfigError, TypeError, ValueError):
         return LedgerConfig()
 
 
-def _ledger_route(value: object) -> LedgerRoute:
+def _ledger_route(value: object) -> LedgerRouteConfig:
     if not isinstance(value, Mapping) or set(value) != {
         "path_prefix",
         "topic_id",
         "topic_label",
         "privacy_tier",
     }:
-        raise LedgerValidationError("invalid ledger route")
+        raise ConfigError("invalid ledger route")
     raw_prefix = value["path_prefix"]
     if not isinstance(raw_prefix, list):
-        raise LedgerValidationError("invalid ledger route path prefix")
-    return LedgerRoute.create(
+        raise ConfigError("invalid ledger route path prefix")
+    return LedgerRouteConfig.create(
         path_prefix=tuple(raw_prefix),
         topic_id=value["topic_id"],
         topic_label=value["topic_label"],

@@ -53,6 +53,7 @@ class StoredBlob:
 _DIRECTORY_FLAGS = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
 _FILE_READ_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
 _FILE_CREATE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+RootIdentity = tuple[int, int]
 
 
 def _require_platform_support() -> None:
@@ -85,19 +86,55 @@ def _validated_parts(relative: str | PurePosixPath) -> tuple[str, ...]:
     return path.parts
 
 
-def _open_root(root: Path) -> int:
+def _open_root(root: Path, expected_identity: RootIdentity | None = None) -> int:
     _require_platform_support()
     if not root.is_absolute():
         raise RootConfinementError("unsafe storage root")
+    root_fd = -1
     try:
-        metadata = os.lstat(root)
-        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
-            raise RootConfinementError("unsafe storage root")
-        return os.open(root, _DIRECTORY_FLAGS)
+        parts = root.parts
+        root_fd = os.open(parts[0], _DIRECTORY_FLAGS)
+        for part in parts[1:]:
+            child_fd = os.open(part, _DIRECTORY_FLAGS, dir_fd=root_fd)
+            previous_fd = root_fd
+            root_fd = child_fd
+            os.close(previous_fd)
+        opened = os.fstat(root_fd)
+        observed = (opened.st_dev, opened.st_ino)
+        if expected_identity is not None and observed != expected_identity:
+            raise RootConfinementError("storage root identity changed")
+        return root_fd
     except RootConfinementError:
+        if root_fd >= 0:
+            os.close(root_fd)
         raise
     except OSError:
+        if root_fd >= 0:
+            os.close(root_fd)
         raise RootConfinementError("unsafe storage root") from None
+
+
+def capture_root_identity(root: Path) -> RootIdentity:
+    """Capture one no-follow directory identity for later root-bound operations."""
+    root_fd = _open_root(root)
+    try:
+        metadata = os.fstat(root_fd)
+        return (metadata.st_dev, metadata.st_ino)
+    finally:
+        os.close(root_fd)
+
+
+def assert_root_identity(root: Path, expected_identity: RootIdentity) -> None:
+    """Fail closed unless ``root`` still names the captured directory."""
+    root_fd = _open_root(root, expected_identity)
+    os.close(root_fd)
+
+
+def open_root_descriptor(
+    root: Path, expected_identity: RootIdentity | None = None
+) -> int:
+    """Open a no-follow root descriptor, optionally bound to a captured identity."""
+    return _open_root(root, expected_identity)
 
 
 def _open_child_directory(parent_fd: int, name: str, *, create: bool) -> int:
@@ -175,11 +212,17 @@ def _write_all(file_fd: int, data: bytes) -> None:
         remaining = remaining[written:]
 
 
-def atomic_write_new(*, root: Path, relative: str | PurePosixPath, data: bytes) -> WriteState:
+def atomic_write_new(
+    *,
+    root: Path,
+    relative: str | PurePosixPath,
+    data: bytes,
+    expected_root_identity: RootIdentity | None = None,
+) -> WriteState:
     if not isinstance(data, bytes):
         raise TypeError("data must be bytes")
     parts = _validated_parts(relative)
-    root_fd = _open_root(root)
+    root_fd = _open_root(root, expected_root_identity)
     lock_fd = -1
     parent_fd = -1
     temp_name: str | None = None
@@ -237,11 +280,12 @@ def atomic_replace(
     relative: str | PurePosixPath,
     data: bytes,
     require_existing: bool | None = None,
+    expected_root_identity: RootIdentity | None = None,
 ) -> None:
     if not isinstance(data, bytes):
         raise TypeError("data must be bytes")
     parts = _validated_parts(relative)
-    root_fd = _open_root(root)
+    root_fd = _open_root(root, expected_root_identity)
     lock_fd = -1
     parent_fd = -1
     temp_name: str | None = None
@@ -292,9 +336,14 @@ def atomic_replace(
         os.close(root_fd)
 
 
-def read_confined(*, root: Path, relative: str | PurePosixPath) -> bytes | None:
+def read_confined(
+    *,
+    root: Path,
+    relative: str | PurePosixPath,
+    expected_root_identity: RootIdentity | None = None,
+) -> bytes | None:
     parts = _validated_parts(relative)
-    root_fd = _open_root(root)
+    root_fd = _open_root(root, expected_root_identity)
     parent_fd = -1
     try:
         try:
@@ -308,9 +357,14 @@ def read_confined(*, root: Path, relative: str | PurePosixPath) -> bytes | None:
         os.close(root_fd)
 
 
-def resolve_generated_path(root: Path, relative: str | PurePosixPath) -> Path:
+def resolve_generated_path(
+    root: Path,
+    relative: str | PurePosixPath,
+    *,
+    expected_root_identity: RootIdentity | None = None,
+) -> Path:
     parts = _validated_parts(relative)
-    root_fd = _open_root(root)
+    root_fd = _open_root(root, expected_root_identity)
     try:
         current_fd = os.dup(root_fd)
         try:

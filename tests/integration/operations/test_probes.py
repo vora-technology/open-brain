@@ -5,13 +5,14 @@ from pathlib import Path
 
 from open_brain.capture.queue import PendingQueueSnapshot
 from open_brain.config import AppConfig, ConfigError, RetainedRoots
+from open_brain.engine import LockScope
 from open_brain.operations.doctor import (
     DoctorRole,
     ProbeName,
     ProbeState,
     run_doctor,
 )
-from open_brain.operations.models import DeploymentTarget, LockScope
+from open_brain.operations.models import DeploymentTarget
 from open_brain.operations.probes import (
     BackupEvidenceSnapshot,
     BackupProfileEvidence,

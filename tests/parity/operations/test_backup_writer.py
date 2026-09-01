@@ -8,6 +8,7 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 
+from open_brain.engine import LockScope
 from open_brain.operations.backup import BackupError, BackupObject
 from open_brain.operations.backup_writer import (
     BackupEffectCapability,
@@ -15,7 +16,6 @@ from open_brain.operations.backup_writer import (
     FilesystemBackupSource,
     FilesystemBackupStore,
 )
-from open_brain.operations.models import LockScope
 from open_brain.operations.replay_journal import SqliteReplayJournal
 from open_brain.operations.writer_jobs import (
     EffectCommand,

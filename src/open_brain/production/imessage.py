@@ -32,7 +32,8 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.operations.capture_jobs import CaptureQueue, get_capture_job
+from open_brain.engine import PublicJobCaptureSink
+from open_brain.operations.capture_jobs import get_capture_job
 
 _MAX_CONFIG_BYTES = 64 * 1024
 _MAX_HISTORY_BYTES = 2 * 1024 * 1024
@@ -163,19 +164,19 @@ class ProductionImessageIngress:
         *,
         config: ImessageConfig,
         state_root: Path,
-        queue: CaptureQueue,
+        sink: PublicJobCaptureSink,
         history_client: ImessageHistoryClient,
     ) -> None:
         if (
             not isinstance(config, ImessageConfig)
             or not isinstance(state_root, Path)
             or not state_root.is_absolute()
-            or not callable(getattr(queue, "enqueue", None))
+            or not isinstance(sink, PublicJobCaptureSink)
             or not callable(getattr(history_client, "history", None))
         ):
             raise ValueError("invalid production iMessage ingress")
         self._config = config
-        self._queue = queue
+        self._sink = sink
         self._history = history_client
         self._cursor = _CursorStore(state_root / "imessage-ingress")
 
@@ -188,17 +189,21 @@ class ProductionImessageIngress:
                     after_rowid=prior,
                 )
             )
-            current = max((prior, *(message.rowid for message in messages)))
+            current = prior
             created = 0
             duplicates = 0
             application = get_capture_job("JOB-005")
             for message in messages:
-                if message.rowid <= prior or not self._allowed(message):
+                if message.rowid <= prior:
                     continue
-                append = application.append(
-                    queue=self._queue,
+                if not self._allowed(message):
+                    current = max(current, message.rowid)
+                    continue
+                append = application.submit(
+                    sink=self._sink,
                     envelope=_capture_envelope(message, self._config),
                 )
+                current = max(current, message.rowid)
                 if append.disposition.value == "created":
                     created += 1
                 else:
@@ -333,7 +338,7 @@ def compose_production_imessage_ingress(
     *,
     config_path: Path,
     state_root: Path,
-    queue: CaptureQueue,
+    sink: PublicJobCaptureSink,
     history_client: ImessageHistoryClient | None = None,
 ) -> ProductionImessageIngress:
     selected = history_client
@@ -352,7 +357,7 @@ def compose_production_imessage_ingress(
     return ProductionImessageIngress(
         config=load_private_imessage_config(config_path),
         state_root=state_root,
-        queue=queue,
+        sink=sink,
         history_client=selected,
     )
 
