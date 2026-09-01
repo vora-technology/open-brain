@@ -18,8 +18,15 @@ from open_brain.core.ids import canonical_json_bytes
 from open_brain.integrations.ui import UiBindConfig
 from open_brain.services.http_server import HttpRouteMode
 from open_brain.services.phase1_application import SingleUserLocalApplication
-from open_brain.services.phase1_entrypoints import run_cli, run_http, run_mcp
+from open_brain.services.phase1_entrypoints import (
+    reserved_appliance_entrypoints,
+    run_cli,
+    run_http,
+    run_mcp,
+)
 from open_brain.services.runtime import (
+    RESERVED_APPLIANCE_APPLICATION_MODULE,
+    RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
     ServiceConfigurationError,
     compose_http_from_config,
     compose_mcp_from_config,
@@ -40,6 +47,16 @@ def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
     assert scripts["open-brain-http"] == "open_brain.services.phase1_entrypoints:run_http"
     assert scripts["open-brain-mcp"] == "open_brain.services.phase1_entrypoints:run_mcp"
     assert "from open_brain.services.phase1_entrypoints import run_cli" in module_source
+
+
+def test_phase3_appliance_entrypoint_names_are_reserved_without_repointing_scripts() -> None:
+    assert RESERVED_APPLIANCE_APPLICATION_MODULE == "open_brain.services.appliance_application"
+    assert RESERVED_APPLIANCE_ENTRYPOINT_MODULE == "open_brain.services.appliance_entrypoints"
+    assert reserved_appliance_entrypoints() == (
+        "open_brain.services.appliance_entrypoints:run_cli",
+        "open_brain.services.appliance_entrypoints:run_http",
+        "open_brain.services.appliance_entrypoints:run_mcp",
+    )
 
 
 def test_default_entrypoint_module_imports_are_legacy_free_in_a_fresh_process() -> None:

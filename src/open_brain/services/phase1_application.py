@@ -20,6 +20,7 @@ from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ports import RetrievalFeedbackReceipt, RetrievalFeedbackRequest
 from open_brain.profile import compile_single_user_local
+from open_brain.services.runtime import ApplianceControlPlane, reserved_appliance_control_plane
 
 
 class Phase1RetrievalFeedback:
@@ -49,6 +50,9 @@ class SingleUserLocalApplication:
 
     def cli_adapters(self) -> Phase1CommandAdapterRegistry:
         return build_phase1_command_adapters(self.tasks.phase1)
+
+    def appliance_control_plane(self) -> ApplianceControlPlane:
+        return reserved_appliance_control_plane(self.tasks.daemon_mutation_path)
 
     def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler:
         return Phase1UiHandler(expected_bearer_token=expected_bearer_token, tasks=self.tasks.phase1)

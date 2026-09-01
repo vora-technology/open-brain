@@ -17,6 +17,7 @@ from .contracts import (
     CaptureReceipt,
     CaptureSubmission,
     CaptureSubmissionPath,
+    DaemonMutationPath,
     DecisionOutcome,
     DecisionRecord,
     EngineTaskSet,
@@ -89,6 +90,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
         self.review = ReviewTasks(self)
         self.retrieval = RetrievalTasks(self)
         self.portability = PortabilityTasks(self)
+        daemon_mutation_path = DaemonMutationPath.reserved(profile.root)
         phase1 = Phase1TaskSet(
             capture=self.capture,
             inbox=self.inbox,
@@ -102,6 +104,7 @@ class BrainEngine(CaptureOperations, SpaceOperations, ReviewOperations, Retrieva
             review=self.review,
             retrieval=self.retrieval,
             portability=self.portability,
+            daemon_mutation_path=daemon_mutation_path,
             phase1=phase1,
         )
 

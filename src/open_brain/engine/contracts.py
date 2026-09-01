@@ -10,7 +10,7 @@ from hashlib import sha256
 from html import unescape
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Protocol, cast
+from typing import Any, NoReturn, Protocol, cast
 from urllib.parse import unquote
 
 from open_brain.core.ids import canonicalize_source_url, portable_canonical_json_bytes
@@ -91,6 +91,46 @@ class PortabilityFault(StrEnum):
     AFTER_READY = "after_ready"
     BEFORE_PROMOTION = "before_promotion"
     AFTER_PROMOTION = "after_promotion"
+
+
+class MutationAuthorityOwner(StrEnum):
+    APPLIANCE_DAEMON = "appliance_daemon"
+
+
+class MutationTransport(StrEnum):
+    UNIX_DOMAIN_SOCKET = "unix_domain_socket"
+
+
+class DaemonMutationPathUnavailableError(RuntimeError):
+    """The reserved daemon-only mutation path is not active in the current wave."""
+
+
+@dataclass(frozen=True, slots=True)
+class DaemonMutationPath:
+    owner: MutationAuthorityOwner
+    transport: MutationTransport
+    socket_path: Path
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "owner", MutationAuthorityOwner(self.owner))
+        object.__setattr__(self, "transport", MutationTransport(self.transport))
+        if not isinstance(self.socket_path, Path) or not self.socket_path.is_absolute():
+            raise ValueError("invalid daemon mutation path")
+
+    @classmethod
+    def reserved(cls, root: Path) -> DaemonMutationPath:
+        if not isinstance(root, Path):
+            raise ValueError("invalid daemon mutation path")
+        return cls(
+            owner=MutationAuthorityOwner.APPLIANCE_DAEMON,
+            transport=MutationTransport.UNIX_DOMAIN_SOCKET,
+            socket_path=root.expanduser().absolute() / ".open-brain" / "run" / "control.sock",
+        )
+
+    def open(self) -> NoReturn:
+        raise DaemonMutationPathUnavailableError(
+            "daemon-only mutation path is reserved until the appliance daemon owns canonical writes"
+        )
 
 
 class InjectedFault(RuntimeError):
@@ -1057,6 +1097,7 @@ class EngineTaskSet:
     review: ReviewTask
     retrieval: RetrievalTask
     portability: PortabilityTask
+    daemon_mutation_path: DaemonMutationPath
     phase1: Phase1TaskSet
 
     @property

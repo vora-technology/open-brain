@@ -14,12 +14,22 @@ from open_brain.cli.main import main
 from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.core.ids import canonical_json_bytes
 from open_brain.engine import BrainEngine, ProposalDraft, ReferencePayload, TextPayload
+from open_brain.engine.contracts import (
+    DaemonMutationPathUnavailableError,
+    MutationAuthorityOwner,
+    MutationTransport,
+)
 from open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
     Phase1UiRequest,
     Phase1UiResponse,
 )
 from open_brain.profile import compile_single_user_local
+from open_brain.services.phase1_application import SingleUserLocalApplication
+from open_brain.services.runtime import (
+    RESERVED_APPLIANCE_APPLICATION_MODULE,
+    RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
+)
 
 TOKEN = "synthetic-ui-token"
 AUTHORIZATION = (("Authorization", f"Bearer {TOKEN}"),)
@@ -138,6 +148,33 @@ def test_cli_and_ui_share_capture_space_routing_and_retrieval_ids(
     assert dashboard.status == 200
     assert quick_id.encode("utf-8") in dashboard.body
     assert canonical_id not in dashboard.body.decode("utf-8")
+
+
+def test_phase3_appliance_control_plane_is_reserved_and_fails_closed(
+    tmp_path: Path,
+) -> None:
+    application = SingleUserLocalApplication.open(tmp_path / "brain")
+
+    control_plane = application.appliance_control_plane()
+
+    assert control_plane.application_module == RESERVED_APPLIANCE_APPLICATION_MODULE
+    assert control_plane.entrypoint_module == RESERVED_APPLIANCE_ENTRYPOINT_MODULE
+    assert control_plane.cli_entrypoint == "open_brain.services.appliance_entrypoints:run_cli"
+    assert control_plane.http_entrypoint == "open_brain.services.appliance_entrypoints:run_http"
+    assert control_plane.mcp_entrypoint == "open_brain.services.appliance_entrypoints:run_mcp"
+    assert control_plane.daemon_mutation_path.owner is MutationAuthorityOwner.APPLIANCE_DAEMON
+    assert (
+        control_plane.daemon_mutation_path.transport is MutationTransport.UNIX_DOMAIN_SOCKET
+    )
+    assert (
+        control_plane.daemon_mutation_path.socket_path
+        == tmp_path / "brain" / ".open-brain" / "run" / "control.sock"
+    )
+    with pytest.raises(
+        DaemonMutationPathUnavailableError,
+        match="daemon-only mutation path is reserved",
+    ):
+        control_plane.daemon_mutation_path.open()
 
 
 def test_cli_and_ui_accept_every_generic_payload_family_through_the_same_engine(

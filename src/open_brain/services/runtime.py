@@ -6,6 +6,7 @@ import json
 import os
 import stat
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
@@ -18,6 +19,7 @@ from open_brain.config import (
     resolve_secret,
 )
 from open_brain.engine import EngineTaskSet, PublicJobCaptureSink
+from open_brain.engine.contracts import DaemonMutationPath
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ui import UiBindConfig
@@ -33,10 +35,25 @@ _SERVICE_SECRET_NAMES = frozenset(
     {_SERVICE_SECRET_NAME, "ui_service_token", "ingress_service_token"}
 )
 _MAXIMUM_SECRET_BYTES = 4_096
+RESERVED_APPLIANCE_APPLICATION_MODULE = "open_brain.services.appliance_application"
+RESERVED_APPLIANCE_ENTRYPOINT_MODULE = "open_brain.services.appliance_entrypoints"
+RESERVED_APPLIANCE_CLI_ENTRYPOINT = f"{RESERVED_APPLIANCE_ENTRYPOINT_MODULE}:run_cli"
+RESERVED_APPLIANCE_HTTP_ENTRYPOINT = f"{RESERVED_APPLIANCE_ENTRYPOINT_MODULE}:run_http"
+RESERVED_APPLIANCE_MCP_ENTRYPOINT = f"{RESERVED_APPLIANCE_ENTRYPOINT_MODULE}:run_mcp"
 
 
 class ServiceConfigurationError(RuntimeError):
     """A service cannot start from the supplied non-secret configuration."""
+
+
+@dataclass(frozen=True, slots=True)
+class ApplianceControlPlane:
+    application_module: str
+    entrypoint_module: str
+    cli_entrypoint: str
+    http_entrypoint: str
+    mcp_entrypoint: str
+    daemon_mutation_path: DaemonMutationPath
 
 
 class _SingleUserApplication(Protocol):
@@ -48,6 +65,21 @@ class _SingleUserApplication(Protocol):
     ) -> EngineMcpAdapter: ...
 
     def ui_handler(self, expected_bearer_token: str) -> Phase1UiHandler: ...
+
+
+def reserved_appliance_control_plane(
+    daemon_mutation_path: DaemonMutationPath,
+) -> ApplianceControlPlane:
+    if not isinstance(daemon_mutation_path, DaemonMutationPath):
+        raise ValueError("invalid appliance control plane")
+    return ApplianceControlPlane(
+        application_module=RESERVED_APPLIANCE_APPLICATION_MODULE,
+        entrypoint_module=RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
+        cli_entrypoint=RESERVED_APPLIANCE_CLI_ENTRYPOINT,
+        http_entrypoint=RESERVED_APPLIANCE_HTTP_ENTRYPOINT,
+        mcp_entrypoint=RESERVED_APPLIANCE_MCP_ENTRYPOINT,
+        daemon_mutation_path=daemon_mutation_path,
+    )
 
 
 def compose_mcp_from_config(

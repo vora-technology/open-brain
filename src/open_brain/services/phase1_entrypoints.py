@@ -21,6 +21,9 @@ from open_brain.cli._common import (
 from open_brain.config import AppConfig, ConfigError
 from open_brain.services.phase1_application import SingleUserLocalApplication
 from open_brain.services.runtime import (
+    RESERVED_APPLIANCE_CLI_ENTRYPOINT,
+    RESERVED_APPLIANCE_HTTP_ENTRYPOINT,
+    RESERVED_APPLIANCE_MCP_ENTRYPOINT,
     ServiceConfigurationError,
     bind_from_environment,
     compose_http_from_config,
@@ -30,6 +33,15 @@ from open_brain.services.runtime import (
 
 _PHASE1_COMMANDS = frozenset({"capture", "inbox", "proposals", "query", "review", "spaces"})
 _MCP_SPACE_ID = re.compile(r"space_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
+
+
+def reserved_appliance_entrypoints() -> tuple[str, str, str]:
+    """Reserve the future appliance entrypoint names without repointing Phase 2 scripts."""
+    return (
+        RESERVED_APPLIANCE_CLI_ENTRYPOINT,
+        RESERVED_APPLIANCE_HTTP_ENTRYPOINT,
+        RESERVED_APPLIANCE_MCP_ENTRYPOINT,
+    )
 
 
 def run_cli(
@@ -188,4 +200,4 @@ def _mcp_allowed_space_ids(environment: Mapping[str, object]) -> frozenset[str]:
     return frozenset(value)
 
 
-__all__ = ["run_cli", "run_http", "run_mcp"]
+__all__ = ["reserved_appliance_entrypoints", "run_cli", "run_http", "run_mcp"]

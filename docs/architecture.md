@@ -41,6 +41,11 @@ or parity code.
 `services/application.py` and `services/entrypoints.py` retain predecessor and scheduled
 compatibility behind the legacy boundary; package metadata does not point a default process at
 either module.
+Phase 3 W0 reserves `services/appliance_application.py` as the future appliance composition root
+and `services/appliance_entrypoints.py` as the future installed and module entrypoint surface
+without repointing current scripts. The reserved daemon-only mutation path is the owner-only
+Unix-domain socket `.open-brain/run/control.sock`; Phase 2 surfaces may name that path but fail
+closed until the appliance daemon owns canonical writes.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that

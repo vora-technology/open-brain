@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0 baseline verified and planning-only commit complete.
+- Status: in progress; Gate 0 and `P3-W0` clean checkpoints complete.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -18,5 +18,8 @@
 - Baseline verification: `make verify` passed Ruff, strict MyPy on 439 source files, all 2,981 tests, wheel/sdist builds, and artifact policy.
 - GitHub baseline: unrelated Dependabot PR `vora-technology/open-brain#1` is open and untouched; protected `main` requires Python 3.12/3.13/3.14 CI and `public-artifacts`.
 - Scope: Codex-only source-checkout implementation. No Phase 4, publishing, release, deployment, production, private predecessor, real supervisor, credential, or live Brain action.
-- Current wave: `P3-W0` pending dispatch.
-- Next action: dispatch one Codex W0 writer with exclusive source/test write scope; coordinator verifies and commits the clean checkpoint.
+- P3-W0 verification: 92 focused tests, focused Ruff, strict MyPy on 439 source files, full `make verify` with 2,984 tests, wheel/sdist builds, artifact policy, and diff integrity passed.
+- P3-W0 behavior gate: future appliance application/entrypoint names and the owner-only Unix-domain daemon mutation path are reserved; current Phase 2 scripts and behavior remain unchanged.
+- P3-W0 failure gate: no shipping import reaches legacy operations/release code, no Phase 4 packaging is required, and no control/writer/auth architecture fork remains.
+- Current wave: `P3-W1` pending after the W0 commit.
+- Next action: dispatch one Codex W1 writer for idempotent init, preflight, generated credential, engine maintenance reads, and non-mutating read view.
