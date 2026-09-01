@@ -1310,6 +1310,11 @@
       "api": "internal",
       "roles": []
     },
+    "services/appliance_daemon.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
     "services/appliance_entrypoints.py": {
       "owner": "app",
       "api": "internal",
@@ -1321,6 +1326,11 @@
       "roles": []
     },
     "services/appliance_status.py": {
+      "owner": "app",
+      "api": "internal",
+      "roles": []
+    },
+    "services/appliance_lifecycle.py": {
       "owner": "app",
       "api": "internal",
       "roles": []

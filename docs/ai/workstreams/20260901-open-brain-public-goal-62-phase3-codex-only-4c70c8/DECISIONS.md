@@ -61,3 +61,13 @@
 - Why: the first W2 worker stopped after one lock-layer slice and left every
   other gate incomplete. Bounded serial subphases preserve one authority
   design while fitting the worker's demonstrated execution horizon.
+
+## D-007: use the engine authority capability for socket cleanup
+
+- Chosen: validate the same engine-issued, active, root-bound daemon
+  capability before stale socket cleanup.
+- Rejected: a second process-local socket witness that proved activity but
+  carried no root identity.
+- Why: authority acquired for one Brain root must never authorize cleanup in
+  another. One lifetime capability keeps composition and control-path cleanup
+  on the same root-bound authority model.

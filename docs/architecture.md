@@ -54,6 +54,12 @@ and `services/appliance_entrypoints.py` now also expose a strictly non-mutating 
 read path backed by `profile.open_existing_single_user_local()` and
 `engine.local.open_local_read_view()`, which reject absent or newer state schemas instead of
 creating, migrating, recovering, or acquiring writer authority.
+Phase 3 W2 adds `services/appliance_daemon.py` and `services/appliance_lifecycle.py` as the
+app-owned control transport and daemon lifetime surface. The daemon acquires verified
+daemon-authority before mutating composition and socket binding, serves one bounded canonical
+Unix-domain control request at a time through the owner-only `.open-brain/run/control.sock`,
+refuses symlink and non-socket replacement, cleans stale sockets only while authority is active,
+and fails closed on client/control errors instead of falling back to direct writes.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that

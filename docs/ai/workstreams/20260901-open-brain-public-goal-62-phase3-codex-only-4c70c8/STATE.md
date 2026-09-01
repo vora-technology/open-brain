@@ -10,7 +10,7 @@
 
 ## Milestone
 
-- Status: in progress; Gate 0, `P3-W0`, and `P3-W1` clean checkpoints complete.
+- Status: in progress; Gate 0, `P3-W0`, and `P3-W1` clean checkpoints complete; `P3-W2` authority and control subphases verified.
 - Goal: `cbolden15/agent-config#62`; parent `cbolden15/agent-config#41` remains open.
 - Baseline: freshly fetched `origin/main` at `d93c6dae2a22ef028390f30c990b27968229178e`.
 - Planning commit: `e8a4ec2` contains the reviewed plan and review evidence only.
@@ -24,7 +24,8 @@
 - P3-W1 verification: 32 focused tests, focused Ruff, strict MyPy on 447 source files, full `make verify` with 2,999 tests, wheel/sdist builds, artifact policy, architecture ownership/debt, and diff integrity passed.
 - P3-W1 behavior gate: init is preflighted and idempotent over identity, spaces, content, credential, schema, and index; maintenance evidence is bounded; absent/newer read views make no mutation or writer acquisition.
 - P3-W1 failure gate: unsafe credentials are preserved and rejected, newer schemas are rejected before writer acquisition, legacy schema migration preserves content, nested writable roots initialize, and installed scripts remain on Phase 1.
-- P3-W2 status: authority subphase verified; control, runtime, and full-wave gates remain pending.
+- P3-W2 status: authority and control subphases verified; runtime and full-wave gates remain pending.
 - P3-W2 authority evidence: daemon lifetime lease is process-exclusive and distinct from shared writer; engine capability is issuer-created, root-bound, stale after exit, required by appliance mutation composition, and revalidated on every writer acquisition.
-- Current subphase: `P3-W2-CONTROL-03` pending after the authority commit.
-- Next action: dispatch one Codex control/daemon writer for confined socket envelopes, stale/replacement races, daemon lifecycle, and restart-safe routing.
+- P3-W2 control evidence: owner-only confined Unix socket, bounded canonical envelopes and accepted-client timeouts, root-bound authority-gated stale cleanup, replacement detection, second-daemon exclusion, fail-closed clients, and lost-receipt replay without duplicate capture passed 130 focused tests, Ruff, strict MyPy on 452 source files, and diff hygiene.
+- Current subphase: `P3-W2-RUNTIME-04` pending after the control checkpoint.
+- Next action: dispatch one Codex runtime writer for the exact scheduler inventory, lifecycle adapters, installed entrypoint cutover, and daemon-only CLI routing.

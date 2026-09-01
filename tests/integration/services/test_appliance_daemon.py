@@ -1,7 +1,14 @@
 from __future__ import annotations
 
 import inspect
+import socket
+import sqlite3
+import stat
+import tempfile
+import threading
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -16,12 +23,80 @@ from open_brain.engine import (
 from open_brain.engine.authority import DaemonAuthorityCapability
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain.services.appliance_application import ApplianceApplication
+from open_brain.services.appliance_daemon import (
+    ApplianceControlSocketError,
+    ApplianceControlUnavailableError,
+    ApplianceDaemon,
+    ApplianceDaemonConflictError,
+    ControlRequest,
+    acquire_control_socket_authority,
+    cleanup_stale_control_socket,
+)
+from open_brain.services.appliance_lifecycle import submit_control_request
 from open_brain.storage.locks import LockBusyError
+
+_ORIGINAL_SOCKET_BIND = socket.socket.bind
+_ORIGINAL_SOCKET_CONNECT = socket.socket.connect
+_ORIGINAL_SOCKET_CONNECT_EX = socket.socket.connect_ex
+_ORIGINAL_SOCKET_LISTEN = socket.socket.listen
 
 
 def _existing_profile(root: Path) -> LocalEngineContext:
     compile_single_user_local(root)
     return open_existing_single_user_local(root)
+
+
+def _capture_rows(root: Path, delivery_id: str) -> tuple[tuple[str, str], ...]:
+    connection = sqlite3.connect(root / ".open-brain" / "state" / "phase1.sqlite3")
+    try:
+        return tuple(
+            connection.execute(
+                "SELECT capture_id, delivery_id FROM captures WHERE delivery_id = ?",
+                (delivery_id,),
+            )
+        )
+    finally:
+        connection.close()
+
+
+@pytest.fixture(autouse=True)
+def allow_unix_domain_sockets(monkeypatch: pytest.MonkeyPatch) -> None:
+    def bind(
+        self: socket.socket, address: str | bytes | tuple[Any, ...]
+    ) -> object:
+        if self.family == socket.AF_UNIX:
+            return _ORIGINAL_SOCKET_BIND(self, address)
+        raise AssertionError("network access is forbidden in the Phase 2 test suite")
+
+    def connect(
+        self: socket.socket, address: str | bytes | tuple[Any, ...]
+    ) -> object:
+        if self.family == socket.AF_UNIX:
+            return _ORIGINAL_SOCKET_CONNECT(self, address)
+        raise AssertionError("network access is forbidden in the Phase 2 test suite")
+
+    def connect_ex(
+        self: socket.socket, address: str | bytes | tuple[Any, ...]
+    ) -> object:
+        if self.family == socket.AF_UNIX:
+            return _ORIGINAL_SOCKET_CONNECT_EX(self, address)
+        raise AssertionError("network access is forbidden in the Phase 2 test suite")
+
+    def listen(self: socket.socket, backlog: int = 0) -> object:
+        if self.family == socket.AF_UNIX:
+            return _ORIGINAL_SOCKET_LISTEN(self, backlog)
+        raise AssertionError("network access is forbidden in the Phase 2 test suite")
+
+    monkeypatch.setattr(socket.socket, "bind", bind)
+    monkeypatch.setattr(socket.socket, "connect", connect)
+    monkeypatch.setattr(socket.socket, "connect_ex", connect_ex)
+    monkeypatch.setattr(socket.socket, "listen", listen)
+
+
+@pytest.fixture
+def short_root() -> Iterator[Path]:
+    with tempfile.TemporaryDirectory(prefix="ob-", dir="/private/tmp") as directory:
+        yield Path(directory) / "brain"
 
 
 def test_daemon_authority_capability_is_issuer_created() -> None:
@@ -85,3 +160,282 @@ def test_daemon_authority_is_process_exclusive_and_enables_shared_writer_mutatio
             TextPayload("Synthetic stale authority capture"),
             delivery_id="delivery.appliance.daemon-authority.stale",
         )
+
+
+def test_daemon_holds_authority_creates_owner_only_socket_and_rejects_second_daemon(
+    short_root: Path,
+) -> None:
+    root = short_root
+    profile = _existing_profile(root)
+
+    with ApplianceDaemon(root) as daemon:
+        run_directory = root / ".open-brain" / "run"
+        socket_path = run_directory / "control.sock"
+
+        assert stat.S_IMODE(run_directory.stat().st_mode) == 0o700
+        assert stat.S_ISSOCK(socket_path.lstat().st_mode)
+        assert stat.S_IMODE(socket_path.lstat().st_mode) == 0o600
+
+        with pytest.raises(LockBusyError, match="lease already held"), acquire_daemon_authority(
+            profile
+        ):
+            pass
+
+        with pytest.raises(
+            ApplianceDaemonConflictError, match="already active"
+        ), ApplianceDaemon(root):
+            pass
+
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        daemon.stop()
+        thread.join(timeout=5)
+        assert not thread.is_alive()
+
+    with acquire_daemon_authority(profile):
+        pass
+
+
+def test_daemon_refuses_symlink_and_non_socket_replacements(tmp_path: Path) -> None:
+    root = tmp_path / "brain"
+    _existing_profile(root)
+    run_directory = root / ".open-brain" / "run"
+    run_directory.mkdir(exist_ok=True)
+    socket_path = run_directory / "control.sock"
+    target = tmp_path / "target.sock"
+    target.write_text("target", encoding="utf-8")
+    socket_path.symlink_to(target)
+
+    with pytest.raises(ApplianceControlSocketError, match="symlink"), ApplianceDaemon(root):
+        pass
+
+    socket_path.unlink()
+    socket_path.write_text("not a socket", encoding="utf-8")
+
+    with pytest.raises(
+        ApplianceControlSocketError, match="non-socket"
+    ), ApplianceDaemon(root):
+        pass
+
+
+def test_stale_socket_cleanup_requires_authority_and_detects_replacement_race(
+    short_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = short_root
+    profile = _existing_profile(root)
+    run_directory = root / ".open-brain" / "run"
+    run_directory.mkdir(exist_ok=True)
+    socket_path = run_directory / "control.sock"
+
+    stale = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    stale.bind(str(socket_path))
+    stale.close()
+
+    with pytest.raises(DaemonAuthorityError, match="missing"):
+        cleanup_stale_control_socket(profile, None)
+    assert socket_path.exists()
+
+    with acquire_control_socket_authority(profile) as authority:
+        cleanup_stale_control_socket(profile, authority)
+    assert not socket_path.exists()
+
+    replaced = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    replaced.bind(str(socket_path))
+    replaced.close()
+
+    original = socket_path.lstat()
+    replacement = root / ".open-brain" / "run" / "replacement.sock"
+    replacement_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    replacement_socket.bind(str(replacement))
+    replacement_socket.close()
+    replacement_stat = replacement.lstat()
+    calls = {"count": 0}
+
+    def swapped(path: Path) -> object:
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return original
+        return replacement_stat
+
+    monkeypatch.setattr("open_brain.services.appliance_daemon._lstat_path", swapped)
+
+    with acquire_control_socket_authority(profile) as authority, pytest.raises(
+        ApplianceControlSocketError,
+        match="replaced during cleanup",
+    ):
+        cleanup_stale_control_socket(profile, authority)
+
+
+def test_stale_socket_cleanup_authority_is_root_bound(tmp_path: Path) -> None:
+    first = _existing_profile(tmp_path / "first-brain")
+    second = _existing_profile(tmp_path / "second-brain")
+
+    with acquire_control_socket_authority(first) as authority, pytest.raises(
+        DaemonAuthorityRootMismatchError,
+        match="root mismatch",
+    ):
+        cleanup_stale_control_socket(second, authority)
+
+
+def test_control_request_routes_only_through_authority_backed_application(
+    short_root: Path,
+) -> None:
+    root = short_root
+    _existing_profile(root)
+    seen: list[object] = []
+
+    def application_factory(path: Path, authority: object) -> ApplianceApplication:
+        seen.append(authority)
+        return ApplianceApplication.open_mutating(path, authority=authority)
+
+    with ApplianceDaemon(root, application_factory=application_factory) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        receipt = submit_control_request(
+            root,
+            ControlRequest(
+                delivery_id="delivery.appliance.control.capture",
+                text="Synthetic daemon control capture",
+            ),
+        )
+        daemon.stop()
+        thread.join(timeout=5)
+
+    assert seen
+    assert receipt.state == "inbox"
+    assert receipt.capture_id.startswith("capture_")
+    assert _capture_rows(root, "delivery.appliance.control.capture") == (
+        (receipt.capture_id, "delivery.appliance.control.capture"),
+    )
+
+
+def test_control_client_fails_closed_without_direct_mutation_fallback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "brain"
+    _existing_profile(root)
+    called = {"count": 0}
+
+    def forbidden(*args: object, **kwargs: object) -> object:
+        called["count"] += 1
+        raise AssertionError("direct mutation fallback is forbidden")
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_application.ApplianceApplication.open_mutating",
+        forbidden,
+    )
+
+    with pytest.raises(ApplianceControlUnavailableError, match="unavailable"):
+        submit_control_request(
+            root,
+            ControlRequest(
+                delivery_id="delivery.appliance.control.unavailable",
+                text="Synthetic unavailable control capture",
+            ),
+        )
+
+    assert called["count"] == 0
+
+
+def test_restart_preserves_accepted_capture_identity_without_duplicate_state(
+    short_root: Path,
+) -> None:
+    root = short_root
+    _existing_profile(root)
+    request = ControlRequest(
+        delivery_id="delivery.appliance.control.restart",
+        text="Synthetic restart-safe control capture",
+    )
+
+    with ApplianceDaemon(root) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        first = submit_control_request(root, request)
+        daemon.stop()
+        thread.join(timeout=5)
+
+    with ApplianceDaemon(root) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        second = submit_control_request(root, request)
+        daemon.stop()
+        thread.join(timeout=5)
+
+    assert first.capture_id == second.capture_id
+    assert first.state == second.state == "inbox"
+
+    assert _capture_rows(root, "delivery.appliance.control.restart") == (
+        (first.capture_id, "delivery.appliance.control.restart"),
+    )
+
+
+def test_stalled_client_does_not_hold_the_daemon_control_loop(short_root: Path) -> None:
+    root = short_root
+    _existing_profile(root)
+
+    with ApplianceDaemon(root, connection_timeout=0.05) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        stalled = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        stalled.connect(str(daemon.socket_path))
+        stalled.sendall(b"{")
+
+        receipt = submit_control_request(
+            root,
+            ControlRequest(
+                delivery_id="delivery.appliance.control.after-stall",
+                text="Synthetic capture after a stalled client",
+            ),
+        )
+        stalled.close()
+        daemon.stop()
+        thread.join(timeout=5)
+
+    assert not thread.is_alive()
+    assert receipt.state == "inbox"
+
+
+def test_restart_replays_commit_when_receipt_was_not_delivered(
+    short_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = short_root
+    _existing_profile(root)
+    request = ControlRequest(
+        delivery_id="delivery.appliance.control.lost-receipt",
+        text="Synthetic accepted capture with a lost receipt",
+    )
+
+    with ApplianceDaemon(root) as daemon:
+        client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        client.connect(str(daemon.socket_path))
+        client.sendall(request.to_bytes())
+        client.shutdown(socket.SHUT_WR)
+
+        with monkeypatch.context() as patch:
+            def lose_receipt(connection: socket.socket, payload: bytes) -> None:
+                del connection, payload
+                raise BrokenPipeError
+
+            patch.setattr(
+                "open_brain.services.appliance_daemon._send_control_bytes",
+                lose_receipt,
+            )
+            with pytest.raises(BrokenPipeError):
+                daemon.serve_once()
+        client.close()
+
+    accepted_rows = _capture_rows(root, request.delivery_id)
+    assert len(accepted_rows) == 1
+
+    with ApplianceDaemon(root) as daemon:
+        thread = threading.Thread(target=daemon.serve_until_stopped)
+        thread.start()
+        replay = submit_control_request(root, request)
+        daemon.stop()
+        thread.join(timeout=5)
+
+    assert replay.capture_id == accepted_rows[0][0]
+    assert _capture_rows(root, request.delivery_id) == accepted_rows

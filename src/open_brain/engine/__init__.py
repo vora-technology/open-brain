@@ -30,10 +30,12 @@ from open_brain.core.policy import classify_privacy
 from open_brain.providers.base import ProviderMode
 
 from .authority import (
+    DaemonAuthorityCapability,
     DaemonAuthorityError,
     DaemonAuthorityRootMismatchError,
     DaemonAuthorityStaleError,
     acquire_daemon_authority,
+    require_daemon_authority,
 )
 from .contracts import (
     CaptureReceipt,
@@ -100,6 +102,7 @@ __all__ = [
     "CaptureWhyOrigin",
     "ContentKind",
     "ContentOrigin",
+    "DaemonAuthorityCapability",
     "DaemonAuthorityError",
     "DaemonAuthorityRootMismatchError",
     "DaemonAuthorityStaleError",
@@ -159,6 +162,7 @@ __all__ = [
     "open_local_engine",
     "open_local_read_view",
     "read_maintenance_snapshot",
+    "require_daemon_authority",
     "classify_privacy",
     "project_public_result_text",
     "project_public_space",

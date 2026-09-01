@@ -94,3 +94,28 @@
   449 source files, and `git diff --check` passed.
 - No control socket, listener, scheduler, supervisor command, installed
   entrypoint, real service, production, or live data action occurred.
+
+## P3-W2 control subphase
+
+- Worker `P3-W2-CONTROL-03` added the app-owned daemon, lifecycle client,
+  owner-only `.open-brain/run/control.sock`, and bounded canonical capture
+  request/receipt envelopes.
+- Coordinator review found that the worker's separate stale-cleanup witness
+  was active but not root-bound. Cleanup now validates the engine-issued
+  daemon capability against the exact profile root; a cross-root regression
+  proves rejection.
+- The accepted connection has a bounded I/O timeout, and the serve loop
+  survives a stalled client. Control failures never fall back to direct
+  mutation.
+- Restart evidence covers both ordinary request replay and the harder case
+  where capture committed but the receipt could not be delivered. Replaying
+  the same delivery identity returns the same capture with one durable row.
+- Stale cleanup requires active daemon authority, rejects symlinks and
+  non-sockets, and detects an identity replacement before unlink. The run
+  directory is `0700`; the control socket is `0600`.
+- Focused control/authority/entrypoint/architecture/storage Pytest: 130
+  passed. Ruff, strict MyPy on 452 source files, and `git diff --check`
+  passed.
+- Scheduler, supervisor adapters, installed entrypoint cutover, real host
+  service commands, network listeners, production, private predecessor, and
+  live Brain data remained untouched.

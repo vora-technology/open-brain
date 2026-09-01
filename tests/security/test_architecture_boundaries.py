@@ -40,13 +40,17 @@ def test_phase3_appliance_seams_are_reserved_without_shipping_legacy_control_pat
     repository_root = Path(__file__).parents[2]
     architecture = (repository_root / "docs" / "architecture.md").read_text(encoding="utf-8")
     services = (
+        repository_root / "src" / "open_brain" / "services" / "appliance_daemon.py",
+        repository_root / "src" / "open_brain" / "services" / "appliance_lifecycle.py",
         repository_root / "src" / "open_brain" / "services" / "phase1_application.py",
         repository_root / "src" / "open_brain" / "services" / "phase1_entrypoints.py",
         repository_root / "src" / "open_brain" / "services" / "runtime.py",
     )
 
     assert "services/appliance_application.py" in architecture
+    assert "services/appliance_daemon.py" in architecture
     assert "services/appliance_entrypoints.py" in architecture
+    assert "services/appliance_lifecycle.py" in architecture
     assert ".open-brain/run/control.sock" in architecture
     for path in services:
         source = path.read_text(encoding="utf-8")
