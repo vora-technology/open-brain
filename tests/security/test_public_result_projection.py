@@ -14,13 +14,18 @@ from open_brain.profile import compile_single_user_local
 def test_public_result_projection_redacts_bounded_percent_and_html_encodings() -> None:
     protected = "https://example.test/private-reference"
     digest = sha256(protected.encode("utf-8")).hexdigest()
+    case_varied = "HTTPS://EXAMPLE.TEST/private-reference"
     html_encoded = "".join(f"&#{ord(character)};" for character in protected)
+    html_case_varied = "".join(f"&#{ord(character)};" for character in case_varied)
     html_digest = "".join(f"&#x{ord(character):x};" for character in digest)
     encoded_values = (
         protected,
+        case_varied,
         quote(protected, safe=""),
+        quote(case_varied, safe=""),
         quote(quote(protected, safe=""), safe=""),
         html_encoded,
+        html_case_varied,
         digest,
         quote(digest, safe=""),
         html_digest,

@@ -89,8 +89,13 @@ def test_cli_help_and_version_do_not_require_a_brain_root(
     assert "capture" in capsys.readouterr().out
     assert run_cli(("capture", "--help"), environment={}) == 0
     assert "usage: open-brain capture" in capsys.readouterr().out
-    assert run_cli(("--version",), environment={}) == 0
-    assert capsys.readouterr().out == "open-brain 0.1.0\n"
+    for arguments in (
+        ("--version",),
+        ("--json", "--version"),
+        ("--version", "--json"),
+    ):
+        assert run_cli(arguments, environment={}) == 0
+        assert capsys.readouterr().out == "open-brain 0.1.0\n"
 
 
 def test_global_dry_run_before_a_phase1_command_never_mutates(
@@ -123,9 +128,19 @@ def test_global_dry_run_before_a_phase1_command_never_mutates(
     (
         (("uv", "run", "open-brain", "--help"), "spaces"),
         (("uv", "run", "open-brain", "--version"), "open-brain 0.1.0"),
+        (("uv", "run", "open-brain", "--json", "--version"), "open-brain 0.1.0"),
+        (("uv", "run", "open-brain", "--version", "--json"), "open-brain 0.1.0"),
         ((sys.executable, "-I", "-B", "-m", "open_brain", "--help"), "spaces"),
         (
             (sys.executable, "-I", "-B", "-m", "open_brain", "--version"),
+            "open-brain 0.1.0",
+        ),
+        (
+            (sys.executable, "-I", "-B", "-m", "open_brain", "--json", "--version"),
+            "open-brain 0.1.0",
+        ),
+        (
+            (sys.executable, "-I", "-B", "-m", "open_brain", "--version", "--json"),
             "open-brain 0.1.0",
         ),
     ),

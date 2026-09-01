@@ -65,13 +65,17 @@ def test_public_surface_results_exclude_raw_source_references_and_digests(tmp_pa
         delivery_id="safe.capture",
     )
     application.tasks.inbox.route(capture.capture_id, space.space_id, delivery_id="safe.route")
-    result = application.mcp_adapter(allowed_space_ids=frozenset({space.space_id})).call_tool(
-        "brain_query", {"question": "source-safe token"}
-    )
+    adapter = application.mcp_adapter(allowed_space_ids=frozenset({space.space_id}))
+    question = source_reference
+    result = adapter.call_tool("brain_query", {"question": question})
+    replay = adapter.call_tool("brain_query", {"question": question})
     rendered = json.dumps(result, sort_keys=True)
+    query_digest = sha256(question.encode()).hexdigest()
 
     assert source_reference not in rendered
     assert sha256(source_reference.encode()).hexdigest() not in rendered
+    assert query_digest[:32] not in str(result["retrieval_id"])
+    assert result["retrieval_id"] != replay["retrieval_id"]
     assert "source_ref" not in rendered
     assert "source_url" not in rendered
     assert str(tmp_path) not in rendered

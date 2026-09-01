@@ -52,9 +52,9 @@ percent-decoding; output that has not converged at that bound is rejected withou
 ## Output and exits
 
 Use `--json` before or after the family name for a deterministic JSON envelope. Global help,
-family help, and `--version` do not require a Brain root. A `--dry-run` request is never
-discarded: the current Phase 1 adapters have no preview operation, so they reject it with usage
-exit `2` before mutation.
+family help, and `--version` do not require a Brain root; adding `--json` to a help or version
+request does not change that. A `--dry-run` request is never discarded: the current Phase 1
+adapters have no preview operation, so they reject it with usage exit `2` before mutation.
 
 | Exit | Class | Meaning |
 | --- | --- | --- |

@@ -301,6 +301,32 @@ adapter and prove an unsupported dry run exits before mutation.
 
 Discovered: 2026-08-31.
 
+### PRIVACY-003: A hash of private input is not an opaque ID
+
+Symptom: A metadata-only result omits the query text but returns a deterministic digest or digest
+prefix derived from it.
+
+Cause: A content hash was treated as an identifier even though callers can verify guesses against
+private input.
+
+Fix: Generate retrieval IDs independently with a cryptographic random source, return them only as
+opaque correlation values, and scan public results for full and truncated query digests.
+
+Discovered: 2026-08-31.
+
+### CLI-003: Root-free operations normalize representation flags first
+
+Symptom: `--version` works without configuration, but adding `--json` before or after it opens
+the application and fails for a missing Brain root.
+
+Cause: Root-free detection compared the raw argument tuple instead of removing the
+representation-owned output flag.
+
+Fix: Validate duplicate flags, remove `--json` before recognizing help/version, and test each
+supported ordering without runtime configuration.
+
+Discovered: 2026-08-31.
+
 ### PORTABLE-002: Promote the exact validated snapshot
 
 Symptom: Validation succeeds, but the bytes materialized or promoted during import/export differ

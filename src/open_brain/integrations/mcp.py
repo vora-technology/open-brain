@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import re
+import secrets
 from collections.abc import Mapping
 from dataclasses import dataclass
-from hashlib import sha256
 from typing import Literal, Protocol, TypedDict, cast
 
 from open_brain.engine import RetrievalResult, RetrievalTask
@@ -293,7 +293,7 @@ class EngineMcpAdapter:
             raise ValueError("invalid query")
         results = self._scoped().search(question, limit=limit)
         return {
-            "retrieval_id": "retrieval." + sha256(question.encode("utf-8")).hexdigest()[:32],
+            "retrieval_id": "retrieval." + secrets.token_hex(16),
             "scope": IntegrationScope.WORK.value,
             "results": [_engine_result(result) for result in results],
             "truncated": len(results) == limit,

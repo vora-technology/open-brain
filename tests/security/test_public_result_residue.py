@@ -57,10 +57,17 @@ def test_recursive_public_result_oracle_covers_every_retained_surface(tmp_path: 
     protected = (absolute_path, windows_path, unc_path, credential, source)
     digests = tuple(sha256(value.encode("utf-8")).hexdigest() for value in protected)
     searchable = "useful residue regression text"
+    case_varied_source = "HTTPS://EXAMPLE.TEST/private-reference"
     encoded_source = quote(source, safe="")
+    encoded_case_varied_source = quote(case_varied_source, safe="")
     encoded_source_digest = quote(sha256(source.encode("utf-8")).hexdigest(), safe="")
     html_source = "".join(f"&#{ord(character)};" for character in source)
+    html_case_varied_source = "".join(
+        f"&#{ord(character)};" for character in case_varied_source
+    )
     query_canary = searchable + " " + credential
+    query_digest = sha256(query_canary.encode("utf-8")).hexdigest()
+    query_derivatives = (query_digest, query_digest[:32])
 
     space = application.tasks.inbox.create_space(
         "Sensitive " + absolute_path + " " + credential,
@@ -77,9 +84,12 @@ def test_recursive_public_result_oracle_covers_every_retained_surface(tmp_path: 
                     unc_path,
                     credential,
                     source,
+                    case_varied_source,
                     encoded_source,
+                    encoded_case_varied_source,
                     encoded_source_digest,
                     html_source,
+                    html_case_varied_source,
                     *digests,
                 )
             ),
@@ -140,10 +150,18 @@ def test_recursive_public_result_oracle_covers_every_retained_surface(tmp_path: 
     )
     mcp = application.mcp_adapter(allowed_space_ids=frozenset({space.space_id}))
     mcp_query = mcp.call_tool("brain_query", {"question": query_canary})
+    repeated_mcp_query = mcp.call_tool("brain_query", {"question": query_canary})
     mcp_results = cast(list[dict[str, object]], mcp_query["results"])
     result_id = mcp_results[0]["result_id"]
     assert isinstance(result_id, str)
-    public_values.extend((mcp_query, mcp.call_tool("brain_fetch", {"result_id": result_id})))
+    assert mcp_query["retrieval_id"] != repeated_mcp_query["retrieval_id"]
+    public_values.extend(
+        (
+            mcp_query,
+            repeated_mcp_query,
+            mcp.call_tool("brain_fetch", {"result_id": result_id}),
+        )
+    )
     public_values.append(_stdio_output(mcp, query_canary))
 
     sink = application.public_job_sink("JOB-029")
@@ -165,7 +183,11 @@ def test_recursive_public_result_oracle_covers_every_retained_surface(tmp_path: 
 
     assert application.tasks.retrieval.search(query_canary)
     for value in public_values:
-        _assert_no_public_residue(value, protected=protected, digests=digests)
+        _assert_no_public_residue(
+            value,
+            protected=protected,
+            digests=(*digests, *query_derivatives),
+        )
 
 
 def _http_outputs(
@@ -288,8 +310,9 @@ def _assert_no_public_residue(
     elif isinstance(value, str):
         for candidate in _text_variants(value):
             plain = _HTML_TAG.sub("", candidate)
-            assert not any(item in candidate for item in protected)
-            assert not any(digest in candidate for digest in digests)
+            folded = candidate.casefold()
+            assert not any(item.casefold() in folded for item in protected)
+            assert not any(digest.casefold() in folded for digest in digests)
             assert _ABSOLUTE_PATH.search(plain) is None
             assert _CREDENTIAL_ASSIGNMENT.search(plain) is None
         with suppress(json.JSONDecodeError):

@@ -34,6 +34,7 @@ All public task and representation results use an engine-owned projection after 
 ranking. It protects raw and bounded percent/HTML-encoded source references, their bare SHA-256
 digests, absolute POSIX/Windows paths, credential assignments, storage-derived space slugs and
 canonical paths, and other protected literals while retaining useful searchable text, opaque IDs,
-and bounded provenance. Query explanations never echo query terms. Renderers consume the
+and bounded provenance. Query explanations never echo query terms, and MCP retrieval IDs are
+random opaque values rather than hashes or other derivatives of the query. Renderers consume the
 projection; they do not implement separate redaction. Portable/source bytes and internal trusted
 records remain unchanged.

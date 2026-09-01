@@ -12,7 +12,7 @@
 ## Current milestone
 
 - Milestone: P2-W5 complete Phase 2 boundary reconciliation
-- Status: implementation verified and committed; governed evidence commit and final clean-commit review pending
+- Status: first exact clean-commit review findings repaired and locally verified; repair commit and fresh exact-commit rereview pending
 - Allowed scope: zero-debt ownership, isolated engine imports, bounded representation capabilities, public-result projection, default app entrypoints, Phase 1 journey, documentation/gotcha reconciliation, final verification, review, PR, and merge
 - Stop condition: PR or merge begins before one clean candidate passes every final gate and a fresh independent Codex review returns READY with P0/P1/P2 at 0/0/0
 - Code checkpoint: `555ae02` truthful zero-debt classification, app-owned default entrypoints, minimized task capabilities, encoded/typed public-result projection, engine isolation, docs, and regressions
@@ -21,7 +21,7 @@
 ## Last verification
 
 - Command: exact P2-W5 engine-isolation and focused suites; installed Phase 1 cross-process journey; repository Ruff; strict MyPy; `make verify`; `git diff --check`; owner-approved release audit
-- Result: passed 1 isolation test, 222 focused architecture/residue/Portable/engine/service/connector tests, the installed journey, Ruff, strict MyPy on 439 source files, 2,975 total tests, wheel/sdist builds, artifact policy, diff integrity, and the owner-approved release audit
+- Result: passed 1 isolation test, 226 focused architecture/residue/Portable/engine/service/connector tests, the installed journey, Ruff, strict MyPy on 439 source files, 2,979 total tests, wheel/sdist builds, artifact policy, diff integrity, and the owner-approved release audit
 
 ## Decision log
 
@@ -53,6 +53,9 @@
 - Chosen: apply one engine-owned output projection to bounded raw/percent/HTML-decoded protected values, digests, credentials, absolute paths, space slugs, and canonical paths, and make retrieval explanations generic. Rejected: renderer-specific redaction or query-term echo. Reason: every typed/JSON/text/HTML surface must consume the same safe result without altering durable or Portable bytes.
 - Chosen: forward non-representation prefix flags to the selected CLI adapter and reject unsupported dry runs before mutation. Rejected: silently dropping `--dry-run` when it appears before the family name. Reason: argument placement cannot turn a non-mutating request into a write.
 - Chosen: load the one allow-listed optional cloud module at the retained composition boundary while constructing the SDK client only after privacy and credential checks. Rejected: engine-owned dynamic imports or unrelated module-preload requirements. Reason: authorized compatibility remains functional without adding architecture debt or changing the provider-none default.
+- Chosen: compare protected output literals after bounded decoding with case-insensitive matching. Rejected: exact-case replacement that lets equivalent scheme/host variants survive. Reason: public projection must fail closed across representation changes even when the underlying source canonicalization differs.
+- Chosen: generate MCP retrieval IDs with cryptographic randomness independent of the query. Rejected: full or truncated query digests. Reason: dictionary-verifiable derivatives are not opaque metadata and can disclose private query membership.
+- Chosen: define a committed handoff's `head` as its enclosing Git candidate while separately naming the implementation checkpoint. Rejected: claiming a handoff file can contain the SHA of the commit that contains itself. Reason: self-referential Git hashes are impossible; the packet must state the distinction explicitly.
 
 ## Dispatch ledger
 
@@ -77,8 +80,9 @@
 - P2-W5 mapping/reconciliation: four Codex mappers plus one Codex reconciler; complete
 - P2-W5 implementation: separate Codex source and documentation workers completed the zero-debt source/security/classification and docs/gotcha changes; coordinator reproduced the worker-local macOS sandbox limitation and the exact test passed
 - P2-W5 pre-review: one fresh read-only Codex review returned NEEDS_FIX with P0/P1/P2 `0/2/2`; one Codex repair worker and coordinator changes resolved installed legacy loading, encoded/query residue, direct typed path residue, cloud loading, command-specific help, and prefix dry-run safety
-- P2-W5 children: 9 total, 0 active before final review. No Claude-family or other non-Codex agent was dispatched.
+- P2-W5 exact-candidate review: `W5-FINAL-REVIEW-01` returned NEEDS_FIX with P0/P1/P2 `0/2/2`; it demonstrated case-varied source residue, query-derived MCP IDs, root-required combined version flags, and an ambiguous handoff head
+- P2-W5 children: 10 total, 0 active. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit this P2-W5 evidence, rerun every final gate on the clean candidate, then dispatch the fresh read-only Codex architecture/privacy review of that exact commit.
+Verify and commit the exact-candidate review repairs, rerun every final gate on the new clean commit, then dispatch a fresh read-only Codex architecture/privacy rereview.

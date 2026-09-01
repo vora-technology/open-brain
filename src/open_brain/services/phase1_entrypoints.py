@@ -134,12 +134,13 @@ def run_http() -> int:
 
 
 def _root_free_exit(arguments: tuple[str, ...]) -> ExitCode | None:
-    if arguments == ("--version",):
+    representation_free = tuple(argument for argument in arguments if argument != "--json")
+    if representation_free == ("--version",):
         print(f"open-brain {__version__}")
         return ExitCode.SUCCESS
     if "--help" in arguments or "-h" in arguments:
         try:
-            _phase1_parser().parse_args(arguments)
+            _phase1_parser().parse_args(representation_free)
         except SystemExit as error:
             return ExitCode.SUCCESS if error.code == 0 else ExitCode.USAGE
         return ExitCode.USAGE

@@ -414,7 +414,12 @@ def project_public_result_text(
     sensitive_literals.update(match.group(0) for match in _PUBLIC_POSIX_PATH.finditer(value))
     result = value
     for literal in sorted(sensitive_literals, key=len, reverse=True):
-        result = result.replace(literal, _PUBLIC_LITERAL_MARKER)
+        result = re.sub(
+            re.escape(literal),
+            _PUBLIC_LITERAL_MARKER,
+            result,
+            flags=re.IGNORECASE,
+        )
         digest = sha256(literal.encode("utf-8")).hexdigest()
         result = re.sub(
             rf"(?<![0-9A-Fa-f]){re.escape(digest)}(?![0-9A-Fa-f])",
@@ -441,8 +446,11 @@ def project_public_result_text(
 
 def _project_public_output_token(token: str, protected_values: frozenset[str]) -> str:
     variants, converged = _public_output_decoded_variants(token)
+    folded_variants = tuple(variant.casefold() for variant in variants)
     contains_protected = any(
-        protected in variant for protected in protected_values for variant in variants
+        protected.casefold() in variant
+        for protected in protected_values
+        for variant in folded_variants
     )
     contains_sensitive_shape = any(
         _PUBLIC_CREDENTIAL_ASSIGNMENT.search(variant) is not None
