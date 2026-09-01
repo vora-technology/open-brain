@@ -11,17 +11,17 @@
 
 ## Current milestone
 
-- Milestone: P2-W3 Portable Brain engine interfaces
-- Status: verified; evidence commit pending
-- Allowed scope: strict Portable Brain v1 profile/identity, typed root-confined ports, complete write validation, exact-byte live-root export, clean-root atomic import, materialized operational state, disposable-index reconstruction, retry/fault safety, and requirement-level fixture/architecture evidence
-- Stop condition: P2-W4 starts before P2-W3 has a clean verified checkpoint and independent READY review
-- Code checkpoint: `7e98efc` Portable Brain interfaces, atomic portability workflow, append-only routing evidence, and reconstruction
-- Result: local authoring now writes the published Portable contract through typed ports; export emits only Portable bytes; clean import validates one immutable snapshot before mutation and promotes without replacement; reconstructed roots reopen with stable identities/results; post-capture route chains survive export/import without rewriting source captures; all 203 runtime files are classified with 275 exact temporary-debt entries
+- Milestone: P2-W4 optional reference connector seam
+- Status: verified; code committed; evidence commit pending
+- Allowed scope: app-owned internal manifest/discovery/registry/run contracts, explicit per-profile allow-listing, host-metered capture/transport/checkpoint capabilities, synthetic YouTube reference proof, real explicit JOB-029 process composition, provider-none defaults, and UTC-stable adjacent verification
+- Stop condition: P2-W5 starts before P2-W4 has a clean verified checkpoint and independent READY review
+- Code checkpoint: `70deb02` internal connector seam, explicit JOB-029 composition, receipt-bound checkpoint acceptance, and synthetic YouTube proof
+- Result: the default profile discovers no connector; explicit JOB-029 composition loads one allow-listed internal YouTube connector only after configuration and egress gates; fetch, discovery, extraction, submission, and checkpoint evidence are host-bound; checkpoint acceptance requires the exact sink-issued receipt, delivery ID, and source reference; replay and duplicate delivery remain idempotent
 
 ## Last verification
 
-- Command: P2-W3 targeted route/contract/portability Pytest; focused P2-W3 plus architecture Pytest; repository Ruff; strict MyPy; `make verify`; `git diff --check`; fresh independent Codex review
-- Result: passed 107 targeted tests, 215 focused/architecture tests, Ruff, strict MyPy on 430 source files, 2,932 total tests, wheel/sdist builds, artifact policy, diff integrity, and independent READY review with no demonstrated in-scope high/medium finding
+- Command: P2-W4 focused Pytest; repository Ruff; strict MyPy; `make verify`; `git diff --check`; fresh independent receipt-bound Codex review
+- Result: passed 122 focused tests, Ruff, strict MyPy on 433 source files, 2,962 total tests, wheel/sdist builds, artifact policy, diff integrity, and independent READY review with no demonstrated in-scope high/medium finding
 
 ## Decision log
 
@@ -42,6 +42,11 @@
 - Chosen: represent post-capture space changes as typed append-only route records linked by `supersedes`. Rejected: rewriting immutable capture records or keeping routing only in SQLite/search projections. Reason: current space membership must round-trip through Portable export/import while source evidence remains immutable.
 - Chosen: bind validation, materialization, reopen, and promotion to one immutable Portable snapshot and one retained root identity. Rejected: repeated pathname reads or individually valid but unbound snapshots. Reason: accepted bytes must be exactly the bytes materialized and promoted.
 - Chosen: document a trusted-owner local filesystem boundary for the pre-alpha single-user product. Rejected: claiming kernel protection against arbitrary hostile same-UID mutation. Reason: the implementation defends malformed input, crashes, target races, and cooperating processes; stronger hostile-local-user isolation requires a separate UID, container, VM, or immutable snapshot.
+- Chosen: keep the Phase 2 connector seam internal to allow-listed repository-owned code and state that hostile Python reflection requires the separately deferred isolated-worker runtime. Rejected: expanding one reference proof into the forbidden public SDK, IPC worker, package-signing, or sandboxing scope. Reason: the reviewed architecture defers hostile third-party isolation until three internal proofs establish the shared contract.
+- Chosen: meter connector operations at host-bound capture, transport, and checkpoint capabilities and reconstruct receipts from host evidence. Rejected: treating connector-mutated counters as authoritative. Reason: bounded output must reflect actual accepted captures, fetches, discoveries, and extractions.
+- Chosen: require a sink-issued receipt identity, delivery ID, and source reference before a `SEEN` YouTube record can become `ACCEPTED`. Rejected: generic checkpoint replacement or connector-asserted commitment. Reason: replay state may advance only after the exact durable capture is evidenced.
+- Chosen: compose the YouTube connector lazily in the real JOB-029 process path only when an absolute configuration reference is explicit. Rejected: package-default registration or test-only composition. Reason: the installed journey must work while the provider-none/default profile remains connector-free and egress-off performs no config, media, or transport work.
+- Chosen: locate the unique portability capture recursively instead of hard-coding a local calendar month. Rejected: preserving a wall-clock/UTC boundary assumption. Reason: canonical bytes and identity remain exact across UTC month rollover.
 
 ## Dispatch ledger
 
@@ -59,7 +64,11 @@
 - P2-W3 implementation/reconciliation: one implementation worker plus coordinator repairs implemented strict profile/ports, export/import/materialization, exact snapshot/promotion binding, schema parity, null occurrence preservation, and append-only routing replay
 - P2-W3 review: seven normal-budget and five recorded-override read-only Codex verdicts exposed successive high/medium defects; every demonstrated issue was reproduced and repaired; `W3-ROUTING-FINAL-INDEPENDENT-REVIEW-01` returned READY with no in-scope high/medium finding
 - P2-W3 children: 17 total, 0 active. Overrides and reasons are preserved in the milestone ledger. No Claude-family or other non-Codex agent was dispatched.
+- P2-W4 mapping/reconciliation: three Codex mappers, one compact report retry, and one Codex reconciler; complete
+- P2-W4 implementation/review: two implementation attempts plus eight independent review passes drove repairs for descriptor boundaries, global budgets, exact-value poisoning, real JOB-029 composition, host-owned metering, atomic discovery reservation, and receipt-bound checkpoint acceptance
+- P2-W4 final review: `W4-RECEIPT-BOUND-FINAL-REVIEW-01` returned READY with no demonstrated in-scope high/medium finding
+- P2-W4 children: 15 total, 0 active. Three recorded overrides were required because successive mandatory fresh reviews found new in-scope defects after the normal budget was exhausted. No Claude-family or other non-Codex agent was dispatched.
 
 ## Next action
 
-Commit this P2-W3 evidence, verify and push the exact checkpoint, then execute P2-W4 with a fresh Codex-only milestone budget.
+Commit this P2-W4 evidence, verify and push the exact checkpoint, then execute P2-W5 with a fresh Codex-only milestone budget.
