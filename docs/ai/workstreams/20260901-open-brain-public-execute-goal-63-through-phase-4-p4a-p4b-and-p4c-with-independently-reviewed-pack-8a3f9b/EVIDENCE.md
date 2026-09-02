@@ -114,15 +114,25 @@
   environment and executes all 20 moved engine test modules through a separate
   locked test-runner environment. Tests run from copied inputs with repository
   source and the app, connector, and legacy distributions unavailable.
+- Exact-head CI at `974631e21e0a71a97b7269c69757e268687a5a63` failed only
+  the installed-engine contract in `phase4-contracts` and Python 3.12, 3.13,
+  and 3.14 verification. A clean Linux reproduction showed uv's default wheel
+  install had hardlinked packaged Portable fixtures to its cache, so their
+  link count correctly violated the unique-regular-file invariant.
+- Commit `181f9ae3438955d23dd39a155b7f23e9b93aa2f6` makes the
+  isolated product install use uv's copy mode. All 11 focused harness and
+  engine-distribution tests passed in a metadata-free Linux Python 3.12
+  container; no validator invariant was weakened.
 - Local Python 3.12 and uv 0.12.8 verification passed: 76 Phase 4 contracts,
   Ruff, strict MyPy on 485 files, manifest validation, 3,139 total tests,
   wheel/sdist build, exact artifact policy, source plus artifact release audit,
-  `uv lock --check`, and `git diff --check`.
+  reachable-history audit, Gitleaks over 59 commits, `uv lock --check`, and
+  `git diff --check`.
 - Artifact SHA-256 digests:
   wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
   sdist `d62df80976117ff76ccbbb3a753b8765e7cb9f3c2404b273ef27e3a18e418c26`.
-- P4-W1 is not closed yet. The evidence commit must be pushed, all exact-head CI
-  checks must pass, and a corrected fresh review must return `READY` with
-  P0/P1/P2 `0/0/0` before P4-W2.
+- P4-W1 is not closed yet. The repaired candidate and evidence commit must be
+  pushed, all exact-head CI checks must pass, and a corrected fresh review must
+  return `READY` with P0/P1/P2 `0/0/0` before P4-W2.
 - No publication, deployment, production, private-state, or cutover action
   occurred.

@@ -162,3 +162,15 @@
   one temporary review packet.
 - Why: the approved plan and validator already designate the documentation
   manifest as the sole ownership and movement authority.
+
+## D-016: copy isolated product installs out of uv's cache
+
+- Chosen: pass `--link-mode copy` when installing built product wheels into
+  disposable isolation environments.
+- Rejected: uv's default Linux hardlink mode, because installed Portable
+  fixtures then share inodes with uv's cache and violate the product's
+  unique-regular-file safety invariant.
+- Why: exact-head Linux CI exposed the filesystem-dependent behavior. A clean
+  Linux container passes the complete focused contract with copied installs,
+  without weakening validation or adding repository sources to the product
+  environment.

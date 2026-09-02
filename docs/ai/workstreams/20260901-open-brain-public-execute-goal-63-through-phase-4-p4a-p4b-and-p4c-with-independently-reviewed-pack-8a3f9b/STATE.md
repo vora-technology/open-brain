@@ -11,8 +11,8 @@
 ## Current milestone
 
 - Milestone: P4-W1 workspace and engine distribution
-- Status: P4-W1 source checkpoint complete and locally green at
-  `a82485dd699ca7cd56c86d1904da7487fa1f87c1`; evidence commit, exact-head CI,
+- Status: P4-W1 repaired candidate locally green at
+  `181f9ae3438955d23dd39a155b7f23e9b93aa2f6`; evidence commit, exact-head CI,
   and fresh rereview remain before P4-W2
 - Allowed scope: manifest-driven P4-W1 workspace/member skeletons, mechanical
   engine moves and import rewrites, engine API/package metadata, isolated
@@ -82,10 +82,10 @@
 
 ## Next action
 
-Commit this P4-W1 evidence update, push the exact candidate, require every PR
-check to pass, then dispatch a corrected fresh read-only review against that
-exact SHA. P4-W2 remains blocked until the verdict is `READY` with P0/P1/P2
-`0/0/0`.
+Commit this repaired P4-W1 evidence update, push the exact candidate, require
+every PR check to pass, then dispatch a corrected fresh read-only review
+against that exact SHA. P4-W2 remains blocked until the verdict is `READY`
+with P0/P1/P2 `0/0/0`.
 
 ## P4-W0 complete
 
@@ -153,10 +153,18 @@ exact SHA. P4-W2 remains blocked until the verdict is `READY` with P0/P1/P2
   manifest path in the review packet. The three repository findings are fixed
   at source checkpoint `a82485dd699ca7cd56c86d1904da7487fa1f87c1`; the next
   review packet names the sole canonical manifest correctly.
+- Exact-head CI at evidence commit
+  `974631e21e0a71a97b7269c69757e268687a5a63` then exposed uv's default Linux
+  hardlink install mode: packaged Portable fixtures shared an inode with uv's
+  cache and correctly failed the unique-regular-file invariant. Commit
+  `181f9ae3438955d23dd39a155b7f23e9b93aa2f6` forces copied product installs.
+  The 11 focused contracts passed in a metadata-free Linux Python 3.12
+  container before the full local gate.
 - Pinned local verification passed: 76 Phase 4 contracts, Ruff, strict MyPy on
   485 source files, canonical manifest validation, all 3,139 repository tests,
-  isolated wheel/sdist build, exact artifact policy, release audit, lock check,
-  and diff integrity.
+  isolated wheel/sdist build, exact artifact policy, source/artifact and
+  reachable-history audits, Gitleaks over 59 commits, lock check, and diff
+  integrity.
 - Rebuilt artifact SHA-256 digests are
   `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`
   for the wheel and
