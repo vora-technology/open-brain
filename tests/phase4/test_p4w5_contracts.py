@@ -80,9 +80,11 @@ def test_p4w5_native_toolchain_and_runner_images_are_exact() -> None:
     }
 
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    exact_source = "${{ github.event.pull_request.head.sha || github.sha }}"
     assert "\n  native-build-macos:\n    runs-on: macos-14\n" in workflow
     assert "\n  native-build-linux:\n    runs-on: ubuntu-24.04\n" in workflow
-    assert workflow.count("make p4w5-native P4W5_SOURCE_SHA=${{ github.sha }}") == 2
+    assert workflow.count(f"ref: {exact_source}") == 2
+    assert workflow.count(f"P4W5_SOURCE_SHA={exact_source}") == 2
     assert "native-build-linux:\n    runs-on: ubuntu-latest" not in workflow
 
 
