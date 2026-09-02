@@ -500,6 +500,19 @@ portability. Treat the full multi-version Linux jobs as required evidence.
 
 Discovered: 2026-09-01.
 
+### CI-002: Syntax-valid action pins can still fail before checkout
+
+Symptom: A newly copied CI job fails during job setup on every matrix version, before checkout or
+any project command runs, while `actionlint` passes locally.
+
+Cause: A one-character commit-SHA drift still matches workflow syntax but does not identify the
+same valid pinned action revision used by sibling jobs.
+
+Fix: Keep repeated action pins identical and assert that invariant in a repository test. Treat
+`actionlint` as syntax validation, not remote action-revision validation.
+
+Discovered: 2026-09-02.
+
 ### CONTROL-001: Default Unix-socket backlog behavior varies by host
 
 Symptom: A partial client occupies the serial daemon reader and the next owner request gets

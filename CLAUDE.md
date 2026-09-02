@@ -164,4 +164,6 @@ lifecycle proof, and production cutover remain separate gated work.
 
 **Artifact-policy coordinates match manifest disposition labels exactly.** Use singular `connector` so the policy selects `connector-wheel` and `connector-sdist`; plural `connectors` silently selects no canonical members.
 
+**`actionlint` does not prove a pinned action commit exists.** Keep repeated action pins identical across jobs and test that invariant; a one-character SHA drift fails during job setup before any repository step runs.
+
 > Full registry: `docs/engineering/gotchas/README.md`.

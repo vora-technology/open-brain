@@ -12,10 +12,10 @@
 
 - Milestone: P4-W3 connector distribution, provisional interface, and isolated
   worker
-- Status: locally verified source candidate from clean checkpoint
-  `c3480be28fa36b9dae2256ff6aee610044b86847`. Source checkpoint, exact-head CI,
-  and independent review remain pending; the P4-W3 reviewer ledger is still
-  zero
+- Status: locally verified CI-pin repair after source checkpoint
+  `fe579e4f51d50b35c844c13ef3df58b61a6b9b91`. A separate repair checkpoint,
+  exact-head CI, and independent review remain pending; the P4-W3 reviewer
+  ledger is still zero
 - Allowed scope: the five manifest-owned connector runtime files and authorized
   tests/resources; `open-brain-connectors` build metadata and artifacts;
   already-demonstrated provisional extension values and conformance rules;
@@ -86,9 +86,9 @@
 
 ## Next action
 
-Create the bounded P4-W3 source checkpoint, push the explicit plan-authorized
-branch update, and require exact-head CI to pass. Only then dispatch one fresh
-source-SHA-bound read-only reviewer before milestone closure.
+Create and push the bounded CI-pin repair checkpoint, then require exact-head
+CI to pass. Only then dispatch one fresh source-SHA-bound read-only reviewer
+before milestone closure.
 
 ## P4-W0 complete
 
@@ -422,5 +422,11 @@ source-SHA-bound read-only reviewer before milestone closure.
   artifact coordinates, and parent-bound receipt budgets. No package
   publication, tag, release, native build, deployment, private-state access,
   production access, cutover, or P4-W4 work occurred.
+- First exact-head CI run `33627007197` at `fe579e4` passed every existing CI
+  job but failed all three new connector jobs during setup because of a
+  one-character copied action-pin drift. Release audit run `33627007170`
+  passed. The repair makes all four `setup-uv` pins identical, adds a regression,
+  and passes focused checks, actionlint, `make phase4-contracts`, and `make
+  verify` locally. `CI-002` records that actionlint cannot validate remote pins.
 - Exact-head CI and a fresh independent READY P0/P1/P2 `0/0/0` verdict remain
   required. Reviewer budget remains 0 active and 0 total until CI is green.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from tools.phase4.acceptance_harness import connector_isolation_findings
@@ -33,3 +34,6 @@ def test_connector_isolation_runs_on_every_supported_python_in_ci() -> None:
     assert "connector-isolation:" in workflow
     assert 'python-version: ["3.12", "3.13", "3.14"]' in workflow
     assert "pytest -q tests/phase4/test_connector_distribution.py" in workflow
+    setup_uv_pins = re.findall(r"uses: astral-sh/setup-uv@([0-9a-f]{40})", workflow)
+    assert len(setup_uv_pins) == 4
+    assert len(set(setup_uv_pins)) == 1

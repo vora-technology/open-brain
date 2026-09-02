@@ -447,6 +447,14 @@
 - The branch-finish gotcha audit added canonical module-identity,
   artifact-coordinate, and parent-budget receipt entries. No other
   non-duplicate finding survived the evidence and registry checks.
+- First exact-head CI run `33627007197` at source `fe579e4` passed all three
+  full verify jobs, Phase 4 contracts, and the macOS appliance job. Release
+  audit run `33627007170` passed. The three new connector-isolation jobs failed
+  during job setup because their copied `setup-uv` commit pin differed by one
+  character from every existing job; no repository step ran. A focused
+  regression now requires all four pins to be present and identical. The
+  corrected workflow, regression, `actionlint`, `make phase4-contracts`, and
+  `make verify` all pass locally.
 - Exact-head CI and the independent source-SHA-bound review are still pending.
   No publication, tag, release, native build, deployment, production/private
   access, cutover action, or P4-W4 work occurred.
