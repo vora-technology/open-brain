@@ -737,6 +737,25 @@ def test_optional_package_imports_remain_lazy() -> None:
     assert metadata.scope is IntegrationScope.PERSONAL
 
 
+@pytest.mark.parametrize(
+    "module_name",
+    (
+        "open_brain.services",
+        "open_brain_connectors",
+        "open_brain_engine.engine.local",
+        "open_brain_legacy",
+    ),
+)
+def test_internal_packages_cannot_be_optional_providers(module_name: str) -> None:
+    with pytest.raises(ValueError, match="invalid optional integration metadata"):
+        OptionalIntegrationMetadata(
+            capability=Capability.FINANCE,
+            import_path=module_name,
+        )
+    with pytest.raises(ValueError, match="invalid optional integration import path"):
+        ports_module._loaded_optional_module(module_name)
+
+
 def test_enabled_installed_optional_provider_loads_without_preload(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

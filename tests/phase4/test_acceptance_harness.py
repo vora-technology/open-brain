@@ -546,6 +546,150 @@ def test_app_artifact_joins_provenance_and_models_shadowing_bindings(
     }
 
 
+def test_app_artifact_rejects_equivalent_import_and_reflection_spellings(
+    tmp_path: Path,
+) -> None:
+    wheel = tmp_path / "app.whl"
+    _wheel(
+        wheel,
+        {
+            "open_brain/importlib_init_alias.py": (
+                b"from importlib.__init__ import import_module as load\n"
+                b'load("open_brain_engine.engine.local")\n'
+            ),
+            "open_brain/pkgutil_alias.py": (
+                b"import pkgutil as loader\n"
+                b'loader.resolve_name("open_brain_connectors")\n'
+            ),
+            "open_brain/pkgutil_from_alias.py": (
+                b"from pkgutil import resolve_name as load\n"
+                b'load("open_brain_engine.engine.local:subject")\n'
+            ),
+            "open_brain/importlib_util_alias.py": (
+                b"import importlib.util as utilities\n"
+                b'utilities.find_spec("open_brain_connectors")\n'
+            ),
+            "open_brain/importlib_util_from_alias.py": (
+                b"from importlib import util as utilities\n"
+                b'utilities.find_spec("open_brain_connectors")\n'
+            ),
+            "open_brain/sys_getframe.py": (
+                b"import sys\n"
+                b'sys._getframe().f_globals["__builtins__"]["__import__"]('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/sys_getframe_alias.py": (
+                b"from sys import _getframe as frame\n"
+                b'frame().f_builtins["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain/type_function_getattribute.py": (
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'type(host).__getattribute__(host, "__globals__")'
+                b'["__builtins__"]["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain/type_alias_getattribute.py": (
+                b"from builtins import type as kind\n"
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'kind(host).__getattribute__(host, "__globals__")'
+                b'["__builtins__"]["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain/function_class_getattribute.py": (
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'host.__class__.__getattribute__(host, "__globals__")'
+                b'["__builtins__"]["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain-0.1.0.dist-info/METADATA": (
+                b"Name: open-brain\nVersion: 0.1.0\n"
+                b"Requires-Dist: open-brain-engine==0.1.0\n"
+            ),
+        },
+    )
+
+    findings = _app_import_boundary_findings(
+        wheel,
+        frozenset(
+            {
+                "open_brain_engine",
+                "open_brain_engine.engine",
+                "open_brain_engine.engine.local",
+            }
+        ),
+        frozenset({"open_brain_engine", "open_brain_engine.engine"}),
+    )
+
+    assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H008", "open_brain/importlib_init_alias.py"),
+        ("P4H009", "open_brain/importlib_init_alias.py"),
+        ("P4H009", "open_brain/importlib_util_alias.py"),
+        ("P4H009", "open_brain/importlib_util_from_alias.py"),
+        ("P4H009", "open_brain/function_class_getattribute.py"),
+        ("P4H009", "open_brain/pkgutil_alias.py"),
+        ("P4H008", "open_brain/pkgutil_from_alias.py"),
+        ("P4H009", "open_brain/pkgutil_from_alias.py"),
+        ("P4H009", "open_brain/sys_getframe.py"),
+        ("P4H009", "open_brain/sys_getframe_alias.py"),
+        ("P4H009", "open_brain/type_alias_getattribute.py"),
+        ("P4H009", "open_brain/type_function_getattribute.py"),
+    }
+
+
+def test_reviewed_dynamic_import_requires_original_parameter_binding(tmp_path: Path) -> None:
+    sources = (
+        (
+            b"from importlib import import_module\n"
+            b"def _loaded_optional_module(import_path: str) -> object:\n"
+            b'    import_path = "open_brain_connectors"\n'
+            b"    return import_module(import_path)\n"
+        ),
+        (
+            b"from importlib import import_module\n"
+            b"def _loaded_optional_module(import_path: str) -> object:\n"
+            b"    if import_path:\n"
+            b'        import_path = "open_brain_engine.engine.local"\n'
+            b"    return import_module(import_path)\n"
+        ),
+        (
+            b"from importlib import import_module\n"
+            b"def _loaded_optional_module(import_path: str, replacement: str) -> object:\n"
+            b"    import_path = replacement\n"
+            b"    return import_module(import_path)\n"
+        ),
+    )
+    metadata = (
+        b"Name: open-brain\nVersion: 0.1.0\n"
+        b"Requires-Dist: open-brain-engine==0.1.0\n"
+    )
+
+    for index, source in enumerate(sources):
+        wheel = tmp_path / f"app-{index}.whl"
+        _wheel(
+            wheel,
+            {
+                "open_brain/integrations/ports.py": source,
+                "open_brain-0.1.0.dist-info/METADATA": metadata,
+            },
+        )
+
+        findings = _app_import_boundary_findings(
+            wheel,
+            frozenset(
+                {
+                    "open_brain_engine",
+                    "open_brain_engine.engine",
+                    "open_brain_engine.engine.local",
+                }
+            ),
+            frozenset({"open_brain_engine", "open_brain_engine.engine"}),
+        )
+
+        assert {(finding.code, finding.subject) for finding in findings} == {
+            ("P4H009", "open_brain/integrations/ports.py")
+        }
+
+
 def test_expected_red_report_is_bounded_metadata_only() -> None:
     payload = json.loads(EXPECTED_RED.read_text(encoding="utf-8"))
 

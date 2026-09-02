@@ -31,17 +31,26 @@ _REVIEWED_APP_DYNAMIC_IMPORTS: Final[Mapping[str, tuple[str, ...]]] = {
 }
 _IMPORTLIB_MODULE: Final = "importlib"
 _IMPORTLIB_NAMESPACE: Final = "importlib.__dict__"
+_IMPORTLIB_UTIL_MODULE: Final = "importlib.util"
+_PKGUTIL_MODULE: Final = "pkgutil"
 _BUILTINS_MODULE: Final = "builtins"
 _BUILTINS_NAMESPACE: Final = "builtins.__dict__"
 _SYS_MODULE: Final = "sys"
 _SYS_MODULES: Final = "sys.modules"
 _SYS_NAMESPACE: Final = "sys.__dict__"
+_FRAME_OBJECT: Final = "frame"
 _NAMESPACE_MAPPING: Final = "namespace"
 _FUNCTION_OBJECT: Final = "function"
 _OBJECT_TYPE: Final = "object"
+_TYPE_CALLABLE: Final = "type"
+_TYPE_OBJECT: Final = "type-object"
+_UNKNOWN_VALUE: Final = "unknown-value"
+_PARAMETER_VALUE_PREFIX: Final = "parameter:"
 _IMPORT_MODULE_CALLABLE: Final = "import_module"
 _BUILTIN_IMPORT_CALLABLE: Final = "__import__"
+_RESOLVE_NAME_CALLABLE: Final = "resolve_name"
 _GETATTR_CALLABLE: Final = "getattr"
+_SYS_GETFRAME_CALLABLE: Final = "sys._getframe"
 _SYS_GETATTRIBUTE_CALLABLE: Final = "sys.__getattribute__"
 _IMPORTLIB_GETATTRIBUTE_CALLABLE: Final = "importlib.__getattribute__"
 _BUILTINS_GETATTRIBUTE_CALLABLE: Final = "builtins.__getattribute__"
@@ -53,7 +62,7 @@ _VARS_CALLABLE: Final = "vars"
 _EVAL_CALLABLE: Final = "eval"
 _EXEC_CALLABLE: Final = "exec"
 _DYNAMIC_IMPORT_CALLABLES: Final = frozenset(
-    {_IMPORT_MODULE_CALLABLE, _BUILTIN_IMPORT_CALLABLE}
+    {_IMPORT_MODULE_CALLABLE, _BUILTIN_IMPORT_CALLABLE, _RESOLVE_NAME_CALLABLE}
 )
 _UNSAFE_REFLECTION_CALLABLES: Final = frozenset(
     {
@@ -62,6 +71,7 @@ _UNSAFE_REFLECTION_CALLABLES: Final = frozenset(
         _VARS_CALLABLE,
         _EVAL_CALLABLE,
         _EXEC_CALLABLE,
+        _SYS_GETFRAME_CALLABLE,
         _SYS_GETATTRIBUTE_CALLABLE,
         _IMPORTLIB_GETATTRIBUTE_CALLABLE,
         _BUILTINS_GETATTRIBUTE_CALLABLE,
@@ -73,6 +83,8 @@ _DYNAMIC_IMPORT_CAPABILITIES: Final = frozenset(
     {
         _IMPORTLIB_MODULE,
         _IMPORTLIB_NAMESPACE,
+        _IMPORTLIB_UTIL_MODULE,
+        _PKGUTIL_MODULE,
         _BUILTINS_MODULE,
         _BUILTINS_NAMESPACE,
         _SYS_MODULES,
@@ -94,7 +106,9 @@ _BUILTINS_MEMBERS: Final[Mapping[str, str]] = {
     "eval": _EVAL_CALLABLE,
     "exec": _EXEC_CALLABLE,
     "object": _OBJECT_TYPE,
+    "type": _TYPE_CALLABLE,
 }
+_UNKNOWN_BINDING: Final = frozenset({_UNKNOWN_VALUE})
 
 
 @dataclass(frozen=True, order=True, slots=True)
@@ -884,6 +898,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                     "eval": frozenset({_EVAL_CALLABLE}),
                     "exec": frozenset({_EXEC_CALLABLE}),
                     "object": frozenset({_OBJECT_TYPE}),
+                    "type": frozenset({_TYPE_CALLABLE}),
                 },
             )
         ]
@@ -954,14 +969,48 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             self._record_capabilities(f"bind:{name}", provenance)
 
     @staticmethod
+    def _module_binding(module: str) -> frozenset[str]:
+        normalized = module.removesuffix(".__init__")
+        if normalized == "importlib":
+            return frozenset({_IMPORTLIB_MODULE})
+        if normalized == "importlib.util":
+            return frozenset({_IMPORTLIB_UTIL_MODULE})
+        if normalized.startswith("importlib.") and normalized not in {
+            "importlib.metadata",
+            "importlib.resources",
+        }:
+            return frozenset({_IMPORTLIB_MODULE})
+        if normalized == "pkgutil" or normalized.startswith("pkgutil."):
+            return frozenset({_PKGUTIL_MODULE})
+        if normalized == "builtins":
+            return frozenset({_BUILTINS_MODULE})
+        if normalized == "sys":
+            return frozenset({_SYS_MODULE})
+        return frozenset()
+
+    @staticmethod
+    def _parameter_binding(name: str) -> frozenset[str]:
+        return frozenset({f"{_PARAMETER_VALUE_PREFIX}{name}"})
+
+    @staticmethod
     def _member_binding(owner: frozenset[str], member: str) -> frozenset[str]:
         provenance: set[str] = set()
         if _IMPORTLIB_MODULE in owner and member == "import_module":
             provenance.add(_IMPORT_MODULE_CALLABLE)
-        if _IMPORTLIB_MODULE in owner and member == "__dict__":
+        elif _IMPORTLIB_MODULE in owner and member == "__dict__":
             provenance.add(_IMPORTLIB_NAMESPACE)
-        if _IMPORTLIB_MODULE in owner and member == "__getattribute__":
+        elif _IMPORTLIB_MODULE in owner and member == "__getattribute__":
             provenance.add(_IMPORTLIB_GETATTRIBUTE_CALLABLE)
+        elif _IMPORTLIB_MODULE in owner and member == "util":
+            provenance.add(_IMPORTLIB_UTIL_MODULE)
+        elif _IMPORTLIB_MODULE in owner and member in {"metadata", "resources"}:
+            provenance.add(_UNKNOWN_VALUE)
+        elif _IMPORTLIB_MODULE in owner:
+            provenance.add(_IMPORTLIB_MODULE)
+        if _PKGUTIL_MODULE in owner and member == "resolve_name":
+            provenance.add(_RESOLVE_NAME_CALLABLE)
+        elif _PKGUTIL_MODULE in owner:
+            provenance.add(_PKGUTIL_MODULE)
         if owner & {_BUILTINS_MODULE, _BUILTINS_NAMESPACE}:
             binding = _BUILTINS_MEMBERS.get(member)
             if binding is not None:
@@ -972,9 +1021,19 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             provenance.add(_SYS_NAMESPACE)
         if _SYS_MODULE in owner and member == "__getattribute__":
             provenance.add(_SYS_GETATTRIBUTE_CALLABLE)
+        if _SYS_MODULE in owner and member == "_getframe":
+            provenance.add(_SYS_GETFRAME_CALLABLE)
+        if _FRAME_OBJECT in owner and member in {"f_globals", "f_locals"}:
+            provenance.add(_NAMESPACE_MAPPING)
+        if _FRAME_OBJECT in owner and member == "f_builtins":
+            provenance.add(_BUILTINS_NAMESPACE)
         if _FUNCTION_OBJECT in owner and member == "__getattribute__":
             provenance.add(_FUNCTION_GETATTRIBUTE_CALLABLE)
+        if _FUNCTION_OBJECT in owner and member == "__class__":
+            provenance.add(_TYPE_OBJECT)
         if _OBJECT_TYPE in owner and member == "__getattribute__":
+            provenance.add(_OBJECT_GETATTRIBUTE_CALLABLE)
+        if _TYPE_OBJECT in owner and member == "__getattribute__":
             provenance.add(_OBJECT_GETATTRIBUTE_CALLABLE)
         if _SYS_NAMESPACE in owner and member == "modules":
             provenance.add(_SYS_MODULES)
@@ -1050,6 +1109,10 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 if member is not None:
                     return self._member_binding(self._binding(node.args[0]), member)
             provenance: set[str] = set()
+            if _TYPE_CALLABLE in function:
+                provenance.add(_TYPE_OBJECT)
+            if _SYS_GETFRAME_CALLABLE in function:
+                provenance.add(_FRAME_OBJECT)
             if function & {_GLOBALS_CALLABLE, _LOCALS_CALLABLE}:
                 provenance.add(_NAMESPACE_MAPPING)
             if _VARS_CALLABLE in function:
@@ -1153,7 +1216,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             return
         if isinstance(target, (ast.Tuple, ast.List)):
             for element in target.elts:
-                self._bind_target(element, frozenset())
+                self._bind_target(element, _UNKNOWN_BINDING)
             if provenance & _DYNAMIC_IMPORT_CAPABILITIES:
                 self._record("escape:dynamic-importer")
             return
@@ -1169,7 +1232,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             for child_target, child_value in zip(target.elts, value.elts, strict=True):
                 self._bind_assignment(child_target, child_value)
             return
-        self._bind_target(target, self._binding(value))
+        self._bind_target(target, self._binding(value) or _UNKNOWN_BINDING)
 
     def _function_scope(
         self,
@@ -1209,6 +1272,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         self._bind(node.name, frozenset({_FUNCTION_OBJECT}), review=False)
         outer = self._snapshot()
         local_names, global_names, nonlocal_names = self._function_scope(node)
+        argument_names = _argument_names(node.args)
         self._push_scope(
             kind="function",
             parent=self._function_parent(),
@@ -1217,6 +1281,8 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             nonlocal_names=nonlocal_names,
             label=node.name,
         )
+        for name in argument_names:
+            self._bind(name, self._parameter_binding(name), review=False)
         for statement in node.body:
             self.visit(statement)
         self._pop_scope()
@@ -1262,6 +1328,8 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             nonlocal_names=set(),
             label=f"<lambda>@{node.lineno}",
         )
+        for name in _argument_names(node.args):
+            self._bind(name, self._parameter_binding(name), review=False)
         self.visit(node.body)
         self._pop_scope()
         self._restore(outer)
@@ -1269,33 +1337,33 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def visit_Import(self, node: ast.Import) -> None:  # noqa: N802
         for alias in node.names:
             name = alias.asname or alias.name.partition(".")[0]
-            if alias.name == "importlib" or (
-                alias.asname is None and alias.name.startswith("importlib.")
-            ):
-                self._bind(name, frozenset({_IMPORTLIB_MODULE}))
-            elif alias.name == "builtins":
-                self._bind(name, frozenset({_BUILTINS_MODULE}))
-            elif alias.name == "sys":
-                self._bind(name, frozenset({_SYS_MODULE}), review=False)
+            binding = self._module_binding(alias.name)
+            if binding:
+                self._bind(name, binding, review=binding != frozenset({_SYS_MODULE}))
             else:
-                self._bind(name, frozenset(), review=False)
+                self._bind(name, _UNKNOWN_BINDING, review=False)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:  # noqa: N802
         for alias in node.names:
             if alias.name == "*":
-                if node.level == 0 and node.module in {"builtins", "importlib"}:
+                if (
+                    node.level == 0
+                    and node.module is not None
+                    and self._module_binding(node.module)
+                    & {_BUILTINS_MODULE, _IMPORTLIB_MODULE, _PKGUTIL_MODULE}
+                ):
                     self._record("escape:dynamic-importer")
                 continue
             name = alias.asname or alias.name
-            if node.level == 0 and node.module in {"builtins", "importlib", "sys"}:
-                owner = {
-                    "builtins": _BUILTINS_MODULE,
-                    "importlib": _IMPORTLIB_MODULE,
-                    "sys": _SYS_MODULE,
-                }[node.module]
-                self._bind(name, self._member_binding(frozenset({owner}), alias.name))
+            owner = (
+                self._module_binding(node.module)
+                if node.level == 0 and node.module is not None
+                else frozenset()
+            )
+            if owner:
+                self._bind(name, self._member_binding(owner, alias.name))
             else:
-                self._bind(name, frozenset(), review=False)
+                self._bind(name, _UNKNOWN_BINDING, review=False)
 
     def visit_Assign(self, node: ast.Assign) -> None:  # noqa: N802
         self.visit(node.value)
@@ -1309,8 +1377,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         if node.value is not None:
             self.visit(node.value)
             self._bind_assignment(node.target, node.value)
-        else:
-            self._bind_target(node.target, frozenset())
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> None:  # noqa: N802
         self.visit(node.value)
@@ -1323,6 +1389,8 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                     break
                 target_scope = parent
             provenance = self._binding(node.value)
+            if not provenance:
+                provenance = _UNKNOWN_BINDING
             if target_scope != original_scope:
                 provenance |= self._resolve_from(target_scope, node.target.id)
             self._bind(node.target.id, provenance, scope_index=target_scope)
@@ -1332,11 +1400,11 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def visit_AugAssign(self, node: ast.AugAssign) -> None:  # noqa: N802
         self.visit(node.target)
         self.visit(node.value)
-        self._bind_target(node.target, frozenset())
+        self._bind_target(node.target, _UNKNOWN_BINDING)
 
     def visit_Delete(self, node: ast.Delete) -> None:  # noqa: N802
         for target in node.targets:
-            self._bind_target(target, frozenset())
+            self._bind_target(target, _UNKNOWN_BINDING)
 
     def visit_If(self, node: ast.If) -> None:  # noqa: N802
         self.visit(node.test)
@@ -1354,7 +1422,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         start = self._snapshot()
         self._restore(start)
         if target is not None:
-            self._bind_target(target, frozenset())
+            self._bind_target(target, _UNKNOWN_BINDING)
         for statement in body:
             self.visit(statement)
         body_state = self._snapshot()
@@ -1382,7 +1450,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         for item in items:
             self.visit(item.context_expr)
             if item.optional_vars is not None:
-                self._bind_target(item.optional_vars, frozenset())
+                self._bind_target(item.optional_vars, _UNKNOWN_BINDING)
         for statement in body:
             self.visit(statement)
 
@@ -1409,11 +1477,11 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             if handler.type is not None:
                 self.visit(handler.type)
             if handler.name is not None:
-                self._bind(handler.name, frozenset(), review=False)
+                self._bind(handler.name, _UNKNOWN_BINDING, review=False)
             for statement in handler.body:
                 self.visit(statement)
             if handler.name is not None:
-                self._bind(handler.name, frozenset(), review=False)
+                self._bind(handler.name, _UNKNOWN_BINDING, review=False)
             outcomes.append(self._snapshot())
         self._restore(self._joined(outcomes))
         for statement in finalbody:
@@ -1434,7 +1502,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             collector = _ScopeNameCollector()
             collector.visit(case.pattern)
             for name in collector.names:
-                self._bind(name, frozenset(), review=False)
+                self._bind(name, _UNKNOWN_BINDING, review=False)
             if case.guard is not None:
                 self.visit(case.guard)
             for statement in case.body:
@@ -1463,7 +1531,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         for index, generator in enumerate(generators):
             if index:
                 self.visit(generator.iter)
-            self._bind_target(generator.target, frozenset())
+            self._bind_target(generator.target, _UNKNOWN_BINDING)
             for condition in generator.ifs:
                 self.visit(condition)
         for value in values:
@@ -1517,9 +1585,20 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         )
         target = _constant_string(target_node) if target_node is not None else None
         if target is not None and importers:
-            self.imported.add(target)
+            for importer in importers:
+                self.imported.add(
+                    target.partition(":")[0]
+                    if importer == _RESOLVE_NAME_CALLABLE
+                    else target
+                )
         for importer in importers:
-            if len(node.args) == 1 and not node.keywords and isinstance(node.args[0], ast.Name):
+            if (
+                len(node.args) == 1
+                and not node.keywords
+                and isinstance(node.args[0], ast.Name)
+                and self._binding(node.args[0])
+                == self._parameter_binding(node.args[0].id)
+            ):
                 argument = node.args[0].id
             elif target is not None:
                 argument = "<literal>"

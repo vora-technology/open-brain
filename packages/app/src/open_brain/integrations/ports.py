@@ -20,6 +20,9 @@ _OPAQUE_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _MODULE_PATH_PATTERN = re.compile(
     r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*"
 )
+_FORBIDDEN_OPTIONAL_IMPORT_ROOTS = frozenset(
+    {"open_brain", "open_brain_connectors", "open_brain_engine", "open_brain_legacy"}
+)
 _PUBLIC_TEXT_RESIDUAL_PATTERNS = (
     re.compile(
         r"(?ix)\b(?:api[\s_-]*key|authorization|bearer|credential|password|secret|token)"
@@ -870,9 +873,8 @@ class OptionalIntegrationMetadata:
     import_path: str
 
     def __post_init__(self) -> None:
-        if not isinstance(self.capability, Capability) or not (
-            isinstance(self.import_path, str)
-            and _MODULE_PATH_PATTERN.fullmatch(self.import_path)
+        if not isinstance(self.capability, Capability) or not _is_optional_import_path(
+            self.import_path
         ):
             raise ValueError("invalid optional integration metadata")
 
@@ -914,7 +916,17 @@ class OptionalIntegrationMetadata:
 
 
 def _loaded_optional_module(import_path: str) -> object:
+    if not _is_optional_import_path(import_path):
+        raise ValueError("invalid optional integration import path")
     return import_module(import_path)
+
+
+def _is_optional_import_path(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and _MODULE_PATH_PATTERN.fullmatch(value) is not None
+        and value.partition(".")[0] not in _FORBIDDEN_OPTIONAL_IMPORT_ROOTS
+    )
 
 
 @dataclass(frozen=True, slots=True)
