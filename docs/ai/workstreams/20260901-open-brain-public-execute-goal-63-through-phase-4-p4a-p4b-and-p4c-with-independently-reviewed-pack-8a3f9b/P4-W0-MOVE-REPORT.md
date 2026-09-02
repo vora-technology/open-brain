@@ -2,8 +2,8 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `565`
-- app: `66`
+- Total subjects: `567`
+- app: `68`
 - connectors: `9`
 - engine: `104`
 - legacy: `299`
@@ -256,6 +256,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/release/installation.py` | `src/open_brain/release/installation.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/release/installation.py` | `legacy-only` |
 | `src/open_brain/release/replacement.py` | `src/open_brain/release/replacement.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/release/replacement.py` | `legacy-only` |
 | `src/open_brain/release/stabilization.py` | `src/open_brain/release/stabilization.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/release/stabilization.py` | `legacy-only` |
+| `src/open_brain/resources/supervisors/launchd.json` | `src/open_brain/resources/supervisors/launchd.json` | `planned` | `package-resource` | `app` | `packages/app/src/open_brain/resources/supervisors/launchd.json` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/resources/supervisors/systemd.service` | `src/open_brain/resources/supervisors/systemd.service` | `planned` | `package-resource` | `app` | `packages/app/src/open_brain/resources/supervisors/systemd.service` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/review/__init__.py` | `packages/engine/src/open_brain_engine/review/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/review/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/review/maintenance.py` | `src/open_brain/review/maintenance.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/review/maintenance.py` | `legacy-only` |
 | `src/open_brain/review/models.py` | `packages/engine/src/open_brain_engine/review/models.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/review/models.py` | `engine-sdist, engine-wheel` |

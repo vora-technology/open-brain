@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
+import json
 import plistlib
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
+from importlib.resources import files
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 
 _LABEL: Final[str] = "org.open-brain.appliance-daemon"
 _SYSTEMD_UNIT: Final[str] = "open-brain-appliance.service"
 _SUPERVISOR_FAILURE: Final[str] = "appliance supervisor action failed"
+_RESOURCE_ROOT: Final[tuple[str, str]] = ("resources", "supervisors")
+_RESOURCE_NAMES: Final[frozenset[str]] = frozenset({"launchd.json", "systemd.service"})
+_SYSTEMD_COMMAND_TOKEN: Final[str] = "@OPEN_BRAIN_COMMAND@"
+_SYSTEMD_SOURCE_TOKEN: Final[str] = "@OPEN_BRAIN_SOURCE_CHECKOUT@"
 
 FileWriter = Callable[[Path, str], None]
 FileRemover = Callable[[Path], None]
@@ -38,22 +44,26 @@ def _launchd_target(user_id: int) -> str:
 
 def _validate_supervisor_inputs(
     root: Path,
-    checkout_root: Path,
+    checkout_root: Path | None,
     python_executable: str,
     unit_directory: Path,
 ) -> None:
     if (
         not isinstance(root, Path)
-        or not isinstance(checkout_root, Path)
+        or (checkout_root is not None and not isinstance(checkout_root, Path))
         or not isinstance(unit_directory, Path)
         or not root.is_absolute()
-        or not checkout_root.is_absolute()
+        or (checkout_root is not None and not checkout_root.is_absolute())
         or not unit_directory.is_absolute()
         or not isinstance(python_executable, str)
         or not python_executable
         or not Path(python_executable).is_absolute()
         or _contains_unsafe_text(python_executable)
-        or any(_contains_unsafe_text(str(path)) for path in (root, checkout_root, unit_directory))
+        or any(
+            _contains_unsafe_text(str(path))
+            for path in (root, checkout_root, unit_directory)
+            if path is not None
+        )
     ):
         raise ValueError("invalid appliance supervisor configuration")
 
@@ -99,10 +109,51 @@ def _supervisor_failure() -> SupervisorCommandError:
     return SupervisorCommandError(_SUPERVISOR_FAILURE)
 
 
+def _resource_text(name: str) -> str:
+    if name not in _RESOURCE_NAMES:
+        raise _supervisor_failure()
+    try:
+        resource = files("open_brain")
+        for part in _RESOURCE_ROOT:
+            resource = resource.joinpath(part)
+        payload = resource.joinpath(name).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        raise _supervisor_failure() from None
+    if not payload or "\x00" in payload or len(payload.encode("utf-8")) > 4_096:
+        raise _supervisor_failure()
+    return payload
+
+
+def _launchd_template() -> dict[str, object]:
+    try:
+        value = json.loads(_resource_text("launchd.json"))
+    except (TypeError, ValueError):
+        raise _supervisor_failure() from None
+    expected = {
+        "KeepAlive": True,
+        "Label": _LABEL,
+        "RunAtLoad": False,
+        "Umask": 0o077,
+    }
+    if value != expected:
+        raise _supervisor_failure()
+    return cast(dict[str, object], value)
+
+
+def _systemd_template() -> str:
+    template = _resource_text("systemd.service")
+    if (
+        template.count(_SYSTEMD_COMMAND_TOKEN) != 1
+        or template.count(_SYSTEMD_SOURCE_TOKEN) != 1
+    ):
+        raise _supervisor_failure()
+    return template
+
+
 @dataclass(frozen=True, slots=True)
 class LaunchdSupervisor:
     root: Path
-    checkout_root: Path
+    checkout_root: Path | None
     python_executable: str
     unit_directory: Path
     user_id: int
@@ -133,17 +184,23 @@ class LaunchdSupervisor:
         return _LABEL
 
     def render(self) -> str:
-        payload = {
-            "EnvironmentVariables": {"PYTHONPATH": str(self.checkout_root / "src")},
-            "KeepAlive": True,
-            "Label": self.unit_name,
-            "ProgramArguments": list(_daemon_command(self.root, self.python_executable)),
-            "RunAtLoad": False,
-            "StandardErrorPath": str(self.root / ".open-brain" / "run" / "daemon.stderr.log"),
-            "StandardOutPath": str(self.root / ".open-brain" / "run" / "daemon.stdout.log"),
-            "Umask": 0o077,
-            "WorkingDirectory": str(self.checkout_root),
-        }
+        payload = _launchd_template()
+        payload.update(
+            {
+                "ProgramArguments": list(_daemon_command(self.root, self.python_executable)),
+                "StandardErrorPath": str(
+                    self.root / ".open-brain" / "run" / "daemon.stderr.log"
+                ),
+                "StandardOutPath": str(
+                    self.root / ".open-brain" / "run" / "daemon.stdout.log"
+                ),
+            }
+        )
+        if self.checkout_root is not None:
+            payload["EnvironmentVariables"] = {
+                "PYTHONPATH": str(self.checkout_root / "src")
+            }
+            payload["WorkingDirectory"] = str(self.checkout_root)
         return plistlib.dumps(payload, sort_keys=True).decode("utf-8")
 
     def install(self) -> None:
@@ -179,7 +236,7 @@ class LaunchdSupervisor:
 @dataclass(frozen=True, slots=True)
 class SystemdSupervisor:
     root: Path
-    checkout_root: Path
+    checkout_root: Path | None
     python_executable: str
     unit_directory: Path
     write_file: FileWriter = _write_file
@@ -207,22 +264,22 @@ class SystemdSupervisor:
             _systemd_escape(part)
             for part in _daemon_command(self.root, self.python_executable)
         )
-        return "\n".join(
-            (
-                "[Unit]",
-                "Description=Open Brain appliance daemon",
-                "",
-                "[Service]",
-                "Type=simple",
-                f"Environment=PYTHONPATH={_systemd_escape(str(self.checkout_root / 'src'))}",
-                f"ExecStart={command}",
-                f"WorkingDirectory={_systemd_escape(str(self.checkout_root))}",
-                "Restart=on-failure",
-                "",
-                "[Install]",
-                "WantedBy=default.target",
+        source_checkout = ""
+        if self.checkout_root is not None:
+            source_checkout = "\n".join(
+                (
+                    "Environment=PYTHONPATH="
+                    + _systemd_escape(str(self.checkout_root / "src")),
+                    "WorkingDirectory=" + _systemd_escape(str(self.checkout_root)),
+                )
             )
-        ) + "\n"
+        return _systemd_template().replace(
+            _SYSTEMD_COMMAND_TOKEN,
+            command,
+        ).replace(
+            _SYSTEMD_SOURCE_TOKEN,
+            source_checkout,
+        )
 
     def install(self) -> None:
         written = False

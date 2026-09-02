@@ -148,6 +148,8 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
             "docs/*.md",
             "docs/architecture/*.md",
             "examples/**/*",
+            "packages/*/src/*/resources/**/*",
+            "src/open_brain/resources/**/*",
         )
         for path in _files(root, pattern)
     }

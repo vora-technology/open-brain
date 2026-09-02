@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import plistlib
+from importlib.resources import files
 from pathlib import Path
 
 import pytest
@@ -92,6 +93,39 @@ def test_systemd_manifest_escapes_arguments_without_shell_only_quoting(tmp_path:
     assert "'" not in rendered
     assert "\\x20" in rendered
     assert "%%" in rendered
+
+
+def test_supervisor_templates_are_declared_package_resources() -> None:
+    resources = files("open_brain").joinpath("resources/supervisors")
+
+    assert resources.joinpath("launchd.json").is_file()
+    assert resources.joinpath("systemd.service").is_file()
+
+
+def test_installed_supervisor_manifests_do_not_require_source_checkout(tmp_path: Path) -> None:
+    root = tmp_path / "brain"
+    launchd = LaunchdSupervisor(
+        root=root,
+        checkout_root=None,
+        python_executable="/opt/open-brain/bin/python",
+        unit_directory=tmp_path / "LaunchAgents",
+        user_id=501,
+    )
+    systemd = SystemdSupervisor(
+        root=root,
+        checkout_root=None,
+        python_executable="/opt/open-brain/bin/python",
+        unit_directory=tmp_path / "systemd",
+    )
+
+    launchd_payload = plistlib.loads(launchd.render().encode("utf-8"))
+    systemd_payload = systemd.render()
+
+    assert "EnvironmentVariables" not in launchd_payload
+    assert "WorkingDirectory" not in launchd_payload
+    assert "PYTHONPATH" not in systemd_payload
+    assert "WorkingDirectory=" not in systemd_payload
+    assert str(root) in systemd_payload
 
 
 def test_supervisor_actions_are_allowlisted_and_do_not_expose_dynamic_attributes(

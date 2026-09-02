@@ -4416,7 +4416,9 @@
       "movement_state": "planned",
       "old_import_disposition": "retain",
       "owner": "app",
-      "resource_requirements": [],
+      "resource_requirements": [
+        "importlib.resources"
+      ],
       "roles": [],
       "runtime_namespace": "open_brain",
       "target_distribution": "app",
@@ -6048,6 +6050,46 @@
         "target_distribution": "engine",
         "target_path": "packages/engine/src/open_brain_engine/portable/schemas/v1/text.json",
         "test_owner": "engine"
+      },
+      "src/open_brain/resources/supervisors/launchd.json": {
+        "api_status": "distribution-private",
+        "artifact_disposition": [
+          "app-native",
+          "app-sdist",
+          "app-wheel"
+        ],
+        "current_path": "src/open_brain/resources/supervisors/launchd.json",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "planned",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "importlib.resources"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/src/open_brain/resources/supervisors/launchd.json",
+        "test_owner": "app"
+      },
+      "src/open_brain/resources/supervisors/systemd.service": {
+        "api_status": "distribution-private",
+        "artifact_disposition": [
+          "app-native",
+          "app-sdist",
+          "app-wheel"
+        ],
+        "current_path": "src/open_brain/resources/supervisors/systemd.service",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "planned",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "importlib.resources"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/src/open_brain/resources/supervisors/systemd.service",
+        "test_owner": "app"
       },
       "src/open_brain/services/appliance_entrypoints.py#run_http": {
         "api_status": "distribution-private",
