@@ -11,9 +11,9 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: import-alias and comprehension review repair
-  `e103255b2ab03c3312206383b71ce38fcde67b8e` is pushed and exact-head CI
-  is green. The fifth P4-W2 review returned `NOT_READY` with P0/P1/P2
+- Status: equivalent-import and argument-provenance review repair
+  `559690e14b9a1dd935566b54e97ec8f2b73f8d06` is pushed and exact-head CI
+  is green. The sixth P4-W2 review returned `NOT_READY` with P0/P1/P2
   `0/2/0`; both findings are repaired. This evidence successor, exact-head
   CI, and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
@@ -313,10 +313,33 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - Exact-head CI run `33602946392`, public-artifacts run `33602946514`, and
   CodeQL run `33602944303` passed at `e103255`. PR head, remote branch, and
   local head matched; the draft PR was mergeable.
+- Evidence checkpoint `995bd781869901e772eee0c7fdfd0ab8132065d5`
+  recorded the fifth review and repair. Child 11 reviewed that exact candidate
+  and returned `NOT_READY`, P0/P1/P2 `0/2/0`. The P1 findings were equivalent
+  loader and reflection spellings with lost authority, and an allow-listed
+  dynamic-import argument whose name survived unsafe reassignment.
+- Two focused artifact regressions failed before repair with zero findings.
+  They cover `importlib.__init__`, `pkgutil.resolve_name`, aliased
+  `importlib.util`, frame namespaces, function-type reflection, direct and
+  branch parameter replacement, and a second-parameter substitution.
+- Source repair `559690e14b9a1dd935566b54e97ec8f2b73f8d06`
+  models those authorities by semantics, distinguishes pristine parameters
+  from unknown values through control-flow joins, preserves safe
+  `importlib.metadata` and `importlib.resources` use, and rejects internal
+  package roots at the optional-provider runtime boundary.
+- Latest local gates passed: `make verify` with strict MyPy on 488 files,
+  3,157 tests, and four artifact builds; uncached Ruff;
+  `make phase4-contracts` with 84 tests; exact collection of 404 app tests;
+  all 16 analyzer and app-wheel tests on each of Python 3.12, 3.13, and 3.14;
+  source/artifact and reachable-history audits; Gitleaks over 77 commits;
+  lockfile and diff integrity.
+- Exact-head CI run `33608085686`, public-artifacts run `33608085774`, and
+  CodeQL run `33608082590` passed at `559690e`. PR head, remote branch, and
+  local head matched; the draft PR was mergeable.
 - Rebuilt SHA-256 digests are app wheel
-  `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`,
+  `812b0a64bbecb2f19b1713411f31bab69a5d52027dc7c3c871bc493ffc65f272`,
   app sdist
-  `d6afc82e2cc3ec4d9bf53215129c39a64542a60cbe7831b95505b2660208917a`,
+  `48a7c763b9b46c5832d11ddd20a3f6975bfd57f0f5db6a96e870aaea3543d080`,
   engine wheel
   `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
   and engine sdist

@@ -6,9 +6,9 @@
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 10
+- Total child lineages used: 11
 - Implementation writers: 0
-- Independent reviewers: 9
+- Independent reviewers: 10
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -173,3 +173,22 @@ coordinator-owned.
   comprehensions. The repair at
   `e103255b2ab03c3312206383b71ce38fcde67b8e` unifies member provenance,
   implements PEP 572 scope, and adds positive and shadow-negative regressions.
+
+## Child 11: P4-W2 equivalent-loader and argument-provenance rereview
+
+- Status: complete
+- Agent ID: `01a06108-dde1-7571-85ce-51f0af170988`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `995bd781869901e772eee0c7fdfd0ab8132065d5`
+- Result: `NOT_READY`; P0/P1/P2 `0/2/0`. Prior package, interpreter,
+  reflection, scope, alias, and comprehension findings were closed. One P1
+  found equivalent import and reflection spellings with untracked authority.
+  The other found that a reviewed dynamic-import argument could be replaced
+  without changing its approved name-based signature. The repair at
+  `559690e14b9a1dd935566b54e97ec8f2b73f8d06` adds semantic capability and
+  pristine-parameter provenance, rejects internal optional-loader roots, and
+  adds focused positive, negative, and installed-wheel regressions.

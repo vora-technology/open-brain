@@ -304,6 +304,41 @@
   CodeQL run `33602944303` passed at `e103255`, including interpreter-specific
   wheel execution on Python 3.12, 3.13, and 3.14.
 - Rebuilt artifact SHA-256 digests remained unchanged.
+- Evidence checkpoint `995bd781869901e772eee0c7fdfd0ab8132065d5`
+  passed CI run `33603709388`, public-artifacts run `33603709475`, and CodeQL
+  run `33603706129` before the sixth P4-W2 review.
+- Child 11 reviewed `995bd78` and returned `NOT_READY`, P0/P1/P2 `0/2/0`.
+  One P1 reproduced unreviewed imports through `importlib.__init__`,
+  `pkgutil.resolve_name`, aliased `importlib.util`, `sys._getframe`, and
+  function-type reflection. The other showed that the reviewed helper could
+  reassign `import_path` while retaining its approved call spelling.
+- Both focused artifact regressions failed with zero findings before repair.
+  Self-review added `from` aliases, colon-qualified resolver targets,
+  `function.__class__`, direct and conditional replacement, and
+  second-parameter substitution. Four app tests prove internal roots are
+  rejected by metadata construction and the runtime loader.
+- Repair checkpoint `559690e14b9a1dd935566b54e97ec8f2b73f8d06`
+  normalizes equivalent module authorities, tracks frame and type reflection,
+  separates pristine parameters from unknown values through control flow,
+  preserves the app's safe importlib resource/metadata APIs, and blocks
+  internal package roots at the optional-provider boundary.
+- Latest local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,157 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (84 tests, Ruff, MyPy, manifest); exact collection
+  of 404 app tests; all 16 analyzer and app-wheel tests on Python 3.12, 3.13,
+  and 3.14; source+artifact release audit; reachable-history audit; Gitleaks
+  8.30.1 over 77 commits; `uv lock --check`; and `git diff --check`.
+- Exact-head CI run `33608085686`, public-artifacts run `33608085774`, and
+  CodeQL run `33608082590` passed at `559690e`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
+- Rebuilt SHA-256 digests are app wheel
+  `812b0a64bbecb2f19b1713411f31bab69a5d52027dc7c3c871bc493ffc65f272`,
+  app sdist
+  `48a7c763b9b46c5832d11ddd20a3f6975bfd57f0f5db6a96e870aaea3543d080`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
   successor, exact-head CI, and a fresh read-only review remain required before

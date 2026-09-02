@@ -304,3 +304,16 @@
 - Why: equivalent member access must carry equivalent provenance regardless of
   syntax. PEP 572 deliberately gives walrus targets different scope from
   comprehension iteration targets, so the analyzer must preserve that split.
+
+## D-029: review semantic authority and value provenance, not surface spelling
+
+- Chosen: normalize equivalent loader modules, model frame and function-type
+  reflection, distinguish pristine function parameters from unknown or
+  reassigned values across control flow, and deny internal roots at the
+  optional-provider runtime boundary.
+- Rejected: add isolated string matches for each bypass or continue approving a
+  dynamic call solely because its argument identifier has a reviewed name.
+- Why: Python exposes the same authority through multiple import and reflection
+  spellings, while a stable identifier says nothing about the value it holds.
+  Semantic provenance closes both classes without rejecting the app's safe
+  `importlib.metadata` and `importlib.resources` APIs.

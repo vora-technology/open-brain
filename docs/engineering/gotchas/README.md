@@ -637,3 +637,18 @@ iteration targets local to the comprehension, but propagate walrus targets to th
 scope and predeclare them as function locals.
 
 Discovered: 2026-09-02.
+
+### AUDIT-008: A reviewed name does not prove a reviewed dynamic-import value
+
+Symptom: An artifact passes because a dynamic loader and argument retain approved spellings, even
+though an equivalent module alias reaches the loader or the argument was reassigned first.
+
+Cause: The analyzer keys exceptions to syntax instead of semantic authority and value provenance.
+Python also exposes import state through package `__init__` modules, `pkgutil`, frames, and type
+reflection.
+
+Fix: Normalize equivalent authorities, distinguish pristine parameters from unknown or reassigned
+values through control-flow joins, and reject internal package roots again at the runtime optional
+loader boundary.
+
+Discovered: 2026-09-02.
