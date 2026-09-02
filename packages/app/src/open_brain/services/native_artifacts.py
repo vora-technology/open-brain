@@ -317,11 +317,9 @@ class NativeArtifactLifecycleAdapter:
             return self._load_inventory()
         except FileNotFoundError:
             manifests: dict[str, NativeArtifactManifest] = {}
-            for candidate_path in sorted(self._candidates.iterdir()):
-                metadata = candidate_path.lstat()
-                if not stat.S_ISDIR(metadata.st_mode):
-                    raise NativeArtifactError(_FAILURE) from None
-                manifest = NativeArtifactManifest.load(candidate_path)
+            candidate_id = self._current_link_candidate_id()
+            if candidate_id is not None:
+                manifest = self._manifest_by_id(candidate_id)
                 manifests[manifest.candidate_id] = manifest
             try:
                 _write_exclusive(
@@ -430,6 +428,14 @@ class NativeArtifactLifecycleAdapter:
         return self._candidates / candidate_id
 
     def _read_active_candidate_id(self) -> str | None:
+        candidate_id = self._current_link_candidate_id()
+        if candidate_id is None:
+            return None
+        if candidate_id not in self._managed_candidates:
+            raise NativeArtifactError(_FAILURE)
+        return candidate_id
+
+    def _current_link_candidate_id(self) -> str | None:
         link = self._install_root / _CURRENT_LINK
         try:
             metadata = link.lstat()
@@ -446,8 +452,6 @@ class NativeArtifactLifecycleAdapter:
             raise NativeArtifactError(_FAILURE)
         candidate_id = target.parts[1]
         self._candidate_path(candidate_id)
-        if candidate_id not in self._managed_candidates:
-            raise NativeArtifactError(_FAILURE)
         return candidate_id
 
     def _replace_current(self, candidate_id: str) -> None:

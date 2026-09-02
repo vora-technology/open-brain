@@ -256,7 +256,7 @@ def test_native_manifest_supports_cross_target_audit_but_not_cross_target_activa
         )
 
 
-def test_native_adapter_removes_only_the_active_artifact_and_preserves_unrelated_state(
+def test_native_adapter_removes_only_enrolled_artifacts_and_preserves_unrelated_state(
     tmp_path: Path,
 ) -> None:
     install_root = _install_root(tmp_path)
@@ -293,9 +293,36 @@ def test_native_adapter_removes_only_the_active_artifact_and_preserves_unrelated
     assert adapter.active_candidate_id is None
     assert not (install_root / "current").exists()
     assert not candidate_path.exists()
-    assert not stale_candidate.exists()
-    assert tuple((install_root / "candidates").iterdir()) == ()
+    assert stale_candidate.is_dir()
+    assert tuple((install_root / "candidates").iterdir()) == (stale_candidate,)
     assert unrelated.read_text(encoding="utf-8") == "preserve"
+
+
+def test_native_adapter_bootstraps_only_the_explicit_current_candidate(
+    tmp_path: Path,
+) -> None:
+    install_root = _install_root(tmp_path)
+    current = _write_candidate(
+        install_root,
+        candidate_id="candidate_native-current",
+        version="0.1.0",
+    )
+    unrelated = _write_candidate(
+        install_root,
+        candidate_id="candidate_owner-unregistered",
+        version="9.9.9",
+    )
+    (install_root / "current").symlink_to(Path("candidates") / current.name)
+
+    adapter = NativeArtifactLifecycleAdapter(
+        install_root=install_root,
+        current_version="0.1.0",
+    )
+    receipt = adapter.remove(current_candidate_id=current.name)
+
+    assert receipt.removed_candidate_id == current.name
+    assert not current.exists()
+    assert unrelated.is_dir()
 
 
 def test_native_adapter_removes_corrupt_managed_trees_but_preserves_unregistered_state(
@@ -521,6 +548,12 @@ class _LifecycleSupervisor:
         self.calls: list[str] = []
 
     def restart(self) -> None:
+        self.calls.append("restart")
+
+    def quiesce(self) -> None:
+        self.calls.append("stop")
+
+    def resume(self) -> None:
         self.calls.append("restart")
 
     def status(self) -> str:

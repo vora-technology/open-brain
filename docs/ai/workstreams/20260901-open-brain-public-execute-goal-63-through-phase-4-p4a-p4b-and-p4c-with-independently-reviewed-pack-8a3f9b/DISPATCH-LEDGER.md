@@ -319,11 +319,42 @@ coordinator-owned.
 
 - Status: active
 - Active children: 0 of 6
-- Total children: 0 of 12
+- Total children: 1 of 12
 - Identical failures: 0 of 2
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; no child write scope is reserved
-- Review lineage: unallocated until one frozen source candidate passes local
-  gates and exact-head target-native CI
+- Review lineage: child 15 is closed during source repair and reserved for
+  same-lineage rereview after a new exact candidate passes every local and
+  remote gate
 - Reset authority: P4-W4 child 14 is closed; D-031 and D-048 start P4-W5 with
   a fresh milestone budget and separate source/evidence identities
+
+## Child 15: P4-W5 native artifact and lifecycle review
+
+- Status: repair active; lineage closed and retained for rereview
+- Agent ID: `01a0636c-3ef9-7823-ad08-d8dcdb5a48d9`
+- Nickname: Kierkegaard
+- Role: read-only independent reviewer
+- Write scope: none
+- Initial source scope:
+  `6c2c82de89b554cca8ec6c27b10a57959766c39e`
+- Initial evidence: exact-head CI `33667187568`, Release audit `33667187309`,
+  and CodeQL `33667180599` passed before review
+- Initial result: `NOT_READY`; findings `P4W5-001` through `P4W5-007`
+- First rereview source scope:
+  `28f1fa7055a9194e433caea666a0c13bf2c126da`
+- First rereview evidence: exact-head CI `33672312445`, Release audit
+  `33672312619`, and CodeQL `33672307671` passed
+- First rereview result: `NOT_READY`; P0/P1/P2 `0/3/1`
+- Second rereview source scope:
+  `47aee48e248156816b863071b7df199513a7da43`
+- Second rereview evidence: local frozen gates and macOS native proof passed;
+  exact-head CI `33675602201`, Release audit `33675602206`, and CodeQL
+  `33675596478` passed. CI used one failed-only retry for Python 3.12 and did
+  not rerun either native job.
+- Second rereview result: `NOT_READY`; P0/P1/P2 `0/4/0`. D-050 was accepted.
+  `P4W5-002`, `P4W5-003`, `P4W5-005`, and `P4W5-006` are closed.
+  `P4W5-001`, `P4W5-004`, and `P4W5-007` remain open; `P4W5-008` is new.
+- Next review scope: the next frozen source SHA, its fresh local and
+  target-native artifact digests, exact-head checks, all prior finding
+  dispositions, and D-051

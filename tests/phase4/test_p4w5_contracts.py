@@ -61,6 +61,7 @@ def test_review_binding_separates_source_candidate_from_evidence_closure() -> No
     assert "## D-031: bind review to source and reset dispatch budgets by milestone" in decisions
     assert "A docs-only\n  evidence successor does not invalidate that verdict" in decisions
     assert "## D-050: quiesce native upgrades and bind cleanup to trusted enrollment" in decisions
+    assert "## D-051: isolate native source and make supervisor quiescence explicit" in decisions
     assert "independent reviewer accepts its exact source candidate" in decisions
 
 

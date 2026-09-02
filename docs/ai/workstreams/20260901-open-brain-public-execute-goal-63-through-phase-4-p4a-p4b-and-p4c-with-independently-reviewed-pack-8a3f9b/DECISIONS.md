@@ -605,3 +605,21 @@ has become corrupt.
   inventory supplies the pre-corruption ownership fact without granting
   deletion authority over unrelated paths. This clarification cannot satisfy
   P4-W5 until the independent reviewer accepts its exact source candidate.
+
+## D-051: isolate native source and make supervisor quiescence explicit
+
+- Chosen: build each native subject from a temporary `git archive` of the
+  named source SHA, digest that tree before and after PyInstaller, and derive
+  allowed package resources from tracked files. Give the supervisor lifecycle
+  separate quiesce and resume operations. Launchd implements them with
+  `bootout` and `bootstrap` plus `kickstart`; systemd uses stop and start. A
+  missing ownership inventory may trust only the candidate named by the
+  existing relative `current` link.
+- Rejected: build from the working tree while ignoring ignored files, allow
+  every member below a broad resource directory, treat launchd process
+  termination as service quiescence, or enroll every valid-looking candidate
+  found during first-run discovery.
+- Why: the artifact must be a function of one Git tree, and a KeepAlive job
+  must be unloaded before recovery can own the mutation lease. Exact resource
+  and ownership sets prevent untracked input or unrelated install state from
+  becoming deletion authority.

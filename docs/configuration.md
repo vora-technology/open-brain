@@ -38,9 +38,11 @@ Phase 3 upgrade and uninstall orchestration stays app-owned and source-checkout 
 `ArtifactLifecyclePort` accepts only bounded candidate identity plus compatibility, activation,
 rollback, and removal receipts. Its default effect boundary is fail-closed, and the Phase 3 source
 tree ships only injected fake or disposable adapters. The unpublished P4-W5 frozen entry point adds
-the first native-artifact adapter. Clean-host package proofs, signing, notarization, publication,
-and prior-release upgrade evidence remain later Phase 4 work. Upgrade and uninstall CLI commands
-still fail closed unless composition injects a lifecycle port. Accepted owner requests use one root-scoped
+the first native-artifact adapter. Its ownership inventory starts empty unless an explicit current
+link identifies the one trusted installed candidate; later candidates enroll only after validated
+lifecycle operations. Clean-host package proofs, signing, notarization, publication, and
+prior-release upgrade evidence remain later Phase 4 work. Upgrade and uninstall CLI commands still
+fail closed unless composition injects a lifecycle port. Accepted owner requests use one root-scoped
 lifecycle lease and bounded journals below `.open-brain/state/appliance-lifecycle/`; retries replay
 terminal receipts, conflicting identities fail, and interrupted forward work rolls back before the
 journal becomes terminal.

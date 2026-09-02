@@ -13,9 +13,11 @@ import socket
 import stat
 import subprocess
 import sys
+import tarfile
 import time
 import tomllib
 from collections.abc import Mapping, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
@@ -36,12 +38,20 @@ _FAILURE: Final = "native build operation failed"
 _SOURCE_SHA: Final = re.compile(r"[0-9a-f]{40}")
 _TOOLCHAIN = Path("release/phase4-toolchain.json")
 _SPEC = Path("release/native/open-brain.spec")
-_ARTIFACT_POLICY = Path(__file__).resolve().parents[2] / "release/v0-artifact-policy.json"
-_RESOURCE_MEMBERS: Final = (
-    "_internal/open_brain/resources/supervisors/launchd.json",
-    "_internal/open_brain/resources/supervisors/systemd.service",
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+_ARTIFACT_POLICY = _REPOSITORY_ROOT / "release/v0-artifact-policy.json"
+_RESOURCE_SOURCE_TREES: Final = (
+    (
+        PurePosixPath("packages/app/src/open_brain/resources/supervisors"),
+        PurePosixPath("_internal/open_brain/resources/supervisors"),
+    ),
+    (
+        PurePosixPath("packages/engine/src/open_brain_engine/portable"),
+        PurePosixPath("_internal/open_brain_engine/portable"),
+    ),
 )
 _MAXIMUM_MEMBERS: Final = 20_000
+_MAXIMUM_SOURCE_MEMBERS: Final = 10_000
 _MAXIMUM_PROCESS_OUTPUT: Final = 128 * 1024
 
 
@@ -184,6 +194,58 @@ def pyinstaller_command(
     )
 
 
+def native_resource_members(root: Path) -> tuple[str, ...]:
+    """Return the exact tracked package resources admitted to a native artifact."""
+    try:
+        selected_root = root.resolve(strict=True)
+        result = subprocess.run(
+            (
+                "git",
+                "ls-files",
+                "-z",
+                "--",
+                *(source.as_posix() for source, _destination in _RESOURCE_SOURCE_TREES),
+            ),
+            cwd=selected_root,
+            capture_output=True,
+            timeout=10,
+            check=False,
+        )
+        if (
+            result.returncode != 0
+            or len(result.stdout) > _MAXIMUM_PROCESS_OUTPUT
+            or len(result.stderr) > _MAXIMUM_PROCESS_OUTPUT
+        ):
+            raise NativeBuildError(_FAILURE)
+        tracked = tuple(
+            PurePosixPath(value.decode("utf-8"))
+            for value in result.stdout.split(b"\0")
+            if value
+        )
+        members: set[str] = set()
+        for source_root, destination_root in _RESOURCE_SOURCE_TREES:
+            source_members = tuple(
+                path
+                for path in tracked
+                if path.is_relative_to(source_root)
+                and path.suffix.casefold() not in {".py", ".pyi"}
+            )
+            if not source_members:
+                raise NativeBuildError(_FAILURE)
+            for source_member in source_members:
+                source_path = selected_root.joinpath(*source_member.parts)
+                metadata = source_path.lstat()
+                if not stat.S_ISREG(metadata.st_mode):
+                    raise NativeBuildError(_FAILURE)
+                relative = source_member.relative_to(source_root)
+                members.add((destination_root / relative).as_posix())
+        return tuple(sorted(members))
+    except NativeBuildError:
+        raise
+    except (OSError, UnicodeError, ValueError, subprocess.SubprocessError) as error:
+        raise NativeBuildError(_FAILURE) from error
+
+
 def audit_native_artifact(
     artifact: Path,
     *,
@@ -206,9 +268,13 @@ def audit_native_artifact(
             raise NativeBuildError(_FAILURE)
         members = _artifact_members(selected)
         member_paths = frozenset(member.path for member in members)
+        resource_members = native_resource_members(_REPOSITORY_ROOT)
         if (
-            not set(_RESOURCE_MEMBERS) <= member_paths
-            or any(not _native_member_allowed(member) for member in members)
+            not set(resource_members) <= member_paths
+            or any(
+                not _native_member_allowed(member, resource_members=resource_members)
+                for member in members
+            )
         ):
             raise NativeBuildError(_FAILURE)
         encoded = json.dumps(
@@ -224,7 +290,7 @@ def audit_native_artifact(
             membership_sha256=sha256(encoded).hexdigest(),
             member_count=len(members),
             symlink_count=sum(member.kind == "symlink" for member in members),
-            resource_members=_RESOURCE_MEMBERS,
+            resource_members=resource_members,
             members=members,
         )
     except NativeBuildError:
@@ -245,15 +311,36 @@ def build_native_artifact(
         stage = "source-binding"
         _validate_source_sha(source_sha)
         _validate_source_binding(configuration.root, source_sha)
-        stage = "pyinstaller"
         selected_output = output_root.resolve()
         selected_output.mkdir(parents=True, exist_ok=True)
-        _run_checked(
-            pyinstaller_command(configuration, selected_output),
-            cwd=configuration.root,
-            environment=_build_environment(),
-            timeout=1_800,
-        )
+        stage = "source-materialization"
+        with TemporaryDirectory(prefix="ob-p4w5-source-", dir=_temporary_parent()) as raw:
+            source_root = Path(raw).resolve() / "source"
+            source_tree_sha256 = _materialize_source_tree(
+                configuration.root,
+                source_sha,
+                source_root,
+            )
+            staged_configuration = NativeBuildConfiguration(
+                root=source_root,
+                spec_path=source_root / _SPEC,
+                python_executable=configuration.python_executable,
+                python_version=configuration.python_version,
+                pyinstaller_version=configuration.pyinstaller_version,
+                hooks_version=configuration.hooks_version,
+                mode=configuration.mode,
+            )
+            stage = "pyinstaller"
+            _run_checked(
+                pyinstaller_command(staged_configuration, selected_output),
+                cwd=source_root,
+                environment=_build_environment(source_root=source_root),
+                timeout=1_800,
+            )
+            if _source_tree_sha256(source_root) != source_tree_sha256:
+                raise NativeBuildError(_FAILURE)
+        stage = "source-revalidation"
+        _validate_source_binding(configuration.root, source_sha)
         stage = "manifest"
         produced = selected_output / "dist" / NATIVE_EXECUTABLE_NAME
         artifact = selected_output / "dist" / "candidate_native-p4w5"
@@ -288,6 +375,7 @@ def build_native_artifact(
                     "mode": configuration.mode,
                     "pyinstaller_version": configuration.pyinstaller_version,
                     "python_version": configuration.python_version,
+                    "source_tree_sha256": source_tree_sha256,
                     "spec_sha256": _file_sha256(configuration.spec_path),
                 },
                 "runtime": None,
@@ -641,7 +729,11 @@ def _artifact_members(root: Path) -> tuple[NativeArtifactMember, ...]:
     return tuple(members)
 
 
-def _native_member_allowed(member: NativeArtifactMember) -> bool:
+def _native_member_allowed(
+    member: NativeArtifactMember,
+    *,
+    resource_members: tuple[str, ...],
+) -> bool:
     try:
         policy = json.loads(_ARTIFACT_POLICY.read_text(encoding="utf-8"))["native_artifacts"][
             "member_policy"
@@ -649,6 +741,7 @@ def _native_member_allowed(member: NativeArtifactMember) -> bool:
         if not isinstance(policy, dict):
             raise NativeBuildError(_FAILURE)
         allowed_exact = _policy_strings(policy, "allowed_exact")
+        allowed_resource_roots = _policy_strings(policy, "allowed_resource_roots")
         allowed_trees = _policy_strings(policy, "allowed_trees")
         forbidden_components = frozenset(
             component.casefold()
@@ -673,9 +766,24 @@ def _native_member_allowed(member: NativeArtifactMember) -> bool:
         or any(
             component in forbidden_components
             or PurePosixPath(component).stem in forbidden_components
+            or component.startswith(".env.")
             for component in components
         )
         or member.path.casefold().endswith(forbidden_suffixes)
+    ):
+        return False
+    expected_resource_roots = tuple(
+        destination.as_posix() for _source, destination in _RESOURCE_SOURCE_TREES
+    )
+    if allowed_resource_roots != expected_resource_roots:
+        raise NativeBuildError(_FAILURE)
+    if member.path in resource_members:
+        return member.kind == "file"
+    if any(resource.startswith(member.path + "/") for resource in resource_members):
+        return member.kind == "directory"
+    if any(
+        member.path == root or member.path.startswith(root + "/")
+        for root in allowed_resource_roots
     ):
         return False
     if member.path in allowed_exact:
@@ -856,12 +964,16 @@ def _run_bounded(
     return result
 
 
-def _build_environment() -> dict[str, str]:
+def _build_environment(*, source_root: Path) -> dict[str, str]:
     environment = dict(os.environ)
     for key in ("PYTHONPATH", "PYTHONHOME", "UV_PROJECT_ENVIRONMENT"):
         environment.pop(key, None)
     environment["PYTHONNOUSERSITE"] = "1"
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTHONPATH"] = os.pathsep.join(
+        str(source_root / relative)
+        for relative in ("packages/app/src", "packages/engine/src")
+    )
     return environment
 
 
@@ -882,11 +994,13 @@ def _runtime_environment(
     supervisor_name = "launchctl" if sys.platform == "darwin" else "systemctl"
     supervisor = host_tools / supervisor_name
     pidfile = root / "supervised-daemon.pid"
+    loadedfile = root / "supervisor-loaded"
     supervisor.write_text(
         _supervisor_shim(
             executable=executable,
             brain_root=brain_root,
             pidfile=pidfile,
+            loadedfile=loadedfile,
             corruption_marker=corruption_marker,
             corruption_target=corruption_target,
         ),
@@ -907,11 +1021,13 @@ def _supervisor_shim(
     executable: Path,
     brain_root: Path,
     pidfile: Path,
+    loadedfile: Path,
     corruption_marker: Path,
     corruption_target: Path,
 ) -> str:
     return f"""#!/bin/sh
 pidfile={shlex.quote(str(pidfile))}
+loadedfile={shlex.quote(str(loadedfile))}
 executable={shlex.quote(str(executable))}
 brain_root={shlex.quote(str(brain_root))}
 corruption_marker={shlex.quote(str(corruption_marker))}
@@ -956,9 +1072,13 @@ status_daemon() {{
 }}
 
 case " $* " in
-    *" kickstart "*|*" restart "*) stop_daemon; start_daemon ;;
+    *" bootstrap "*|*" enable "*) : > "$loadedfile" ;;
+    *" kickstart "*) [ -f "$loadedfile" ] || exit 1; stop_daemon; start_daemon ;;
+    *" restart "*) stop_daemon; start_daemon ;;
     *" start "*) start_daemon ;;
-    *" kill "*|*" stop "*|*" bootout "*|*" disable "*) stop_daemon ;;
+    *" kill "*) stop_daemon; [ ! -f "$loadedfile" ] || start_daemon ;;
+    *" stop "*) stop_daemon ;;
+    *" bootout "*|*" disable "*) /bin/rm -f "$loadedfile"; stop_daemon ;;
     *" print "*|*" status "*) status_daemon ;;
     *) exit 0 ;;
 esac
@@ -1026,6 +1146,93 @@ def _file_sha256(path: Path) -> str:
 def _validate_source_sha(value: str) -> None:
     if not isinstance(value, str) or _SOURCE_SHA.fullmatch(value) is None:
         raise NativeBuildError(_FAILURE)
+
+
+def _materialize_source_tree(root: Path, source_sha: str, destination: Path) -> str:
+    """Extract exactly one named Git tree and return its deterministic digest."""
+    _validate_source_sha(source_sha)
+    archive: Path | None = None
+    try:
+        selected_root = root.resolve(strict=True)
+        destination_parent = destination.parent.resolve(strict=True)
+        selected_destination = destination_parent / destination.name
+        if selected_destination.exists() or selected_destination.is_symlink():
+            raise NativeBuildError(_FAILURE)
+        archive = destination_parent / f".{destination.name}.tar"
+        with archive.open("xb") as stream:
+            result = subprocess.run(
+                ("git", "archive", "--format=tar", source_sha),
+                cwd=selected_root,
+                stdout=stream,
+                stderr=subprocess.PIPE,
+                timeout=30,
+                check=False,
+            )
+        if result.returncode != 0 or len(result.stderr) > _MAXIMUM_PROCESS_OUTPUT:
+            raise NativeBuildError(_FAILURE)
+        selected_destination.mkdir(mode=0o700)
+        with tarfile.open(archive, mode="r:") as bundle:
+            if len(bundle.getmembers()) > _MAXIMUM_SOURCE_MEMBERS:
+                raise NativeBuildError(_FAILURE)
+            bundle.extractall(selected_destination, filter="data")
+        return _source_tree_sha256(selected_destination)
+    except NativeBuildError:
+        raise
+    except (OSError, tarfile.TarError, subprocess.SubprocessError) as error:
+        raise NativeBuildError(_FAILURE) from error
+    finally:
+        if archive is not None:
+            with suppress(OSError):
+                archive.unlink()
+
+
+def _source_tree_sha256(root: Path) -> str:
+    try:
+        selected_root = root.resolve(strict=True)
+        if not stat.S_ISDIR(selected_root.lstat().st_mode) or root.is_symlink():
+            raise NativeBuildError(_FAILURE)
+        entries: list[dict[str, object]] = []
+
+        def visit(directory: Path) -> None:
+            with os.scandir(directory) as scanner:
+                children = sorted(scanner, key=lambda entry: entry.name)
+            for entry in children:
+                path = Path(entry.path)
+                metadata = entry.stat(follow_symlinks=False)
+                relative = path.relative_to(selected_root).as_posix()
+                if stat.S_ISDIR(metadata.st_mode):
+                    entries.append({"kind": "directory", "path": relative})
+                    visit(path)
+                elif stat.S_ISREG(metadata.st_mode):
+                    entries.append(
+                        {
+                            "executable": bool(metadata.st_mode & 0o111),
+                            "kind": "file",
+                            "path": relative,
+                            "sha256": _file_sha256(path),
+                        }
+                    )
+                elif stat.S_ISLNK(metadata.st_mode):
+                    entries.append(
+                        {
+                            "kind": "symlink",
+                            "path": relative,
+                            "target": os.readlink(path),
+                        }
+                    )
+                else:
+                    raise NativeBuildError(_FAILURE)
+                if len(entries) > _MAXIMUM_SOURCE_MEMBERS:
+                    raise NativeBuildError(_FAILURE)
+        visit(selected_root)
+        encoded = json.dumps(entries, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
+        return sha256(encoded).hexdigest()
+    except NativeBuildError:
+        raise
+    except (OSError, UnicodeError, ValueError) as error:
+        raise NativeBuildError(_FAILURE) from error
 
 
 def _validate_source_binding(root: Path, source_sha: str) -> None:

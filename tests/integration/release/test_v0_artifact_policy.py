@@ -315,14 +315,16 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
             "allowed_internal_library_pattern": (
                 r"^_internal/lib[A-Za-z0-9._+-]+(?:\.dylib|\.so(?:\.[0-9]+)*)$"
             ),
+            "allowed_resource_roots": [
+                "_internal/open_brain/resources/supervisors",
+                "_internal/open_brain_engine/portable",
+            ],
             "allowed_trees": [
                 "_internal/Python.framework",
-                "_internal/open_brain/resources/supervisors",
-                "_internal/open_brain_engine/portable/conformance",
-                "_internal/open_brain_engine/portable/schemas",
                 "_internal/python3.12",
             ],
             "forbidden_components": [
+                ".env",
                 ".git",
                 ".github",
                 "__pycache__",
@@ -339,12 +341,15 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
                 "tools",
             ],
             "forbidden_suffixes": [
+                ".credential",
+                ".credentials",
                 ".db",
                 ".py",
                 ".pyc",
                 ".pyo",
                 ".sqlite",
                 ".sqlite3",
+                ".token",
             ],
         },
         "published": [],

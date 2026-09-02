@@ -200,6 +200,12 @@ class _RecordingSupervisor:
     def restart(self) -> None:
         self._calls.append("restart")
 
+    def quiesce(self) -> None:
+        self._calls.append("quiesce")
+
+    def resume(self) -> None:
+        self._calls.append("resume")
+
     def status(self) -> str:
         self._calls.append("status")
         return "active"

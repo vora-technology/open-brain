@@ -96,8 +96,10 @@ data-preserving uninstall. The source-checkout artifact effect boundary stays fa
 frozen entry point is the first composition that injects the manifest-bound native adapter and
 bounded host supervisor effects; its target-native smoke uses only isolated temporary supervisor
 state. Upgrade checks compatibility while the current daemon is active, journals a quiesce stage,
-stops the supervisor before offline recovery and migrations, and restores the prior daemon after a
-failed quiesced stage. Failure receipts distinguish artifact rollback from daemon restoration. A
+unloads a launchd KeepAlive job or stops the systemd unit before offline recovery and migrations,
+then resumes the correct job after success or failure. Failure receipts distinguish artifact
+rollback from daemon restoration. Native builds run from an isolated archive of the named Git tree;
+their package-resource inventory is derived from tracked files and rejected on any extra member. A
 distinct kernel-backed lifecycle lease serializes owner requests, while canonical
 root-confined journals preserve request identity, stage, terminal receipt, conflict detection, and
 crash rollback across processes. The CLI exposes upgrade and uninstall only when composition injects

@@ -695,3 +695,48 @@
 - No signing, notarization, publication, release, deployment, service install,
   production/private-state access, recovery action, cutover, or P4-W6 work
   occurred.
+
+## P4-W5 independent review repair candidate
+
+- Exact-head CI `33667187568`, Release audit `33667187309`, and CodeQL
+  `33667180599` passed at source
+  `6c2c82de89b554cca8ec6c27b10a57959766c39e`. Child 15
+  (`01a0636c-3ef9-7823-ad08-d8dcdb5a48d9`, Kierkegaard) opened the
+  independent P4-W5 lineage and reported `P4W5-001` through `P4W5-007`.
+- Repairs and one policy correction produced exact source
+  `28f1fa7055a9194e433caea666a0c13bf2c126da`. CI `33672312445`, Release
+  audit `33672312619`, and CodeQL `33672307671` passed. The same-lineage
+  rereview returned `NOT_READY`, P0/P1/P2 `0/3/1`.
+- Source `47aee48e248156816b863071b7df199513a7da43` added journaled
+  stop-before-recovery ordering, separate daemon-restoration evidence,
+  corrupt-enrolled cleanup, case-insensitive source suffix rejection, and
+  removal of mutation-capable hidden smoke commands. Local Phase 4 contracts,
+  all 3,211 repository tests, local macOS ARM64 native proof, artifact policy,
+  and exact-head remote checks passed. CI `33675602201` became green after a
+  failed-only retry of one timing-sensitive Python 3.12 test; Release audit
+  `33675602206` and CodeQL `33675596478` also passed. Neither native job reran.
+- The `47aee48` rereview returned `NOT_READY`, P0/P1/P2 `0/4/0`. It accepted
+  D-050 as a gate-strengthening contract clarification, closed `P4W5-002`,
+  `P4W5-003`, `P4W5-005`, and `P4W5-006`, and retained `P4W5-001`,
+  `P4W5-004`, and `P4W5-007`. New finding `P4W5-008` showed that ignored
+  working-tree files were outside the source-SHA check while PyInstaller read
+  package trees directly.
+- Six focused regressions reproduced the four remaining failure classes:
+  launchd had no unload/resume boundary, first-run discovery enrolled unrelated
+  valid candidates, an undeclared `api.token` passed below a resource tree,
+  and no exact-Git source materialization existed. All six failed before the
+  repair.
+- The repair gives the lifecycle port explicit quiesce and resume operations.
+  Launchd uses `bootout` before offline work and `bootstrap` plus `kickstart`
+  afterward. The smoke shim models KeepAlive relaunch after process kill. The
+  managed inventory starts empty or bootstraps only the explicit relative
+  `current` candidate.
+- Native builds now extract the named commit through `git archive`, digest the
+  isolated source before and after PyInstaller, and put only that tree on the
+  build import path. The artifact audit derives exact package-resource members
+  from tracked source and rejects any extra file under those roots. Credential
+  suffixes and `.env*` names are independently denied.
+- The six red regressions now pass, and `make p4w5-focused` passes 108 tests.
+  Candidate preflight, source freeze, full frozen-candidate verification, new
+  target-native artifacts, exact-head CI, and the same-lineage rereview remain
+  pending. The readiness snapshot remains unchanged and no probe was called.

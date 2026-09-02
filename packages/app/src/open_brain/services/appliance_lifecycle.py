@@ -400,6 +400,10 @@ class RecoveryLifecyclePort(Protocol):
 
 
 class SupervisorLifecyclePort(Protocol):
+    def quiesce(self) -> object: ...
+
+    def resume(self) -> object: ...
+
     def restart(self) -> object: ...
 
     def status(self) -> str: ...
@@ -530,7 +534,7 @@ class ApplianceLifecycleService:
             "quiesce",
             candidate,
             prior_candidate_id,
-            self._supervisor.stop,
+            self._supervisor.quiesce,
             rollback_candidate=None,
         )
         backup_id = "backup_" + request.request_id.removeprefix("upgrade_")
@@ -984,7 +988,7 @@ class ApplianceLifecycleService:
         return tuple(receipts)
 
     def _restart_and_check(self) -> str:
-        self._supervisor.restart()
+        self._supervisor.resume()
         status = self._supervisor.status()
         if status != "active":
             raise RuntimeError("invalid appliance restart status")

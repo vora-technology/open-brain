@@ -184,6 +184,8 @@ def test_launchd_lifecycle_uses_only_injected_file_and_command_adapters(tmp_path
     supervisor.install()
     supervisor.start()
     supervisor.stop()
+    supervisor.quiesce()
+    supervisor.resume()
     supervisor.restart()
     assert supervisor.status() == "ok"
     supervisor.remove()
@@ -193,6 +195,9 @@ def test_launchd_lifecycle_uses_only_injected_file_and_command_adapters(tmp_path
         ("launchctl", "bootstrap", "gui/501", str(supervisor.unit_path)),
         ("launchctl", "kickstart", "-k", "gui/501/org.open-brain.appliance-daemon"),
         ("launchctl", "kill", "TERM", "gui/501/org.open-brain.appliance-daemon"),
+        ("launchctl", "bootout", "gui/501", str(supervisor.unit_path)),
+        ("launchctl", "bootstrap", "gui/501", str(supervisor.unit_path)),
+        ("launchctl", "kickstart", "-k", "gui/501/org.open-brain.appliance-daemon"),
         ("launchctl", "kill", "TERM", "gui/501/org.open-brain.appliance-daemon"),
         ("launchctl", "kickstart", "-k", "gui/501/org.open-brain.appliance-daemon"),
         ("launchctl", "print", "gui/501/org.open-brain.appliance-daemon"),

@@ -11,11 +11,12 @@
 ## Current milestone
 
 - Milestone: P4-W5 bundler spike and native lifecycle adapter
-- Status: implementation candidate active from inherited source
-  `418fcd5530ee9a7fb2eaae6764d4f7ddffc46a97`. P4A is complete. The
-  one-shot readiness snapshot is validated and unchanged. Focused native build,
-  adapter, runtime, CI, and evidence contracts are implemented. The
-  compositional candidate preflight is green; source freeze remains pending.
+- Status: independent-review repair candidate active from rejected source
+  `47aee48e248156816b863071b7df199513a7da43`. P4A is complete. Child 15
+  accepted D-050 but returned `NOT_READY`, P0/P1/P2 `0/4/0`. Six focused
+  regressions reproduced the remaining launchd, resource, ownership, and
+  ignored-input failures. Their repairs and all 108 focused P4-W5 tests are
+  green. Candidate preflight and a new source freeze remain pending.
 - Allowed scope: app-owned native lifecycle and frozen entrypoint behavior;
   PyInstaller configuration and pinned dependencies; native build, membership,
   smoke, lifecycle, recovery, Portable, supervisor, and residue tests; exact
@@ -86,9 +87,10 @@
 
 ## Next action
 
-Commit the frozen P4-W5 source candidate. Run the one-time frozen-candidate
-Phase 4 contracts, full verification, local macOS ARM64 native proof, and
-artifact audits before pushing for exact-head Linux x86_64 native CI.
+Run `make p4w5-preflight` once for the repaired candidate. If it passes, commit
+the new source SHA, then run the one-time frozen-candidate Phase 4 contracts,
+full verification, local macOS ARM64 native proof, and artifact audits before
+pushing for exact-head Linux x86_64 native CI and same-lineage rereview.
 
 ## P4-W0 complete
 
@@ -557,3 +559,22 @@ artifact audits before pushing for exact-head Linux x86_64 native CI.
   publication, tag, release, native build, deployment, private-state access,
   production access, or cutover action occurred. The reusable readiness
   preflight is ready to run once at P4-W5 and reuse unchanged through P4-W9.
+
+## P4-W5 independent review repair
+
+- Child 15 (`01a0636c-3ef9-7823-ad08-d8dcdb5a48d9`) owns the sole P4-W5
+  reviewer lineage. At exact source `28f1fa7` it returned `NOT_READY`,
+  P0/P1/P2 `0/3/1`. At exact source `47aee48` it returned `NOT_READY`,
+  P0/P1/P2 `0/4/0`, while accepting D-050 as a valid clarification.
+- `P4W5-002`, `P4W5-003`, `P4W5-005`, and `P4W5-006` are closed.
+  `P4W5-001`, `P4W5-004`, and `P4W5-007` remained open, and `P4W5-008`
+  was new. The lineage is closed during repair and must be resumed after a new
+  exact candidate passes all local and remote gates.
+- Red-first tests reproduced all four remaining classes. The repaired
+  supervisor protocol unloads and resumes KeepAlive jobs, inventory bootstrap
+  trusts only an explicit current link, resource membership is exact and
+  Git-derived, and PyInstaller builds from an isolated archive of the named
+  commit with before/after source-tree digests.
+- All six finding-specific tests and `make p4w5-focused` with 108 tests pass.
+  No broad suite, native build, workflow, or readiness probe reran during the
+  edit loop. Candidate preflight is the next gate.

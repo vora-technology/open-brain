@@ -41,6 +41,9 @@ P4W5_TOUCHED_PYTHON = \
 	packages/app/src/open_brain/extensions/connector_worker_v1.py \
 	packages/app/tests/contract/test_connector_worker_protocol.py \
 	packages/app/tests/integration/services/test_appliance_entrypoints.py \
+	packages/app/tests/integration/services/test_appliance_supervisors.py \
+	packages/app/tests/integration/services/test_appliance_uninstall.py \
+	packages/app/tests/integration/services/test_appliance_upgrade.py \
 	packages/app/tests/integration/services/test_native_entrypoint.py \
 	packages/app/tests/integration/services/test_native_artifacts.py \
 	tests/integration/release/test_v0_artifact_policy.py \

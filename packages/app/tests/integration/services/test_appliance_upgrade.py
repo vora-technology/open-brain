@@ -83,13 +83,13 @@ def test_upgrade_orders_verified_recovery_migrations_activation_restart_and_doct
     assert [migration.component for migration in receipt.migrations] == ["engine", "app"]
     assert calls == [
         "compatibility",
-        "stop",
+        "quiesce",
         "backup",
         "preflight",
         "migrate:engine",
         "migrate:app",
         "activate",
-        "restart",
+        "resume",
         "status",
         "doctor",
     ]
@@ -117,12 +117,12 @@ def test_upgrade_quiesces_an_active_daemon_before_recovery_and_restores_it_on_fa
     daemon = {"active": True}
 
     class ActiveSupervisor(_RecordingSupervisor):
-        def stop(self) -> None:
-            calls.append("stop")
+        def quiesce(self) -> None:
+            calls.append("quiesce")
             daemon["active"] = False
 
-        def restart(self) -> None:
-            calls.append("restart")
+        def resume(self) -> None:
+            calls.append("resume")
             daemon["active"] = True
 
     class OfflineRecovery(_RecordingRecovery):
@@ -168,7 +168,7 @@ def test_upgrade_quiesces_an_active_daemon_before_recovery_and_restores_it_on_fa
     assert error.value.receipt.failure_stage == "backup"
     assert error.value.receipt.daemon_restore_state == "restored"
     assert daemon["active"] is True
-    assert calls == ["compatibility", "stop", "backup", "restart", "status"]
+    assert calls == ["compatibility", "quiesce", "backup", "resume", "status"]
 
 
 def test_upgrade_replays_durably_across_service_restart_and_rejects_conflict(
@@ -455,10 +455,10 @@ def test_upgrade_rejects_incomplete_migrations_and_mismatched_recovery_evidence(
     assert mismatch_error.value.receipt.daemon_restore_state == "restored"
     assert mismatch_calls == [
         "compatibility",
-        "stop",
+        "quiesce",
         "backup",
         "preflight",
-        "restart",
+        "resume",
         "status",
     ]
 
@@ -552,12 +552,12 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
             "engine",
             [
                 "compatibility",
-                "stop",
+                "quiesce",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "rollback",
-                "restart",
+                "resume",
                 "status",
             ],
         ),
@@ -565,13 +565,13 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
             "app",
             [
                 "compatibility",
-                "stop",
+                "quiesce",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "migrate:app",
                 "rollback",
-                "restart",
+                "resume",
                 "status",
             ],
         ),
@@ -579,14 +579,14 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
             "activate",
             [
                 "compatibility",
-                "stop",
+                "quiesce",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "migrate:app",
                 "activate",
                 "rollback",
-                "restart",
+                "resume",
                 "status",
             ],
         ),
@@ -594,15 +594,15 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
             "restart",
             [
                 "compatibility",
-                "stop",
+                "quiesce",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "migrate:app",
                 "activate",
-                "restart",
+                "resume",
                 "rollback",
-                "restart",
+                "resume",
                 "status",
             ],
         ),
@@ -610,17 +610,17 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
             "doctor",
             [
                 "compatibility",
-                "stop",
+                "quiesce",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "migrate:app",
                 "activate",
-                "restart",
+                "resume",
                 "status",
                 "doctor",
                 "rollback",
-                "restart",
+                "resume",
                 "status",
             ],
         ),
@@ -743,7 +743,7 @@ def test_upgrade_requires_verified_backup_preflight_and_bounded_rollback_failure
     assert backup_error.value.receipt.failure_stage == "backup"
     assert backup_error.value.receipt.rollback_state == "not_needed"
     assert backup_error.value.receipt.daemon_restore_state == "restored"
-    assert calls == ["compatibility", "stop", "backup", "restart", "status"]
+    assert calls == ["compatibility", "quiesce", "backup", "resume", "status"]
 
     second_calls: list[str] = []
     second_port = _RecordingArtifactLifecyclePort(
@@ -934,6 +934,15 @@ class _RecordingSupervisor:
 
     def stop(self) -> None:
         self._calls.append("stop")
+
+    def quiesce(self) -> None:
+        self._calls.append("quiesce")
+
+    def resume(self) -> None:
+        self._calls.append("resume")
+        if self._restart_failures:
+            self._restart_failures -= 1
+            raise RuntimeError("private restart failure")
 
     def remove(self) -> None:
         self.remove_count += 1

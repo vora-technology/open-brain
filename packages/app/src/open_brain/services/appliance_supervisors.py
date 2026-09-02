@@ -357,6 +357,17 @@ class LaunchdSupervisor:
     def stop(self) -> str:
         return self.run_command(("launchctl", "kill", "TERM", _launchd_target(self.user_id)))
 
+    def quiesce(self) -> str:
+        return self.run_command(
+            ("launchctl", "bootout", f"gui/{self.user_id}", str(self.unit_path))
+        )
+
+    def resume(self) -> str:
+        self.run_command(
+            ("launchctl", "bootstrap", f"gui/{self.user_id}", str(self.unit_path))
+        )
+        return self.start()
+
     def restart(self) -> None:
         self.stop()
         self.start()
@@ -441,6 +452,12 @@ class SystemdSupervisor:
 
     def stop(self) -> str:
         return self.run_command(("systemctl", "--user", "stop", self.unit_name))
+
+    def quiesce(self) -> str:
+        return self.stop()
+
+    def resume(self) -> str:
+        return self.start()
 
     def restart(self) -> str:
         return self.run_command(("systemctl", "--user", "restart", self.unit_name))
