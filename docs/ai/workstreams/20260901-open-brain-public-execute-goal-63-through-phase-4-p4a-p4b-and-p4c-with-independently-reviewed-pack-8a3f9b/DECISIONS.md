@@ -174,3 +174,46 @@
   Linux container passes the complete focused contract with copied installs,
   without weakening validation or adding repository sources to the product
   environment.
+
+## D-017: test the app wheel through separate product and test environments
+
+- Chosen: install only app and engine wheels in the product environment. Keep
+  pytest and locked development requirements in a separate runner environment,
+  copy app test inputs, and expose only product site-packages to those tests.
+- Rejected: run app tests through the editable workspace or install test tools
+  into the product environment.
+- Why: P4-W2 must prove app behavior and entry points without connector,
+  legacy, workspace source, or undeclared dependencies. The split environment
+  keeps test tooling from becoming product evidence.
+
+## D-018: key Python artifact policy by distribution and kind
+
+- Chosen: use one versioned policy with four coordinates: app wheel, app sdist,
+  engine wheel, and engine sdist. Derive exact members for each coordinate from
+  the canonical manifest.
+- Rejected: run two unrelated policy files or keep global wheel/sdist
+  uniqueness, which would reject the expected second wheel and sdist.
+- Why: one release identity owns both distributions. Coordinate-level
+  uniqueness detects real duplicates while preserving one auditable command
+  and one membership authority.
+
+## D-019: keep phased namespace coexistence in the root test harness only
+
+- Chosen: while unmoved modules remain under `src/open_brain`, extend the
+  `cli`, `integrations`, and `services` search paths only from root
+  `tests/conftest.py`. The isolated app test copy has no source tree, so the
+  extension is a no-op there.
+- Rejected: add `pkgutil.extend_path` or checkout paths to shipping app code,
+  and rejected moving P4-W3/P4-W4 files early merely to satisfy collection.
+- Why: regular moved subpackages hide unmoved peer modules during the phased
+  root suite. A test-only bridge keeps every wave green without giving the app
+  artifact an undeclared workspace dependency. P4-W4 removes the bridge.
+
+## D-020: derive app-to-engine import authority from the canonical manifest
+
+- Chosen: parse app wheel sources and allow only engine modules whose manifest
+  records are public.
+- Rejected: maintain another hard-coded module allowlist or widen the engine
+  facade solely to satisfy existing app imports.
+- Why: API status already belongs to the canonical manifest. Reusing it makes
+  private imports fail at the artifact boundary and prevents policy drift.

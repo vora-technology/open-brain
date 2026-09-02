@@ -10,17 +10,15 @@
 
 ## Current milestone
 
-- Milestone: P4-W1 workspace and engine distribution
-- Status: P4-W1 candidate `7266e494f431ac84d9635b1a044bd15ce303c731`
-  is pushed and exact-head CI is green. Its fresh review returned `NOT_READY`
-  P0/P1/P2 `0/0/1` only because completion evidence lagged; this bounded
-  evidence repair, exact-head CI, and fresh rereview remain before P4-W2
-- Allowed scope: manifest-driven P4-W1 workspace/member skeletons, mechanical
-  engine moves and import rewrites, engine API/package metadata, isolated
-  engine build/install checks, verified commits, draft PR updates, and bounded
-  evidence
+- Milestone: P4-W2 app distribution and installed entry points
+- Status: implementation checkpoint
+  `2ed82c05ad2f5508a9a04b3c7eadeb86ed676cdf` is locally verified. Push,
+  exact-head CI, and a fresh read-only review remain before P4-W2 closes
+- Allowed scope: manifest-driven app runtime/test/resource movement, exact
+  engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
+  multi-distribution Python artifact policy, CI wiring, and bounded evidence
 - Stop condition: any move not authorized by the manifest, behavior repair
-  without a red regression and separate commit, P4-W2 before P4-W1 is green,
+  without a red regression and separate commit, P4-W3 before P4-W2 is green,
   any acceptance review before applicable CI is green, or any production access
   before P4A, P4B, P4-W8, recovery, and receipt review all pass unchanged
 - Base: freshly fetched `origin/main` at
@@ -83,10 +81,9 @@
 
 ## Next action
 
-Commit and push this bounded evidence-only successor of the green
-`7266e494f431ac84d9635b1a044bd15ce303c731` checkpoint, require every
-exact-head PR check to pass, then dispatch a fresh read-only review. P4-W2
-remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
+Commit this P4-W2 evidence successor, push both local commits, require every
+exact-head PR check to pass, then dispatch a fresh read-only P4-W2 review.
+P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 
 ## P4-W0 complete
 
@@ -181,6 +178,40 @@ remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
   for the wheel and
   `d62df80976117ff76ccbbb3a753b8765e7cb9f3c2404b273ef27e3a18e418c26`
   for the sdist.
+- Evidence successor `aab6f1e0891d551a87a2968ef9fb0dae1a8e62e2` passed every
+  exact-head required check. A fresh read-only rereview returned `READY`,
+  P0/P1/P2 `0/0/0`; P4-W1 is complete.
 - No package publication, tag, release, deployment, production access, private
-  state access, or cutover action occurred. P4-W2 remains blocked on final
-  exact-head CI and rereview of this evidence-only successor.
+  state access, or cutover action occurred.
+
+## P4-W2 implementation checkpoint
+
+- All 34 app runtime files, 28 existing app test modules, two supervisor
+  resources, and one explicit wheel-gate test module are at their manifest
+  destinations under `packages/app`.
+- `open-brain` depends on exactly `open-brain-engine==0.1.0`. Installed scripts
+  bind `open-brain` and `open-brain-mcp` to app-owned appliance entry points;
+  HTTP remains an app-owned callable rather than a third installed script.
+- Installed supervisor rendering loads package resources and emits no checkout
+  `PYTHONPATH` or working directory. Source-checkout rendering remains explicit.
+- The app isolation harness builds app and engine with workspace sources
+  disabled, installs only those two wheels into the product environment, and
+  runs 401 app tests through a separate locked test environment. Connector,
+  legacy, workspace source, and private engine imports remain unavailable.
+- Named wheel-only tests prove `V0-GATE-07` through independent CLI/UI sibling
+  approve, reject, and safe edit, and `V0-GATE-13` through create, rename,
+  later route with stable capture identity, and scoped/all-space retrieval.
+- One policy verifies four Python artifact coordinates: app/engine crossed
+  with wheel/sdist. Exact members derive from the canonical manifest; all four
+  real archives pass.
+- The phased root suite uses a test-only namespace overlay for unmoved
+  `cli`, `integrations`, and `services` modules. Installed-wheel acceptance
+  proves the overlay is absent from the app product; P4-W4 removes it.
+- Local gates passed: `make verify` with Ruff, strict MyPy on 488 files, 3,147
+  tests, and four artifact builds; `make phase4-contracts` with 79 tests;
+  source/artifact and reachable-history audits; Gitleaks over 63 commits;
+  lockfile and diff integrity.
+- Implementation checkpoint:
+  `2ed82c05ad2f5508a9a04b3c7eadeb86ed676cdf`.
+- No publication, tag, release, native build, deployment, private-state access,
+  production access, or cutover action occurred.

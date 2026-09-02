@@ -141,8 +141,50 @@
 - Artifact SHA-256 digests:
   wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
   sdist `d62df80976117ff76ccbbb3a753b8765e7cb9f3c2404b273ef27e3a18e418c26`.
-- P4-W1 is not closed yet. This evidence-only successor must be pushed, all
-  exact-head CI checks must pass, and a fresh review must return `READY` with
-  P0/P1/P2 `0/0/0` before P4-W2.
+- Evidence successor `aab6f1e0891d551a87a2968ef9fb0dae1a8e62e2` passed all
+  exact-head checks. Its fresh rereview returned `READY`, P0/P1/P2 `0/0/0`;
+  P4-W1 is complete.
 - No publication, deployment, production, private-state, or cutover action
   occurred.
+
+## P4-W2 local implementation candidate
+
+- Behavior repair `2f08a48aefe51eb755885d9f9ae01cf9c5fa5769` packages the
+  launchd/systemd templates and adds an installed supervisor mode. Its red
+  regression failed exactly for absent resources and rejected installed mode;
+  the repaired supervisor suite passed before movement.
+- Implementation checkpoint `2ed82c05ad2f5508a9a04b3c7eadeb86ed676cdf`
+  moves all 34 app runtime files, 28 existing app test modules, and app
+  resources to `packages/app`; adds one explicit two-test wheel gate module;
+  and binds the installed CLI/MCP scripts.
+- Canonical inventory is 224 runtime plus 348 non-runtime subjects. It includes
+  257 test subjects, 34 moved app runtime records, and 38 moved app subjects.
+- App metadata requires exactly `open-brain-engine==0.1.0`; wheel metadata,
+  module origins, console scripts, supervisor resources, and connector/legacy
+  absence are asserted from an installed product environment.
+- A static wheel scan derives the allowed public engine modules from the
+  canonical manifest and rejects app imports of private engine modules.
+- The isolated app contract builds with `--no-sources`, installs only copied
+  app/engine wheels into Python 3.12, and exposes that site-packages directory
+  to a separate locked test runner. All 401 app tests pass without checkout
+  fixtures, connector, legacy, or workspace source.
+- Named wheel-only contracts pass `V0-GATE-07` with six sibling proposals and
+  independent CLI/UI approve, reject, and safe edit. They pass `V0-GATE-13`
+  with space create/rename, later route without capture-identity change, and
+  scoped/all-space retrieval through CLI and UI.
+- Artifact policy version 2 owns app and engine distribution/kind coordinates.
+  The real app/engine wheels and sdists contain exactly canonical members and
+  no forbidden or undeclared members.
+- Local verification passed: `make verify` (Ruff, strict MyPy on 488 files,
+  3,147 tests, and all four artifact builds/policy); `make phase4-contracts`
+  (79 tests, Ruff, MyPy, manifest); source+artifact release audit;
+  reachable-history audit; Gitleaks 8.30.1 over 63 commits; `uv lock --check`;
+  and `git diff --check`.
+- Artifact SHA-256 digests:
+  app wheel `203493d3f35e83c5fa8de217ae157c2bb4e2b8483983caa7865818bb7303019b`;
+  app sdist `35c3e712380065853ed5d3b5239331fefc4d512067fafc4bf05f3888156b1ab2`;
+  engine wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
+  engine sdist `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
+- No package publication, tag, release, native build, deployment, production
+  access, private-state access, or cutover action occurred. Push, exact-head
+  CI, and fresh read-only review remain required before P4-W2 closes.

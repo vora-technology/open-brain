@@ -2,13 +2,13 @@
 
 ## Milestone budget
 
-- Coordinator: runtime goal thread `01a05f1b-de55-7a41-bc01-673d277a1995`
+- Coordinator: resumed runtime goal thread `01a05fc4-2219-7251-8798-a74a1a200911`
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 4
+- Total child lineages used: 5
 - Implementation writers: 0
-- Independent reviewers: 3
+- Independent reviewers: 4
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -71,3 +71,14 @@ coordinator-owned.
   were independently resolved. The only P2 was stale completion evidence;
   this bounded evidence-only successor records the completed push, exact-head
   CI runs, and verdict before a fresh review.
+
+## Child 5: P4-W1 final evidence rereview
+
+- Status: complete
+- Agent ID: not retained in the compact cross-session packet
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `aab6f1e0891d551a87a2968ef9fb0dae1a8e62e2`
+- Result: `READY`; P0/P1/P2 `0/0/0`. Exact-head CI and repaired completion
+  evidence closed P4-W1 before any P4-W2 movement began.
