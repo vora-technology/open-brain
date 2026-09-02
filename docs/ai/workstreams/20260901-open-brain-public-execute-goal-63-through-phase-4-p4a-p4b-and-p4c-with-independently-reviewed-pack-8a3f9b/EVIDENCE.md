@@ -255,6 +255,32 @@
   CodeQL run `33596666546` passed at `d8e2cb2`, including interpreter-specific
   wheel execution on Python 3.12, 3.13, and 3.14.
 - Rebuilt artifact SHA-256 digests remained unchanged.
+- Evidence checkpoint `e483973e7f8153b97aa5a44b049d787d08fd884f`
+  passed all exact-head checks before the fourth P4-W2 review.
+- Child 9 reviewed `e483973` and returned `NOT_READY`, P0/P1/P2 `0/1/0`.
+  The P1 reproduced import escapes through `sys.__dict__`,
+  `sys.__getattribute__`, and function or lambda `__globals__`. It also found
+  path-insensitive rebinding and false positives where loop, `with`, or
+  exception targets shadowed the standard-library `sys` module.
+- One focused artifact regression failed before repair on every positive and
+  negative case, including a hidden `__globals__` import in the otherwise
+  reviewed optional-provider file. Self-review added bound function and
+  `object.__getattribute__` variants before broad verification.
+- Repair checkpoint `bd994a0288f8711f216e130c25c45f7a654eb90f`
+  uses conservative provenance sets, joins branch states, models function,
+  class, loop, `with`, exception, match, and comprehension bindings, and
+  recognizes namespace and bound `__getattribute__` reflection.
+- Current local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,151 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (82 tests, Ruff, MyPy, manifest); all 11 analyzer
+  tests independently on Python 3.12, 3.13, and 3.14; isolated app-wheel
+  journeys on all three versions; source+artifact release audit;
+  reachable-history audit; Gitleaks 8.30.1 over 73 commits; `uv lock --check`;
+  and `git diff --check`.
+- Exact-head CI run `33600292963`, public-artifacts run `33600292877`, and
+  CodeQL run `33600287985` passed at `bd994a0`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
+- Rebuilt artifact SHA-256 digests remained unchanged.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
   successor, exact-head CI, and a fresh read-only review remain required before

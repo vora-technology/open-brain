@@ -282,3 +282,14 @@
 - Why: Python exposes the same importer through runtime registries and dynamic
   evaluation. The app has no authorized use for those capabilities, so a
   bounded fail-closed policy is simpler and safer than partial interpretation.
+
+## D-027: join provenance across control flow and lexical binding scopes
+
+- Chosen: represent each binding as a set of possible capabilities, merge
+  branch and loop outcomes, predeclare function-local names, and model compound
+  targets plus nested scope visibility.
+- Rejected: let AST traversal order overwrite provenance or treat every shared
+  identifier as the module it once referenced.
+- Why: a dead or alternate branch must not erase a possible importer path, but
+  a loop, context-manager, or exception target must shadow that path inside its
+  own body. Conservative joins enforce both halves of the boundary.

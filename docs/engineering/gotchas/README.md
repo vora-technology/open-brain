@@ -609,3 +609,16 @@ capabilities. Reject them by default and keep the one authorized dynamic import 
 file and function.
 
 Discovered: 2026-09-02.
+
+### AUDIT-006: AST walk order is not control-flow provenance
+
+Symptom: A dead-branch assignment erases a real importer path, while a loop, context-manager, or
+exception target is mistaken for the standard-library module it shadows.
+
+Cause: One mutable binding map follows AST visitation order. It neither joins alternate outcomes
+nor applies Python's lexical and compound-target binding rules.
+
+Fix: Track sets of possible provenance, join control-flow outcomes, predeclare function-local
+names, and model loop, `with`, exception, match, and comprehension scopes before inspecting uses.
+
+Discovered: 2026-09-02.

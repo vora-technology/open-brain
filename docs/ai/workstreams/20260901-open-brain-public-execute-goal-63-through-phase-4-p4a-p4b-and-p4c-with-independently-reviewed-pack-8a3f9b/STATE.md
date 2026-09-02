@@ -11,10 +11,10 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: reflective-import review repair
-  `d8e2cb20f0268e16ebdd5b46053d5081dab7ac7c` is pushed and exact-head CI
-  is green. The third P4-W2 review returned `NOT_READY` with P0/P1/P2
-  `0/1/1`; both findings are repaired. This evidence successor, exact-head
+- Status: flow-sensitive import review repair
+  `bd994a0288f8711f216e130c25c45f7a654eb90f` is pushed and exact-head CI
+  is green. The fourth P4-W2 review returned `NOT_READY` with P0/P1/P2
+  `0/1/0`; its sole finding is repaired. This evidence successor, exact-head
   CI, and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
@@ -268,6 +268,28 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
   integrity.
 - Exact-head CI run `33596668616`, public-artifacts run `33596668630`, and
   CodeQL run `33596666546` passed at `d8e2cb2`. PR head, remote branch, and
+  local head matched; the draft PR was mergeable.
+- Evidence checkpoint `e483973e7f8153b97aa5a44b049d787d08fd884f`
+  recorded the third review and repair. Child 9 reviewed that exact candidate
+  and returned `NOT_READY`, P0/P1/P2 `0/1/0`. The sole P1 found bounded
+  reflection paths through `sys.__dict__`, `sys.__getattribute__`, and
+  function `__globals__`, plus path-insensitive rebinding and false positives
+  for loop, `with`, and exception targets.
+- A focused artifact regression failed before repair on every positive and
+  negative case. Self-review added bound function and `object.__getattribute__`
+  paths before broad verification.
+- Source repair `bd994a0288f8711f216e130c25c45f7a654eb90f`
+  tracks provenance sets, joins branch outcomes, models lexical and compound
+  bindings, recognizes namespace and function reflection, and keeps shadowed
+  targets clean.
+- Current local gates passed: `make verify` with strict MyPy on 488 files,
+  3,151 tests, and four artifact builds; uncached Ruff;
+  `make phase4-contracts` with 82 tests; the complete analyzer test file with
+  11 tests on each of Python 3.12, 3.13, and 3.14; isolated app-wheel journeys
+  on all three versions; source/artifact and reachable-history audits;
+  Gitleaks over 73 commits; lockfile and diff integrity.
+- Exact-head CI run `33600292963`, public-artifacts run `33600292877`, and
+  CodeQL run `33600287985` passed at `bd994a0`. PR head, remote branch, and
   local head matched; the draft PR was mergeable.
 - Rebuilt SHA-256 digests are app wheel
   `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`,
