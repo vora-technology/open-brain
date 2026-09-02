@@ -386,6 +386,113 @@ def test_app_artifact_rejects_reflective_builtin_namespace_access(
     }
 
 
+def test_app_artifact_joins_provenance_and_models_shadowing_bindings(
+    tmp_path: Path,
+) -> None:
+    wheel = tmp_path / "app.whl"
+    _wheel(
+        wheel,
+        {
+            "open_brain/sys_dict_use.py": (
+                b"import sys\n"
+                b'sys.__dict__["modules"]["builtins"].__import__('
+                b'"open_brain_engine.engine.local")\n'
+            ),
+            "open_brain/sys_getattribute_use.py": (
+                b"import sys\n"
+                b'sys.__getattribute__("modules")["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/function_globals_use.py": (
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'host.__globals__["__builtins__"]["__import__"]('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/function_getattribute_use.py": (
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'host.__getattribute__("__globals__")["__builtins__"]'
+                b'["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain/object_getattribute_use.py": (
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'object.__getattribute__(host, "__globals__")["__builtins__"]'
+                b'["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain/lambda_globals_use.py": (
+                b"host = lambda: None\n"
+                b'host.__globals__["__builtins__"]["__import__"]('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/dead_branch_rebinding.py": (
+                b"import sys\n"
+                b"if False:\n"
+                b"    sys = object()\n"
+                b'sys.modules["builtins"].__import__("open_brain_connectors")\n'
+            ),
+            "open_brain/integrations/ports.py": (
+                b"from importlib import import_module\n"
+                b"def _loaded_optional_module(import_path: str) -> object:\n"
+                b"    return import_module(import_path)\n"
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'host.__globals__["__builtins__"]["__import__"]('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/loop_shadow.py": (
+                b"import sys\n"
+                b"for sys in values:\n"
+                b'    sys.modules["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/with_shadow.py": (
+                b"import sys\n"
+                b"with context() as sys:\n"
+                b'    sys.modules["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/except_shadow.py": (
+                b"import sys\n"
+                b"try:\n"
+                b"    action()\n"
+                b"except RuntimeError as sys:\n"
+                b'    sys.modules["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain-0.1.0.dist-info/METADATA": (
+                b"Name: open-brain\nVersion: 0.1.0\n"
+                b"Requires-Dist: open-brain-engine==0.1.0\n"
+            ),
+        },
+    )
+
+    findings = _app_import_boundary_findings(
+        wheel,
+        frozenset(
+            {
+                "open_brain_engine",
+                "open_brain_engine.engine",
+                "open_brain_engine.engine.local",
+            }
+        ),
+        frozenset({"open_brain_engine", "open_brain_engine.engine"}),
+    )
+
+    assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H009", "open_brain/dead_branch_rebinding.py"),
+        ("P4H009", "open_brain/function_getattribute_use.py"),
+        ("P4H009", "open_brain/function_globals_use.py"),
+        ("P4H009", "open_brain/integrations/ports.py"),
+        ("P4H009", "open_brain/lambda_globals_use.py"),
+        ("P4H009", "open_brain/object_getattribute_use.py"),
+        ("P4H008", "open_brain/sys_dict_use.py"),
+        ("P4H009", "open_brain/sys_dict_use.py"),
+        ("P4H009", "open_brain/sys_getattribute_use.py"),
+    }
+
+
 def test_expected_red_report_is_bounded_metadata_only() -> None:
     payload = json.loads(EXPECTED_RED.read_text(encoding="utf-8"))
 

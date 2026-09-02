@@ -30,14 +30,21 @@ _REVIEWED_APP_DYNAMIC_IMPORTS: Final[Mapping[str, tuple[str, ...]]] = {
     ),
 }
 _IMPORTLIB_MODULE: Final = "importlib"
+_IMPORTLIB_NAMESPACE: Final = "importlib.__dict__"
 _BUILTINS_MODULE: Final = "builtins"
+_BUILTINS_NAMESPACE: Final = "builtins.__dict__"
 _SYS_MODULE: Final = "sys"
 _SYS_MODULES: Final = "sys.modules"
+_SYS_NAMESPACE: Final = "sys.__dict__"
 _NAMESPACE_MAPPING: Final = "namespace"
-_BUILTINS_NAMESPACE: Final = "builtins.__dict__"
+_FUNCTION_OBJECT: Final = "function"
+_OBJECT_TYPE: Final = "object"
 _IMPORT_MODULE_CALLABLE: Final = "import_module"
 _BUILTIN_IMPORT_CALLABLE: Final = "__import__"
 _GETATTR_CALLABLE: Final = "getattr"
+_SYS_GETATTRIBUTE_CALLABLE: Final = "sys.__getattribute__"
+_FUNCTION_GETATTRIBUTE_CALLABLE: Final = "function.__getattribute__"
+_OBJECT_GETATTRIBUTE_CALLABLE: Final = "object.__getattribute__"
 _GLOBALS_CALLABLE: Final = "globals"
 _LOCALS_CALLABLE: Final = "locals"
 _VARS_CALLABLE: Final = "vars"
@@ -53,15 +60,20 @@ _UNSAFE_REFLECTION_CALLABLES: Final = frozenset(
         _VARS_CALLABLE,
         _EVAL_CALLABLE,
         _EXEC_CALLABLE,
+        _SYS_GETATTRIBUTE_CALLABLE,
+        _FUNCTION_GETATTRIBUTE_CALLABLE,
+        _OBJECT_GETATTRIBUTE_CALLABLE,
     }
 )
 _DYNAMIC_IMPORT_CAPABILITIES: Final = frozenset(
     {
         _IMPORTLIB_MODULE,
+        _IMPORTLIB_NAMESPACE,
         _BUILTINS_MODULE,
-        _SYS_MODULES,
-        _NAMESPACE_MAPPING,
         _BUILTINS_NAMESPACE,
+        _SYS_MODULES,
+        _SYS_NAMESPACE,
+        _NAMESPACE_MAPPING,
         _IMPORT_MODULE_CALLABLE,
         _BUILTIN_IMPORT_CALLABLE,
         *_UNSAFE_REFLECTION_CALLABLES,
@@ -69,6 +81,7 @@ _DYNAMIC_IMPORT_CAPABILITIES: Final = frozenset(
 )
 _BUILTINS_MEMBERS: Final[Mapping[str, str]] = {
     "__import__": _BUILTIN_IMPORT_CALLABLE,
+    "__dict__": _BUILTINS_NAMESPACE,
     "getattr": _GETATTR_CALLABLE,
     "globals": _GLOBALS_CALLABLE,
     "locals": _LOCALS_CALLABLE,
@@ -718,6 +731,83 @@ def _declared_import_roots(payloads: Mapping[str, bytes]) -> frozenset[str]:
     return frozenset(roots)
 
 
+class _ScopeNameCollector(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.names: set[str] = set()
+        self.global_names: set[str] = set()
+        self.nonlocal_names: set[str] = set()
+
+    def visit_Name(self, node: ast.Name) -> None:  # noqa: N802
+        if isinstance(node.ctx, (ast.Store, ast.Del)):
+            self.names.add(node.id)
+
+    def visit_Import(self, node: ast.Import) -> None:  # noqa: N802
+        self.names.update(alias.asname or alias.name.partition(".")[0] for alias in node.names)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:  # noqa: N802
+        self.names.update(alias.asname or alias.name for alias in node.names if alias.name != "*")
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
+        self.names.add(node.name)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:  # noqa: N802
+        self.names.add(node.name)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
+        self.names.add(node.name)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:  # noqa: N802
+        return
+
+    def visit_Global(self, node: ast.Global) -> None:  # noqa: N802
+        self.global_names.update(node.names)
+
+    def visit_Nonlocal(self, node: ast.Nonlocal) -> None:  # noqa: N802
+        self.nonlocal_names.update(node.names)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:  # noqa: N802
+        if node.name is not None:
+            self.names.add(node.name)
+        self.generic_visit(node)
+
+    def visit_MatchAs(self, node: ast.MatchAs) -> None:  # noqa: N802
+        if node.name is not None:
+            self.names.add(node.name)
+        if node.pattern is not None:
+            self.visit(node.pattern)
+
+    def visit_MatchStar(self, node: ast.MatchStar) -> None:  # noqa: N802
+        if node.name is not None:
+            self.names.add(node.name)
+
+    def visit_MatchMapping(self, node: ast.MatchMapping) -> None:  # noqa: N802
+        if node.rest is not None:
+            self.names.add(node.rest)
+        self.generic_visit(node)
+
+    def visit_ListComp(self, node: ast.ListComp) -> None:  # noqa: N802
+        return
+
+    def visit_SetComp(self, node: ast.SetComp) -> None:  # noqa: N802
+        return
+
+    def visit_DictComp(self, node: ast.DictComp) -> None:  # noqa: N802
+        return
+
+    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> None:  # noqa: N802
+        return
+
+
+@dataclass(slots=True)
+class _ImportScope:
+    kind: str
+    parent: int | None
+    local_names: frozenset[str]
+    global_names: frozenset[str]
+    nonlocal_names: frozenset[str]
+    bindings: dict[str, frozenset[str]]
+
+
 def _argument_names(arguments: ast.arguments) -> set[str]:
     names = {
         argument.arg
@@ -732,6 +822,16 @@ def _argument_names(arguments: ast.arguments) -> set[str]:
     if arguments.kwarg is not None:
         names.add(arguments.kwarg.arg)
     return names
+
+
+def _target_names(target: ast.AST) -> set[str]:
+    if isinstance(target, ast.Name):
+        return {target.id}
+    if isinstance(target, ast.Starred):
+        return _target_names(target.value)
+    if isinstance(target, (ast.Tuple, ast.List)):
+        return set().union(*(_target_names(element) for element in target.elts))
+    return set()
 
 
 def _constant_string(node: ast.AST) -> str | None:
@@ -749,19 +849,31 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def __init__(self) -> None:
         self.imported: set[str] = set()
         self.events: list[str] = []
-        self._bindings: list[dict[str, str | None]] = [
-            {
-                "__builtins__": _BUILTINS_MODULE,
-                "__import__": _BUILTIN_IMPORT_CALLABLE,
-                "getattr": _GETATTR_CALLABLE,
-                "globals": _GLOBALS_CALLABLE,
-                "locals": _LOCALS_CALLABLE,
-                "vars": _VARS_CALLABLE,
-                "eval": _EVAL_CALLABLE,
-                "exec": _EXEC_CALLABLE,
-            }
+        self._scopes = [
+            _ImportScope(
+                kind="module",
+                parent=None,
+                local_names=frozenset(),
+                global_names=frozenset(),
+                nonlocal_names=frozenset(),
+                bindings={
+                    "__builtins__": frozenset({_BUILTINS_MODULE}),
+                    "__import__": frozenset({_BUILTIN_IMPORT_CALLABLE}),
+                    "getattr": frozenset({_GETATTR_CALLABLE}),
+                    "globals": frozenset({_GLOBALS_CALLABLE}),
+                    "locals": frozenset({_LOCALS_CALLABLE}),
+                    "vars": frozenset({_VARS_CALLABLE}),
+                    "eval": frozenset({_EVAL_CALLABLE}),
+                    "exec": frozenset({_EXEC_CALLABLE}),
+                    "object": frozenset({_OBJECT_TYPE}),
+                },
+            )
         ]
         self._scope_path: list[str] = []
+
+    @property
+    def _scope_index(self) -> int:
+        return len(self._scopes) - 1
 
     def _scope_name(self) -> str:
         return ".".join(self._scope_path) if self._scope_path else "<module>"
@@ -769,66 +881,247 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def _record(self, event: str) -> None:
         self.events.append(f"{self._scope_name()}:{event}")
 
-    def _resolve(self, name: str) -> str | None:
-        for bindings in reversed(self._bindings):
-            if name in bindings:
-                return bindings[name]
-        return None
+    def _record_capabilities(self, prefix: str, provenance: frozenset[str]) -> None:
+        for capability in sorted(provenance & _DYNAMIC_IMPORT_CAPABILITIES):
+            self._record(f"{prefix}={capability}")
 
-    def _bind(self, name: str, binding: str | None, *, review: bool = True) -> None:
-        self._bindings[-1][name] = binding
-        if review and binding in _DYNAMIC_IMPORT_CAPABILITIES:
-            self._record(f"bind:{name}={binding}")
+    def _resolve_from(self, scope_index: int, name: str) -> frozenset[str]:
+        scope = self._scopes[scope_index]
+        if name in scope.global_names:
+            return self._scopes[0].bindings.get(name, frozenset())
+        if name in scope.nonlocal_names:
+            return (
+                self._resolve_from(scope.parent, name)
+                if scope.parent is not None
+                else frozenset()
+            )
+        if name in scope.bindings:
+            return scope.bindings[name]
+        if name in scope.local_names:
+            return frozenset()
+        return (
+            self._resolve_from(scope.parent, name)
+            if scope.parent is not None
+            else frozenset()
+        )
+
+    def _resolve(self, name: str) -> frozenset[str]:
+        return self._resolve_from(self._scope_index, name)
+
+    def _binding_scope(self, name: str) -> int:
+        scope = self._scopes[self._scope_index]
+        if name in scope.global_names:
+            return 0
+        if name in scope.nonlocal_names:
+            parent = scope.parent
+            while parent is not None:
+                candidate = self._scopes[parent]
+                if name in candidate.local_names or name in candidate.bindings:
+                    return parent
+                parent = candidate.parent
+        return self._scope_index
+
+    def _bind(
+        self,
+        name: str,
+        provenance: frozenset[str],
+        *,
+        review: bool = True,
+    ) -> None:
+        self._scopes[self._binding_scope(name)].bindings[name] = provenance
+        if review:
+            self._record_capabilities(f"bind:{name}", provenance)
 
     @staticmethod
-    def _member_binding(owner: str | None, member: str) -> str | None:
-        if owner == _IMPORTLIB_MODULE and member == "import_module":
-            return _IMPORT_MODULE_CALLABLE
-        if owner in {_BUILTINS_MODULE, _BUILTINS_NAMESPACE}:
-            return _BUILTINS_MEMBERS.get(member)
-        if owner == _SYS_MODULE and member == "modules":
-            return _SYS_MODULES
-        if owner == _SYS_MODULES and member == "builtins":
-            return _BUILTINS_MODULE
-        if owner == _SYS_MODULES and member == "importlib":
-            return _IMPORTLIB_MODULE
-        if owner == _NAMESPACE_MAPPING and member == "__builtins__":
-            return _BUILTINS_MODULE
-        return None
+    def _member_binding(owner: frozenset[str], member: str) -> frozenset[str]:
+        provenance: set[str] = set()
+        if _IMPORTLIB_MODULE in owner and member == "import_module":
+            provenance.add(_IMPORT_MODULE_CALLABLE)
+        if _IMPORTLIB_MODULE in owner and member == "__dict__":
+            provenance.add(_IMPORTLIB_NAMESPACE)
+        if owner & {_BUILTINS_MODULE, _BUILTINS_NAMESPACE}:
+            binding = _BUILTINS_MEMBERS.get(member)
+            if binding is not None:
+                provenance.add(binding)
+        if _SYS_MODULE in owner and member == "modules":
+            provenance.add(_SYS_MODULES)
+        if _SYS_MODULE in owner and member == "__dict__":
+            provenance.add(_SYS_NAMESPACE)
+        if _SYS_MODULE in owner and member == "__getattribute__":
+            provenance.add(_SYS_GETATTRIBUTE_CALLABLE)
+        if _FUNCTION_OBJECT in owner and member == "__getattribute__":
+            provenance.add(_FUNCTION_GETATTRIBUTE_CALLABLE)
+        if _OBJECT_TYPE in owner and member == "__getattribute__":
+            provenance.add(_OBJECT_GETATTRIBUTE_CALLABLE)
+        if _SYS_NAMESPACE in owner and member == "modules":
+            provenance.add(_SYS_MODULES)
+        if _SYS_MODULES in owner and member == "builtins":
+            provenance.add(_BUILTINS_MODULE)
+        if _SYS_MODULES in owner and member == "importlib":
+            provenance.add(_IMPORTLIB_MODULE)
+        if _NAMESPACE_MAPPING in owner and member == "__builtins__":
+            provenance.add(_BUILTINS_MODULE)
+        if _IMPORTLIB_NAMESPACE in owner and member == "import_module":
+            provenance.add(_IMPORT_MODULE_CALLABLE)
+        if member == "__globals__":
+            provenance.add(_NAMESPACE_MAPPING)
+        return frozenset(provenance)
 
-    def _binding(self, node: ast.AST) -> str | None:
+    def _binding(self, node: ast.AST) -> frozenset[str]:
         if isinstance(node, ast.Name):
             return self._resolve(node.id)
+        if isinstance(node, ast.Lambda):
+            return frozenset({_FUNCTION_OBJECT})
+        if isinstance(node, ast.NamedExpr):
+            return self._binding(node.value)
         if isinstance(node, ast.Attribute):
             return self._member_binding(self._binding(node.value), node.attr)
         if isinstance(node, ast.Subscript):
             member = _constant_string(node.slice)
             if member is not None:
                 return self._member_binding(self._binding(node.value), member)
-        if (
-            isinstance(node, ast.Call)
-            and self._binding(node.func) == _GETATTR_CALLABLE
-            and len(node.args) == 2
-            and not node.keywords
-        ):
-            member = _constant_string(node.args[1])
-            if member is not None:
-                return self._member_binding(self._binding(node.args[0]), member)
         if isinstance(node, ast.Call):
-            binding = self._binding(node.func)
-            if binding in {_GLOBALS_CALLABLE, _LOCALS_CALLABLE}:
-                return _NAMESPACE_MAPPING
-            if binding == _VARS_CALLABLE:
+            function = self._binding(node.func)
+            if _GETATTR_CALLABLE in function and len(node.args) == 2 and not node.keywords:
+                member = _constant_string(node.args[1])
+                if member is not None:
+                    return self._member_binding(self._binding(node.args[0]), member)
+            if (
+                _SYS_GETATTRIBUTE_CALLABLE in function
+                and len(node.args) == 1
+                and not node.keywords
+            ):
+                member = _constant_string(node.args[0])
+                if member is not None:
+                    return self._member_binding(frozenset({_SYS_MODULE}), member)
+            if (
+                _FUNCTION_GETATTRIBUTE_CALLABLE in function
+                and len(node.args) == 1
+                and not node.keywords
+            ):
+                member = _constant_string(node.args[0])
+                if member is not None:
+                    return self._member_binding(frozenset({_FUNCTION_OBJECT}), member)
+            if (
+                _OBJECT_GETATTRIBUTE_CALLABLE in function
+                and len(node.args) == 2
+                and not node.keywords
+            ):
+                member = _constant_string(node.args[1])
+                if member is not None:
+                    return self._member_binding(self._binding(node.args[0]), member)
+            provenance: set[str] = set()
+            if function & {_GLOBALS_CALLABLE, _LOCALS_CALLABLE}:
+                provenance.add(_NAMESPACE_MAPPING)
+            if _VARS_CALLABLE in function:
                 if not node.args:
-                    return _NAMESPACE_MAPPING
-                if len(node.args) == 1 and self._binding(node.args[0]) == _BUILTINS_MODULE:
-                    return _BUILTINS_NAMESPACE
-        return None
+                    provenance.add(_NAMESPACE_MAPPING)
+                elif len(node.args) == 1:
+                    owner = self._binding(node.args[0])
+                    if _BUILTINS_MODULE in owner:
+                        provenance.add(_BUILTINS_NAMESPACE)
+                    if _IMPORTLIB_MODULE in owner:
+                        provenance.add(_IMPORTLIB_NAMESPACE)
+                    if _SYS_MODULE in owner:
+                        provenance.add(_SYS_NAMESPACE)
+            return frozenset(provenance)
+        if isinstance(node, ast.IfExp):
+            return self._binding(node.body) | self._binding(node.orelse)
+        if isinstance(node, ast.BoolOp):
+            return frozenset().union(*(self._binding(value) for value in node.values))
+        return frozenset()
+
+    def _snapshot(self) -> tuple[dict[str, frozenset[str]], ...]:
+        return tuple(dict(scope.bindings) for scope in self._scopes)
+
+    def _restore(self, snapshot: tuple[dict[str, frozenset[str]], ...]) -> None:
+        if len(snapshot) != len(self._scopes):
+            raise RuntimeError("dynamic import scope snapshot is invalid")
+        for scope, bindings in zip(self._scopes, snapshot, strict=True):
+            scope.bindings = dict(bindings)
+
+    @staticmethod
+    def _joined(
+        snapshots: Sequence[tuple[dict[str, frozenset[str]], ...]],
+    ) -> tuple[dict[str, frozenset[str]], ...]:
+        if not snapshots or len({len(snapshot) for snapshot in snapshots}) != 1:
+            raise RuntimeError("dynamic import branch snapshots are invalid")
+        joined: list[dict[str, frozenset[str]]] = []
+        for index in range(len(snapshots[0])):
+            names = set().union(*(snapshot[index] for snapshot in snapshots))
+            joined.append(
+                {
+                    name: frozenset().union(
+                        *(snapshot[index].get(name, frozenset()) for snapshot in snapshots)
+                    )
+                    for name in names
+                }
+            )
+        return tuple(joined)
+
+    def _branch(
+        self,
+        statements: Sequence[ast.stmt],
+        start: tuple[dict[str, frozenset[str]], ...],
+    ) -> tuple[dict[str, frozenset[str]], ...]:
+        self._restore(start)
+        for statement in statements:
+            self.visit(statement)
+        return self._snapshot()
+
+    def _function_parent(self) -> int:
+        parent = self._scope_index
+        while self._scopes[parent].kind == "class":
+            enclosing = self._scopes[parent].parent
+            if enclosing is None:
+                return 0
+            parent = enclosing
+        return parent
+
+    def _push_scope(
+        self,
+        *,
+        kind: str,
+        parent: int,
+        names: set[str],
+        global_names: set[str],
+        nonlocal_names: set[str],
+        label: str,
+    ) -> None:
+        names.difference_update(global_names | nonlocal_names)
+        self._scopes.append(
+            _ImportScope(
+                kind=kind,
+                parent=parent,
+                local_names=frozenset(names),
+                global_names=frozenset(global_names),
+                nonlocal_names=frozenset(nonlocal_names),
+                bindings={name: frozenset() for name in names},
+            )
+        )
+        self._scope_path.append(label)
+
+    def _pop_scope(self) -> None:
+        self._scope_path.pop()
+        self._scopes.pop()
+
+    def _bind_target(self, target: ast.expr, provenance: frozenset[str]) -> None:
+        if isinstance(target, ast.Name):
+            self._bind(target.id, provenance)
+            return
+        if isinstance(target, ast.Starred):
+            self._bind_target(target.value, provenance)
+            return
+        if isinstance(target, (ast.Tuple, ast.List)):
+            for element in target.elts:
+                self._bind_target(element, frozenset())
+            if provenance & _DYNAMIC_IMPORT_CAPABILITIES:
+                self._record("escape:dynamic-importer")
+            return
+        if provenance & _DYNAMIC_IMPORT_CAPABILITIES:
+            self._record("escape:dynamic-importer")
 
     def _bind_assignment(self, target: ast.expr, value: ast.expr) -> None:
-        if isinstance(target, ast.Name):
-            self._bind(target.id, self._binding(value))
-            return
         if (
             isinstance(target, (ast.Tuple, ast.List))
             and isinstance(value, (ast.Tuple, ast.List))
@@ -837,16 +1130,30 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             for child_target, child_value in zip(target.elts, value.elts, strict=True):
                 self._bind_assignment(child_target, child_value)
             return
-        if self._binding(value) in _DYNAMIC_IMPORT_CAPABILITIES:
-            self._record("escape:dynamic-importer")
+        self._bind_target(target, self._binding(value))
 
-    def _push_scope(self, names: set[str], label: str) -> None:
-        self._bindings.append(dict.fromkeys(names))
-        self._scope_path.append(label)
+    def _function_scope(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> tuple[set[str], set[str], set[str]]:
+        collector = _ScopeNameCollector()
+        for statement in node.body:
+            collector.visit(statement)
+        collector.names.update(_argument_names(node.args))
+        return collector.names, collector.global_names, collector.nonlocal_names
 
-    def _pop_scope(self) -> None:
-        self._scope_path.pop()
-        self._bindings.pop()
+    def _visit_function_annotations(self, arguments: ast.arguments) -> None:
+        for argument in (
+            *arguments.posonlyargs,
+            *arguments.args,
+            *arguments.kwonlyargs,
+        ):
+            if argument.annotation is not None:
+                self.visit(argument.annotation)
+        if arguments.vararg is not None and arguments.vararg.annotation is not None:
+            self.visit(arguments.vararg.annotation)
+        if arguments.kwarg is not None and arguments.kwarg.annotation is not None:
+            self.visit(arguments.kwarg.annotation)
 
     def _visit_function(
         self,
@@ -857,13 +1164,24 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         for default in (*node.args.defaults, *node.args.kw_defaults):
             if default is not None:
                 self.visit(default)
+        self._visit_function_annotations(node.args)
         if node.returns is not None:
             self.visit(node.returns)
-        self._bind(node.name, None, review=False)
-        self._push_scope(_argument_names(node.args), node.name)
+        self._bind(node.name, frozenset({_FUNCTION_OBJECT}), review=False)
+        outer = self._snapshot()
+        local_names, global_names, nonlocal_names = self._function_scope(node)
+        self._push_scope(
+            kind="function",
+            parent=self._function_parent(),
+            names=local_names,
+            global_names=global_names,
+            nonlocal_names=nonlocal_names,
+            label=node.name,
+        )
         for statement in node.body:
             self.visit(statement)
         self._pop_scope()
+        self._restore(outer)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
         self._visit_function(node)
@@ -872,21 +1190,42 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         self._visit_function(node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
-        for expression in (*node.decorator_list, *node.bases, *node.keywords):
+        for expression in (*node.decorator_list, *node.bases):
             self.visit(expression)
-        self._bind(node.name, None, review=False)
-        self._push_scope(set(), node.name)
+        for keyword in node.keywords:
+            self.visit(keyword.value)
+        outer = self._snapshot()
+        self._push_scope(
+            kind="class",
+            parent=self._scope_index,
+            names=set(),
+            global_names=set(),
+            nonlocal_names=set(),
+            label=node.name,
+        )
         for statement in node.body:
             self.visit(statement)
         self._pop_scope()
+        self._restore(outer)
+        self._bind(node.name, frozenset(), review=False)
 
     def visit_Lambda(self, node: ast.Lambda) -> None:  # noqa: N802
         for default in (*node.args.defaults, *node.args.kw_defaults):
             if default is not None:
                 self.visit(default)
-        self._push_scope(_argument_names(node.args), f"<lambda>@{node.lineno}")
+        self._visit_function_annotations(node.args)
+        outer = self._snapshot()
+        self._push_scope(
+            kind="function",
+            parent=self._function_parent(),
+            names=_argument_names(node.args),
+            global_names=set(),
+            nonlocal_names=set(),
+            label=f"<lambda>@{node.lineno}",
+        )
         self.visit(node.body)
         self._pop_scope()
+        self._restore(outer)
 
     def visit_Import(self, node: ast.Import) -> None:  # noqa: N802
         for alias in node.names:
@@ -894,13 +1233,13 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             if alias.name == "importlib" or (
                 alias.asname is None and alias.name.startswith("importlib.")
             ):
-                self._bind(name, _IMPORTLIB_MODULE)
+                self._bind(name, frozenset({_IMPORTLIB_MODULE}))
             elif alias.name == "builtins":
-                self._bind(name, _BUILTINS_MODULE)
+                self._bind(name, frozenset({_BUILTINS_MODULE}))
             elif alias.name == "sys":
-                self._bind(name, _SYS_MODULE, review=False)
+                self._bind(name, frozenset({_SYS_MODULE}), review=False)
             else:
-                self._bind(name, None, review=False)
+                self._bind(name, frozenset(), review=False)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:  # noqa: N802
         for alias in node.names:
@@ -910,98 +1249,254 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 continue
             name = alias.asname or alias.name
             if node.level == 0 and node.module == "importlib" and alias.name == "import_module":
-                self._bind(name, _IMPORT_MODULE_CALLABLE)
-            elif node.level == 0 and node.module == "builtins" and alias.name == "__import__":
-                self._bind(name, _BUILTIN_IMPORT_CALLABLE)
-            elif node.level == 0 and node.module == "builtins" and alias.name == "getattr":
-                self._bind(name, _GETATTR_CALLABLE, review=False)
-            elif (
-                node.level == 0
-                and node.module == "builtins"
-                and alias.name in _UNSAFE_REFLECTION_CALLABLES
-            ):
-                self._bind(name, alias.name)
+                self._bind(name, frozenset({_IMPORT_MODULE_CALLABLE}))
+            elif node.level == 0 and node.module == "builtins":
+                binding = _BUILTINS_MEMBERS.get(alias.name)
+                self._bind(
+                    name,
+                    frozenset({binding}) if binding is not None else frozenset(),
+                    review=binding != _GETATTR_CALLABLE,
+                )
             elif node.level == 0 and node.module == "sys" and alias.name == "modules":
-                self._bind(name, _SYS_MODULES)
+                self._bind(name, frozenset({_SYS_MODULES}))
             else:
-                self._bind(name, None, review=False)
+                self._bind(name, frozenset(), review=False)
 
     def visit_Assign(self, node: ast.Assign) -> None:  # noqa: N802
         self.visit(node.value)
         for target in node.targets:
             self._bind_assignment(target, node.value)
+            if isinstance(target, (ast.Attribute, ast.Subscript)):
+                self.visit(target)
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:  # noqa: N802
         self.visit(node.annotation)
         if node.value is not None:
             self.visit(node.value)
             self._bind_assignment(node.target, node.value)
-        elif isinstance(node.target, ast.Name):
-            self._bind(node.target.id, None, review=False)
+        else:
+            self._bind_target(node.target, frozenset())
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> None:  # noqa: N802
         self.visit(node.value)
         self._bind_assignment(node.target, node.value)
 
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:  # noqa: N802
+        self.visit(node.target)
+        self.visit(node.value)
+        self._bind_target(node.target, frozenset())
+
+    def visit_Delete(self, node: ast.Delete) -> None:  # noqa: N802
+        for target in node.targets:
+            self._bind_target(target, frozenset())
+
+    def visit_If(self, node: ast.If) -> None:  # noqa: N802
+        self.visit(node.test)
+        start = self._snapshot()
+        body = self._branch(node.body, start)
+        alternative = self._branch(node.orelse, start) if node.orelse else start
+        self._restore(self._joined((body, alternative)))
+
+    def _visit_loop(
+        self,
+        body: Sequence[ast.stmt],
+        orelse: Sequence[ast.stmt],
+        target: ast.expr | None,
+    ) -> None:
+        start = self._snapshot()
+        self._restore(start)
+        if target is not None:
+            self._bind_target(target, frozenset())
+        for statement in body:
+            self.visit(statement)
+        body_state = self._snapshot()
+        loop_state = self._joined((start, body_state))
+        alternative = self._branch(orelse, loop_state) if orelse else loop_state
+        self._restore(self._joined((loop_state, alternative)))
+
+    def visit_For(self, node: ast.For) -> None:  # noqa: N802
+        self.visit(node.iter)
+        self._visit_loop(node.body, node.orelse, node.target)
+
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> None:  # noqa: N802
+        self.visit(node.iter)
+        self._visit_loop(node.body, node.orelse, node.target)
+
+    def visit_While(self, node: ast.While) -> None:  # noqa: N802
+        self.visit(node.test)
+        self._visit_loop(node.body, node.orelse, None)
+
+    def _visit_with(
+        self,
+        items: Sequence[ast.withitem],
+        body: Sequence[ast.stmt],
+    ) -> None:
+        for item in items:
+            self.visit(item.context_expr)
+            if item.optional_vars is not None:
+                self._bind_target(item.optional_vars, frozenset())
+        for statement in body:
+            self.visit(statement)
+
+    def visit_With(self, node: ast.With) -> None:  # noqa: N802
+        self._visit_with(node.items, node.body)
+
+    def visit_AsyncWith(self, node: ast.AsyncWith) -> None:  # noqa: N802
+        self._visit_with(node.items, node.body)
+
+    def _visit_try(
+        self,
+        body: Sequence[ast.stmt],
+        handlers: Sequence[ast.ExceptHandler],
+        orelse: Sequence[ast.stmt],
+        finalbody: Sequence[ast.stmt],
+    ) -> None:
+        start = self._snapshot()
+        normal = self._branch(body, start)
+        if orelse:
+            normal = self._branch(orelse, normal)
+        outcomes = [start, normal]
+        for handler in handlers:
+            self._restore(start)
+            if handler.type is not None:
+                self.visit(handler.type)
+            if handler.name is not None:
+                self._bind(handler.name, frozenset(), review=False)
+            for statement in handler.body:
+                self.visit(statement)
+            if handler.name is not None:
+                self._bind(handler.name, frozenset(), review=False)
+            outcomes.append(self._snapshot())
+        self._restore(self._joined(outcomes))
+        for statement in finalbody:
+            self.visit(statement)
+
+    def visit_Try(self, node: ast.Try) -> None:  # noqa: N802
+        self._visit_try(node.body, node.handlers, node.orelse, node.finalbody)
+
+    def visit_TryStar(self, node: ast.TryStar) -> None:  # noqa: N802
+        self._visit_try(node.body, node.handlers, node.orelse, node.finalbody)
+
+    def visit_Match(self, node: ast.Match) -> None:  # noqa: N802
+        self.visit(node.subject)
+        start = self._snapshot()
+        outcomes = [start]
+        for case in node.cases:
+            self._restore(start)
+            collector = _ScopeNameCollector()
+            collector.visit(case.pattern)
+            for name in collector.names:
+                self._bind(name, frozenset(), review=False)
+            if case.guard is not None:
+                self.visit(case.guard)
+            for statement in case.body:
+                self.visit(statement)
+            outcomes.append(self._snapshot())
+        self._restore(self._joined(outcomes))
+
+    def _visit_comprehension(
+        self,
+        generators: Sequence[ast.comprehension],
+        values: Sequence[ast.expr],
+        lineno: int,
+    ) -> None:
+        if not generators:
+            return
+        self.visit(generators[0].iter)
+        outer = self._snapshot()
+        names = set().union(*(_target_names(generator.target) for generator in generators))
+        self._push_scope(
+            kind="function",
+            parent=self._function_parent(),
+            names=names,
+            global_names=set(),
+            nonlocal_names=set(),
+            label=f"<comprehension>@{lineno}",
+        )
+        for index, generator in enumerate(generators):
+            if index:
+                self.visit(generator.iter)
+            self._bind_target(generator.target, frozenset())
+            for condition in generator.ifs:
+                self.visit(condition)
+        for value in values:
+            self.visit(value)
+        self._pop_scope()
+        self._restore(outer)
+
+    def visit_ListComp(self, node: ast.ListComp) -> None:  # noqa: N802
+        self._visit_comprehension(node.generators, (node.elt,), node.lineno)
+
+    def visit_SetComp(self, node: ast.SetComp) -> None:  # noqa: N802
+        self._visit_comprehension(node.generators, (node.elt,), node.lineno)
+
+    def visit_DictComp(self, node: ast.DictComp) -> None:  # noqa: N802
+        self._visit_comprehension(node.generators, (node.key, node.value), node.lineno)
+
+    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> None:  # noqa: N802
+        self._visit_comprehension(node.generators, (node.elt,), node.lineno)
+
     def visit_Name(self, node: ast.Name) -> None:  # noqa: N802
-        if isinstance(node.ctx, ast.Load) and (
-            binding := self._resolve(node.id)
-        ) in _DYNAMIC_IMPORT_CAPABILITIES:
-            self._record(f"reference:{node.id}={binding}")
+        if isinstance(node.ctx, ast.Load):
+            self._record_capabilities(f"reference:{node.id}", self._resolve(node.id))
 
     def visit_Attribute(self, node: ast.Attribute) -> None:  # noqa: N802
         binding = self._binding(node)
         owner = self._binding(node.value)
-        if binding in _DYNAMIC_IMPORT_CAPABILITIES or owner == _SYS_MODULES:
-            self._record(f"reference:attribute={binding or owner}")
+        self._record_capabilities("reference:attribute", binding)
+        if _SYS_MODULES in owner and not binding:
+            self._record("reference:attribute=sys.modules")
         self.generic_visit(node)
 
     def visit_Subscript(self, node: ast.Subscript) -> None:  # noqa: N802
         binding = self._binding(node)
         owner = self._binding(node.value)
-        if binding in _DYNAMIC_IMPORT_CAPABILITIES or owner in {
+        self._record_capabilities("reference:subscript", binding)
+        if owner & {
             _SYS_MODULES,
+            _SYS_NAMESPACE,
             _NAMESPACE_MAPPING,
             _BUILTINS_NAMESPACE,
-        }:
-            self._record(f"reference:subscript={binding or owner}")
+            _IMPORTLIB_NAMESPACE,
+        } and not binding:
+            self._record("reference:subscript=dynamic-namespace")
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
         binding = self._binding(node.func)
-        if binding in _DYNAMIC_IMPORT_CALLABLES:
-            target_node = node.args[0] if node.args else next(
-                (keyword.value for keyword in node.keywords if keyword.arg == "name"),
-                None,
-            )
-            target = _constant_string(target_node) if target_node is not None else None
-            if target is not None:
-                self.imported.add(target)
+        importers = sorted(binding & _DYNAMIC_IMPORT_CALLABLES)
+        target_node = node.args[0] if node.args else next(
+            (keyword.value for keyword in node.keywords if keyword.arg == "name"),
+            None,
+        )
+        target = _constant_string(target_node) if target_node is not None else None
+        if target is not None and importers:
+            self.imported.add(target)
+        for importer in importers:
             if len(node.args) == 1 and not node.keywords and isinstance(node.args[0], ast.Name):
                 argument = node.args[0].id
             elif target is not None:
                 argument = "<literal>"
             else:
                 argument = "<unresolved>"
-            self._record(f"call:{binding}({argument})")
-        elif binding in _UNSAFE_REFLECTION_CALLABLES:
-            self._record(f"call:{binding}")
-        if binding == _GETATTR_CALLABLE and len(node.args) >= 2:
+            self._record(f"call:{importer}({argument})")
+        for callable_name in sorted(binding & _UNSAFE_REFLECTION_CALLABLES):
+            self._record(f"call:{callable_name}")
+        if _GETATTR_CALLABLE in binding and len(node.args) >= 2:
             owner = self._binding(node.args[0])
-            if (
-                owner
-                in {
-                    _IMPORTLIB_MODULE,
-                    _BUILTINS_MODULE,
-                    _SYS_MODULE,
-                    _SYS_MODULES,
-                    _NAMESPACE_MAPPING,
-                    _BUILTINS_NAMESPACE,
-                }
-                and _constant_string(node.args[1]) is None
-            ):
+            if owner & {
+                _IMPORTLIB_MODULE,
+                _BUILTINS_MODULE,
+                _SYS_MODULE,
+                _SYS_MODULES,
+                _SYS_NAMESPACE,
+                _NAMESPACE_MAPPING,
+                _BUILTINS_NAMESPACE,
+                _IMPORTLIB_NAMESPACE,
+                _FUNCTION_OBJECT,
+            } and _constant_string(node.args[1]) is None:
                 self._record("reflect:dynamic-importer=<unresolved>")
-        if binding not in _DYNAMIC_IMPORT_CALLABLES:
+        if not importers:
             self.visit(node.func)
         for child in node.args:
             self.visit(child)
@@ -1011,6 +1506,13 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def visit_Return(self, node: ast.Return) -> None:  # noqa: N802
         if node.value is not None:
             self.visit(node.value)
+
+    def visit_Yield(self, node: ast.Yield) -> None:  # noqa: N802
+        if node.value is not None:
+            self.visit(node.value)
+
+    def visit_YieldFrom(self, node: ast.YieldFrom) -> None:  # noqa: N802
+        self.visit(node.value)
 
 
 def _dynamic_imports(tree: ast.AST) -> tuple[set[str], tuple[str, ...]]:
