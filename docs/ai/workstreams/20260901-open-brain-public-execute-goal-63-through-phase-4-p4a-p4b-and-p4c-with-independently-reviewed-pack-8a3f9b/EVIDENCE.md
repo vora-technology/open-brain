@@ -147,7 +147,7 @@
 - No publication, deployment, production, private-state, or cutover action
   occurred.
 
-## P4-W2 repaired source checkpoint
+## P4-W2 complete
 
 - Behavior repair `2f08a48aefe51eb755885d9f9ae01cf9c5fa5769` packages the
   launchd/systemd templates and adds an installed supervisor mode. Its red
@@ -391,10 +391,16 @@
   CodeQL run `33614643945` passed at `30d49d3`, including interpreter-specific
   wheel execution on Python 3.12, 3.13, and 3.14. Rebuilt artifact SHA-256
   digests remained unchanged.
+- Docs-only evidence checkpoint
+  `e20be9debc6cd68cd443a3df00f6c2cd76041cb3` passed CI run `33615635189`,
+  public-artifacts run `33615635198`, and CodeQL run `33615631031`.
+- Child 12's same-lineage rereview was bound to source `30d49d3` and evidence
+  `e20be9d`. It returned `READY`, P0/P1/P2 `0/0/0`, confirmed the prior P2 is
+  closed, and declared P4-W2 ready for milestone closure.
+- P4-W2 is complete. P4-W3 has not started, and its reviewer budget resets at
+  the milestone boundary.
 - Independent review is source-SHA-bound. A docs-only evidence successor does
   not invalidate unchanged source review, and the child budget resets at each
   milestone boundary.
 - No package publication, tag, release, native build, deployment, production
-  access, private-state access, or cutover action occurred. This evidence
-  successor, exact-head CI, and the child 12 same-lineage rereview remain
-  required before P4-W2 closes.
+  access, private-state access, cutover action, or P4-W3 work occurred.

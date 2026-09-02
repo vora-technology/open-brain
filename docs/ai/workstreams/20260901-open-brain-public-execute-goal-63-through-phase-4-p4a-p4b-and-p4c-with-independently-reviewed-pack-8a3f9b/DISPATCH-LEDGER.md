@@ -198,7 +198,7 @@ coordinator-owned.
 
 ## Child 12: P4-W2 closed-provider-registry final review and rereviews
 
-- Status: latest review complete; repaired source rereview pending
+- Status: complete
 - Agent ID: `01a06141-8911-7f61-a7d6-159e04063ef5`
 - Model: `gpt-5.6-sol`
 - Reasoning effort: `xhigh`
@@ -217,5 +217,11 @@ coordinator-owned.
   architecture gate filtered the moved source before stale-review validation.
   The repair at `30d49d31d35f86e26be3c0ac99b884a47d76b5f6` removes the stale
   record, validates reviews against current source locations, and adds a
-  moved-source regression. This same lineage will resume against that source
-  and its docs-only evidence successor.
+  moved-source regression.
+- Final source scope:
+  `30d49d31d35f86e26be3c0ac99b884a47d76b5f6`
+- Final evidence scope:
+  `e20be9debc6cd68cd443a3df00f6c2cd76041cb3`
+- Final result: `READY`; P0/P1/P2 `0/0/0`. The reviewer confirmed the prior
+  P2 is closed and declared P4-W2 ready for milestone closure. The lineage was
+  then closed. The reviewer budget resets for P4-W3.

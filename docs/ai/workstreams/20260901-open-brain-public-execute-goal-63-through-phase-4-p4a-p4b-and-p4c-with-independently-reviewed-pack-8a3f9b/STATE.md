@@ -11,14 +11,11 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: canonical review-inventory repair candidate
-  `30d49d31d35f86e26be3c0ac99b884a47d76b5f6` is pushed and exact-head CI
-  is green. Child 12 found one P2 in the prior candidate: the canonical
-  manifest retained the removed generic-loader exception, while the normal
-  architecture gate filtered moved sources before validating stale reviews.
-  The repair removes that exception and checks the canonical review inventory
-  against current source locations. This evidence successor, exact-head CI,
-  and the same-lineage read-only rereview remain before P4-W2 closes
+- Status: complete at source
+  `30d49d31d35f86e26be3c0ac99b884a47d76b5f6` and evidence
+  `e20be9debc6cd68cd443a3df00f6c2cd76041cb3`. Exact-head checks are green.
+  Child 12's same-lineage rereview returned `READY`, P0/P1/P2 `0/0/0`, and
+  confirmed the prior stale-review P2 is closed. P4-W3 has not started
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
   multi-distribution Python artifact policy, CI wiring, and bounded evidence
@@ -86,10 +83,9 @@
 
 ## Next action
 
-Commit and push this P4-W2 docs-only evidence successor, require every
-exact-head PR check to pass, then resume child 12 against source `30d49d3` and
-the evidence successor. P4-W3 remains blocked until the verdict is `READY`
-with P0/P1/P2 `0/0/0`.
+Stop and hand off before P4-W3. In a fresh continuation, reset the milestone
+reviewer budget, reground the repository and Goal #63 state, then begin P4-W3
+connector distribution, provisional interface, and isolated worker work.
 
 ## P4-W0 complete
 
@@ -190,7 +186,7 @@ with P0/P1/P2 `0/0/0`.
 - No package publication, tag, release, deployment, production access, private
   state access, or cutover action occurred.
 
-## P4-W2 repaired source checkpoint
+## P4-W2 complete
 
 - All 34 app runtime files, 28 existing app test modules, two supervisor
   resources, and one explicit wheel-gate test module are at their manifest
@@ -379,6 +375,14 @@ with P0/P1/P2 `0/0/0`.
 - Exact-head CI run `33614647926`, public-artifacts run `33614647755`, and
   CodeQL run `33614643945` passed at `30d49d3`. PR head, remote branch, and
   local head matched; the draft PR remained open.
+- Docs-only evidence checkpoint
+  `e20be9debc6cd68cd443a3df00f6c2cd76041cb3` passed CI run `33615635189`,
+  public-artifacts run `33615635198`, and CodeQL run `33615631031`.
+- Child 12's same-lineage rereview was bound to source `30d49d3` and evidence
+  `e20be9d`. It returned `READY`, P0/P1/P2 `0/0/0`, explicitly closed the
+  prior P2, and declared P4-W2 ready for milestone closure.
+- P4-W2 is complete. No P4-W3 implementation or review child was started; its
+  reviewer budget resets at the next milestone boundary.
 - Independent review is bound to the source SHA. A docs-only evidence
   successor does not invalidate an unchanged source review. Child budgets are
   scoped to and reset at each milestone.
