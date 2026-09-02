@@ -10,14 +10,16 @@
 
 ## Current milestone
 
-- Milestone: Gate 0 immutable launch baseline
-- Status: Gate 0 complete; P4-W0 implementation candidate locally green;
-  checkpoint commit, push, draft PR, and required CI pending
-- Allowed scope: Gate 0 inventories and evidence, P4-W0 manifest/harness/toolchain
-  implementation, verified commits, branch push, draft PR creation, and sanitized
-  Goal #63 status updates
-- Stop condition: any runtime source move before P4-W0 is green, any P4A/P4B
-  acceptance review before applicable CI is green, or any production access
+- Milestone: P4-W1 workspace and engine distribution
+- Status: Gate 0 and P4-W0 complete; exact checkpoint pushed, draft PR open,
+  all applicable CI green, P4-W1 ready
+- Allowed scope: manifest-driven P4-W1 workspace/member skeletons, mechanical
+  engine moves and import rewrites, engine API/package metadata, isolated
+  engine build/install checks, verified commits, draft PR updates, and bounded
+  evidence
+- Stop condition: any move not authorized by the manifest, behavior repair
+  without a red regression and separate commit, P4-W2 before P4-W1 is green,
+  any acceptance review before applicable CI is green, or any production access
   before P4A, P4B, P4-W8, recovery, and receipt review all pass unchanged
 - Base: freshly fetched `origin/main` at
   `3b89a4ba4787a378e6040ff042bd117da881918d`
@@ -77,11 +79,12 @@
 
 ## Next action
 
-Commit the exact P4-W0 candidate, push `goal/open-brain-phase4`, open the
-required draft PR, make `phase4-contracts` a required check after its first
-run, and require all applicable CI plus artifact safety to pass before P4-W1.
+Execute P4-W1 from the canonical manifest: activate the four-member uv
+workspace, create the member skeletons, mechanically move engine-owned source
+and Portable resources, rewrite imports, expose the explicit engine API, and
+prove an engine-wheel-only environment with app/connectors/legacy/source absent.
 
-## P4-W0 candidate
+## P4-W0 complete
 
 - Canonical manifest schema 3 covers 555 subjects: all 224 runtime files and
   331 non-runtime subjects. The latter include all 253 current Python files
@@ -109,3 +112,10 @@ run, and require all applicable CI plus artifact safety to pass before P4-W1.
   manifest validation, all 3,129 repository tests, isolated wheel/sdist build,
   artifact policy, source/artifact and reachable-history audits, Gitleaks,
   lock check, diff integrity, and zero runtime-source movement all passed.
+- Checkpoint commit:
+  `ae144db9e461f9e369976c04b75467eb5c69a144`.
+- Draft PR: `vora-technology/open-brain#6`.
+- Required `phase4-contracts`, Python 3.12/3.13/3.14, public artifacts,
+  macOS ARM64 lifecycle, and both CodeQL analyses passed on the exact commit.
+- `phase4-contracts` was added to protected `main` as a required check.
+- Sanitized Goal #63 checkpoint comment: `5502376856`.

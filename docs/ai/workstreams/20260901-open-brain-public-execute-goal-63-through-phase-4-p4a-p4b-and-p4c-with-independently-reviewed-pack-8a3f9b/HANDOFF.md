@@ -3,14 +3,14 @@
 packet_version: 1
 status: in_progress
 workstream: 20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b
-milestone: p4-w0-move-manifest-and-acceptance-harness
+milestone: p4-w1-workspace-and-engine
 branch: goal/open-brain-phase4
-head: 9af0bc41212465697e0e89eebafd9c1cce13ba15
-last_verified.command: phase4-contracts; expected-red reconciliation; make verify; release/history/artifact audits; Gitleaks; lock and diff checks; zero-runtime-move assertion
-last_verified.result: local P4-W0 candidate passed; 68 focused and 3,129 total tests, Ruff, strict MyPy on 481 files, manifest/reports/build/audits clean, 11 expected-red findings exact, runtime moves zero; CI pending
-changes: ["Extended the canonical manifest to 555 exact subjects.","Added Phase 4 validator, generated reports, and isolated-artifact harness self-tests.","Pinned workspace/native toolchains and release compatibility.","Added real-subject phase4-contracts CI and widened artifact-audit triggers."]
+head: ae144db9e461f9e369976c04b75467eb5c69a144
+last_verified.command: exact-commit local P4-W0 gates plus PR 6 phase4-contracts, Python 3.12-3.14, public-artifacts, macOS ARM64 lifecycle, and CodeQL checks
+last_verified.result: passed P4-W0; 555 subjects, 68 focused and 3,129 total tests, local audits green, all eight PR checks green, phase4-contracts protected and required, runtime moves zero
+changes: ["Completed and pushed P4-W0 at ae144db.","Opened draft PR 6 and made phase4-contracts required.","Recorded exact green CI and Goal 63 checkpoint evidence.","Advanced the ordered milestone to P4-W1."]
 blocker: null
-next_action: Commit and push the P4-W0 candidate, open its draft PR, require phase4-contracts, and wait for all applicable CI before P4-W1.
+next_action: Execute manifest-driven P4-W1 workspace and engine movement, then prove the engine wheel in source-free isolation before checkpointing.
 safe_to_start_new_thread: false
 
 Emit this complete block as one packet; keep the heading and field names exact.

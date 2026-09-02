@@ -74,5 +74,13 @@
 - Read-only child 1 implementation map: `READY`, P0/P1/P2 `0/2/2`. Both P1s
   were implemented: Phase 4 tools are under strict MyPy and public-artifact
   triggers cover the new manifest/tools/tests.
-- CI status: not run yet. The draft PR has not been opened; P4-W1 remains
-  blocked until every applicable required job is green.
+- Checkpoint commit: `ae144db9e461f9e369976c04b75467eb5c69a144`.
+- Draft PR: `vora-technology/open-brain#6`.
+- Exact-commit PR checks passed: protected `phase4-contracts`, `verify (3.12)`,
+  `verify (3.13)`, `verify (3.14)`, `public-artifacts`, macOS ARM64 appliance
+  lifecycle, CodeQL Actions analysis, and CodeQL Python analysis.
+- Branch protection now requires `phase4-contracts` in addition to the prior
+  four required checks.
+- Sanitized Goal #63 checkpoint comment: `5502376856`.
+- P4-W0 is complete. P4-W1 may begin; later gates remain blocked by their own
+  source, artifact, review, recovery, and production preconditions.
