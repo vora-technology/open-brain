@@ -11,8 +11,10 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: implementation checkpoint
-  `2ed82c05ad2f5508a9a04b3c7eadeb86ed676cdf` is locally verified. Push,
+- Status: repaired source checkpoint
+  `7d87c3968e15de5d98f7e509c8c8a31c4c5b500c` is pushed and exact-head
+  CI is green. The first P4-W2 review returned `NOT_READY` with P0/P1/P2
+  `0/3/1`; all three P1 findings are repaired. This evidence successor,
   exact-head CI, and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
@@ -184,7 +186,7 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - No package publication, tag, release, deployment, production access, private
   state access, or cutover action occurred.
 
-## P4-W2 implementation checkpoint
+## P4-W2 repaired source checkpoint
 
 - All 34 app runtime files, 28 existing app test modules, two supervisor
   resources, and one explicit wheel-gate test module are at their manifest
@@ -196,7 +198,7 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
   `PYTHONPATH` or working directory. Source-checkout rendering remains explicit.
 - The app isolation harness builds app and engine with workspace sources
   disabled, installs only those two wheels into the product environment, and
-  runs 401 app tests through a separate locked test environment. Connector,
+  runs 402 app tests through a separate locked test environment. Connector,
   legacy, workspace source, and private engine imports remain unavailable.
 - Named wheel-only tests prove `V0-GATE-07` through independent CLI/UI sibling
   approve, reject, and safe edit, and `V0-GATE-13` through create, rename,
@@ -207,11 +209,31 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - The phased root suite uses a test-only namespace overlay for unmoved
   `cli`, `integrations`, and `services` modules. Installed-wheel acceptance
   proves the overlay is absent from the app product; P4-W4 removes it.
-- Local gates passed: `make verify` with Ruff, strict MyPy on 488 files, 3,147
-  tests, and four artifact builds; `make phase4-contracts` with 79 tests;
-  source/artifact and reachable-history audits; Gitleaks over 63 commits;
-  lockfile and diff integrity.
-- Implementation checkpoint:
-  `2ed82c05ad2f5508a9a04b3c7eadeb86ed676cdf`.
+- Local gates passed: `make verify` with strict MyPy on 488 files, 3,148
+  tests, and four artifact builds; uncached Ruff; `make phase4-contracts`
+  with 79 tests;
+  isolated app-wheel journeys on Python 3.12, 3.13, and 3.14; source/artifact
+  and reachable-history audits; Gitleaks over 66 commits; lockfile and diff
+  integrity.
+- Child 6 reviewed exact candidate
+  `85428b125ddd370cfa6a6c2be20f2aab4669bf7e` and returned `NOT_READY`,
+  P0/P1/P2 `0/3/1`. It found unreachable installed supervisor mode, a
+  hard-coded Python 3.12 isolation interpreter, incomplete app import
+  enforcement, and stale completion evidence.
+- Three focused regressions failed before repair. Source checkpoint
+  `7d87c3968e15de5d98f7e509c8c8a31c4c5b500c` validates source-checkout
+  detection, runs wheel isolation on the active matrix interpreter, rejects
+  private/undeclared/unreviewed imports, and reports bounded failure stages.
+- Exact-head CI run `33591952670`, public-artifacts run `33591952648`,
+  and CodeQL run `33591951436` passed at `7d87c39`. PR head, remote branch,
+  and local head matched; the draft PR was mergeable.
+- Rebuilt SHA-256 digests are app wheel
+  `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`,
+  app sdist
+  `d6afc82e2cc3ec4d9bf53215129c39a64542a60cbe7831b95505b2660208917a`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
 - No publication, tag, release, native build, deployment, private-state access,
   production access, or cutover action occurred.

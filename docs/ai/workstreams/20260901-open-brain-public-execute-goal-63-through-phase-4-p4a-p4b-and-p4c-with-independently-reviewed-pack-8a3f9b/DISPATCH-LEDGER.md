@@ -6,9 +6,9 @@
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 5
+- Total child lineages used: 6
 - Implementation writers: 0
-- Independent reviewers: 4
+- Independent reviewers: 5
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -82,3 +82,20 @@ coordinator-owned.
   `aab6f1e0891d551a87a2968ef9fb0dae1a8e62e2`
 - Result: `READY`; P0/P1/P2 `0/0/0`. Exact-head CI and repaired completion
   evidence closed P4-W1 before any P4-W2 movement began.
+
+## Child 6: P4-W2 source-candidate review
+
+- Status: complete
+- Agent ID: `01a0605c-1ea9-7c43-80ce-eda630776e52`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `85428b125ddd370cfa6a6c2be20f2aab4669bf7e`
+- Result: `NOT_READY`; P0/P1/P2 `0/3/1`. The review found unreachable
+  installed supervisor mode, a hard-coded isolation interpreter, incomplete
+  private/undeclared app import enforcement, and stale completion evidence.
+  All three P1 findings are repaired at
+  `7d87c3968e15de5d98f7e509c8c8a31c4c5b500c`; exact-head CI, release audit,
+  and CodeQL passed before this bounded evidence repair.

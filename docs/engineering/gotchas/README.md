@@ -541,3 +541,43 @@ Fix: Configure `open_brain` as first-party and `open_brain_engine` as its third-
 Run Ruff once with `--no-cache` after package moves and treat that result as the migration gate.
 
 Discovered: 2026-09-01.
+
+### PACKAGING-002: Module depth does not prove a source checkout
+
+Symptom: An installed supervisor manifest contains a nonexistent `PYTHONPATH` and working
+directory below the interpreter's library directory.
+
+Cause: The factory counted parents above `__file__`. Source and installed modules have similar
+depth, so a `site-packages` path was mistaken for a checkout.
+
+Fix: Enable source mode only when the module resolves to the exact declared source layout. Exercise
+the production factory from the installed wheel, not only constructors with `checkout_root=None`.
+
+Discovered: 2026-09-01.
+
+### TESTING-001: An inner fixed interpreter can falsify a CI version matrix
+
+Symptom: Python 3.13 and 3.14 jobs pass even though their wheel-isolation subprocesses run on
+Python 3.12.
+
+Cause: The outer matrix selected an interpreter, but the acceptance harness hard-coded another
+version when creating product and test environments.
+
+Fix: Derive isolation environments from the active matrix interpreter. Run the installed journey
+independently on every declared Python version.
+
+Discovered: 2026-09-01.
+
+### AUDIT-003: ImportFrom.module alone misses private child and lazy dependencies
+
+Symptom: An artifact scan accepts a private engine child imported through a public parent, or an
+undeclared dependency loaded only on a lazy path.
+
+Cause: The scanner recorded only the parent in `from package import child` and inspected only
+engine-prefixed static imports.
+
+Fix: Resolve aliases against the complete manifest module map, compare external roots with wheel
+metadata, reject forbidden workspace roots, and allow-list each variable dynamic import by exact
+artifact path and signature.
+
+Discovered: 2026-09-01.

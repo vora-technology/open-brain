@@ -147,7 +147,7 @@
 - No publication, deployment, production, private-state, or cutover action
   occurred.
 
-## P4-W2 local implementation candidate
+## P4-W2 repaired source checkpoint
 
 - Behavior repair `2f08a48aefe51eb755885d9f9ae01cf9c5fa5769` packages the
   launchd/systemd templates and adds an installed supervisor mode. Its red
@@ -166,7 +166,7 @@
   canonical manifest and rejects app imports of private engine modules.
 - The isolated app contract builds with `--no-sources`, installs only copied
   app/engine wheels into Python 3.12, and exposes that site-packages directory
-  to a separate locked test runner. All 401 app tests pass without checkout
+  to a separate locked test runner. All 402 app tests pass without checkout
   fixtures, connector, legacy, or workspace source.
 - Named wheel-only contracts pass `V0-GATE-07` with six sibling proposals and
   independent CLI/UI approve, reject, and safe edit. They pass `V0-GATE-13`
@@ -175,16 +175,39 @@
 - Artifact policy version 2 owns app and engine distribution/kind coordinates.
   The real app/engine wheels and sdists contain exactly canonical members and
   no forbidden or undeclared members.
+- Candidate `85428b125ddd370cfa6a6c2be20f2aab4669bf7e` passed exact-head CI after
+  one same-SHA retry. CI attempt 1 failed only the Python 3.12 app-isolation
+  wrapper with generic `P4H007`; the concurrent dedicated Ubuntu/Python 3.12
+  contract and a local isolated Python 3.12 full suite passed. Attempt 2
+  passed every job.
+- Child 6 reviewed `85428b1` and returned `NOT_READY`, P0/P1/P2 `0/3/1`.
+  The P1 findings were installed supervisor source leakage, false-positive
+  3.13/3.14 wheel coverage, and incomplete private/undeclared import checks.
+  The P2 was this stale evidence packet.
+- Three focused regressions reproduced all P1 findings before repair:
+  installed factory rendering leaked `PYTHONPATH`; environment creation
+  selected 3.12 while the active interpreter was 3.14; and the artifact scan
+  missed private-child, undeclared, and unreviewed dynamic imports.
+- Repair checkpoint `7d87c3968e15de5d98f7e509c8c8a31c4c5b500c` validates a
+  source-checkout layout before adding supervisor paths, selects the active
+  matrix interpreter, derives the complete engine module policy and declared
+  app dependencies, allow-lists one exact dynamic import seam, and reports
+  bounded app-isolation failure stages.
 - Local verification passed: `make verify` (Ruff, strict MyPy on 488 files,
-  3,147 tests, and all four artifact builds/policy); `make phase4-contracts`
-  (79 tests, Ruff, MyPy, manifest); source+artifact release audit;
-  reachable-history audit; Gitleaks 8.30.1 over 63 commits; `uv lock --check`;
+  3,148 tests, and all four artifact builds/policy); a separate uncached Ruff
+  run; `make phase4-contracts` (79 tests, Ruff, MyPy, manifest); app-wheel
+  journeys under isolated Python 3.12, 3.13, and 3.14; source+artifact release audit;
+  reachable-history audit; Gitleaks 8.30.1 over 66 commits; `uv lock --check`;
   and `git diff --check`.
+- Exact-head CI run `33591952670`, public-artifacts run `33591952648`, and
+  CodeQL run `33591951436` passed at `7d87c39`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
 - Artifact SHA-256 digests:
-  app wheel `203493d3f35e83c5fa8de217ae157c2bb4e2b8483983caa7865818bb7303019b`;
-  app sdist `35c3e712380065853ed5d3b5239331fefc4d512067fafc4bf05f3888156b1ab2`;
+  app wheel `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`;
+  app sdist `d6afc82e2cc3ec4d9bf53215129c39a64542a60cbe7831b95505b2660208917a`;
   engine wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
   engine sdist `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
 - No package publication, tag, release, native build, deployment, production
-  access, private-state access, or cutover action occurred. Push, exact-head
-  CI, and fresh read-only review remain required before P4-W2 closes.
+  access, private-state access, or cutover action occurred. This evidence
+  successor, exact-head CI, and a fresh read-only review remain required before
+  P4-W2 closes.

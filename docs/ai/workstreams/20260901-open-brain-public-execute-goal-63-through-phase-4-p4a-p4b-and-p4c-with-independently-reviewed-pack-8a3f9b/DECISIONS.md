@@ -217,3 +217,45 @@
   facade solely to satisfy existing app imports.
 - Why: API status already belongs to the canonical manifest. Reusing it makes
   private imports fail at the artifact boundary and prevents policy drift.
+
+## D-021: validate source layout before rendering checkout supervisor paths
+
+- Chosen: derive a checkout root only when the running module resolves to the
+  exact declared `src/open_brain/services/appliance_lifecycle.py` layout.
+- Rejected: infer source mode from a fixed number of `__file__` parents.
+- Why: an installed wheel has the same module depth under `site-packages`.
+  Parent counting fabricated a nonexistent `src` directory and made the
+  packaged installed mode unreachable.
+
+## D-022: bind artifact isolation to the active matrix interpreter
+
+- Chosen: create product and test environments with the major/minor version of
+  the interpreter running each acceptance job. Keep an explicit version
+  parameter for deterministic focused tests.
+- Rejected: hard-code Python 3.12 inside the harness while labeling outer CI
+  jobs as Python 3.13 and 3.14.
+- Why: each matrix leg must execute the installed artifacts on its own
+  interpreter, not merely run workspace tests before delegating isolation back
+  to Python 3.12.
+
+## D-023: enforce the app import boundary from artifact metadata and the manifest
+
+- Chosen: derive declared external roots from app wheel metadata, derive all
+  public and private engine modules from the canonical manifest, resolve
+  imported submodule aliases, reject forbidden/undeclared roots, and permit one
+  exact reviewed dynamic-import signature.
+- Rejected: inspect only `ImportFrom.module`, trust lazy imports to runtime
+  coverage, or maintain another engine API list.
+- Why: a public parent can expose a private child syntactically, and a lazy
+  workspace dependency may never execute during a passing journey. The wheel
+  itself must prove both boundaries.
+
+## D-024: keep isolation failure evidence bounded but stage-specific
+
+- Chosen: report the allow-listed harness stage when an installed-app
+  subprocess fails, without including commands, paths, stdout, or stderr.
+- Rejected: collapse every failure into generic `P4H007` or expose raw
+  subprocess output.
+- Why: the first exact-head Python 3.12 run failed transiently inside the
+  installed-app harness. A bounded stage distinguishes setup, install, tests,
+  CLI, and product-contract failures without leaking local details.
