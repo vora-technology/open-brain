@@ -414,3 +414,16 @@
 - Why: metadata discovery and code execution are separate authorities. Sharing
   one loadable registry path allowed callers to bypass every child-process
   limit despite the worker itself being bounded.
+
+## D-038: start P4-W4 from the canonical inventory with a fresh review budget
+
+- Chosen: bind P4-W4 to clean source `18dd32b`, move only the manifest-owned
+  legacy/workspace paths, keep one coordinator as the exclusive writer, and
+  reset the milestone child ledger to zero active and zero total. Defer the
+  independent review lineage until exact-candidate CI is green.
+- Rejected: infer move ownership from the current directory tree, reuse the
+  closed P4-W3 reviewer budget, or dispatch overlapping implementation writers.
+- Why: 302 paths move across shared import, test, package, and manifest
+  surfaces. The canonical inventory prevents ownership drift, while one writer
+  preserves atomic integration and the fresh budget keeps P4-W4 review lineage
+  independent from P4-W3.

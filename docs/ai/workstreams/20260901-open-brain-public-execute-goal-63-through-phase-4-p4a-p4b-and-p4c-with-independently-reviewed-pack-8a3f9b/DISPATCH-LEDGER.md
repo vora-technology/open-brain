@@ -2,13 +2,13 @@
 
 ## Milestone budget
 
-- Coordinator: resumed runtime goal thread `01a05fc4-2219-7251-8798-a74a1a200911`
+- Coordinator: current P4-W4 continuation from clean source `18dd32b`
 - Maximum active children: 6
 - Maximum total children per milestone: 12
 - Current active children: 0
-- Total child lineages used in P4-W2: 12
+- Total child lineages used in P4-W4: 0
 - Implementation writers: 0
-- Independent reviewers: 11
+- Independent reviewers in P4-W4: 0
 
 The lineage budget resets when the coordinator crosses a verified milestone
 boundary. A resumed child retains its existing lineage number.
@@ -263,3 +263,16 @@ coordinator-owned.
 - Final result: `READY`; P0/P1/P2 `0/0/0`. The reviewer reproduced the
   installed parent non-load boundary, confirmed `P4W3-001` closed, found no new
   issues, and declared P4-W3 ready for milestone closure
+
+## P4-W4 milestone budget
+
+- Status: active
+- Active children: 0 of 6
+- Total children: 0 of 12
+- Identical failures: 0 of 2
+- Consecutive timeouts: 0 of 2
+- Implementation writer: coordinator only; no child write scope is reserved
+- Review lineage: unreserved until the exact P4A candidate passes all
+  applicable CI, Release audit, and CodeQL checks
+- Reset authority: D-038 closes the P4-W3 lineage and starts P4-W4 with a fresh
+  child budget

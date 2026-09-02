@@ -10,22 +10,25 @@
 
 ## Current milestone
 
-- Milestone: P4-W3 connector distribution, provisional interface, and isolated
-  worker
-- Status: complete at source
-  `27344c6cf83b8b74c11d6ec0c1c3075cbfa98e09`. All exact-head gates passed;
-  child 13 returned `READY`, P0/P1/P2 `0/0/0`, and explicitly closed its prior
-  P1. P4-W4 is intentionally unstarted
-- Allowed scope: the five manifest-owned connector runtime files and authorized
-  tests/resources; `open-brain-connectors` build metadata and artifacts;
-  already-demonstrated provisional extension values and conformance rules;
-  isolated host/worker protocol and closed explicit discovery; applicable app,
-  acceptance, artifact-policy, CI, manifest, release, and bounded evidence work
-- Stop condition: any unmanifested move, behavior repair without a red
-  regression and separate verified commit, stable-SDK claim, implicit connector
-  enablement, default app dependency on connectors, unbounded capability,
-  P4-W4 work, acceptance review before applicable CI is green, or any
-  publication, deployment, production, or private-state access
+- Milestone: P4-W4 legacy distribution, workspace-tool quarantine, old-path
+  removal, and P4A reconciliation
+- Status: active from clean source
+  `18dd32b719935d8e283b54bf2599b4981afe242a`. Fresh fetch matched the remote
+  branch, Goal #63 remained open and explicitly launched, PR #6 remained open,
+  draft, and mergeable, and every current CI, Release audit, and CodeQL check
+  passed
+- Allowed scope: the 135 manifest-owned legacy and four workspace runtime
+  files; 160 legacy tests, two fixtures, and one test resource; their canonical
+  target locations; deterministic import rewrites; the legacy distribution and
+  isolated acceptance; applicable package/workspace metadata, lockfile,
+  manifest/reports, artifact policy, CI, documentation, and bounded workstream
+  evidence
+- Stop condition: manifest ambiguity, unmanifested movement, semantic drift,
+  behavior repair without a red regression and separate verified commit,
+  retained old imports outside legacy, source-masked isolation, any shipping
+  dependency or artifact member from legacy/workspace code, unresolved
+  movement/dependency findings, review before exact-candidate CI is green,
+  P4B/P4C work, or publication, deployment, production, or private-state access
 - Base: freshly fetched `origin/main` at
   `3b89a4ba4787a378e6040ff042bd117da881918d`
 - Launch commit: reviewed planning commit cherry-picked as
@@ -86,9 +89,9 @@
 
 ## Next action
 
-Persist the P4-W3 evidence-only closure checkpoint and validated handoff. Start
-P4-W4 only in a fresh continuation after resetting its reviewer budget and
-regrounding the canonical legacy/workspace inventory.
+Execute the behavior-neutral canonical move and deterministic import rewrite,
+then run focused manifest, architecture, and legacy-isolation checks before the
+first P4-W4 source checkpoint.
 
 ## P4-W0 complete
 
@@ -450,3 +453,23 @@ regrounding the canonical legacy/workspace inventory.
   Reviewer budget is 0 active and 1 total; the P4-W3 lineage is closed.
 - P4-W3 is complete. P4-W4 did not start. No package publication, tag, release,
   native build, deployment, production/private access, or cutover occurred.
+
+## P4-W4 launch grounding
+
+- Fresh fetch proved local and remote branch head
+  `18dd32b719935d8e283b54bf2599b4981afe242a`; the worktree was clean and
+  `origin/main` remained at the reviewed baseline.
+- The recorded Phase 4 plan SHA-256 matched exactly. Goal #63 remained open and
+  explicitly launched. Draft PR #6 remained mergeable, and all 12 current
+  CI/Release/CodeQL checks passed at the exact starting head.
+- The sole canonical manifest validated. Its unresolved P4-W4 inventory is
+  exactly 135 legacy runtime files, four workspace runtime files, 160 legacy
+  tests, two legacy fixtures, and one legacy test resource. No manifest
+  ambiguity was observed.
+- The focused pre-move manifest, rewrite, and architecture baseline passed 66
+  tests. Durable context search returned no relevant Phase 4 record, so the
+  canonical plan, manifest, project gotchas, and prior workstream decisions
+  remain the operative context.
+- Reviewer budget reset to zero active and zero total for this milestone. One
+  coordinator retains exclusive write ownership; review remains read-only and
+  starts only after exact-candidate CI is green.
