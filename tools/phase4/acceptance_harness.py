@@ -141,6 +141,8 @@ def install_command(python: Path, artifacts: Sequence[Path]) -> tuple[str, ...]:
         "install",
         "--python",
         os.fspath(python),
+        "--link-mode",
+        "copy",
         "--no-index",
         *(os.fspath(path) for path in artifacts),
     )

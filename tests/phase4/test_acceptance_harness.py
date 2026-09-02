@@ -68,6 +68,7 @@ def test_build_and_install_commands_enforce_no_sources_and_python_312(tmp_path: 
         "3.12",
     )
     command = install_command(tmp_path / "venv/bin/python", [tmp_path / "app.whl"])
+    assert command[5:7] == ("--link-mode", "copy")
     assert "--no-index" in command
     assert "app.whl" in command[-1]
     export = export_test_requirements_command()
