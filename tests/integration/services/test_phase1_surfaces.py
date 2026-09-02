@@ -38,6 +38,19 @@ from open_brain.services.runtime import (
 TOKEN = "synthetic-ui-token"
 AUTHORIZATION = (("Authorization", f"Bearer {TOKEN}"),)
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+SOURCE_CHECKOUT_PATHS = [
+    str(REPOSITORY_ROOT / "src"),
+    str(REPOSITORY_ROOT / "packages" / "engine" / "src"),
+]
+
+
+def _source_checkout_module_command(module: str, *arguments: str) -> tuple[str, ...]:
+    program = (
+        "import runpy, sys; "
+        f"sys.path[:0] = {SOURCE_CHECKOUT_PATHS!r}; "
+        f"runpy.run_module({module!r}, run_name='__main__', alter_sys=True)"
+    )
+    return (sys.executable, "-I", "-B", "-c", program, *arguments)
 
 
 def _engine(root: Path) -> BrainEngine:
@@ -411,7 +424,7 @@ def test_ui_authenticates_before_mutating_or_parsing_private_body(tmp_path: Path
     assert b"synthetic private body" not in unauthorized.body
 
 
-def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path: Path) -> None:
+def test_source_checkout_cli_uses_one_brain_root_across_processes(tmp_path: Path) -> None:
     del tmp_path
     with tempfile.TemporaryDirectory(prefix="ob-", dir=Path("/tmp").resolve()) as directory:
         root = Path(directory) / "brain"
@@ -432,18 +445,15 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
         socket_path = root / ".open-brain" / "run" / "control.sock"
 
         def start_daemon() -> subprocess.Popen[str]:
+            previous_socket_inode = (
+                socket_path.stat().st_ino if socket_path.exists() else None
+            )
             process = subprocess.Popen(
-                [
-                    "uv",
-                    "run",
-                    "python",
-                    "-I",
-                    "-B",
-                    "-m",
+                _source_checkout_module_command(
                     "open_brain.services.appliance_daemon",
                     "--root",
                     str(root),
-                ],
+                ),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 stdout=subprocess.PIPE,
@@ -455,7 +465,11 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
                 if process.poll() is not None:
                     assert process.stderr is not None
                     raise AssertionError(process.stderr.read())
-                if socket_path.exists():
+                try:
+                    socket_inode = socket_path.stat().st_ino
+                except FileNotFoundError:
+                    socket_inode = None
+                if socket_inode is not None and socket_inode != previous_socket_inode:
                     return process
                 time.sleep(0.05)
             process.terminate()
@@ -465,16 +479,14 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
         daemon = start_daemon()
         try:
             created = subprocess.run(
-                [
-                    "uv",
-                    "run",
-                    "open-brain",
+                _source_checkout_module_command(
+                    "open_brain",
                     "spaces",
                     "create",
                     "Process space",
                     "--delivery=process.space",
                     "--json",
-                ],
+                ),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 check=True,
@@ -485,10 +497,8 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
             space_id = created_payload["space_id"]
 
             first_capture = subprocess.run(
-                [
-                    "uv",
-                    "run",
-                    "open-brain",
+                _source_checkout_module_command(
+                    "open_brain",
                     "capture",
                     "quick",
                     "text",
@@ -496,7 +506,7 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
                     "--delivery=process.capture",
                     f"--space={space_id}",
                     "--json",
-                ],
+                ),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 check=True,
@@ -510,10 +520,8 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
             daemon = start_daemon()
 
             replay_capture = subprocess.run(
-                [
-                    "uv",
-                    "run",
-                    "open-brain",
+                _source_checkout_module_command(
+                    "open_brain",
                     "capture",
                     "quick",
                     "text",
@@ -521,7 +529,7 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
                     "--delivery=process.capture",
                     f"--space={space_id}",
                     "--json",
-                ],
+                ),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 check=True,
@@ -530,7 +538,7 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
             )
             replay_payload = json.loads(replay_capture.stdout)
             inbox = subprocess.run(
-                ["uv", "run", "open-brain", "inbox", "list", "--json"],
+                _source_checkout_module_command("open_brain", "inbox", "list", "--json"),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 check=True,
@@ -538,7 +546,7 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
                 text=True,
             )
             listed_spaces = subprocess.run(
-                ["uv", "run", "open-brain", "spaces", "list", "--json"],
+                _source_checkout_module_command("open_brain", "spaces", "list", "--json"),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 check=True,
@@ -546,7 +554,9 @@ def test_installed_cli_entrypoint_uses_one_brain_root_across_processes(tmp_path:
                 text=True,
             )
             queried = subprocess.run(
-                ["uv", "run", "open-brain", "query", "Process lexical token", "--json"],
+                _source_checkout_module_command(
+                    "open_brain", "query", "Process lexical token", "--json"
+                ),
                 cwd=REPOSITORY_ROOT,
                 env=environment,
                 check=True,

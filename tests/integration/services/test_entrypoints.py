@@ -33,14 +33,25 @@ from open_brain.services.runtime import (
     load_private_http_bind_config,
 )
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+SOURCE_CHECKOUT_PATHS = [
+    str(REPOSITORY_ROOT / "src"),
+    str(REPOSITORY_ROOT / "packages" / "engine" / "src"),
+]
+
+
+def _source_checkout_program(statement: str) -> str:
+    return f"import sys; sys.path[:0] = {SOURCE_CHECKOUT_PATHS!r}; {statement}"
+
 
 def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
-    root = Path(__file__).parents[3]
-    application = root / "src" / "open_brain" / "services" / "application.py"
+    application = REPOSITORY_ROOT / "src" / "open_brain" / "services" / "application.py"
     scripts = tomllib.loads(
-        (root / "packages/app/pyproject.toml").read_text(encoding="utf-8")
+        (REPOSITORY_ROOT / "packages/app/pyproject.toml").read_text(encoding="utf-8")
     )["project"]["scripts"]
-    module_source = (root / "src" / "open_brain" / "__main__.py").read_text(encoding="utf-8")
+    module_source = (REPOSITORY_ROOT / "src" / "open_brain" / "__main__.py").read_text(
+        encoding="utf-8"
+    )
 
     assert application.is_file()
     assert scripts["open-brain"] == "open_brain.services.appliance_entrypoints:run_cli"
@@ -60,13 +71,12 @@ def test_phase3_appliance_entrypoint_names_are_reserved_without_repointing_scrip
 
 
 def test_default_entrypoint_module_imports_are_legacy_free_in_a_fresh_process() -> None:
-    root = Path(__file__).parents[3]
     program = f"""
 import importlib
 import json
 import sys
 
-sys.path.insert(0, {str(root / "src")!r})
+sys.path[:0] = {SOURCE_CHECKOUT_PATHS!r}
 module = importlib.import_module("open_brain.services.phase1_entrypoints")
 print(json.dumps({{
     "callables": [callable(getattr(module, name)) for name in ("run_cli", "run_http", "run_mcp")],
@@ -157,38 +167,43 @@ def test_global_dry_run_before_composition_never_mutates(
 
 
 @pytest.mark.parametrize(
-    ("command", "expected"),
+    ("arguments", "expected"),
     (
-        (("uv", "run", "open-brain", "--help"), "spaces"),
-        (("uv", "run", "open-brain", "--version"), "open-brain 0.1.0"),
-        (("uv", "run", "open-brain", "--json", "--version"), "open-brain 0.1.0"),
-        (("uv", "run", "open-brain", "--version", "--json"), "open-brain 0.1.0"),
-        ((sys.executable, "-I", "-B", "-m", "open_brain", "--help"), "spaces"),
-        (
-            (sys.executable, "-I", "-B", "-m", "open_brain", "--version"),
-            "open-brain 0.1.0",
-        ),
-        (
-            (sys.executable, "-I", "-B", "-m", "open_brain", "--json", "--version"),
-            "open-brain 0.1.0",
-        ),
-        (
-            (sys.executable, "-I", "-B", "-m", "open_brain", "--version", "--json"),
-            "open-brain 0.1.0",
-        ),
+        (("--help",), "spaces"),
+        (("--version",), "open-brain 0.1.0"),
+        (("--json", "--version"), "open-brain 0.1.0"),
+        (("--version", "--json"), "open-brain 0.1.0"),
     ),
 )
-def test_installed_and_module_cli_help_and_version_are_root_free(
-    command: tuple[str, ...],
+@pytest.mark.parametrize(
+    "statement",
+    (
+        "from open_brain.services.appliance_entrypoints import run_cli; "
+        "raise SystemExit(run_cli())",
+        "import runpy; runpy.run_module('open_brain', run_name='__main__', alter_sys=True)",
+    ),
+    ids=("declared-entrypoint", "module"),
+)
+def test_source_checkout_entrypoint_and_module_cli_are_root_free(
+    arguments: tuple[str, ...],
     expected: str,
+    statement: str,
 ) -> None:
     environment = dict(os.environ)
     environment.pop("OPEN_BRAIN_ROOT", None)
     environment.pop("OPEN_BRAIN_JOB_ID", None)
+    command = (
+        sys.executable,
+        "-I",
+        "-B",
+        "-c",
+        _source_checkout_program(statement),
+        *arguments,
+    )
 
     completed = subprocess.run(
         command,
-        cwd=Path(__file__).parents[3],
+        cwd=REPOSITORY_ROOT,
         env=environment,
         check=False,
         capture_output=True,

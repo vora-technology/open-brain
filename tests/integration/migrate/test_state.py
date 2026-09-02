@@ -54,6 +54,11 @@ from open_brain.migrate.state import (
 
 _NOW = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 _STATE_CONTROL = ".open-brain-state-adoption"
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+_SOURCE_CHECKOUT_PATHS = [
+    str(_REPOSITORY_ROOT / "src"),
+    str(_REPOSITORY_ROOT / "packages" / "engine" / "src"),
+]
 _PLAN_CONTEXTS: dict[str, StateCapabilityIssuer] = {}
 _PLANS: dict[str, StateAdoptionPlan] = {}
 
@@ -1345,6 +1350,7 @@ def test_state_generation_recovery_after_process_termination(
     _write_source(source, _manifest())
     worker = (
         "import runpy, sys; "
+        f"sys.path[:0] = {_SOURCE_CHECKOUT_PATHS!r}; "
         "namespace = runpy.run_path(sys.argv[1]); "
         "namespace['_crash_apply_worker'](sys.argv[2], sys.argv[3])"
     )
