@@ -11,9 +11,10 @@
 ## Current milestone
 
 - Milestone: P4-W1 workspace and engine distribution
-- Status: P4-W1 repaired candidate locally green at
-  `181f9ae3438955d23dd39a155b7f23e9b93aa2f6`; evidence commit, exact-head CI,
-  and fresh rereview remain before P4-W2
+- Status: P4-W1 candidate `7266e494f431ac84d9635b1a044bd15ce303c731`
+  is pushed and exact-head CI is green. Its fresh review returned `NOT_READY`
+  P0/P1/P2 `0/0/1` only because completion evidence lagged; this bounded
+  evidence repair, exact-head CI, and fresh rereview remain before P4-W2
 - Allowed scope: manifest-driven P4-W1 workspace/member skeletons, mechanical
   engine moves and import rewrites, engine API/package metadata, isolated
   engine build/install checks, verified commits, draft PR updates, and bounded
@@ -82,10 +83,10 @@
 
 ## Next action
 
-Commit this repaired P4-W1 evidence update, push the exact candidate, require
-every PR check to pass, then dispatch a corrected fresh read-only review
-against that exact SHA. P4-W2 remains blocked until the verdict is `READY`
-with P0/P1/P2 `0/0/0`.
+Commit and push this bounded evidence-only successor of the green
+`7266e494f431ac84d9635b1a044bd15ce303c731` checkpoint, require every
+exact-head PR check to pass, then dispatch a fresh read-only review. P4-W2
+remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 
 ## P4-W0 complete
 
@@ -160,6 +161,16 @@ with P0/P1/P2 `0/0/0`.
   `181f9ae3438955d23dd39a155b7f23e9b93aa2f6` forces copied product installs.
   The 11 focused contracts passed in a metadata-free Linux Python 3.12
   container before the full local gate.
+- Repaired candidate `7266e494f431ac84d9635b1a044bd15ce303c731` is pushed.
+  CI run `33584116919`, public-artifacts run `33584116923`, and CodeQL run
+  `33584115528` passed at that exact SHA, including Phase 4 contracts and
+  Python 3.12, 3.13, and 3.14 verification.
+- Fresh read-only child 4 reviewed the full P4-W1 range at `7266e494` and
+  returned `NOT_READY`, P0/P1/P2 `0/0/1`. It independently resolved artifact
+  membership, all moved engine tests under wheel isolation, and the canonical
+  manifest path. Its sole P2 was that STATE, EVIDENCE, HANDOFF, and the
+  dispatch ledger did not yet record the completed push, CI, and verdict; this
+  evidence-only update is the bounded repair.
 - Pinned local verification passed: 76 Phase 4 contracts, Ruff, strict MyPy on
   485 source files, canonical manifest validation, all 3,139 repository tests,
   isolated wheel/sdist build, exact artifact policy, source/artifact and
@@ -172,4 +183,4 @@ with P0/P1/P2 `0/0/0`.
   for the sdist.
 - No package publication, tag, release, deployment, production access, private
   state access, or cutover action occurred. P4-W2 remains blocked on final
-  exact-head CI and rereview.
+  exact-head CI and rereview of this evidence-only successor.

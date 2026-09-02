@@ -6,9 +6,9 @@
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 3
+- Total child lineages used: 4
 - Implementation writers: 0
-- Independent reviewers: 2
+- Independent reviewers: 3
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -55,3 +55,19 @@ coordinator-owned.
   membership, installed-wheel engine tests, and current wave evidence. The
   fourth finding corrected the next review packet to the sole canonical
   manifest path; no second manifest was added.
+
+## Child 4: P4-W1 rereview after artifact and Linux isolation repair
+
+- Status: complete
+- Agent ID: `01a06000-b402-7331-a920-893ba208ece5`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `7266e494f431ac84d9635b1a044bd15ce303c731`
+- Result: `NOT_READY`; P0/P1/P2 `0/0/1`. Artifact membership, all moved
+  engine tests under wheel isolation, and the sole canonical manifest path
+  were independently resolved. The only P2 was stale completion evidence;
+  this bounded evidence-only successor records the completed push, exact-head
+  CI runs, and verdict before a fresh review.

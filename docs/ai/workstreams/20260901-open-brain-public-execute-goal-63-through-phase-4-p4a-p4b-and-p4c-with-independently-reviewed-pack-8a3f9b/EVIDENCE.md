@@ -123,6 +123,16 @@
   isolated product install use uv's copy mode. All 11 focused harness and
   engine-distribution tests passed in a metadata-free Linux Python 3.12
   container; no validator invariant was weakened.
+- Candidate `7266e494f431ac84d9635b1a044bd15ce303c731` is pushed and
+  clean. Exact-head CI run `33584116919`, public-artifacts run `33584116923`,
+  and CodeQL run `33584115528` passed, including Phase 4 contracts and Python
+  3.12, 3.13, and 3.14 verification.
+- Fresh read-only child 4 reviewed all nine P4-W1 commits and 371 changed paths
+  at `7266e494`. It returned `NOT_READY`, P0/P1/P2 `0/0/1`. Exact artifact
+  membership, execution of all moved tests under wheel isolation, and the sole
+  canonical manifest path are independently resolved. The only finding was
+  stale completion evidence in STATE, EVIDENCE, HANDOFF, and the dispatch
+  ledger; this bounded evidence-only update repairs that finding.
 - Local Python 3.12 and uv 0.12.8 verification passed: 76 Phase 4 contracts,
   Ruff, strict MyPy on 485 files, manifest validation, 3,139 total tests,
   wheel/sdist build, exact artifact policy, source plus artifact release audit,
@@ -131,8 +141,8 @@
 - Artifact SHA-256 digests:
   wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
   sdist `d62df80976117ff76ccbbb3a753b8765e7cb9f3c2404b273ef27e3a18e418c26`.
-- P4-W1 is not closed yet. The repaired candidate and evidence commit must be
-  pushed, all exact-head CI checks must pass, and a corrected fresh review must
-  return `READY` with P0/P1/P2 `0/0/0` before P4-W2.
+- P4-W1 is not closed yet. This evidence-only successor must be pushed, all
+  exact-head CI checks must pass, and a fresh review must return `READY` with
+  P0/P1/P2 `0/0/0` before P4-W2.
 - No publication, deployment, production, private-state, or cutover action
   occurred.
