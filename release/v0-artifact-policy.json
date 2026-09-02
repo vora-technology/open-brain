@@ -378,6 +378,6 @@
     "bundler_candidate": "PyInstaller 6 onedir",
     "fallback": "Nuitka standalone",
     "published": [],
-    "status": "pending-phase-4-spike"
+    "status": "p4w5-unpublished-build-subject"
   }
 }

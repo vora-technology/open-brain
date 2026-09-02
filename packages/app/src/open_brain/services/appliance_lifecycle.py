@@ -52,6 +52,7 @@ _BACKUP_ID = re.compile(
 _CANDIDATE_ID = re.compile(r"^candidate_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 _VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,31}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
+_ARTIFACT_KINDS = frozenset({"native-onedir", "source-checkout"})
 _FAILURE_MESSAGE = "appliance lifecycle failed"
 _LIFECYCLE_DIRECTORY = Path(".open-brain/state/appliance-lifecycle")
 _MAXIMUM_LIFECYCLE_RECORD_BYTES = 16 * 1024
@@ -105,7 +106,7 @@ class ArtifactCandidate:
         if (
             _CANDIDATE_ID.fullmatch(self.candidate_id) is None
             or _VERSION.fullmatch(self.version) is None
-            or self.artifact_kind != "source-checkout"
+            or self.artifact_kind not in _ARTIFACT_KINDS
         ):
             raise ValueError("invalid artifact candidate")
 
@@ -122,7 +123,7 @@ class ArtifactCompatibilityReceipt:
         _validate_candidate_identifier(self.candidate_id)
         _validate_version(self.current_version)
         _validate_version(self.target_version)
-        if self.artifact_kind != "source-checkout" or self.status not in {
+        if self.artifact_kind not in _ARTIFACT_KINDS or self.status not in {
             "compatible",
             "incompatible",
         }:
@@ -140,7 +141,7 @@ class ArtifactSwitchReceipt:
         _validate_candidate_identifier(self.candidate_id)
         _validate_candidate_identifier(self.active_candidate_id)
         if (
-            self.artifact_kind != "source-checkout"
+            self.artifact_kind not in _ARTIFACT_KINDS
             or self.status != "activated"
             or self.active_candidate_id != self.candidate_id
         ):
@@ -158,7 +159,7 @@ class ArtifactRollbackReceipt:
         _validate_candidate_identifier(self.candidate_id)
         if self.active_candidate_id is not None:
             _validate_candidate_identifier(self.active_candidate_id)
-        if self.artifact_kind != "source-checkout" or self.status != "rolled_back":
+        if self.artifact_kind not in _ARTIFACT_KINDS or self.status != "rolled_back":
             raise ValueError("invalid artifact rollback receipt")
 
 
@@ -171,7 +172,7 @@ class ArtifactRemovalReceipt:
     def __post_init__(self) -> None:
         if self.removed_candidate_id is not None:
             _validate_candidate_identifier(self.removed_candidate_id)
-        if self.artifact_kind != "source-checkout" or self.status != "removed":
+        if self.artifact_kind not in _ARTIFACT_KINDS or self.status != "removed":
             raise ValueError("invalid artifact removal receipt")
 
 

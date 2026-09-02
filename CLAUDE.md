@@ -11,8 +11,10 @@
 | Local CLI | `OPEN_BRAIN_ROOT=$HOME/open-brain-data uv run open-brain inbox list --json` |
 | Full verification | `make verify` |
 | Phase 4 contracts | `make phase4-contracts` |
+| P4-W5 candidate preflight | `make p4w5-preflight` runs focused native/lifecycle contracts, pinned configuration, static checks, manifest validation, and diff integrity |
+| Native spike | `make p4w5-native P4W5_SOURCE_SHA=<exact-clean-HEAD>` builds, audits, and smokes one target-native PyInstaller onedir subject |
 | Python artifacts | `make verify-artifacts` builds and audits engine+app+connector wheels/sdists |
-| Release state | Engine/app/connector artifacts are isolated and unpublished; native artifacts and deployment are pending |
+| Release state | Python artifacts and native P4-W5 build subjects are unpublished; signing, clean-host proof, deployment, and publication remain pending |
 
 ## Architecture
 
@@ -49,6 +51,8 @@ its retained predecessor support is confined to `open_brain_legacy._compat`.
 | `packages/app/src/open_brain/extensions/connector_worker_v1.py` | Bounded worker request, receipt, process, capability, and replay protocol |
 | `packages/connectors/src/open_brain_connectors/conformance.py` | Real YouTube reference conformance run and entry-point object |
 | `tools/phase4/readiness_preflight.py` | Reusable read-only P4-W5 through P4-W9 readiness snapshot with boolean and opaque-receipt output only |
+| `release/native/open-brain.spec` | Deterministic PyInstaller onedir spec shared by native macOS ARM64 and Linux x86_64 builders |
+| `tools/phase4/native_build.py` | Exact-source native build, membership/digest audit, lifecycle activation, frozen-runtime smoke, and clean-residue verifier |
 | `packages/app/src/open_brain/profile.py` | Single-user local Brain-root compiler and stable owner identity |
 | `packages/app/src/open_brain/services/appliance_entrypoints.py` | Installed `open-brain` and `open-brain-mcp` callables |
 | `packages/app/src/open_brain/services/appliance_daemon.py` | Sole installed mutation authority and control transport |
@@ -70,6 +74,7 @@ make lint
 make typecheck
 make test
 make phase4-contracts
+make p4w5-preflight
 make verify-artifacts
 make verify
 PRIVATE_DENYLIST=/absolute/path/to/private-denylist.txt make audit
@@ -109,8 +114,9 @@ an explicit environment mapping.
 
 No public deployment or package publication exists. The app wheel contains generic launchd/systemd
 templates for installed-mode rendering without a checkout `PYTHONPATH`. The connector wheel is
-optional, provisional, and absent from default app acceptance. Native bundling, signing, clean-host
-lifecycle proof, and production cutover remain separate gated work.
+optional, provisional, and absent from default app acceptance. P4-W5 has a pinned native build and
+smoke subject, but signing, notarization, clean-host lifecycle proof, and production cutover remain
+separate gated work.
 
 ## Gotchas
 

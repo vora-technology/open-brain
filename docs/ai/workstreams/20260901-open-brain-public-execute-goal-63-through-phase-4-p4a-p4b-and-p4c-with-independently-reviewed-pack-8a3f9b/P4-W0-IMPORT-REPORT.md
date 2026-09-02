@@ -258,6 +258,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/services/entrypoints.py` | `packages/legacy/src/open_brain_legacy/services/entrypoints.py` | `moved` | `open_brain.services.entrypoints` | `open_brain_legacy.services.entrypoints` | `legacy-private` |
 | `src/open_brain/services/http_server.py` | `packages/app/src/open_brain/services/http_server.py` | `moved` | `open_brain.services.http_server` | `open_brain.services.http_server` | `retain` |
 | `src/open_brain/services/mcp_stdio.py` | `packages/app/src/open_brain/services/mcp_stdio.py` | `moved` | `open_brain.services.mcp_stdio` | `open_brain.services.mcp_stdio` | `retain` |
+| `src/open_brain/services/native_artifacts.py` | `packages/app/src/open_brain/services/native_artifacts.py` | `moved` | `open_brain.services.native_artifacts` | `open_brain.services.native_artifacts` | `retain` |
+| `src/open_brain/services/native_entrypoint.py` | `packages/app/src/open_brain/services/native_entrypoint.py` | `moved` | `open_brain.services.native_entrypoint` | `open_brain.services.native_entrypoint` | `retain` |
 | `src/open_brain/services/phase1_application.py` | `packages/app/src/open_brain/services/phase1_application.py` | `moved` | `open_brain.services.phase1_application` | `open_brain.services.phase1_application` | `retain` |
 | `src/open_brain/services/phase1_entrypoints.py` | `packages/app/src/open_brain/services/phase1_entrypoints.py` | `moved` | `open_brain.services.phase1_entrypoints` | `open_brain.services.phase1_entrypoints` | `retain` |
 | `src/open_brain/services/runtime.py` | `packages/app/src/open_brain/services/runtime.py` | `moved` | `open_brain.services.runtime` | `open_brain.services.runtime` | `retain` |

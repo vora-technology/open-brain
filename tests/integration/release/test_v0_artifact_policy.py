@@ -306,7 +306,7 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
         "bundler_candidate": "PyInstaller 6 onedir",
         "fallback": "Nuitka standalone",
         "published": [],
-        "status": "pending-phase-4-spike",
+        "status": "p4w5-unpublished-build-subject",
     }
 
 
@@ -315,6 +315,6 @@ def test_artifact_characterization_distinguishes_python_and_native_status() -> N
 
     assert "engine-isolated-unpublished" in document
     assert "app-isolated-unpublished" in document
-    assert "Native artifacts remain pending" in document
+    assert "Native build subjects are present" in document
     assert "does not" in document
-    assert "native artifact exists" in document
+    assert "does not claim that a native v0 release exists" in document

@@ -18,6 +18,7 @@ _RESOURCE_ROOT: Final[tuple[str, str]] = ("resources", "supervisors")
 _RESOURCE_NAMES: Final[frozenset[str]] = frozenset({"launchd.json", "systemd.service"})
 _SYSTEMD_COMMAND_TOKEN: Final[str] = "@OPEN_BRAIN_COMMAND@"
 _SYSTEMD_SOURCE_TOKEN: Final[str] = "@OPEN_BRAIN_SOURCE_CHECKOUT@"
+_RUNTIME_KINDS: Final[frozenset[str]] = frozenset({"native-onedir", "python"})
 
 FileWriter = Callable[[Path, str], None]
 FileRemover = Callable[[Path], None]
@@ -28,7 +29,18 @@ class SupervisorCommandError(RuntimeError):
     """A host-supervisor action failed after deterministic local preparation."""
 
 
-def _daemon_command(root: Path, python_executable: str) -> tuple[str, ...]:
+def _daemon_command(
+    root: Path,
+    python_executable: str,
+    runtime_kind: str,
+) -> tuple[str, ...]:
+    if runtime_kind == "native-onedir":
+        return (
+            python_executable,
+            "__appliance-daemon",
+            "--root",
+            str(root),
+        )
     return (
         python_executable,
         "-m",
@@ -47,6 +59,7 @@ def _validate_supervisor_inputs(
     checkout_root: Path | None,
     python_executable: str,
     unit_directory: Path,
+    runtime_kind: str,
 ) -> None:
     if (
         not isinstance(root, Path)
@@ -57,6 +70,8 @@ def _validate_supervisor_inputs(
         or not unit_directory.is_absolute()
         or not isinstance(python_executable, str)
         or not python_executable
+        or runtime_kind not in _RUNTIME_KINDS
+        or (runtime_kind == "native-onedir" and checkout_root is not None)
         or not Path(python_executable).is_absolute()
         or _contains_unsafe_text(python_executable)
         or any(
@@ -157,6 +172,7 @@ class LaunchdSupervisor:
     python_executable: str
     unit_directory: Path
     user_id: int
+    runtime_kind: str = "python"
     write_file: FileWriter = _write_file
     remove_file: FileRemover = _remove_file
     run_command: CommandRunner = _run_command
@@ -167,6 +183,7 @@ class LaunchdSupervisor:
             self.checkout_root,
             self.python_executable,
             self.unit_directory,
+            self.runtime_kind,
         )
         if (
             not isinstance(self.user_id, int)
@@ -187,7 +204,9 @@ class LaunchdSupervisor:
         payload = _launchd_template()
         payload.update(
             {
-                "ProgramArguments": list(_daemon_command(self.root, self.python_executable)),
+                "ProgramArguments": list(
+                    _daemon_command(self.root, self.python_executable, self.runtime_kind)
+                ),
                 "StandardErrorPath": str(
                     self.root / ".open-brain" / "run" / "daemon.stderr.log"
                 ),
@@ -239,6 +258,7 @@ class SystemdSupervisor:
     checkout_root: Path | None
     python_executable: str
     unit_directory: Path
+    runtime_kind: str = "python"
     write_file: FileWriter = _write_file
     remove_file: FileRemover = _remove_file
     run_command: CommandRunner = _run_command
@@ -249,6 +269,7 @@ class SystemdSupervisor:
             self.checkout_root,
             self.python_executable,
             self.unit_directory,
+            self.runtime_kind,
         )
 
     @property
@@ -262,7 +283,11 @@ class SystemdSupervisor:
     def render(self) -> str:
         command = " ".join(
             _systemd_escape(part)
-            for part in _daemon_command(self.root, self.python_executable)
+            for part in _daemon_command(
+                self.root,
+                self.python_executable,
+                self.runtime_kind,
+            )
         )
         source_checkout = ""
         if self.checkout_root is not None:

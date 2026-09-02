@@ -10,25 +10,22 @@
 
 ## Current milestone
 
-- Milestone: P4-W4 legacy distribution, workspace-tool quarantine, old-path
-  removal, and P4A reconciliation
-- Status: active from clean source
-  `18dd32b719935d8e283b54bf2599b4981afe242a`. Fresh fetch matched the remote
-  branch, Goal #63 remained open and explicitly launched, PR #6 remained open,
-  draft, and mergeable, and every current CI, Release audit, and CodeQL check
-  passed
-- Allowed scope: the 135 manifest-owned legacy and four workspace runtime
-  files; 160 legacy tests, two fixtures, and one test resource; their canonical
-  target locations; deterministic import rewrites; the legacy distribution and
-  isolated acceptance; applicable package/workspace metadata, lockfile,
-  manifest/reports, artifact policy, CI, documentation, and bounded workstream
-  evidence
-- Stop condition: manifest ambiguity, unmanifested movement, semantic drift,
-  behavior repair without a red regression and separate verified commit,
-  retained old imports outside legacy, source-masked isolation, any shipping
-  dependency or artifact member from legacy/workspace code, unresolved
-  movement/dependency findings, review before exact-candidate CI is green,
-  P4B/P4C work, or publication, deployment, production, or private-state access
+- Milestone: P4-W5 bundler spike and native lifecycle adapter
+- Status: implementation candidate active from inherited source
+  `418fcd5530ee9a7fb2eaae6764d4f7ddffc46a97`. P4A is complete. The
+  one-shot readiness snapshot is validated and unchanged. Focused native build,
+  adapter, runtime, CI, and evidence contracts are implemented. The
+  compositional candidate preflight is green; source freeze remains pending.
+- Allowed scope: app-owned native lifecycle and frozen entrypoint behavior;
+  PyInstaller configuration and pinned dependencies; native build, membership,
+  smoke, lifecycle, recovery, Portable, supervisor, and residue tests; exact
+  target-native CI; release policy and operator documentation; canonical
+  manifest/reports; and bounded workstream evidence.
+- Stop condition: any readiness probe rerun, source-path masking, system-Python
+  runtime dependency, hidden package/resource loss, unsafe artifact links or
+  deletion, missing target-native execution, a weakened matrix or gate,
+  evidence that changes frozen source, P4-W6 action, publication, signing,
+  notarization, deployment, production/private-state access, or cutover.
 - Base: freshly fetched `origin/main` at
   `3b89a4ba4787a378e6040ff042bd117da881918d`
 - Launch commit: reviewed planning commit cherry-picked as
@@ -89,9 +86,9 @@
 
 ## Next action
 
-Commit the locally green P4A repair, rerun the source/history/secret audits on
-that exact commit, push it, and require exact-head CI, Release audit, and
-CodeQL green before resuming child 14 for rereview.
+Commit the frozen P4-W5 source candidate. Run the one-time frozen-candidate
+Phase 4 contracts, full verification, local macOS ARM64 native proof, and
+artifact audits before pushing for exact-head Linux x86_64 native CI.
 
 ## P4-W0 complete
 

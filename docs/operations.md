@@ -4,6 +4,23 @@ The operations package defines scheduler contracts and renders generic manifests
 not install, enable, start, stop, restart, load, unload, or inspect a service. Deployment
 configuration and service actions remain outside the public application.
 
+## P4-W5 native verification
+
+Run `make p4w5-preflight` while editing the P4-W5 source candidate. It runs the focused native,
+lifecycle, recovery, Portable, supervisor, artifact-membership, and CI contracts; validates the
+pinned Python 3.12 bundler configuration; checks the movement manifest; runs Ruff and strict MyPy
+on touched Python; validates the workflow; and finishes with `git diff --check`. It does not run the
+full repository suite or a native build.
+
+After committing a clean source candidate, run
+`make p4w5-native P4W5_SOURCE_SHA=<exact-clean-HEAD>` on a supported target host. The command
+refuses a dirty tree or a mismatched SHA. It builds the checked-in PyInstaller onedir spec, audits
+members and confined symlinks, activates the artifact through the native lifecycle adapter, and
+runs the frozen executable without a source checkout or Python on `PATH`. The smoke covers packaged
+supervisor resources, the connector child, init, two daemon cycles, uninstall, and clean managed
+residue. It writes bounded ignored evidence under `build/p4w5-native` and performs no signing,
+notarization, publication, deployment, or service installation.
+
 ## Capture publication
 
 `JOB-010` publishes only after raw persistence, a redacted extraction event, and durable

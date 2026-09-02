@@ -2,12 +2,12 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `623`
-- app: `77`
+- Total subjects: `631`
+- app: `81`
 - connectors: `18`
 - engine: `104`
 - legacy: `333`
-- workspace: `91`
+- workspace: `95`
 
 | Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |
 |---|---|---|---|---|---|---|
@@ -60,6 +60,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `pyproject.toml` | `pyproject.toml` | `moved` | `release-tool` | `workspace` | `pyproject.toml` | `excluded` |
 | `pyproject.toml#project.scripts.open-brain` | `packages/app/pyproject.toml#project.scripts.open-brain` | `moved` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain` | `app-native, app-sdist, app-wheel` |
 | `pyproject.toml#project.scripts.open-brain-mcp` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `moved` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `app-native, app-sdist, app-wheel` |
+| `release/native/open-brain.spec` | `release/native/open-brain.spec` | `moved` | `release-tool` | `workspace` | `release/native/open-brain.spec` | `excluded` |
 | `release/phase4-compatibility.json` | `release/phase4-compatibility.json` | `moved` | `release-resource` | `workspace` | `release/phase4-compatibility.json` | `app-sdist, connector-sdist, engine-sdist` |
 | `release/phase4-toolchain.json` | `release/phase4-toolchain.json` | `moved` | `release-resource` | `workspace` | `release/phase4-toolchain.json` | `app-sdist, connector-sdist, engine-sdist` |
 | `release/public-history-allowlist.json` | `release/public-history-allowlist.json` | `moved` | `release-resource` | `workspace` | `release/public-history-allowlist.json` | `app-sdist, connector-sdist, engine-sdist` |
@@ -336,6 +337,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/services/entrypoints.py` | `packages/legacy/src/open_brain_legacy/services/entrypoints.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/services/entrypoints.py` | `legacy-only` |
 | `src/open_brain/services/http_server.py` | `packages/app/src/open_brain/services/http_server.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/http_server.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/services/mcp_stdio.py` | `packages/app/src/open_brain/services/mcp_stdio.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/mcp_stdio.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/native_artifacts.py` | `packages/app/src/open_brain/services/native_artifacts.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/native_artifacts.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/native_entrypoint.py` | `packages/app/src/open_brain/services/native_entrypoint.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/native_entrypoint.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/services/phase1_application.py` | `packages/app/src/open_brain/services/phase1_application.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/phase1_application.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/services/phase1_entrypoints.py` | `packages/app/src/open_brain/services/phase1_entrypoints.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/phase1_entrypoints.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/services/runtime.py` | `packages/app/src/open_brain/services/runtime.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/runtime.py` | `app-native, app-sdist, app-wheel` |
@@ -492,6 +495,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/integration/services/test_appliance_upgrade.py` | `packages/app/tests/integration/services/test_appliance_upgrade.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_upgrade.py` | `excluded` |
 | `tests/integration/services/test_connectors.py` | `packages/legacy/tests/integration/services/test_connectors.py` | `moved` | `test` | `legacy` | `packages/legacy/tests/integration/services/test_connectors.py` | `excluded` |
 | `tests/integration/services/test_entrypoints.py` | `packages/app/tests/integration/services/test_entrypoints.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_entrypoints.py` | `excluded` |
+| `tests/integration/services/test_native_artifacts.py` | `packages/app/tests/integration/services/test_native_artifacts.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_native_artifacts.py` | `excluded` |
+| `tests/integration/services/test_native_entrypoint.py` | `packages/app/tests/integration/services/test_native_entrypoint.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_native_entrypoint.py` | `excluded` |
 | `tests/integration/services/test_phase1_surfaces.py` | `packages/legacy/tests/integration/services/test_phase1_surfaces.py` | `moved` | `test` | `legacy` | `packages/legacy/tests/integration/services/test_phase1_surfaces.py` | `excluded` |
 | `tests/integration/services/test_phase2_surfaces.py` | `packages/app/tests/integration/services/test_phase2_surfaces.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_phase2_surfaces.py` | `excluded` |
 | `tests/integration/services/test_protocols.py` | `packages/app/tests/integration/services/test_protocols.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_protocols.py` | `excluded` |
@@ -556,6 +561,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/phase4/test_connector_distribution.py` | `tests/phase4/test_connector_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_connector_distribution.py` | `excluded` |
 | `tests/phase4/test_engine_distribution.py` | `tests/phase4/test_engine_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_engine_distribution.py` | `excluded` |
 | `tests/phase4/test_move_manifest.py` | `tests/phase4/test_move_manifest.py` | `moved` | `test` | `workspace` | `tests/phase4/test_move_manifest.py` | `excluded` |
+| `tests/phase4/test_native_build.py` | `tests/phase4/test_native_build.py` | `moved` | `test` | `workspace` | `tests/phase4/test_native_build.py` | `excluded` |
+| `tests/phase4/test_p4w5_contracts.py` | `tests/phase4/test_p4w5_contracts.py` | `moved` | `test` | `workspace` | `tests/phase4/test_p4w5_contracts.py` | `excluded` |
 | `tests/phase4/test_readiness_preflight.py` | `tests/phase4/test_readiness_preflight.py` | `moved` | `test` | `workspace` | `tests/phase4/test_readiness_preflight.py` | `excluded` |
 | `tests/phase4/test_rewrite_imports.py` | `tests/phase4/test_rewrite_imports.py` | `moved` | `test` | `workspace` | `tests/phase4/test_rewrite_imports.py` | `excluded` |
 | `tests/security/test_appliance_auth.py` | `tests/security/test_appliance_auth.py` | `moved` | `test` | `workspace` | `tests/security/test_appliance_auth.py` | `excluded` |
@@ -631,6 +638,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tools/phase4/__init__.py` | `tools/phase4/__init__.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/__init__.py` | `excluded` |
 | `tools/phase4/acceptance_harness.py` | `tools/phase4/acceptance_harness.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/acceptance_harness.py` | `excluded` |
 | `tools/phase4/move_manifest.py` | `tools/phase4/move_manifest.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/move_manifest.py` | `excluded` |
+| `tools/phase4/native_build.py` | `tools/phase4/native_build.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/native_build.py` | `excluded` |
 | `tools/phase4/readiness_preflight.py` | `tools/phase4/readiness_preflight.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/readiness_preflight.py` | `excluded` |
 | `tools/phase4/rewrite_imports.py` | `tools/phase4/rewrite_imports.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/rewrite_imports.py` | `excluded` |
 | `uv.lock` | `uv.lock` | `moved` | `release-tool` | `workspace` | `uv.lock` | `excluded` |

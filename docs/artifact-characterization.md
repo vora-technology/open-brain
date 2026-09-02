@@ -1,10 +1,11 @@
 # v0 artifact characterization
 
-Status: Phase 4 app/engine isolation boundary. Machine policy:
+Status: Phase 4 P4-W5 unpublished native build subject. Machine policy:
 [`release/v0-artifact-policy.json`](../release/v0-artifact-policy.json).
 
-This records the isolated, unpublished engine and app Python artifacts. It does not claim that a
-native v0 release exists or that the connector and legacy distributions are ready to ship.
+This records the isolated, unpublished Python artifacts and the native P4-W5 build subject. It
+does not claim that a native v0 release exists, that a clean-host candidate has passed P4-W6, or
+that any artifact is ready to publish.
 
 ## Wheel
 
@@ -50,10 +51,16 @@ v0 support promise.
 
 ## Native artifact status
 
-Native artifacts remain pending. PyInstaller 6 onedir is the first candidate, with Nuitka
-standalone as the accepted fallback if that spike fails. The policy has an empty `published` list
-and does not assert that a native artifact exists. No bundler spike or clean-host run is current
-release evidence.
+Native build subjects are present for PyInstaller 6.22.2 onedir with
+`pyinstaller-hooks-contrib` 2026.7 and Python 3.12. The same checked-in spec runs on native macOS
+ARM64 and Ubuntu 24.04 x86_64 CI. Its bounded audit records exact source identity, member and tree
+digests, packaged supervisor resources, confined symlinks, frozen child routing, daemon restart,
+native lifecycle activation, uninstall, and clean managed residue.
+
+These are P4-W5 spike inputs and checks, not published release artifacts. Nuitka standalone 4.2
+remains the accepted fallback only if the documented PyInstaller failure gate is exhausted. The
+policy keeps `published` empty. Signing, notarization, checksummed release candidates, and
+clean-host lifecycle proof remain P4-W6 gates.
 
 ## Private-history audit
 

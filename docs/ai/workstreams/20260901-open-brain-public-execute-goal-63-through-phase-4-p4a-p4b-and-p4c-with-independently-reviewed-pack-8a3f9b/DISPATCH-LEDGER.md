@@ -314,3 +314,16 @@ coordinator-owned.
   reproduced the focused repair checks and private artifact hashes, explicitly
   closed `P4A-001` through `P4A-004`, found no new issue, and declared P4-W4
   and P4A ready for milestone closure.
+
+## P4-W5 milestone budget
+
+- Status: active
+- Active children: 0 of 6
+- Total children: 0 of 12
+- Identical failures: 0 of 2
+- Consecutive timeouts: 0 of 2
+- Implementation writer: coordinator only; no child write scope is reserved
+- Review lineage: unallocated until one frozen source candidate passes local
+  gates and exact-head target-native CI
+- Reset authority: P4-W4 child 14 is closed; D-031 and D-048 start P4-W5 with
+  a fresh milestone budget and separate source/evidence identities

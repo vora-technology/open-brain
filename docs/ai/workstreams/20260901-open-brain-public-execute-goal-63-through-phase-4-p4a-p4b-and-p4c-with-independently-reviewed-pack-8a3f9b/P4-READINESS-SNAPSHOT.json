@@ -1,0 +1,16 @@
+{
+  "all_ready": false,
+  "disk_capacity_ready": true,
+  "disk_capacity_receipt": "rct_v1_40a798b2b99437b45f848804734a7db1b3bd8aa3284f57e800e9250281a37283",
+  "linux_x86_64_ready": false,
+  "linux_x86_64_receipt": "rct_v1_29a37f12725c5e7a91175797645fdb983df662ba22aa88b4ef5458e90bb4786c",
+  "macos_arm64_ready": true,
+  "macos_arm64_receipt": "rct_v1_cd5e3db38c052115403564324c024a92d92848b33ea421132ce70796ac462834",
+  "notarization_ready": false,
+  "notarization_receipt": "rct_v1_8e0a6bed9256e23838dc84d85fbb24fbd1b81ba4cd4d531b3ca677f74a823bb9",
+  "preflight_receipt": "rct_v1_87d4349ad008456a66c2f3d2b14403e80efbf136e0c1c15f17d71a3d579bc02a",
+  "recovery_access_ready": false,
+  "recovery_access_receipt": "rct_v1_8e903aec41fb1d923d6292b5067149184ebc68c12cb5ef03f26c19201ee78d45",
+  "signing_ready": true,
+  "signing_receipt": "rct_v1_1e44549d949a3d7867e4cdd6ee10c9da2768e8cdae97f5623231a72fc64f5a19"
+}

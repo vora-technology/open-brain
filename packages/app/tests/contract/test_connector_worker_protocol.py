@@ -278,3 +278,15 @@ def test_bounded_exchange_terminates_timeout_and_output_limit_children(
 
     assert raised.value.code is failure_code
     assert process.poll() is not None
+
+
+def test_worker_child_command_uses_the_frozen_executable_without_python_flags(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", "/opt/open-brain/current/open-brain")
+
+    assert worker_module._worker_command() == (
+        "/opt/open-brain/current/open-brain",
+        "__connector-worker",
+    )

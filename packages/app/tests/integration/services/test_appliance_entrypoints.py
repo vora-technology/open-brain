@@ -455,9 +455,45 @@ def test_appliance_lifecycle_cli_fails_closed_without_injected_artifact_port(
     assert str(root) not in json.dumps(payload, sort_keys=True)
 
 
+def test_appliance_cli_routes_the_explicit_native_artifact_kind(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = tmp_path / "brain"
+    lifecycle = _RecordingLifecycleCommands()
+
+    exit_code = run_cli(
+        (
+            "upgrade",
+            "--request-id=upgrade_123e4567-e89b-42d3-a456-426614174434",
+            "--requested-at=2026-09-01T14:03:00Z",
+            "--candidate-id=candidate_native-v020",
+            "--version=0.2.0",
+            "--artifact-kind=native-onedir",
+            f"--backup-destination={tmp_path / 'backup'}",
+            f"--disposable-root={tmp_path / 'preflight'}",
+            "--confirm-owner",
+            "--json",
+        ),
+        environment={"OPEN_BRAIN_ROOT": str(root)},
+        lifecycle=lifecycle,
+    )
+
+    assert exit_code == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "upgraded"
+    assert lifecycle.candidates == [
+        ArtifactCandidate(
+            candidate_id="candidate_native-v020",
+            version="0.2.0",
+            artifact_kind="native-onedir",
+        )
+    ]
+
+
 class _RecordingLifecycleCommands:
     def __init__(self) -> None:
         self.operations: list[str] = []
+        self.candidates: list[ArtifactCandidate] = []
 
     def upgrade(
         self,
@@ -470,6 +506,7 @@ class _RecordingLifecycleCommands:
         del backup_destination, disposable_root
         assert owner_request is not None
         self.operations.append("upgrade")
+        self.candidates.append(candidate)
         return ApplianceUpgradeReceipt(
             request_id=owner_request.request_id,
             status="upgraded",

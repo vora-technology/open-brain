@@ -643,3 +643,55 @@
   accessed; only the public preflight contract was reviewed. No publication,
   tag, release, native build, deployment, production/private access, or
   cutover action occurred, and P4-W5 remains intentionally unstarted.
+
+## P4-W5 implementation candidate
+
+- Live grounding matched branch `goal/open-brain-phase4` at local, remote, and
+  PR head `418fcd5530ee9a7fb2eaae6764d4f7ddffc46a97`. PR #6 remained open,
+  draft, mergeable, and green on its inherited 12 checks. Goal #63 remained
+  open. The worktree contained only the P4-W5 implementation described here.
+- The one-shot snapshot SHA-256 remains
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`.
+  Strict restore and exact serialization passed for P4-W5 through P4-W9. Its
+  results remain signing true, macOS ARM64 true, disk true, Linux x86_64 false,
+  notarization false, recovery false, and aggregate false. No readiness probe
+  was called again.
+- Static records explain Linux readiness without a probe: the inherited CI
+  jobs used `ubuntu-latest`, while `release/phase4-toolchain.json` requires
+  literal `ubuntu-24.04` for Linux x86_64. The new real native job uses that
+  exact image. The macOS job uses GitHub's `macos-14` ARM64 YAML label, which
+  resolves to the recorded `macos-14-arm64` image; the build also validates
+  runtime architecture.
+- Red-first checks rejected an unavailable native module, rejected
+  `--artifact-kind=native-onedir`, found stale managed residue after uninstall,
+  rejected Python-style frozen child commands, and found no real native CI
+  subjects. Focused repairs passed 7 adapter and CLI contracts, 3 native
+  entrypoint/worker contracts, 2 build/audit contracts, and the updated policy
+  and CI contracts.
+- One disposable, non-acceptance macOS diagnostic built with Python 3.12,
+  PyInstaller 6.22.2, and hooks 2026.7. It audited 142 members, four confined
+  symlinks, required supervisor resources, and tree digest
+  `b862f373eb98977d5691b6e33949c670a467425e4292ee2b96ddbd1c594fb88b`.
+  This digest is from uncommitted diagnostic source and cannot satisfy the
+  frozen-candidate gate.
+- Diagnostic smoke exposed and closed four harness/build defects: package
+  relative imports from a PyInstaller entry script, noncanonical `/tmp` root
+  identity, stale control-socket readiness on daemon restart, and an empty
+  `PATH` hiding the required host supervisor. The passing strategy uses
+  absolute package imports, a resolved root, successful control-response
+  polling, and a temporary supervisor-only path containing no Python.
+- The source candidate now includes a real manifest-bound native lifecycle
+  adapter, direct frozen daemon and worker routing, a checked-in onedir spec,
+  bounded build/member/runtime evidence, native activation and clean uninstall,
+  the exact target-native jobs, and the single compositional preflight. The
+  pinned dependency group is locked.
+- Final `make p4w5-preflight` passed 91 focused tests, isolated pinned Python
+  3.12 toolchain validation, actionlint, canonical manifest validation, Ruff,
+  strict MyPy on 16 touched Python files, and `git diff --check`. Its earlier
+  bounded failures exposed the invalid macOS image-name/YAML-label distinction,
+  two Ruff findings, and four test-only MyPy attribute errors; each rerun
+  followed a changed repair strategy. Source freeze, full verification, exact
+  target-native evidence, and independent review remain pending.
+- No signing, notarization, publication, release, deployment, service install,
+  production/private-state access, recovery action, cutover, or P4-W6 work
+  occurred.

@@ -474,12 +474,7 @@ def _run_worker_process(
     with TemporaryDirectory(prefix="open-brain-connector-worker-") as raw_root:
         try:
             process = subprocess.Popen[bytes](
-                (
-                    sys.executable,
-                    "-I",
-                    "-m",
-                    "open_brain.extensions.connector_worker_child",
-                ),
+                _worker_command(),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -509,6 +504,17 @@ def _run_worker_process(
         return ConnectorWorkerReceipt.from_dict(decoded)
     except (TypeError, ValueError) as error:
         raise ConnectorWorkerError(ConnectorWorkerFailureCode.INVALID_RECEIPT) from error
+
+
+def _worker_command() -> tuple[str, ...]:
+    if getattr(sys, "frozen", False):
+        return (sys.executable, "__connector-worker")
+    return (
+        sys.executable,
+        "-I",
+        "-m",
+        "open_brain.extensions.connector_worker_child",
+    )
 
 
 def _bounded_exchange(

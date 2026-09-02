@@ -66,6 +66,34 @@ jobs:
       - run: uv sync --frozen --group dev
       - run: make phase4-contracts
 
+  native-build-macos:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: "3.12"
+          version: "0.12.8"
+          enable-cache: true
+      - run: uv sync --frozen --group dev --group native-build
+      - run: make p4w5-native-contracts
+      - run: make p4w5-native P4W5_SOURCE_SHA=${{ github.sha }}
+
+  native-build-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: "3.12"
+          version: "0.12.8"
+          enable-cache: true
+      - run: uv sync --frozen --group dev --group native-build
+      - run: make p4w5-native-contracts
+      - run: make p4w5-native P4W5_SOURCE_SHA=${{ github.sha }}
+
   connector-isolation:
     runs-on: ubuntu-latest
     timeout-minutes: 30

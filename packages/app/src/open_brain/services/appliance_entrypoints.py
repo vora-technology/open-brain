@@ -219,7 +219,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     upgrade_parser = subparsers.add_parser(
         "upgrade",
-        help="Run owner-approved source-checkout upgrade orchestration.",
+        help="Run owner-approved artifact upgrade orchestration.",
     )
     for option in (
         "request-id",
@@ -230,6 +230,11 @@ def _parser() -> argparse.ArgumentParser:
         "disposable-root",
     ):
         upgrade_parser.add_argument(f"--{option}")
+    upgrade_parser.add_argument(
+        "--artifact-kind",
+        choices=("native-onedir", "source-checkout"),
+        default="source-checkout",
+    )
     upgrade_parser.add_argument("--confirm-owner", action="store_true")
     uninstall_parser = subparsers.add_parser(
         "uninstall",
@@ -377,13 +382,17 @@ def _run_lifecycle_command(
                 requested_at=options["requested-at"],
             )
         )
-    if command != "upgrade" or set(options) != {
+    required_options = {
         "backup-destination",
         "candidate-id",
         "disposable-root",
         "request-id",
         "requested-at",
         "version",
+    }
+    if command != "upgrade" or set(options) not in {
+        frozenset(required_options),
+        frozenset((*required_options, "artifact-kind")),
     }:
         raise ValueError("invalid upgrade request")
     return lifecycle.upgrade(
@@ -394,6 +403,7 @@ def _run_lifecycle_command(
         candidate=ArtifactCandidate(
             candidate_id=options["candidate-id"],
             version=options["version"],
+            artifact_kind=options.get("artifact-kind", "source-checkout"),
         ),
         backup_destination=Path(options["backup-destination"]),
         disposable_root=Path(options["disposable-root"]),

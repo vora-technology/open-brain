@@ -511,3 +511,60 @@
 - Why: a read-only probe may wrap a CLI-style helper that raises `SystemExit`.
   The preflight still must finish with booleans and opaque receipts, while an
   operator interrupt must remain effective.
+
+## D-045: use one compositional P4-W5 preflight and a three-rung test ladder
+
+- Chosen: make `make p4w5-preflight` the only local candidate gate before a
+  source freeze. It composes focused P4-W5 tests, pinned Python 3.12 bundler
+  validation, workflow and manifest checks, touched-code Ruff and MyPy, and
+  `git diff --check`. Small edits run only their focused tests. Full Phase 4,
+  repository, native, artifact, and review gates run once after the candidate
+  is frozen.
+- Rejected: run `make verify` after each edit, duplicate the full verifier in a
+  P4-W5 target, or let a passing preflight replace any frozen-candidate gate.
+- Why: one narrow gate catches local integration failures without weakening or
+  repeatedly paying for the final matrix.
+
+## D-046: preserve readiness evidence and add literal target-native jobs
+
+- Chosen: retain the one-shot readiness snapshot byte for byte through P4-W9.
+  Diagnose its Linux false result from the recorded image mismatch only, then
+  add a real P4-W5 Linux job on literal `ubuntu-24.04` and a macOS ARM64 job on
+  GitHub's `macos-14` YAML label. The latter resolves to the recorded
+  `macos-14-arm64` runner image and the build fails if runtime architecture is
+  not ARM64.
+- Rejected: rerun any readiness probe, reinterpret `ubuntu-latest` as the
+  required Linux image, or count emulation as target-native acceptance.
+- Why: the private adapter required `ubuntu-24.04`, while the inherited CI jobs
+  used `ubuntu-latest`. Static source and the pinned toolchain record explain
+  the false result without mutating the snapshot. Notarization and recovery
+  remain later blockers and do not prevent the P4-W5 bundler spike.
+
+## D-047: bind the onedir artifact to a manifest and one managed activation link
+
+- Chosen: build one PyInstaller onedir tree whose directory name matches its
+  lifecycle candidate ID. Bind its version, platform, Portable range, complete
+  tree digest, and executable in `open-brain-native.json`. Activate it through
+  the relative `current -> candidates/<id>` link. Uninstall validates every
+  managed candidate before removing all managed candidate trees and leaves
+  unrelated owner state untouched.
+- Rejected: one-file bundling, absolute activation links, unchecked recursive
+  deletion, source-checkout launch commands, or a frozen worker that invokes
+  `python -m`.
+- Why: PyInstaller onedir relies on confined relative symlinks. The same shape
+  supports atomic activation and rollback, direct supervisor launch, frozen
+  child routing, complete membership audit, and clean managed residue.
+
+## D-048: apply the existing source-and-evidence review binding to P4-W5
+
+- Chosen: freeze one named source candidate before full verification. Bind
+  review to that source SHA, both target-native artifact digests, membership
+  digests, and host evidence. Any later closure commit may change only this
+  workstream's evidence documents and must name the source candidate it closes.
+- Rejected: include product, build, policy, test, or artifact changes in an
+  evidence closure, or require a new source review solely because bounded
+  evidence was recorded after CI.
+- Why: the governing plan already requires source SHA plus artifact and host
+  binding, and accepted D-031 already defines docs-only evidence successors.
+  This is an application of the reviewed contract, not a new exception or
+  clarification.
