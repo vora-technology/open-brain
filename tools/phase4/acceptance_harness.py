@@ -7,8 +7,10 @@ import ast
 import fnmatch
 import json
 import os
+import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import zipfile
 from collections.abc import Callable, Mapping, Sequence
@@ -17,6 +19,13 @@ from pathlib import Path, PurePosixPath
 from typing import Final, cast
 
 EXPECTED_RED_SCHEMA: Final = 1
+_DISTRIBUTION_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+_FORBIDDEN_APP_IMPORT_ROOTS: Final = frozenset(
+    {"open_brain_connectors", "open_brain_legacy"}
+)
+_REVIEWED_APP_DYNAMIC_IMPORTS: Final[Mapping[str, tuple[str, ...]]] = {
+    "open_brain/integrations/ports.py": ("import_module(import_path)",),
+}
 
 
 @dataclass(frozen=True, order=True, slots=True)
@@ -131,8 +140,15 @@ def build_command(project: Path, destination: Path) -> tuple[str, ...]:
     )
 
 
-def create_environment_command(environment: Path) -> tuple[str, ...]:
-    return ("uv", "venv", "--python", "3.12", os.fspath(environment))
+def create_environment_command(
+    environment: Path,
+    *,
+    python_version: str | None = None,
+) -> tuple[str, ...]:
+    selected = python_version or f"{sys.version_info.major}.{sys.version_info.minor}"
+    if not isinstance(selected, str) or re.fullmatch(r"[0-9]+\.[0-9]+", selected) is None:
+        raise ValueError("invalid isolation Python version")
+    return ("uv", "venv", "--python", selected, os.fspath(environment))
 
 
 def install_command(python: Path, artifacts: Sequence[Path]) -> tuple[str, ...]:
@@ -494,9 +510,12 @@ import importlib.metadata
 import importlib.util
 import json
 import sys
+import tempfile
 from importlib.resources import files
+from pathlib import Path
 
 import open_brain.services.appliance_entrypoints as entrypoints
+import open_brain.services.appliance_lifecycle as lifecycle
 import open_brain_engine
 
 
@@ -524,6 +543,10 @@ def main() -> None:
     resources = files("open_brain").joinpath("resources/supervisors")
     assert resources.joinpath("launchd.json").is_file()
     assert resources.joinpath("systemd.service").is_file()
+    with tempfile.TemporaryDirectory() as temporary_root:
+        rendered = lifecycle._supervisor(Path(temporary_root).resolve()).render()
+    assert "PYTHONPATH" not in rendered
+    assert "WorkingDirectory" not in rendered
     forbidden = ("open_brain_connectors", "open_brain_legacy")
     assert all(importlib.util.find_spec(name) is None for name in forbidden)
     print(json.dumps({
@@ -586,7 +609,7 @@ def _copy_app_test_contract(root: Path, destination: Path) -> None:
     )
 
 
-def _public_engine_modules(root: Path) -> frozenset[str]:
+def _engine_module_sets(root: Path) -> tuple[frozenset[str], frozenset[str]]:
     value = json.loads(
         (root / "docs/v0-package-classification.json").read_text(encoding="utf-8")
     )
@@ -594,13 +617,17 @@ def _public_engine_modules(root: Path) -> frozenset[str]:
         raise ValueError("canonical manifest files are invalid")
     records = cast(dict[str, object], value["files"])
     modules: set[str] = set()
+    public_modules: set[str] = set()
     prefix = PurePosixPath("packages/engine/src")
     for raw_record in records.values():
         if not isinstance(raw_record, dict):
             raise ValueError("canonical manifest record is invalid")
         record = cast(dict[str, object], raw_record)
-        if record.get("target_distribution") != "engine" or record.get("api_status") != "public":
+        if record.get("target_distribution") != "engine":
             continue
+        api_status = record.get("api_status")
+        if api_status not in {"public", "distribution-private"}:
+            raise ValueError("canonical manifest engine API status is invalid")
         target_value = record.get("target_path")
         if not isinstance(target_value, str):
             raise ValueError("canonical manifest engine path is invalid")
@@ -616,14 +643,66 @@ def _public_engine_modules(root: Path) -> frozenset[str]:
             else (*relative.parts[:-1], relative.stem)
         )
         if parts:
-            modules.add(".".join(parts))
-    if "open_brain_engine" not in modules:
+            module = ".".join(parts)
+            modules.add(module)
+            if api_status == "public":
+                public_modules.add(module)
+    if "open_brain_engine" not in public_modules or not public_modules <= modules:
         raise ValueError("canonical manifest public engine API is empty")
-    return frozenset(modules)
+    return frozenset(modules), frozenset(public_modules)
 
 
-def _app_private_engine_import_findings(
+def _declared_import_roots(payloads: Mapping[str, bytes]) -> frozenset[str]:
+    if len(payloads) != 1:
+        raise ValueError("app wheel metadata is invalid")
+    roots = {"open_brain"}
+    metadata = next(iter(payloads.values())).decode("utf-8")
+    for line in metadata.splitlines():
+        if not line.startswith("Requires-Dist: "):
+            continue
+        requirement = line.removeprefix("Requires-Dist: ")
+        match = _DISTRIBUTION_NAME.match(requirement)
+        if match is None:
+            raise ValueError("app wheel requirement is invalid")
+        roots.add(re.sub(r"[-.]+", "_", match.group().casefold()))
+    return frozenset(roots)
+
+
+def _dynamic_import_bindings(tree: ast.AST) -> tuple[set[str], set[str]]:
+    functions = {"__import__"}
+    modules = {"importlib"}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == "importlib":
+                    modules.add(alias.asname or alias.name)
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module == "importlib":
+            for alias in node.names:
+                if alias.name == "import_module":
+                    functions.add(alias.asname or alias.name)
+    return functions, modules
+
+
+def _dynamic_import_name(
+    call: ast.Call,
+    functions: set[str],
+    modules: set[str],
+) -> str | None:
+    if isinstance(call.func, ast.Name) and call.func.id in functions:
+        return "__import__" if call.func.id == "__import__" else "import_module"
+    if (
+        isinstance(call.func, ast.Attribute)
+        and call.func.attr == "import_module"
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id in modules
+    ):
+        return "import_module"
+    return None
+
+
+def _app_import_boundary_findings(
     wheel: Path,
+    engine_modules: frozenset[str],
     public_modules: frozenset[str],
 ) -> list[Finding]:
     findings: list[Finding] = []
@@ -634,7 +713,13 @@ def _app_private_engine_import_findings(
                 for name in archive.namelist()
                 if name.startswith("open_brain/") and name.endswith(".py")
             }
-    except (OSError, zipfile.BadZipFile):
+            metadata = {
+                name: archive.read(name)
+                for name in archive.namelist()
+                if name.endswith(".dist-info/METADATA")
+            }
+        declared_roots = _declared_import_roots(metadata)
+    except (OSError, UnicodeError, ValueError, zipfile.BadZipFile):
         return [Finding("P4H007", "app-wheel", "app source inspection failed")]
     for name, payload in sorted(sources.items()):
         try:
@@ -642,12 +727,46 @@ def _app_private_engine_import_findings(
         except (SyntaxError, UnicodeError):
             findings.append(Finding("P4H007", name, "app source inspection failed"))
             continue
-        imported: list[str] = []
+        imported: set[str] = set()
+        dynamic_signatures: list[str] = []
+        dynamic_functions, importlib_modules = _dynamic_import_bindings(tree)
         for node in ast.walk(tree):
-            if isinstance(node, ast.ImportFrom) and node.module is not None:
-                imported.append(node.module)
+            if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module is not None:
+                imported.add(node.module)
+                if node.module == "open_brain_engine" or node.module.startswith(
+                    "open_brain_engine."
+                ):
+                    imported.update(
+                        candidate
+                        for alias in node.names
+                        if alias.name != "*"
+                        and (candidate := f"{node.module}.{alias.name}") in engine_modules
+                    )
             elif isinstance(node, ast.Import):
-                imported.extend(alias.name for alias in node.names)
+                imported.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.Call):
+                function = _dynamic_import_name(node, dynamic_functions, importlib_modules)
+                if function is None:
+                    continue
+                if (
+                    len(node.args) == 1
+                    and not node.keywords
+                    and isinstance(node.args[0], ast.Constant)
+                    and isinstance(node.args[0].value, str)
+                ):
+                    imported.add(node.args[0].value)
+                elif (
+                    len(node.args) == 1
+                    and not node.keywords
+                    and isinstance(node.args[0], ast.Name)
+                ):
+                    dynamic_signatures.append(f"{function}({node.args[0].id})")
+                else:
+                    dynamic_signatures.append(f"{function}(unreviewed)")
+        if tuple(dynamic_signatures) != _REVIEWED_APP_DYNAMIC_IMPORTS.get(name, ()):
+            findings.append(
+                Finding("P4H009", name, "app artifact has an undeclared or unreviewed import")
+            )
         if any(
             (module == "open_brain_engine" or module.startswith("open_brain_engine."))
             and module not in public_modules
@@ -655,6 +774,18 @@ def _app_private_engine_import_findings(
         ):
             findings.append(
                 Finding("P4H008", name, "app artifact imports a private engine module")
+            )
+        if any(
+            (root := module.partition(".")[0]) in _FORBIDDEN_APP_IMPORT_ROOTS
+            or (
+                root not in declared_roots
+                and root not in sys.stdlib_module_names
+                and root != "__future__"
+            )
+            for module in imported
+        ):
+            findings.append(
+                Finding("P4H009", name, "app artifact has an undeclared or unreviewed import")
             )
     return sorted(set(findings))
 
@@ -705,28 +836,36 @@ def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
         ),
     )
     try:
-        public_engine_modules = _public_engine_modules(root)
+        engine_modules, public_engine_modules = _engine_module_sets(root)
     except (OSError, ValueError, json.JSONDecodeError):
         return [Finding("P4H007", "app-isolation", "public engine API is unreadable")]
-    findings.extend(_app_private_engine_import_findings(app_wheel, public_engine_modules))
+    findings.extend(
+        _app_import_boundary_findings(app_wheel, engine_modules, public_engine_modules)
+    )
     if findings:
         return sorted(set(findings))
+    stage = "create product environment"
     try:
         run_checked(create_environment_command(environment), cwd=run_root)
         python = environment / "bin/python"
+        stage = "install product wheels"
         run_checked(
             install_command(python, [engine_wheels[0], app_wheel]),
             cwd=run_root,
         )
+        stage = "create test environment"
         run_checked(create_environment_command(test_environment), cwd=run_root)
         test_python = test_environment / "bin/python"
         requirements = run_root / "test-requirements.txt"
+        stage = "export test requirements"
         exported = run_checked(export_test_requirements_command(), cwd=root)
         requirements.write_text(exported.stdout, encoding="utf-8")
+        stage = "install test requirements"
         run_checked(
             install_test_requirements_command(test_python, requirements),
             cwd=run_root,
         )
+        stage = "resolve product site packages"
         product_site_packages = Path(
             run_checked(site_packages_command(python), cwd=run_root).stdout.strip()
         )
@@ -736,6 +875,7 @@ def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
         _copy_app_test_contract(root, test_root)
         test_runner = run_root / "app_test_runner.py"
         test_runner.write_text(_app_test_runner_source(), encoding="utf-8")
+        stage = "run installed app tests"
         run_checked(
             engine_test_command(
                 test_python,
@@ -745,6 +885,7 @@ def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
             ),
             cwd=run_root,
         )
+        stage = "run installed CLI"
         version = run_checked(
             (os.fspath(environment / "bin/open-brain"), "--version"),
             cwd=run_root,
@@ -755,10 +896,13 @@ def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
             raise OSError("installed MCP entry point is absent")
         contract = run_root / "app_contract.py"
         contract.write_text(_app_contract_source(), encoding="utf-8")
+        stage = "run installed app contract"
         completed = run_checked((os.fspath(python), "-I", os.fspath(contract)), cwd=run_root)
         payload = json.loads(completed.stdout)
     except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError):
-        return [Finding("P4H007", "app-isolation", "installed app contract failed")]
+        return [
+            Finding("P4H007", "app-isolation", f"installed app contract failed at {stage}")
+        ]
     module_paths = payload.get("module_paths") if isinstance(payload, dict) else None
     sys_path = payload.get("sys_path") if isinstance(payload, dict) else None
     if not isinstance(module_paths, list) or not all(

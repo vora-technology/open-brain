@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import platform
 import plistlib
 from importlib.resources import files
 from pathlib import Path
 
 import pytest
 
+import open_brain.services.appliance_lifecycle as appliance_lifecycle
 from open_brain.services.appliance_lifecycle import run_supervisor_action
 from open_brain.services.appliance_supervisors import (
     LaunchdSupervisor,
@@ -126,6 +128,23 @@ def test_installed_supervisor_manifests_do_not_require_source_checkout(tmp_path:
     assert "PYTHONPATH" not in systemd_payload
     assert "WorkingDirectory=" not in systemd_payload
     assert str(root) in systemd_payload
+
+
+def test_lifecycle_factory_selects_installed_supervisor_mode(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    installed_module = (
+        tmp_path
+        / "venv/lib/python3.14/site-packages/open_brain/services/appliance_lifecycle.py"
+    )
+    monkeypatch.setattr(appliance_lifecycle, "__file__", str(installed_module))
+    monkeypatch.setattr(platform, "system", lambda: "Linux")
+
+    rendered = appliance_lifecycle._supervisor((tmp_path / "brain").resolve()).render()
+
+    assert "PYTHONPATH" not in rendered
+    assert "WorkingDirectory=" not in rendered
 
 
 def test_supervisor_actions_are_allowlisted_and_do_not_expose_dynamic_attributes(

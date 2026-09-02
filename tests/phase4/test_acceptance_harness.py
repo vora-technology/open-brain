@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import warnings
 import zipfile
 from pathlib import Path
@@ -11,7 +12,7 @@ from tools.phase4.acceptance_harness import (
     CONTRACTS,
     ArtifactContract,
     ImportProbe,
-    _app_private_engine_import_findings,
+    _app_import_boundary_findings,
     artifact_findings,
     build_command,
     create_environment_command,
@@ -60,13 +61,19 @@ def test_all_six_acceptance_contracts_are_independently_named() -> None:
     assert "v0-gate-13-space-create-rename-later-route-scoped-all-retrieval" in app.behaviors
 
 
-def test_build_and_install_commands_enforce_no_sources_and_python_312(tmp_path: Path) -> None:
+def test_build_and_install_commands_enforce_no_sources_and_selected_python(tmp_path: Path) -> None:
     assert "--no-sources" in build_command(tmp_path / "project", tmp_path / "dist")
     assert create_environment_command(tmp_path / "venv")[:4] == (
         "uv",
         "venv",
         "--python",
-        "3.12",
+        f"{sys.version_info.major}.{sys.version_info.minor}",
+    )
+    assert create_environment_command(tmp_path / "venv", python_version="3.14")[:4] == (
+        "uv",
+        "venv",
+        "--python",
+        "3.14",
     )
     command = install_command(tmp_path / "venv/bin/python", [tmp_path / "app.whl"])
     assert command[5:7] == ("--link-mode", "copy")
@@ -183,7 +190,7 @@ def test_harness_detects_unsafe_duplicate_and_source_path_masked_cases(
     assert [finding.code for finding in import_probe_findings(probe, ROOT)] == ["P4H004"]
 
 
-def test_app_artifact_rejects_only_manifest_private_engine_imports(tmp_path: Path) -> None:
+def test_app_artifact_rejects_private_engine_and_undeclared_imports(tmp_path: Path) -> None:
     wheel = tmp_path / "app.whl"
     _wheel(
         wheel,
@@ -194,17 +201,53 @@ def test_app_artifact_rejects_only_manifest_private_engine_imports(tmp_path: Pat
             "open_brain/private_use.py": (
                 b"from open_brain_engine.storage.filesystem import read_confined\n"
             ),
+            "open_brain/private_child_use.py": b"from open_brain_engine.engine import local\n",
+            "open_brain/undeclared_use.py": b"import open_brain_connectors\n",
+            "open_brain/allowed_optional_use.py": b"import openai\n",
+            "open_brain/integrations/ports.py": (
+                b"from importlib import import_module\n"
+                b"def _loaded_optional_module(import_path: str) -> object:\n"
+                b"    return import_module(import_path)\n"
+            ),
+            "open_brain/dynamic_use.py": (
+                b"from importlib import import_module\n"
+                b"def load(target: str) -> object:\n"
+                b"    return import_module(target)\n"
+            ),
+            "open_brain-0.1.0.dist-info/METADATA": (
+                b"Name: open-brain\nVersion: 0.1.0\n"
+                b"Requires-Dist: open-brain-engine==0.1.0\n"
+                b"Requires-Dist: openai>=1; extra == 'cloud'\n"
+            ),
         },
     )
 
-    findings = _app_private_engine_import_findings(
+    findings = _app_import_boundary_findings(
         wheel,
-        frozenset({"open_brain_engine", "open_brain_engine.storage.operational"}),
+        frozenset(
+            {
+                "open_brain_engine",
+                "open_brain_engine.engine",
+                "open_brain_engine.engine.local",
+                "open_brain_engine.storage.filesystem",
+                "open_brain_engine.storage.operational",
+            }
+        ),
+        frozenset(
+            {
+                "open_brain_engine",
+                "open_brain_engine.engine",
+                "open_brain_engine.storage.operational",
+            }
+        ),
     )
 
-    assert len(findings) == 1
-    assert findings[0].code == "P4H008"
-    assert findings[0].subject == "open_brain/private_use.py"
+    assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H008", "open_brain/private_child_use.py"),
+        ("P4H008", "open_brain/private_use.py"),
+        ("P4H009", "open_brain/dynamic_use.py"),
+        ("P4H009", "open_brain/undeclared_use.py"),
+    }
 
 
 def test_expected_red_report_is_bounded_metadata_only() -> None:

@@ -1399,8 +1399,21 @@ def run_supervisor_action(root: Path, *, action: str) -> dict[str, object]:
     }
 
 
+def _source_checkout_root() -> Path | None:
+    module = Path(__file__).resolve()
+    try:
+        candidate = module.parents[3]
+    except IndexError:
+        return None
+    expected = candidate / "src/open_brain/services/appliance_lifecycle.py"
+    try:
+        return candidate if expected.resolve(strict=True) == module else None
+    except OSError:
+        return None
+
+
 def _supervisor(root: Path) -> LaunchdSupervisor | SystemdSupervisor:
-    checkout_root = Path(__file__).resolve().parents[3]
+    checkout_root = _source_checkout_root()
     host = platform.system()
     if host == "Darwin":
         return LaunchdSupervisor(
