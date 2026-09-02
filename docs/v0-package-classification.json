@@ -4975,6 +4975,8 @@
       "toolchain_record": "release/phase4-toolchain.json"
     },
     "reserved_entry_points": [
+      "pyproject.toml#project.scripts.open-brain",
+      "pyproject.toml#project.scripts.open-brain-mcp",
       "src/open_brain/services/appliance_entrypoints.py#run_http"
     ],
     "runtime_dependency_graph": {
@@ -5597,13 +5599,13 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "packages/app/pyproject.toml#project.scripts.open-brain",
+        "current_path": "pyproject.toml#project.scripts.open-brain",
         "import_rewrite": {
           "from": "open_brain.services.appliance_entrypoints:run_cli",
           "to": "open_brain.services.appliance_entrypoints:run_cli"
         },
         "kind": "entry-point",
-        "movement_state": "moved",
+        "movement_state": "planned",
         "old_import_disposition": "retain",
         "resource_requirements": [],
         "runtime_namespace": "open_brain",
@@ -5618,13 +5620,13 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "packages/app/pyproject.toml#project.scripts.open-brain-mcp",
+        "current_path": "pyproject.toml#project.scripts.open-brain-mcp",
         "import_rewrite": {
           "from": "open_brain.services.appliance_entrypoints:run_mcp",
           "to": "open_brain.services.appliance_entrypoints:run_mcp"
         },
         "kind": "entry-point",
-        "movement_state": "moved",
+        "movement_state": "planned",
         "old_import_disposition": "retain",
         "resource_requirements": [],
         "runtime_namespace": "open_brain",

@@ -44,19 +44,17 @@ def _source_checkout_program(statement: str) -> str:
     return f"import sys; sys.path[:0] = {SOURCE_CHECKOUT_PATHS!r}; {statement}"
 
 
-def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
+def test_source_checkout_cli_uses_the_app_owned_composition_root() -> None:
     application = REPOSITORY_ROOT / "src" / "open_brain" / "services" / "application.py"
-    scripts = tomllib.loads(
+    project = tomllib.loads(
         (REPOSITORY_ROOT / "packages/app/pyproject.toml").read_text(encoding="utf-8")
-    )["project"]["scripts"]
+    )["project"]
     module_source = (REPOSITORY_ROOT / "src" / "open_brain" / "__main__.py").read_text(
         encoding="utf-8"
     )
 
     assert application.is_file()
-    assert scripts["open-brain"] == "open_brain.services.appliance_entrypoints:run_cli"
-    assert "open-brain-http" not in scripts
-    assert scripts["open-brain-mcp"] == "open_brain.services.appliance_entrypoints:run_mcp"
+    assert "scripts" not in project
     assert "from open_brain.services.appliance_entrypoints import run_cli" in module_source
 
 
@@ -182,7 +180,7 @@ def test_global_dry_run_before_composition_never_mutates(
         "raise SystemExit(run_cli())",
         "import runpy; runpy.run_module('open_brain', run_name='__main__', alter_sys=True)",
     ),
-    ids=("declared-entrypoint", "module"),
+    ids=("app-entrypoint-callable", "module"),
 )
 def test_source_checkout_entrypoint_and_module_cli_are_root_free(
     arguments: tuple[str, ...],

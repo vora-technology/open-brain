@@ -604,11 +604,10 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     assert CompatibilityProductionApplication is ApplicationProductionApplication
 
 
-def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_free() -> None:
-    project = tomllib.loads(
+def test_p4_w1_source_entrypoints_are_legacy_writer_free_and_not_installed() -> None:
+    app_project = tomllib.loads(
         (REPOSITORY_ROOT / "packages/app/pyproject.toml").read_text(encoding="utf-8")
-    )["project"]
-    scripts = project["scripts"]
+    )
     phase1_entrypoints = (SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
         encoding="utf-8"
     )
@@ -621,10 +620,8 @@ def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_f
     classification = _load_classification()
     files = _classified_files(classification)
 
-    assert scripts == {
-        "open-brain": "open_brain.services.appliance_entrypoints:run_cli",
-        "open-brain-mcp": "open_brain.services.appliance_entrypoints:run_mcp",
-    }
+    assert "scripts" not in app_project["project"]
+    assert app_project["tool"]["uv"]["package"] is False
     assert "SingleUserLocalApplication" not in phase1_entrypoints
     assert "compose_http_from_config" not in phase1_entrypoints
     assert "compose_mcp_from_config" not in phase1_entrypoints

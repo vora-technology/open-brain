@@ -1,9 +1,10 @@
 # Public CLI characterization
 
-This document records the retained Phase 0 parser and scheduled-route boundary. Phase 3 moves the
-installed CLI and MCP scripts to the appliance entrypoints and removes the standalone HTTP and
-legacy bridge scripts. The 31-family parser below remains compatibility evidence, while the
-packaging subsection follows current metadata.
+This document records the retained Phase 0 parser and scheduled-route boundary. Phase 3 moved the
+CLI and MCP behavior to the appliance entrypoints and removed the standalone HTTP and legacy bridge
+scripts. The 31-family parser below remains compatibility evidence. During Phase 4 W1, the root is
+a virtual workspace and the app member is deliberately nonbuildable, so its installed scripts stay
+unbound until the app artifact passes W2 acceptance.
 
 The machine-readable source is [`tests/fixtures/phase0/public_cli.json`](../tests/fixtures/phase0/public_cli.json). The focused characterization test compares that fixture with the live parser registry, scheduled route registry, static `pyproject.toml` metadata, and stable exit-code constants.
 
@@ -60,12 +61,13 @@ Several routes share a parser path and are distinguished by their options and jo
 
 ## Packaging and entry points
 
-The static package metadata identifies distribution `open-brain`, version `0.1.0`, and these two Phase 3 console entry points:
+The app skeleton identifies distribution `open-brain`, version `0.1.0`, and no installed console
+entry points. Source-checkout tests still exercise the app-owned CLI and MCP callables. P4-W2 owns
+the `open-brain` and `open-brain-mcp` script bindings and must add them only after the isolated app
+wheel passes acceptance.
 
-- `open-brain` → `open_brain.services.appliance_entrypoints:run_cli`
-- `open-brain-mcp` → `open_brain.services.appliance_entrypoints:run_mcp`
-
-The test reads only the `[project]` and `[project.scripts]` tables from `pyproject.toml`. It does not inspect an installed environment, absolute paths, ignored files, or remote metadata.
+The test reads only the app member's `[project]` table. It does not inspect an installed
+environment, absolute paths, ignored files, or remote metadata.
 
 ## Stable exit classes
 

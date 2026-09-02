@@ -16,10 +16,6 @@ cloud = ["openai>=1.99,<3"]
 integrations = []
 mcp = []
 
-[project.scripts]
-open-brain = "open_brain.services.appliance_entrypoints:run_cli"
-open-brain-mcp = "open_brain.services.appliance_entrypoints:run_mcp"
-
 [tool.uv]
 package = false
 

@@ -119,3 +119,14 @@
   consumers and the synthetic note helper serves migration tests. Their
   original engine assignments would make unrelated test suites depend on the
   engine test package and misstate ownership.
+
+## D-012: bind installed app scripts only after P4-W2 acceptance
+
+- Chosen: keep all app entry-point subjects `planned`, remove console scripts
+  from the nonbuildable P4-W1 app skeleton, and retain source-checkout coverage
+  through the app-owned callables and module entry point.
+- Rejected: leave dormant `[project.scripts]` declarations in the app skeleton
+  and mark them moved before an isolated app wheel exists.
+- Why: P4-W2 owns installed entry points. Moving their manifest state during
+  P4-W1 would contradict D-009 and claim artifact behavior that has not passed
+  acceptance.

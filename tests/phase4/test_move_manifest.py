@@ -85,6 +85,19 @@ def test_validator_requires_explicit_consistent_movement_state() -> None:
     assert "P4M011" in _codes(validate_manifest(ROOT, inconsistent))
 
 
+def test_w1_leaves_all_app_entry_points_planned() -> None:
+    entry_points = {
+        path: record
+        for path, record in _subjects(_manifest()).items()
+        if record["kind"] == "entry-point"
+    }
+
+    assert entry_points
+    assert all(record["target_distribution"] == "app" for record in entry_points.values())
+    assert all(record["movement_state"] == "planned" for record in entry_points.values())
+    assert all(record["current_path"] == path for path, record in entry_points.items())
+
+
 def test_validator_rejects_duplicate_and_out_of_distribution_destinations() -> None:
     duplicate = deepcopy(_manifest())
     runtime = _runtime(duplicate)

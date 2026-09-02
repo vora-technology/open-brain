@@ -58,7 +58,7 @@ def _packaging_surface() -> dict[str, object]:
     return {
         "distribution": project["name"],
         "version": project["version"],
-        "entry_points": project["scripts"],
+        "entry_points": project.get("scripts", {}),
     }
 
 

@@ -45,8 +45,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `packages/engine/pyproject.toml` | `packages/engine/pyproject.toml` | `moved` | `release-tool` | `engine` | `packages/engine/pyproject.toml` | `engine-sdist` |
 | `packages/legacy/pyproject.toml` | `packages/legacy/pyproject.toml` | `moved` | `release-tool` | `legacy` | `packages/legacy/pyproject.toml` | `legacy-only` |
 | `pyproject.toml` | `pyproject.toml` | `planned` | `release-tool` | `workspace` | `pyproject.toml` | `excluded` |
-| `pyproject.toml#project.scripts.open-brain` | `packages/app/pyproject.toml#project.scripts.open-brain` | `moved` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain` | `app-native, app-sdist, app-wheel` |
-| `pyproject.toml#project.scripts.open-brain-mcp` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `moved` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `app-native, app-sdist, app-wheel` |
+| `pyproject.toml#project.scripts.open-brain` | `pyproject.toml#project.scripts.open-brain` | `planned` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain` | `app-native, app-sdist, app-wheel` |
+| `pyproject.toml#project.scripts.open-brain-mcp` | `pyproject.toml#project.scripts.open-brain-mcp` | `planned` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `app-native, app-sdist, app-wheel` |
 | `release/phase4-compatibility.json` | `release/phase4-compatibility.json` | `planned` | `release-resource` | `workspace` | `release/phase4-compatibility.json` | `app-sdist, connector-sdist, engine-sdist` |
 | `release/phase4-toolchain.json` | `release/phase4-toolchain.json` | `planned` | `release-resource` | `workspace` | `release/phase4-toolchain.json` | `app-sdist, connector-sdist, engine-sdist` |
 | `release/public-history-allowlist.json` | `release/public-history-allowlist.json` | `planned` | `release-resource` | `workspace` | `release/public-history-allowlist.json` | `app-sdist, connector-sdist, engine-sdist` |
