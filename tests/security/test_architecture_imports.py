@@ -576,7 +576,8 @@ def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_f
     assert "JOB-00" not in appliance_entrypoints
     assert "open_brain.storage.filesystem" not in scheduler
     assert "open_brain.storage.operational" in scheduler
-    assert _metadata(files, "storage/operational.py") == {
+    operational = _metadata(files, "storage/operational.py")
+    assert {key: operational[key] for key in ("api", "owner", "roles")} == {
         "api": "public",
         "owner": "engine",
         "roles": [],

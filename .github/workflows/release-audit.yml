@@ -16,11 +16,14 @@ on:
       - "tests/integration/release/**"
       - "tests/security/**"
       - "docs/*.md"
+      - "docs/v0-package-classification.json"
       - "examples/**"
       - "LICENSE"
       - "NOTICE"
       - "Makefile"
-      - ".github/workflows/release-audit.yml"
+      - "tools/phase4/**"
+      - "tests/phase4/**"
+      - ".github/workflows/*.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,6 +43,7 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: "3.14"
+          version: "0.12.8"
           enable-cache: true
       - run: uv sync --frozen --group dev
       - run: uv run python -m build

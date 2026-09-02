@@ -50,3 +50,29 @@
 - Launch status comments:
   `cbolden15/agent-config#63` comment `5502133708`, parent `#41` comment
   `5502134010`, and parent `#24` comment `5502134267`.
+
+## P4-W0 local candidate
+
+- Canonical schema: version 3 with Phase 4 schema version 1.
+- Subject closure: 224 runtime plus 331 non-runtime equals 555 exact current
+  subjects. Non-runtime kinds: 253 tests, 21 package resources, 21 fixtures,
+  15 schemas, 10 release tools, 4 release resources, 3 generated reports, 3
+  entry points, and 1 test resource.
+- Generated evidence: exact move report, exact import-rewrite report, and one
+  11-finding current-monolith expected-red report.
+- Expected-red execution: exited 1 and exactly matched the committed bounded
+  finding set (`P4E001` through `P4E005`). It is not a required green test.
+- `make phase4-contracts`: 68 tests passed; Ruff passed; strict MyPy passed on
+  481 source files; canonical validator returned zero findings.
+- `make verify`: 3,129 tests passed; Ruff and strict MyPy passed; isolated
+  wheel/sdist builds used Hatchling 1.32.0; artifact policy passed.
+- Source plus built-artifact release audit, reachable-history audit, explicit
+  artifact-policy rerun, Gitleaks over 51 commits, `uv lock --check`, and
+  `git diff --check`: passed.
+- Runtime movement assertion: no path below `src/open_brain` changed relative
+  to the reviewed launch commit.
+- Read-only child 1 implementation map: `READY`, P0/P1/P2 `0/2/2`. Both P1s
+  were implemented: Phase 4 tools are under strict MyPy and public-artifact
+  triggers cover the new manifest/tools/tests.
+- CI status: not run yet. The draft PR has not been opened; P4-W1 remains
+  blocked until every applicable required job is green.

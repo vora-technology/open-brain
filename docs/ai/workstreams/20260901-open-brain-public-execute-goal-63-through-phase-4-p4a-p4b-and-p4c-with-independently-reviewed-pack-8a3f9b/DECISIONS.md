@@ -50,3 +50,36 @@
 - Why: neither checked authorized host has a ready standard notary credential
   profile. No current source milestone consumes that credential, and the goal
   remains able to make meaningful progress before P4B signing.
+
+## D-006: record the exact workspace in P4-W0 and activate it in P4-W1
+
+- Chosen: bind the four members, shared lockfile, backend, and no-sources build
+  command in the P4-W0 toolchain record and validator; keep the current root
+  project active until P4-W1 creates the four member skeletons atomically.
+- Rejected: create empty member projects in P4-W0, which would pull P4-W1 work
+  across the reviewed checkpoint.
+- Rejected: add workspace members that do not exist, which would make the root
+  toolchain unusable and the green P4-W0 gate dishonest.
+- Why: P4-W0 records and tests the exact decision; P4-W1 owns physical
+  activation. The expected-red report explicitly records inactive membership.
+
+## D-007: one runtime map plus one non-runtime subject map
+
+- Chosen: enrich each existing runtime `files` record in place and add one
+  `phase4.subjects` map for every non-runtime subject.
+- Rejected: a second runtime ownership list, which could drift from the
+  architecture validator.
+- Rejected: separate hand-maintained maps for tests, fixtures, schemas,
+  resources, entry points, and release tools, which would fragment destination
+  uniqueness and make whole-repository closure harder to prove.
+- Why: all 555 current subjects share one validator and one destination index,
+  while existing runtime import policy keeps its canonical owner fields.
+
+## D-008: pin current verified bundlers without installing them in P4-W0
+
+- Chosen: bind current primary-index versions in the Phase 4 toolchain record
+  and install them only when P4-W5 creates real native build subjects.
+- Rejected: add native bundlers to the root development environment now,
+  before any native adapter/spec exists.
+- Why: P4-W0 must make the decision reproducible, while P4-W5 owns build/smoke
+  execution. This avoids a placeholder toolchain and unnecessary root weight.

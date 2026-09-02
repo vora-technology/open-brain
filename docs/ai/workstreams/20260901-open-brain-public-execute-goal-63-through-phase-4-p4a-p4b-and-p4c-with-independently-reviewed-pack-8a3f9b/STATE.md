@@ -11,9 +11,8 @@
 ## Current milestone
 
 - Milestone: Gate 0 immutable launch baseline
-- Status: Gate 0 complete; explicit launch recorded, runtime goal active,
-  fresh implementation branch/workstreams validated, baseline green, P4-W0
-  active
+- Status: Gate 0 complete; P4-W0 implementation candidate locally green;
+  checkpoint commit, push, draft PR, and required CI pending
 - Allowed scope: Gate 0 inventories and evidence, P4-W0 manifest/harness/toolchain
   implementation, verified commits, branch push, draft PR creation, and sanitized
   Goal #63 status updates
@@ -78,7 +77,35 @@
 
 ## Next action
 
-Execute P4-W0 without moving runtime source: extend the canonical
-classification into the complete move manifest, add its validator and the
-acceptance-harness self-tests, record the bounded monolith expected-red set,
-pin toolchain decisions, and add only real-subject draft CI.
+Commit the exact P4-W0 candidate, push `goal/open-brain-phase4`, open the
+required draft PR, make `phase4-contracts` a required check after its first
+run, and require all applicable CI plus artifact safety to pass before P4-W1.
+
+## P4-W0 candidate
+
+- Canonical manifest schema 3 covers 555 subjects: all 224 runtime files and
+  331 non-runtime subjects. The latter include all 253 current Python files
+  under `tests/`, all 36 schema/fixture files, three entry points, package and
+  test resources, release resources/tools, and three generated reports.
+- Runtime ownership remains engine 46, app 34, connector 5, legacy 135, and
+  workspace 4. No file below `src/open_brain` moved or changed.
+- The validator emits stable `P4M001` through `P4M011` findings and rejects
+  incomplete/stale subjects, duplicate/out-of-bound destinations, unresolved
+  rewrites, forbidden dependency edges, unresolved old paths, shipping leaks,
+  and release/schema mismatches.
+- The reusable harness defines all six P4A/P4B acceptance contracts, isolated
+  no-sources/no-index commands, source-path masking checks, and stable artifact
+  finding codes. Synthetic missing, leaked, mismatched, unsafe, duplicate, and
+  source-masked cases pass.
+- The current monolith check is intentionally outside the default green gate.
+  It exits 1 with exactly 11 bounded `P4E001` through `P4E005` findings matching
+  the committed expected-red report.
+- Toolchain records pin `uv 0.12.8`, Hatchling `1.32.0`, PyInstaller `6.22.2`,
+  hooks `2026.7`, and fallback Nuitka `4.2`. Workspace activation remains
+  correctly assigned to P4-W1.
+- Dedicated real-subject `phase4-contracts` CI and widened public-artifact
+  triggers are present. No future artifact has a placeholder-green job.
+- Local verification: 68 focused tests, Ruff, strict MyPy on 481 files,
+  manifest validation, all 3,129 repository tests, isolated wheel/sdist build,
+  artifact policy, source/artifact and reachable-history audits, Gitleaks,
+  lock check, diff integrity, and zero runtime-source movement all passed.
