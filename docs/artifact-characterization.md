@@ -58,10 +58,12 @@ digests, policy-confined runtime and exact tracked resource membership, confined
 child routing, daemon restart, Portable requests through the public daemon control contract,
 verified backup and disposable restore, owner-confirmed corrupt-candidate rollback, native
 lifecycle upgrade, application uninstall, and clean managed residue. Each build materializes only
-the named Git tree and verifies that source image before and after PyInstaller runs. A canonical
-adapter-owned inventory enrolls candidates through lifecycle operations and may bootstrap only the
-explicit current link. Uninstall quarantines enrolled trees before non-symlink-following removal,
-including a tree whose manifest no longer validates, while unregistered candidates survive.
+the named Git tree, compares the archive with raw no-replace Git blob IDs and modes, and verifies
+that source image before and after PyInstaller runs. Replacement refs, external attributes, extra
+resources, and every `.env*` member fail closed. A canonical adapter-owned inventory enrolls
+candidates through lifecycle operations and may bootstrap only the explicit current link.
+Uninstall quarantines enrolled trees before non-symlink-following removal, including a tree whose
+manifest no longer validates, while unregistered candidates survive.
 
 These are P4-W5 spike inputs and checks, not published release artifacts. Nuitka standalone 4.2
 remains the accepted fallback only if the documented PyInstaller failure gate is exhausted. The

@@ -16,11 +16,13 @@ After committing a clean source candidate, run
 `make p4w5-native P4W5_SOURCE_SHA=<exact-clean-HEAD>` on a supported target host. The command
 refuses a dirty tree or a mismatched SHA. It extracts that named Git tree into an isolated temporary
 source directory, verifies its digest before and after PyInstaller runs, builds the checked-in onedir
-spec from that directory, and rejects any package resource outside the exact tracked inventory. It
-then audits members and confined symlinks, activates the artifact through the native lifecycle
-adapter, and runs the frozen executable without a source checkout or Python on `PATH`. The smoke
-covers packaged supervisor resources, the connector child, init, supervised daemon start/restart,
-Portable
+spec from that directory, and rejects any package resource outside the exact tracked inventory.
+The extraction disables replacement objects, rejects repository-local attributes and replacement
+refs, neutralizes external Git configuration, and compares archive files, modes, and blob IDs with
+`git --no-replace-objects ls-tree`. It then audits members and confined symlinks, activates the
+artifact through the native lifecycle adapter, and runs the frozen executable without a source
+checkout or Python on `PATH`. The smoke covers packaged supervisor resources, the connector child,
+init, supervised daemon start/restart, Portable
 export/import through the public control socket, verified backup and disposable restore, and an
 owner-confirmed upgrade that rolls back an externally corrupted candidate. A second upgrade begins
 with the supervised daemon active, journals and performs quiescence, restarts the target artifact,

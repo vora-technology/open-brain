@@ -609,12 +609,15 @@ has become corrupt.
 ## D-051: isolate native source and make supervisor quiescence explicit
 
 - Chosen: build each native subject from a temporary `git archive` of the
-  named source SHA, digest that tree before and after PyInstaller, and derive
-  allowed package resources from tracked files. Give the supervisor lifecycle
-  separate quiesce and resume operations. Launchd implements them with
-  `bootout` and `bootstrap` plus `kickstart`; systemd uses stop and start. A
-  missing ownership inventory may trust only the candidate named by the
-  existing relative `current` link.
+  named source SHA. Disable replacement objects, reject replacement refs and
+  repository-local attributes, neutralize external Git configuration, and
+  require each extracted mode and blob ID to match the raw no-replace Git
+  tree. Digest that tree before and after PyInstaller and derive allowed
+  package resources from tracked files. Give the supervisor lifecycle separate
+  quiesce and resume operations. Launchd implements them with `bootout` and
+  `bootstrap` plus `kickstart`; systemd uses stop and start. A missing
+  ownership inventory may trust only the candidate named by the existing
+  relative `current` link.
 - Rejected: build from the working tree while ignoring ignored files, allow
   every member below a broad resource directory, treat launchd process
   termination as service quiescence, or enroll every valid-looking candidate

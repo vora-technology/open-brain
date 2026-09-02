@@ -355,6 +355,15 @@ coordinator-owned.
 - Second rereview result: `NOT_READY`; P0/P1/P2 `0/4/0`. D-050 was accepted.
   `P4W5-002`, `P4W5-003`, `P4W5-005`, and `P4W5-006` are closed.
   `P4W5-001`, `P4W5-004`, and `P4W5-007` remain open; `P4W5-008` is new.
+- Third rereview source scope:
+  `e55d7488a60a98f2bf5f06cebc18f8fe485e169f`
+- Third rereview evidence: exact-head CI `33681462262`, Release audit
+  `33681462105`, and CodeQL `33681457587` passed on their first attempt; the
+  two target-native jobs and separate local macOS subject are digest-bound in
+  `EVIDENCE.md`
+- Third rereview result: `NOT_READY`; P0/P1/P2 `0/2/0`. D-050 and D-051 were
+  accepted. `P4W5-001`, `P4W5-002`, `P4W5-003`, `P4W5-005`, `P4W5-006`,
+  and `P4W5-007` are closed. `P4W5-004` and `P4W5-008` remain open.
 - Next review scope: the next frozen source SHA, its fresh local and
   target-native artifact digests, exact-head checks, all prior finding
   dispositions, and D-051

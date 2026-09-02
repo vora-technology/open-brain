@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.metadata
 import json
 import os
@@ -52,6 +53,7 @@ _RESOURCE_SOURCE_TREES: Final = (
 )
 _MAXIMUM_MEMBERS: Final = 20_000
 _MAXIMUM_SOURCE_MEMBERS: Final = 10_000
+_MAXIMUM_SOURCE_MANIFEST_BYTES: Final = 2 * 1024 * 1024
 _MAXIMUM_PROCESS_OUTPUT: Final = 128 * 1024
 
 
@@ -116,6 +118,13 @@ class NativeArtifactAudit:
             "tree_sha256": self.tree_sha256,
             "version": self.version,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class _GitTreeMember:
+    mode: str
+    object_id: str
+    path: str
 
 
 def load_native_build_configuration(root: Path) -> NativeBuildConfiguration:
@@ -766,7 +775,7 @@ def _native_member_allowed(
         or any(
             component in forbidden_components
             or PurePosixPath(component).stem in forbidden_components
-            or component.startswith(".env.")
+            or component.startswith(".env")
             for component in components
         )
         or member.path.casefold().endswith(forbidden_suffixes)
@@ -1154,6 +1163,11 @@ def _materialize_source_tree(root: Path, source_sha: str, destination: Path) -> 
     archive: Path | None = None
     try:
         selected_root = root.resolve(strict=True)
+        _validate_repository_git_inputs(selected_root)
+        object_format, raw_manifest = _raw_git_tree_manifest(
+            selected_root,
+            source_sha,
+        )
         destination_parent = destination.parent.resolve(strict=True)
         selected_destination = destination_parent / destination.name
         if selected_destination.exists() or selected_destination.is_symlink():
@@ -1161,10 +1175,11 @@ def _materialize_source_tree(root: Path, source_sha: str, destination: Path) -> 
         archive = destination_parent / f".{destination.name}.tar"
         with archive.open("xb") as stream:
             result = subprocess.run(
-                ("git", "archive", "--format=tar", source_sha),
+                _git_command("archive", "--format=tar", source_sha),
                 cwd=selected_root,
                 stdout=stream,
                 stderr=subprocess.PIPE,
+                env=_hermetic_git_environment(),
                 timeout=30,
                 check=False,
             )
@@ -1175,6 +1190,8 @@ def _materialize_source_tree(root: Path, source_sha: str, destination: Path) -> 
             if len(bundle.getmembers()) > _MAXIMUM_SOURCE_MEMBERS:
                 raise NativeBuildError(_FAILURE)
             bundle.extractall(selected_destination, filter="data")
+        if _extracted_git_tree_manifest(selected_destination, object_format) != raw_manifest:
+            raise NativeBuildError(_FAILURE)
         return _source_tree_sha256(selected_destination)
     except NativeBuildError:
         raise
@@ -1235,21 +1252,210 @@ def _source_tree_sha256(root: Path) -> str:
         raise NativeBuildError(_FAILURE) from error
 
 
+def _git_command(*arguments: str) -> tuple[str, ...]:
+    return (
+        "git",
+        "--no-replace-objects",
+        "-c",
+        f"core.attributesFile={os.devnull}",
+        *arguments,
+    )
+
+
+def _hermetic_git_environment() -> dict[str, str]:
+    environment = dict(os.environ)
+    for key in (
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_KEY_0",
+        "GIT_CONFIG_VALUE_0",
+        "GIT_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_REPLACE_REF_BASE",
+        "GIT_WORK_TREE",
+    ):
+        environment.pop(key, None)
+    environment.update(
+        {
+            "GIT_ATTR_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_NO_REPLACE_OBJECTS": "1",
+            "GIT_OPTIONAL_LOCKS": "0",
+        }
+    )
+    return environment
+
+
+def _run_git(root: Path, *arguments: str) -> bytes:
+    try:
+        result = subprocess.run(
+            _git_command(*arguments),
+            cwd=root,
+            capture_output=True,
+            env=_hermetic_git_environment(),
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        raise NativeBuildError(_FAILURE) from error
+    if (
+        result.returncode != 0
+        or len(result.stdout) > _MAXIMUM_SOURCE_MANIFEST_BYTES
+        or len(result.stderr) > _MAXIMUM_PROCESS_OUTPUT
+    ):
+        raise NativeBuildError(_FAILURE)
+    return result.stdout
+
+
+def _validate_repository_git_inputs(root: Path) -> None:
+    replacements = _run_git(
+        root,
+        "for-each-ref",
+        "--format=%(refname)",
+        "refs/replace/",
+    )
+    if replacements:
+        raise NativeBuildError(_FAILURE)
+    try:
+        attributes_value = _run_git(
+            root,
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-path",
+            "info/attributes",
+        ).decode("utf-8").strip()
+        attributes = Path(attributes_value)
+        try:
+            metadata = attributes.lstat()
+        except FileNotFoundError:
+            return
+        if not stat.S_ISREG(metadata.st_mode) or attributes.read_bytes().strip():
+            raise NativeBuildError(_FAILURE)
+    except NativeBuildError:
+        raise
+    except (OSError, UnicodeError, ValueError) as error:
+        raise NativeBuildError(_FAILURE) from error
+
+
+def _raw_git_tree_manifest(
+    root: Path,
+    source_sha: str,
+) -> tuple[str, tuple[_GitTreeMember, ...]]:
+    try:
+        object_format = _run_git(root, "rev-parse", "--show-object-format").decode(
+            "ascii"
+        ).strip()
+        if object_format not in {"sha1", "sha256"}:
+            raise NativeBuildError(_FAILURE)
+        output = _run_git(root, "ls-tree", "-rz", "--full-tree", source_sha)
+        members: list[_GitTreeMember] = []
+        for record in output.split(b"\0"):
+            if not record:
+                continue
+            header, raw_path = record.split(b"\t", maxsplit=1)
+            raw_mode, raw_kind, raw_object_id = header.split(b" ", maxsplit=2)
+            mode = raw_mode.decode("ascii")
+            kind = raw_kind.decode("ascii")
+            object_id = raw_object_id.decode("ascii")
+            path = raw_path.decode("utf-8")
+            parsed_path = PurePosixPath(path)
+            if (
+                kind != "blob"
+                or mode not in {"100644", "100755", "120000"}
+                or len(object_id) != hashlib.new(object_format).digest_size * 2
+                or any(character not in "0123456789abcdef" for character in object_id)
+                or parsed_path.is_absolute()
+                or not parsed_path.parts
+                or any(part in {"", ".", ".."} for part in parsed_path.parts)
+            ):
+                raise NativeBuildError(_FAILURE)
+            members.append(_GitTreeMember(mode, object_id, path))
+            if len(members) > _MAXIMUM_SOURCE_MEMBERS:
+                raise NativeBuildError(_FAILURE)
+        if not members:
+            raise NativeBuildError(_FAILURE)
+        return object_format, tuple(members)
+    except NativeBuildError:
+        raise
+    except (UnicodeError, ValueError) as error:
+        raise NativeBuildError(_FAILURE) from error
+
+
+def _extracted_git_tree_manifest(
+    root: Path,
+    object_format: str,
+) -> tuple[_GitTreeMember, ...]:
+    try:
+        selected_root = root.resolve(strict=True)
+        members: list[_GitTreeMember] = []
+
+        def visit(directory: Path) -> None:
+            with os.scandir(directory) as scanner:
+                children = sorted(scanner, key=lambda entry: os.fsencode(entry.name))
+            for entry in children:
+                path = Path(entry.path)
+                metadata = entry.stat(follow_symlinks=False)
+                relative = path.relative_to(selected_root).as_posix()
+                if stat.S_ISDIR(metadata.st_mode):
+                    visit(path)
+                    continue
+                if stat.S_ISREG(metadata.st_mode):
+                    mode = "100755" if metadata.st_mode & 0o111 else "100644"
+                    payload = path.read_bytes()
+                elif stat.S_ISLNK(metadata.st_mode):
+                    mode = "120000"
+                    payload = os.fsencode(os.readlink(path))
+                else:
+                    raise NativeBuildError(_FAILURE)
+                members.append(
+                    _GitTreeMember(
+                        mode,
+                        _git_blob_object_id(payload, object_format),
+                        relative,
+                    )
+                )
+                if len(members) > _MAXIMUM_SOURCE_MEMBERS:
+                    raise NativeBuildError(_FAILURE)
+
+        visit(selected_root)
+        return tuple(sorted(members, key=lambda member: member.path.encode("utf-8")))
+    except NativeBuildError:
+        raise
+    except (OSError, UnicodeError, ValueError) as error:
+        raise NativeBuildError(_FAILURE) from error
+
+
+def _git_blob_object_id(payload: bytes, object_format: str) -> str:
+    try:
+        digest = hashlib.new(object_format)
+    except ValueError as error:
+        raise NativeBuildError(_FAILURE) from error
+    digest.update(f"blob {len(payload)}\0".encode("ascii"))
+    digest.update(payload)
+    return digest.hexdigest()
+
+
 def _validate_source_binding(root: Path, source_sha: str) -> None:
     try:
+        _validate_repository_git_inputs(root)
         head = subprocess.run(
-            ("git", "rev-parse", "HEAD"),
+            _git_command("rev-parse", "HEAD"),
             cwd=root,
             capture_output=True,
             text=True,
+            env=_hermetic_git_environment(),
             timeout=10,
             check=True,
         ).stdout.strip()
         status = subprocess.run(
-            ("git", "status", "--porcelain=v1", "--untracked-files=all"),
+            _git_command("status", "--porcelain=v1", "--untracked-files=all"),
             cwd=root,
             capture_output=True,
             text=True,
+            env=_hermetic_git_environment(),
             timeout=10,
             check=True,
         ).stdout

@@ -99,7 +99,9 @@ state. Upgrade checks compatibility while the current daemon is active, journals
 unloads a launchd KeepAlive job or stops the systemd unit before offline recovery and migrations,
 then resumes the correct job after success or failure. Failure receipts distinguish artifact
 rollback from daemon restoration. Native builds run from an isolated archive of the named Git tree;
-their package-resource inventory is derived from tracked files and rejected on any extra member. A
+replacement refs and repository-local attributes are rejected, external Git configuration is
+neutralized, and extracted blob IDs and modes must equal the raw no-replace tree. Their
+package-resource inventory is derived from tracked files and rejected on any extra member. A
 distinct kernel-backed lifecycle lease serializes owner requests, while canonical
 root-confined journals preserve request identity, stage, terminal receipt, conflict detection, and
 crash rollback across processes. The CLI exposes upgrade and uninstall only when composition injects

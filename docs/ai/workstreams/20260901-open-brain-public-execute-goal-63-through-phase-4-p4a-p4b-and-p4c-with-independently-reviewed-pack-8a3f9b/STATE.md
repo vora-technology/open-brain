@@ -12,10 +12,10 @@
 
 - Milestone: P4-W5 bundler spike and native lifecycle adapter
 - Status: independent-review repair candidate active from rejected source
-  `47aee48e248156816b863071b7df199513a7da43`. P4A is complete. Child 15
-  accepted D-050 but returned `NOT_READY`, P0/P1/P2 `0/4/0`. Six focused
-  regressions reproduced the remaining launchd, resource, ownership, and
-  ignored-input failures. Their repairs and all 108 focused P4-W5 tests are
+  `e55d7488a60a98f2bf5f06cebc18f8fe485e169f`. P4A is complete. Child 15
+  accepted D-050/D-051 and returned `NOT_READY`, P0/P1/P2 `0/2/0`, closing
+  every finding except complete `.env*` denial and hermetic Git-tree
+  materialization. Their red-first repairs and all 115 focused P4-W5 tests are
   green. Candidate preflight and a new source freeze remain pending.
 - Allowed scope: app-owned native lifecycle and frozen entrypoint behavior;
   PyInstaller configuration and pinned dependencies; native build, membership,
@@ -578,3 +578,14 @@ pushing for exact-head Linux x86_64 native CI and same-lineage rereview.
 - All six finding-specific tests and `make p4w5-focused` with 108 tests pass.
   No broad suite, native build, workflow, or readiness probe reran during the
   edit loop. Candidate preflight is the next gate.
+- Candidate `e55d7488a60a98f2bf5f06cebc18f8fe485e169f` passed the complete
+  local and exact-head remote ladder on the first attempt. Child 15's
+  same-lineage rereview returned `NOT_READY`, P0/P1/P2 `0/2/0`, accepted
+  D-050/D-051, and left only `P4W5-004` and `P4W5-008` open.
+- Four focused cases were red: `.envrc`, `.environment`, a replacement ref,
+  and a tracked archive exclusion. The repair denies every `.env*` component,
+  rejects repository-local Git overrides, disables replacements and external
+  configuration, and matches the extracted archive against the raw Git blob
+  IDs and executable modes. The complete eight-case set and 115 focused tests
+  pass. Candidate preflight is the next gate; no broad or native rerun occurred
+  in this edit loop.

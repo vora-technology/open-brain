@@ -27,6 +27,31 @@ def _write_declared_native_resources(artifact: Path) -> None:
         target.write_bytes(b"declared native resource\n")
 
 
+def _commit_fixture(repository: Path, *, message: str) -> str:
+    subprocess.run(("git", "add", "."), cwd=repository, check=True)
+    subprocess.run(
+        (
+            "git",
+            "-c",
+            "user.name=Open Brain Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            message,
+        ),
+        cwd=repository,
+        check=True,
+    )
+    return subprocess.run(
+        ("git", "rev-parse", "HEAD"),
+        cwd=repository,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
 def test_native_build_configuration_is_pinned_and_uses_one_deterministic_spec() -> None:
     configuration = load_native_build_configuration(ROOT)
     command = pyinstaller_command(configuration, ROOT / "build/p4w5-test")
@@ -148,6 +173,31 @@ def test_native_artifact_audit_rejects_undeclared_credential_resource(
         audit_native_artifact(artifact, expected_platform=native_platform_tag())
 
 
+@pytest.mark.parametrize("name", (".ENV", ".env.local", ".envrc", ".environment"))
+def test_native_artifact_audit_rejects_every_env_prefixed_member(
+    tmp_path: Path,
+    name: str,
+) -> None:
+    artifact = (tmp_path / "candidate_native-p4w5").resolve()
+    executable = artifact / "open-brain"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"native executable")
+    executable.chmod(0o755)
+    _write_declared_native_resources(artifact)
+    runtime = artifact / "_internal/python3.12"
+    runtime.mkdir(parents=True, exist_ok=True)
+    (runtime / name).write_text("private canary\n", encoding="utf-8")
+    NativeArtifactManifest.create(
+        artifact,
+        candidate_id="candidate_native-p4w5",
+        version="0.1.0",
+        platform_tag=native_platform_tag(),
+    ).write(artifact)
+
+    with pytest.raises(NativeBuildError, match="native build operation failed"):
+        audit_native_artifact(artifact, expected_platform=native_platform_tag())
+
+
 def test_native_build_materializes_only_the_named_git_tree(tmp_path: Path) -> None:
     repository = (tmp_path / "repository").resolve()
     package = repository / "packages/app/src/open_brain"
@@ -156,28 +206,7 @@ def test_native_build_materializes_only_the_named_git_tree(tmp_path: Path) -> No
     (package / "tracked.py").write_text("VALUE = 1\n", encoding="utf-8")
     (package / "ignored.token").write_text("private canary\n", encoding="utf-8")
     subprocess.run(("git", "init", "-q"), cwd=repository, check=True)
-    subprocess.run(("git", "add", "."), cwd=repository, check=True)
-    subprocess.run(
-        (
-            "git",
-            "-c",
-            "user.name=Open Brain Test",
-            "-c",
-            "user.email=test@example.invalid",
-            "commit",
-            "-qm",
-            "fixture",
-        ),
-        cwd=repository,
-        check=True,
-    )
-    source_sha = subprocess.run(
-        ("git", "rev-parse", "HEAD"),
-        cwd=repository,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
+    source_sha = _commit_fixture(repository, message="fixture")
     destination = (tmp_path / "source").resolve()
 
     assert hasattr(native_build, "_materialize_source_tree")
@@ -186,6 +215,67 @@ def test_native_build_materializes_only_the_named_git_tree(tmp_path: Path) -> No
     assert (destination / "packages/app/src/open_brain/tracked.py").is_file()
     assert not (destination / "packages/app/src/open_brain/ignored.token").exists()
     assert not (destination / ".git").exists()
+
+
+def test_native_build_rejects_replacement_refs(tmp_path: Path) -> None:
+    repository = (tmp_path / "repository").resolve()
+    repository.mkdir()
+    subprocess.run(("git", "init", "-q"), cwd=repository, check=True)
+    tracked = repository / "tracked.txt"
+    tracked.write_text("original\n", encoding="utf-8")
+    source_sha = _commit_fixture(repository, message="original")
+    tracked.write_text("replacement\n", encoding="utf-8")
+    replacement_sha = _commit_fixture(repository, message="replacement")
+    subprocess.run(
+        ("git", "replace", source_sha, replacement_sha),
+        cwd=repository,
+        check=True,
+    )
+
+    with pytest.raises(NativeBuildError, match="native build operation failed"):
+        native_build._materialize_source_tree(
+            repository,
+            source_sha,
+            (tmp_path / "source").resolve(),
+        )
+
+
+def test_native_build_rejects_repository_local_archive_attributes(tmp_path: Path) -> None:
+    repository = (tmp_path / "repository").resolve()
+    repository.mkdir()
+    subprocess.run(("git", "init", "-q"), cwd=repository, check=True)
+    (repository / "tracked.txt").write_text("tracked\n", encoding="utf-8")
+    source_sha = _commit_fixture(repository, message="fixture")
+    attributes = repository / ".git/info/attributes"
+    attributes.write_text("tracked.txt export-ignore\n", encoding="utf-8")
+
+    with pytest.raises(NativeBuildError, match="native build operation failed"):
+        native_build._materialize_source_tree(
+            repository,
+            source_sha,
+            (tmp_path / "source").resolve(),
+        )
+
+
+def test_native_build_rejects_archive_that_differs_from_raw_git_tree(
+    tmp_path: Path,
+) -> None:
+    repository = (tmp_path / "repository").resolve()
+    repository.mkdir()
+    subprocess.run(("git", "init", "-q"), cwd=repository, check=True)
+    (repository / ".gitattributes").write_text(
+        "tracked.txt export-ignore\n",
+        encoding="utf-8",
+    )
+    (repository / "tracked.txt").write_text("tracked\n", encoding="utf-8")
+    source_sha = _commit_fixture(repository, message="fixture")
+
+    with pytest.raises(NativeBuildError, match="native build operation failed"):
+        native_build._materialize_source_tree(
+            repository,
+            source_sha,
+            (tmp_path / "source").resolve(),
+        )
 
 
 def test_native_smoke_uses_public_recovery_upgrade_rollback_and_uninstall() -> None:

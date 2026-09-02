@@ -740,3 +740,38 @@
   Candidate preflight, source freeze, full frozen-candidate verification, new
   target-native artifacts, exact-head CI, and the same-lineage rereview remain
   pending. The readiness snapshot remains unchanged and no probe was called.
+- Repair candidate `e55d7488a60a98f2bf5f06cebc18f8fe485e169f` passed the
+  final 108-test preflight, 112 Phase 4 tests, Ruff, MyPy on 543 files, all
+  3,214 repository tests, six source-free distributions, artifact policy,
+  source/artifact and reachable-history audits, Gitleaks 8.30.1 over 103
+  commits, lock/workflow/diff checks, and one local macOS ARM64 build/smoke.
+  Exact-head CI `33681462262`, Release audit `33681462105`, and CodeQL
+  `33681457587` passed on their first attempt with all 14 PR checks green.
+- At `e55d748`, Linux job `100418774889` on literal `ubuntu-24.04` recorded
+  111 members, no symlinks, membership
+  `121db9cdd0622785771b77456327499a82661b4fa9689d0f8e2e4e924647649a`,
+  and tree `c6040acd919d0afa1b0a740159dc9cea9256fb1f0e0ecd749fefdb2efdde3e9c`.
+  macOS CI job `100418774890` recorded 139 members, four symlinks, membership
+  `6e5118ad6a106df150abac5834b13bef5805be0bb956dc2339e88b30ee86bafb`,
+  and tree `f40dcadbde03825516a5ccba74170287e02dea68b43ea70820a767a9b11f6567`.
+  The separate local macOS subject recorded 142 members, four symlinks,
+  membership
+  `064cebd3dbc51a27f80c63a047eea73e54e6b581075308533f7e59d98ae17265`,
+  tree `e196ff397cb873a4d6fcc6d202afd4a875d732d498fb3430817639643328af17`,
+  and source-tree
+  `da2a5df04bc36cbcbfe20ecde4eeb9b02e5d566013c217674fa5fc2f0330af81`.
+- Child 15's next same-lineage rereview returned `NOT_READY`, P0/P1/P2
+  `0/2/0`. It accepted D-050 and D-051, closed `P4W5-001`, `P4W5-002`,
+  `P4W5-003`, `P4W5-005`, `P4W5-006`, and `P4W5-007`, and retained only
+  `P4W5-004` and `P4W5-008`. `.envrc` and `.environment` still passed in a
+  runtime tree. `git archive` still accepted replacement refs and could differ
+  from the raw named tree through attribute rules.
+- The final focused repair rejects every case-folded component beginning with
+  `.env`. Git materialization disables replacement objects, rejects replacement
+  refs and repository-local attributes, neutralizes global/system attributes,
+  and compares every extracted file mode and blob object ID with raw
+  `git --no-replace-objects ls-tree` output. Four new cases were red before
+  repair: `.envrc`, `.environment`, a replacement ref, and tracked
+  `export-ignore`. The complete eight-case set and all 115 focused P4-W5 tests
+  now pass. A new preflight, source freeze, frozen-candidate gates, native
+  artifacts, exact-head checks, and same-lineage verdict remain pending.
