@@ -84,3 +84,45 @@
 - Sanitized Goal #63 checkpoint comment: `5502376856`.
 - P4-W0 is complete. P4-W1 may begin; later gates remain blocked by their own
   source, artifact, review, recovery, and production preconditions.
+
+## P4-W1 source checkpoint
+
+- Workspace and engine movement completed in commits `c884d88`, `5f127c1`, and
+  `2174dc2`. The four-member workspace is active, all 46 engine runtime files
+  and Portable resources are moved, and the app/connector/legacy skeletons
+  remain nonbuildable for their later waves.
+- Remote Python 3.12, 3.13, and 3.14 jobs failed only because the source-checkout
+  restart test waited for a changed Unix socket inode. Linux immediately reused
+  that inode. Commit `4ab916d27dacdccefdf1619120d3b323da5dc707` now waits for
+  a bounded status control-protocol response. Twenty consecutive local restart
+  cycles passed, followed by all exact-head PR checks.
+- Fresh read-only review of `4ab916d27dacdccefdf1619120d3b323da5dc707`
+  returned `NOT_READY`, P0/P1/P2 `0/0/4`. The valid repository findings were:
+  incomplete manifest-declared artifact membership, no execution of the moved
+  engine tests from the installed wheel, and stale P4-W1 evidence. The fourth
+  finding corrected the review packet from a nonexistent manifest path to
+  `docs/v0-package-classification.json`; no second manifest was created.
+- Red regressions proved the gaps: the acceptance test could not import an
+  installed engine-test command, and artifact tests failed for absent manifest
+  binding, accepted unclassified members, and incomplete derived membership.
+- Source checkpoint `a82485dd699ca7cd56c86d1904da7487fa1f87c1` fixes all
+  three repository findings. Exact artifact membership is derived from the
+  canonical manifest. PEP 639 license files and declared release resources are
+  packaged, and a bounded Hatch hook removes forced VCS exclusion-file residue
+  from the sdist.
+- The isolated engine gate now installs only the engine wheel into its product
+  environment and executes all 20 moved engine test modules through a separate
+  locked test-runner environment. Tests run from copied inputs with repository
+  source and the app, connector, and legacy distributions unavailable.
+- Local Python 3.12 and uv 0.12.8 verification passed: 76 Phase 4 contracts,
+  Ruff, strict MyPy on 485 files, manifest validation, 3,139 total tests,
+  wheel/sdist build, exact artifact policy, source plus artifact release audit,
+  `uv lock --check`, and `git diff --check`.
+- Artifact SHA-256 digests:
+  wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
+  sdist `d62df80976117ff76ccbbb3a753b8765e7cb9f3c2404b273ef27e3a18e418c26`.
+- P4-W1 is not closed yet. The evidence commit must be pushed, all exact-head CI
+  checks must pass, and a corrected fresh review must return `READY` with
+  P0/P1/P2 `0/0/0` before P4-W2.
+- No publication, deployment, production, private-state, or cutover action
+  occurred.

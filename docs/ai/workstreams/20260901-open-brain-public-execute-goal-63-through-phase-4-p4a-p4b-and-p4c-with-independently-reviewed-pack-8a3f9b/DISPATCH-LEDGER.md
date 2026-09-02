@@ -6,9 +6,9 @@
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 1
+- Total child lineages used: 3
 - Implementation writers: 0
-- Independent reviewers: 0
+- Independent reviewers: 2
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -28,3 +28,30 @@ coordinator-owned.
   seams, exact file list, ranked risks, and READY/NEEDS_DECISION
 - Result: `READY`; P0/P1/P2 `0/2/2`. Both P1 findings are accepted into
   P4-W0: widen release-audit paths and place `tools/phase4` under strict MyPy.
+
+## Child 2: prior-session P4-W1 read-only review
+
+- Status: complete; invalidated by the later CI repair
+- Agent ID: not retained in the compact cross-session packet
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `2174dc2cfbc0e942c0842991650427b8a75ef91f`
+- Result: `READY`, P0/P1/P2 `0/0/0`; the later restart-test repair required a
+  new exact-candidate review.
+
+## Child 3: P4-W1 fresh read-only review after CI repair
+
+- Status: complete
+- Agent ID: `01a05fce-621c-78c2-a5cc-fff2de60a45a`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `4ab916d27dacdccefdf1619120d3b323da5dc707`
+- Result: `NOT_READY`; P0/P1/P2 `0/0/4`. Three repository findings were fixed
+  at `a82485dd699ca7cd56c86d1904da7487fa1f87c1`: exact artifact
+  membership, installed-wheel engine tests, and current wave evidence. The
+  fourth finding corrected the next review packet to the sole canonical
+  manifest path; no second manifest was added.

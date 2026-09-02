@@ -130,3 +130,35 @@
 - Why: P4-W2 owns installed entry points. Moving their manifest state during
   P4-W1 would contradict D-009 and claim artifact behavior that has not passed
   acceptance.
+
+## D-013: derive exact artifact membership from the canonical manifest
+
+- Chosen: make `docs/v0-package-classification.json` select every required
+  engine wheel and sdist member, with only bounded archive-layout rewrites for
+  PEP 639 license destinations. Reject every non-generated member that the
+  manifest does not declare.
+- Rejected: maintain a second exhaustive allowlist in the artifact policy or
+  rely only on required and forbidden patterns.
+- Why: the first P4-W1 rereview proved that pattern checks could miss absent
+  license files and an undeclared `.gitignore`. One canonical selection plus
+  exact archive comparison prevents that drift.
+
+## D-014: keep engine product and test-runner environments separate
+
+- Chosen: install only the engine wheel in one disposable Python 3.12
+  environment, install locked pytest/jsonschema tooling in another, copy the
+  moved engine tests and bounded shared fixtures into a temporary test root,
+  and expose only the installed engine site-packages to the runner.
+- Rejected: execute the moved tests through the editable root environment or
+  install test tooling into the engine product environment.
+- Why: P4-W1 must prove the full engine test subset with repository source,
+  app, connectors, legacy, and workspace package sources unavailable.
+
+## D-015: keep one canonical move manifest
+
+- Chosen: correct every review packet and coordination reference to
+  `docs/v0-package-classification.json`.
+- Rejected: create the nonexistent `release/phase4-move-manifest.json` named in
+  one temporary review packet.
+- Why: the approved plan and validator already designate the documentation
+  manifest as the sole ownership and movement authority.

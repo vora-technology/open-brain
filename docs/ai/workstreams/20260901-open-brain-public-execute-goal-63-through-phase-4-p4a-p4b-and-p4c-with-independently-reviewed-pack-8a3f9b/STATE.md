@@ -11,8 +11,9 @@
 ## Current milestone
 
 - Milestone: P4-W1 workspace and engine distribution
-- Status: Gate 0 and P4-W0 complete; exact checkpoint pushed, draft PR open,
-  all applicable CI green, P4-W1 ready
+- Status: P4-W1 source checkpoint complete and locally green at
+  `a82485dd699ca7cd56c86d1904da7487fa1f87c1`; evidence commit, exact-head CI,
+  and fresh rereview remain before P4-W2
 - Allowed scope: manifest-driven P4-W1 workspace/member skeletons, mechanical
   engine moves and import rewrites, engine API/package metadata, isolated
   engine build/install checks, verified commits, draft PR updates, and bounded
@@ -28,7 +29,8 @@
 - Branch: `goal/open-brain-phase4`
 - Plan SHA-256:
   `7fe6e5d1e48b44fb4fba232661a8b01eeca019e4f35a43f1b2c162914905bfd2`
-- Runtime goal thread: `01a05f1b-de55-7a41-bc01-673d277a1995`
+- Launch runtime goal thread: `01a05f1b-de55-7a41-bc01-673d277a1995`
+- Resumed runtime goal thread: `01a05fc4-2219-7251-8798-a74a1a200911`
 
 ## Launch constraints
 
@@ -40,8 +42,9 @@
   the private governed state repository.
 - Public package publication, tags, releases, predecessor deletion, and
   irreversible cleanup remain forbidden.
-- No implementation child has been dispatched. One coordinator owns shared
-  package metadata, the move manifest, imports, lockfile, and integration.
+- No implementation writer child has been dispatched. One coordinator owns
+  shared package metadata, the canonical manifest, imports, lockfile, and
+  integration; review children remain read-only.
 
 ## Gate 0 observations
 
@@ -79,10 +82,10 @@
 
 ## Next action
 
-Execute P4-W1 from the canonical manifest: activate the four-member uv
-workspace, create the member skeletons, mechanically move engine-owned source
-and Portable resources, rewrite imports, expose the explicit engine API, and
-prove an engine-wheel-only environment with app/connectors/legacy/source absent.
+Commit this P4-W1 evidence update, push the exact candidate, require every PR
+check to pass, then dispatch a corrected fresh read-only review against that
+exact SHA. P4-W2 remains blocked until the verdict is `READY` with P0/P1/P2
+`0/0/0`.
 
 ## P4-W0 complete
 
@@ -119,3 +122,46 @@ prove an engine-wheel-only environment with app/connectors/legacy/source absent.
   macOS ARM64 lifecycle, and both CodeQL analyses passed on the exact commit.
 - `phase4-contracts` was added to protected `main` as a required check.
 - Sanitized Goal #63 checkpoint comment: `5502376856`.
+
+## P4-W1 source checkpoint
+
+- The root uv workspace has all four declared members. The engine distribution
+  owns its distinct `open_brain_engine` namespace; app, connector, and legacy
+  skeletons remain nonbuildable until their waves.
+- All 46 engine runtime files and Portable resources are at their canonical
+  manifest destinations. The engine has an explicit public API and no app,
+  connector, legacy, third-party, or hidden workspace import edge.
+- The manifest now covers 565 subjects: 224 runtime and 341 non-runtime.
+  Package-local PEP 639 license files and the bounded Hatch sdist hook are
+  classified, and generated movement evidence was refreshed.
+- Exact artifact policy derives required membership from
+  `docs/v0-package-classification.json`. The engine wheel contains the declared
+  PEP 639 `LICENSE` and `NOTICE`; the sdist contains those files plus declared
+  release resources and no `.gitignore` or undeclared member.
+- The isolated engine contract installs only the engine wheel into one Python
+  3.12 environment. A separate disposable test-runner environment executes all
+  20 moved engine test modules from copied test inputs while repository source,
+  app, connectors, and legacy remain unavailable.
+- Remote CI at `2174dc2cfbc0e942c0842991650427b8a75ef91f` exposed Linux socket inode
+  reuse in the restart readiness test. Commit
+  `4ab916d27dacdccefdf1619120d3b323da5dc707` replaced inode observation with a
+  bounded real status-protocol probe; 20 consecutive local restart cycles and
+  all exact-head PR checks passed.
+- A fresh review of `4ab916d27dacdccefdf1619120d3b323da5dc707` returned
+  `NOT_READY`, P0/P1/P2 `0/0/4`. It found incomplete artifact membership,
+  missing installed-wheel engine tests, stale wave evidence, and one incorrect
+  manifest path in the review packet. The three repository findings are fixed
+  at source checkpoint `a82485dd699ca7cd56c86d1904da7487fa1f87c1`; the next
+  review packet names the sole canonical manifest correctly.
+- Pinned local verification passed: 76 Phase 4 contracts, Ruff, strict MyPy on
+  485 source files, canonical manifest validation, all 3,139 repository tests,
+  isolated wheel/sdist build, exact artifact policy, release audit, lock check,
+  and diff integrity.
+- Rebuilt artifact SHA-256 digests are
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`
+  for the wheel and
+  `d62df80976117ff76ccbbb3a753b8765e7cb9f3c2404b273ef27e3a18e418c26`
+  for the sdist.
+- No package publication, tag, release, deployment, production access, private
+  state access, or cutover action occurred. P4-W2 remains blocked on final
+  exact-head CI and rereview.
