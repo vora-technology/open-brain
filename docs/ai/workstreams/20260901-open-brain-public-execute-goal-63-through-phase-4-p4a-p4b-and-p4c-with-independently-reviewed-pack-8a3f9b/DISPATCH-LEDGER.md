@@ -6,9 +6,9 @@
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 7
+- Total child lineages used: 8
 - Implementation writers: 0
-- Independent reviewers: 6
+- Independent reviewers: 7
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -116,4 +116,23 @@ coordinator-owned.
   plus a false positive for a shadowed local `importlib` object. The repair at
   `e27ac3c3ad7daa4748b094490fdadab6e66a3773` adds lexical provenance,
   exact callsite binding, unresolved-capability rejection, and focused
+  positive and negative regressions.
+
+## Child 8: P4-W2 reflective-import rereview
+
+- Status: complete
+- Agent ID: `01a0609c-413f-7443-a219-d3a1e6821517`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `0a67a26210b79d0c91fa8953846560db34903034`
+- Result: `NOT_READY`; P0/P1/P2 `0/1/1`. Prior supervisor and interpreter
+  findings were closed. The P1 reproduced an importer escape through
+  `sys.modules["builtins"]` and identified related runtime namespace helpers.
+  The P2 corrected the installed app-suite evidence from 402 tests to its
+  exact 400-test scope. The repair at
+  `d8e2cb20f0268e16ebdd5b46053d5081dab7ac7c` rejects reflective and dynamic
+  evaluation capabilities, records the private target, and adds focused
   positive and negative regressions.

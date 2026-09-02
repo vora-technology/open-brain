@@ -11,11 +11,11 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: dynamic-import review repair
-  `e27ac3c3ad7daa4748b094490fdadab6e66a3773` is pushed and exact-head CI
-  is green. The second P4-W2 review returned `NOT_READY` with P0/P1/P2
-  `0/1/0`; its sole P1 is repaired. This evidence successor, exact-head CI,
-  and a fresh read-only review remain before P4-W2 closes
+- Status: reflective-import review repair
+  `d8e2cb20f0268e16ebdd5b46053d5081dab7ac7c` is pushed and exact-head CI
+  is green. The third P4-W2 review returned `NOT_READY` with P0/P1/P2
+  `0/1/1`; both findings are repaired. This evidence successor, exact-head
+  CI, and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
   multi-distribution Python artifact policy, CI wiring, and bounded evidence
@@ -247,6 +247,27 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
   lockfile and diff integrity.
 - Exact-head CI run `33594652359`, public-artifacts run `33594652371`, and
   CodeQL run `33594650509` passed at `e27ac3c`. PR head, remote branch, and
+  local head matched; the draft PR was mergeable.
+- Evidence checkpoint `0a67a26210b79d0c91fa8953846560db34903034`
+  recorded the second review and repair. Child 8 reviewed that exact candidate
+  and returned `NOT_READY`, P0/P1/P2 `0/1/1`. The P1 found an importer escape
+  through `sys.modules` and related runtime namespace access. The P2 corrected
+  the installed app-suite evidence from 402 tests to its exact 400-test scope.
+- One focused artifact regression failed before repair across `sys.modules`,
+  `globals`, `locals`, `vars`, `eval`, `exec`, and an assigned alias. It also
+  proved a shadowed local `globals` callable remains unrelated.
+- Source repair `d8e2cb20f0268e16ebdd5b46053d5081dab7ac7c`
+  rejects those reflective importer paths, preserves ordinary `sys` and
+  `getattr` use, records the private engine target reached through
+  `sys.modules`, and corrects the app-suite count to 400.
+- Latest local gates passed: `make verify` with strict MyPy on 488 files,
+  3,150 tests, and four artifact builds; uncached Ruff;
+  `make phase4-contracts` with 81 tests; exact collection of 400 app tests;
+  isolated app-wheel journeys on Python 3.12, 3.13, and 3.14; source/artifact
+  and reachable-history audits; Gitleaks over 71 commits; lockfile and diff
+  integrity.
+- Exact-head CI run `33596668616`, public-artifacts run `33596668630`, and
+  CodeQL run `33596666546` passed at `d8e2cb2`. PR head, remote branch, and
   local head matched; the draft PR was mergeable.
 - Rebuilt SHA-256 digests are app wheel
   `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`,

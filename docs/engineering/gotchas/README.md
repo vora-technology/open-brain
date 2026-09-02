@@ -595,3 +595,17 @@ Fix: Track importer bindings and calls through lexical provenance. Treat every c
 review event, and bind the sole exception to its exact artifact path and function signature.
 
 Discovered: 2026-09-02.
+
+### AUDIT-005: Importer provenance also flows through runtime namespaces
+
+Symptom: Direct and aliased dynamic-import checks pass, but an artifact can still reach the same
+importer through `sys.modules["builtins"]`, namespace helpers, or dynamic evaluation.
+
+Cause: Python exposes built-in objects through module registries and namespace dictionaries. A
+scanner that follows only import statements and local aliases loses that provenance.
+
+Fix: Treat `sys.modules`, `globals`, `locals`, `vars`, `eval`, and `exec` as reviewed artifact
+capabilities. Reject them by default and keep the one authorized dynamic import bound to its exact
+file and function.
+
+Discovered: 2026-09-02.

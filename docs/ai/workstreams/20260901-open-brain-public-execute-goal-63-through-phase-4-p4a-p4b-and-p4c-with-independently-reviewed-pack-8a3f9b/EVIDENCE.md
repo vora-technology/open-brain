@@ -231,6 +231,30 @@
   CodeQL run `33594650509` passed at `e27ac3c`, including interpreter-specific
   wheel execution on Python 3.12, 3.13, and 3.14.
 - Rebuilt artifact SHA-256 digests were unchanged from the preceding repair.
+- Evidence checkpoint `0a67a26210b79d0c91fa8953846560db34903034`
+  passed all exact-head checks before the third P4-W2 review.
+- Child 8 reviewed `0a67a26` and returned `NOT_READY`, P0/P1/P2 `0/1/1`.
+  The P1 reproduced a private engine import through
+  `sys.modules["builtins"]` and identified the same fail-open class through
+  runtime namespace helpers. The P2 found that the isolated app evidence said
+  402 tests although the exact package scope collects 400.
+- A focused artifact regression failed before repair for `sys.modules`,
+  `globals`, `locals`, `vars`, `eval`, `exec`, and an assigned alias. Its
+  negative case proved a shadowed local `globals` callable remains clean.
+- Repair checkpoint `d8e2cb20f0268e16ebdd5b46053d5081dab7ac7c`
+  carries provenance through `sys.modules` and built-in namespace mappings,
+  fails closed on dynamic evaluation capabilities, records constant private
+  and forbidden targets, and corrects both app-suite claims to 400.
+- Latest local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,150 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (81 tests, Ruff, MyPy, manifest); exact collection
+  of 400 app tests; isolated app-wheel journeys on Python 3.12, 3.13, and
+  3.14; source+artifact release audit; reachable-history audit; Gitleaks
+  8.30.1 over 71 commits; `uv lock --check`; and `git diff --check`.
+- Exact-head CI run `33596668616`, public-artifacts run `33596668630`, and
+  CodeQL run `33596666546` passed at `d8e2cb2`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
+- Rebuilt artifact SHA-256 digests remained unchanged.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
   successor, exact-head CI, and a fresh read-only review remain required before

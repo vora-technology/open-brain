@@ -271,3 +271,14 @@
 - Why: name-only scanning both missed real import paths and rejected unrelated
   code. Capability events fail closed when an importer escapes while preserving
   one narrow, reviewable exception.
+
+## D-026: fail closed on runtime namespace importer acquisition
+
+- Chosen: recognize `sys.modules` and built-in namespace mappings as importer
+  provenance, and reject `globals`, `locals`, `vars`, `eval`, and `exec` as
+  unreviewed artifact capabilities.
+- Rejected: enumerate only direct imports or attempt to interpret dynamic code
+  strings inside the acceptance harness.
+- Why: Python exposes the same importer through runtime registries and dynamic
+  evaluation. The app has no authorized use for those capabilities, so a
+  bounded fail-closed policy is simpler and safer than partial interpretation.
