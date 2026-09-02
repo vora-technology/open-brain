@@ -2,229 +2,229 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-| Current file | Current import | Target import | Old-path disposition |
-|---|---|---|---|
-| `src/open_brain/__init__.py` | `open_brain` | `open_brain_engine` | `remove` |
-| `src/open_brain/__main__.py` | `open_brain.__main__` | `open_brain.__main__` | `retain` |
-| `src/open_brain/capture/__init__.py` | `open_brain.capture` | `open_brain_engine.capture` | `remove` |
-| `src/open_brain/capture/auth.py` | `open_brain.capture.auth` | `open_brain.capture.auth` | `retain` |
-| `src/open_brain/capture/distillation.py` | `open_brain.capture.distillation` | `open_brain_legacy.capture.distillation` | `legacy-private` |
-| `src/open_brain/capture/distillation_worker.py` | `open_brain.capture.distillation_worker` | `open_brain_legacy.capture.distillation_worker` | `legacy-private` |
-| `src/open_brain/capture/drain.py` | `open_brain.capture.drain` | `open_brain_legacy.capture.drain` | `legacy-private` |
-| `src/open_brain/capture/egress.py` | `open_brain.capture.egress` | `open_brain_legacy.capture.egress` | `legacy-private` |
-| `src/open_brain/capture/extractors/__init__.py` | `open_brain.capture.extractors` | `open_brain_connectors.capture.extractors` | `remove` |
-| `src/open_brain/capture/extractors/article.py` | `open_brain.capture.extractors.article` | `open_brain_legacy.capture.extractors.article` | `legacy-private` |
-| `src/open_brain/capture/extractors/social.py` | `open_brain.capture.extractors.social` | `open_brain_legacy.capture.extractors.social` | `legacy-private` |
-| `src/open_brain/capture/extractors/text.py` | `open_brain.capture.extractors.text` | `open_brain_legacy.capture.extractors.text` | `legacy-private` |
-| `src/open_brain/capture/extractors/youtube.py` | `open_brain.capture.extractors.youtube` | `open_brain_connectors.capture.extractors.youtube` | `remove` |
-| `src/open_brain/capture/http.py` | `open_brain.capture.http` | `open_brain.capture.http` | `retain` |
-| `src/open_brain/capture/media.py` | `open_brain.capture.media` | `open_brain_connectors.capture.media` | `remove` |
-| `src/open_brain/capture/models.py` | `open_brain.capture.models` | `open_brain_engine.capture.models` | `remove` |
-| `src/open_brain/capture/poll.py` | `open_brain.capture.poll` | `open_brain_connectors.capture.poll` | `remove` |
-| `src/open_brain/capture/queue.py` | `open_brain.capture.queue` | `open_brain_legacy.capture.queue` | `legacy-private` |
-| `src/open_brain/capture/redaction.py` | `open_brain.capture.redaction` | `open_brain_engine.capture.redaction` | `remove` |
-| `src/open_brain/capture/service.py` | `open_brain.capture.service` | `open_brain_legacy.capture.service` | `legacy-private` |
-| `src/open_brain/cli/__init__.py` | `open_brain.cli` | `open_brain.cli` | `retain` |
-| `src/open_brain/cli/_common.py` | `open_brain.cli._common` | `open_brain.cli._common` | `retain` |
-| `src/open_brain/cli/_registry.py` | `open_brain.cli._registry` | `open_brain_legacy.cli._registry` | `legacy-private` |
-| `src/open_brain/cli/capture.py` | `open_brain.cli.capture` | `open_brain_legacy.cli.capture` | `legacy-private` |
-| `src/open_brain/cli/config.py` | `open_brain.cli.config` | `open_brain_legacy.cli.config` | `legacy-private` |
-| `src/open_brain/cli/doctor.py` | `open_brain.cli.doctor` | `open_brain_legacy.cli.doctor` | `legacy-private` |
-| `src/open_brain/cli/explain.py` | `open_brain.cli.explain` | `open_brain_legacy.cli.explain` | `legacy-private` |
-| `src/open_brain/cli/ledger.py` | `open_brain.cli.ledger` | `open_brain_legacy.cli.ledger` | `legacy-private` |
-| `src/open_brain/cli/main.py` | `open_brain.cli.main` | `open_brain_legacy.cli.main` | `legacy-private` |
-| `src/open_brain/cli/migrate.py` | `open_brain.cli.migrate` | `open_brain_legacy.cli.migrate` | `legacy-private` |
-| `src/open_brain/cli/operations.py` | `open_brain.cli.operations` | `open_brain_legacy.cli.operations` | `legacy-private` |
-| `src/open_brain/cli/phase1.py` | `open_brain.cli.phase1` | `open_brain.cli.phase1` | `retain` |
-| `src/open_brain/cli/phase1_registry.py` | `open_brain.cli.phase1_registry` | `open_brain.cli.phase1_registry` | `retain` |
-| `src/open_brain/cli/phase6_adapters.py` | `open_brain.cli.phase6_adapters` | `open_brain_legacy.cli.phase6_adapters` | `legacy-private` |
-| `src/open_brain/cli/production_adapters.py` | `open_brain.cli.production_adapters` | `open_brain_legacy.cli.production_adapters` | `legacy-private` |
-| `src/open_brain/cli/proposals.py` | `open_brain.cli.proposals` | `open_brain_legacy.cli.proposals` | `legacy-private` |
-| `src/open_brain/cli/query.py` | `open_brain.cli.query` | `open_brain_legacy.cli.query` | `legacy-private` |
-| `src/open_brain/cli/review.py` | `open_brain.cli.review` | `open_brain_legacy.cli.review` | `legacy-private` |
-| `src/open_brain/cli/scheduled.py` | `open_brain.cli.scheduled` | `open_brain_legacy.cli.scheduled` | `legacy-private` |
-| `src/open_brain/cli/social.py` | `open_brain.cli.social` | `open_brain_legacy.cli.social` | `legacy-private` |
-| `src/open_brain/cli/status.py` | `open_brain.cli.status` | `open_brain_legacy.cli.status` | `legacy-private` |
-| `src/open_brain/config.py` | `open_brain.config` | `open_brain.config` | `retain` |
-| `src/open_brain/core/__init__.py` | `open_brain.core` | `open_brain_engine.core` | `remove` |
-| `src/open_brain/core/ids.py` | `open_brain.core.ids` | `open_brain_engine.core.ids` | `remove` |
-| `src/open_brain/core/locks.py` | `open_brain.core.locks` | `open_brain_engine.core.locks` | `remove` |
-| `src/open_brain/core/models.py` | `open_brain.core.models` | `open_brain_engine.core.models` | `remove` |
-| `src/open_brain/core/policy.py` | `open_brain.core.policy` | `open_brain_engine.core.policy` | `remove` |
-| `src/open_brain/core/ports.py` | `open_brain.core.ports` | `open_brain_engine.core.ports` | `remove` |
-| `src/open_brain/dev/__init__.py` | `open_brain.dev` | `open_brain_dev` | `remove` |
-| `src/open_brain/dev/artifact_policy.py` | `open_brain.dev.artifact_policy` | `open_brain_dev.artifact_policy` | `remove` |
-| `src/open_brain/dev/public_history_audit.py` | `open_brain.dev.public_history_audit` | `open_brain_dev.public_history_audit` | `remove` |
-| `src/open_brain/dev/release_audit.py` | `open_brain.dev.release_audit` | `open_brain_dev.release_audit` | `remove` |
-| `src/open_brain/engine/__init__.py` | `open_brain.engine` | `open_brain_engine.engine` | `remove` |
-| `src/open_brain/engine/authority.py` | `open_brain.engine.authority` | `open_brain_engine.engine.authority` | `remove` |
-| `src/open_brain/engine/backup.py` | `open_brain.engine.backup` | `open_brain_engine.engine.backup` | `remove` |
-| `src/open_brain/engine/backup_ports.py` | `open_brain.engine.backup_ports` | `open_brain_engine.engine.backup_ports` | `remove` |
-| `src/open_brain/engine/capture.py` | `open_brain.engine.capture` | `open_brain_engine.engine.capture` | `remove` |
-| `src/open_brain/engine/contracts.py` | `open_brain.engine.contracts` | `open_brain_engine.engine.contracts` | `remove` |
-| `src/open_brain/engine/local.py` | `open_brain.engine.local` | `open_brain_engine.engine.local` | `remove` |
-| `src/open_brain/engine/local_store.py` | `open_brain.engine.local_store` | `open_brain_engine.engine.local_store` | `remove` |
-| `src/open_brain/engine/maintenance.py` | `open_brain.engine.maintenance` | `open_brain_engine.engine.maintenance` | `remove` |
-| `src/open_brain/engine/materializer.py` | `open_brain.engine.materializer` | `open_brain_engine.engine.materializer` | `remove` |
-| `src/open_brain/engine/normalization.py` | `open_brain.engine.normalization` | `open_brain_engine.engine.normalization` | `remove` |
-| `src/open_brain/engine/portability.py` | `open_brain.engine.portability` | `open_brain_engine.engine.portability` | `remove` |
-| `src/open_brain/engine/portability_ports.py` | `open_brain.engine.portability_ports` | `open_brain_engine.engine.portability_ports` | `remove` |
-| `src/open_brain/engine/portable_index.py` | `open_brain.engine.portable_index` | `open_brain_engine.engine.portable_index` | `remove` |
-| `src/open_brain/engine/reconciliation.py` | `open_brain.engine.reconciliation` | `open_brain_engine.engine.reconciliation` | `remove` |
-| `src/open_brain/engine/retrieval.py` | `open_brain.engine.retrieval` | `open_brain_engine.engine.retrieval` | `remove` |
-| `src/open_brain/engine/review.py` | `open_brain.engine.review` | `open_brain_engine.engine.review` | `remove` |
-| `src/open_brain/engine/spaces.py` | `open_brain.engine.spaces` | `open_brain_engine.engine.spaces` | `remove` |
-| `src/open_brain/events/__init__.py` | `open_brain.events` | `open_brain_engine.events` | `remove` |
-| `src/open_brain/events/store.py` | `open_brain.events.store` | `open_brain_engine.events.store` | `remove` |
-| `src/open_brain/integrations/__init__.py` | `open_brain.integrations` | `open_brain.integrations` | `retain` |
-| `src/open_brain/integrations/config.py` | `open_brain.integrations.config` | `open_brain.integrations.config` | `retain` |
-| `src/open_brain/integrations/context.py` | `open_brain.integrations.context` | `open_brain_legacy.integrations.context` | `legacy-private` |
-| `src/open_brain/integrations/dev_workflows.py` | `open_brain.integrations.dev_workflows` | `open_brain_legacy.integrations.dev_workflows` | `legacy-private` |
-| `src/open_brain/integrations/finance.py` | `open_brain.integrations.finance` | `open_brain_legacy.integrations.finance` | `legacy-private` |
-| `src/open_brain/integrations/hooks.py` | `open_brain.integrations.hooks` | `open_brain_legacy.integrations.hooks` | `legacy-private` |
-| `src/open_brain/integrations/life_os.py` | `open_brain.integrations.life_os` | `open_brain_legacy.integrations.life_os` | `legacy-private` |
-| `src/open_brain/integrations/life_os_runtime.py` | `open_brain.integrations.life_os_runtime` | `open_brain_legacy.integrations.life_os_runtime` | `legacy-private` |
-| `src/open_brain/integrations/mail_calendar.py` | `open_brain.integrations.mail_calendar` | `open_brain_legacy.integrations.mail_calendar` | `legacy-private` |
-| `src/open_brain/integrations/mcp.py` | `open_brain.integrations.mcp` | `open_brain.integrations.mcp` | `retain` |
-| `src/open_brain/integrations/messaging.py` | `open_brain.integrations.messaging` | `open_brain_legacy.integrations.messaging` | `legacy-private` |
-| `src/open_brain/integrations/messaging_runtime.py` | `open_brain.integrations.messaging_runtime` | `open_brain_legacy.integrations.messaging_runtime` | `legacy-private` |
-| `src/open_brain/integrations/obsidian.py` | `open_brain.integrations.obsidian` | `open_brain_legacy.integrations.obsidian` | `legacy-private` |
-| `src/open_brain/integrations/phase1_ui.py` | `open_brain.integrations.phase1_ui` | `open_brain.integrations.phase1_ui` | `retain` |
-| `src/open_brain/integrations/ports.py` | `open_brain.integrations.ports` | `open_brain.integrations.ports` | `retain` |
-| `src/open_brain/integrations/relationships.py` | `open_brain.integrations.relationships` | `open_brain_legacy.integrations.relationships` | `legacy-private` |
-| `src/open_brain/integrations/repository_identity.py` | `open_brain.integrations.repository_identity` | `open_brain_legacy.integrations.repository_identity` | `legacy-private` |
-| `src/open_brain/integrations/retrieval.py` | `open_brain.integrations.retrieval` | `open_brain_legacy.integrations.retrieval` | `legacy-private` |
-| `src/open_brain/integrations/runtime_audit.py` | `open_brain.integrations.runtime_audit` | `open_brain_legacy.integrations.runtime_audit` | `legacy-private` |
-| `src/open_brain/integrations/ui.py` | `open_brain.integrations.ui` | `open_brain.integrations.ui` | `retain` |
-| `src/open_brain/ledger/__init__.py` | `open_brain.ledger` | `open_brain_legacy.ledger` | `legacy-private` |
-| `src/open_brain/ledger/age.py` | `open_brain.ledger.age` | `open_brain_legacy.ledger.age` | `legacy-private` |
-| `src/open_brain/ledger/embed.py` | `open_brain.ledger.embed` | `open_brain_legacy.ledger.embed` | `legacy-private` |
-| `src/open_brain/ledger/index.py` | `open_brain.ledger.index` | `open_brain_legacy.ledger.index` | `legacy-private` |
-| `src/open_brain/ledger/merge.py` | `open_brain.ledger.merge` | `open_brain_legacy.ledger.merge` | `legacy-private` |
-| `src/open_brain/ledger/models.py` | `open_brain.ledger.models` | `open_brain_legacy.ledger.models` | `legacy-private` |
-| `src/open_brain/ledger/reconcile.py` | `open_brain.ledger.reconcile` | `open_brain_legacy.ledger.reconcile` | `legacy-private` |
-| `src/open_brain/ledger/reinforce.py` | `open_brain.ledger.reinforce` | `open_brain_legacy.ledger.reinforce` | `legacy-private` |
-| `src/open_brain/ledger/render.py` | `open_brain.ledger.render` | `open_brain_legacy.ledger.render` | `legacy-private` |
-| `src/open_brain/ledger/requarantine.py` | `open_brain.ledger.requarantine` | `open_brain_legacy.ledger.requarantine` | `legacy-private` |
-| `src/open_brain/ledger/sanitize.py` | `open_brain.ledger.sanitize` | `open_brain_legacy.ledger.sanitize` | `legacy-private` |
-| `src/open_brain/ledger/scan.py` | `open_brain.ledger.scan` | `open_brain_legacy.ledger.scan` | `legacy-private` |
-| `src/open_brain/ledger/service.py` | `open_brain.ledger.service` | `open_brain_legacy.ledger.service` | `legacy-private` |
-| `src/open_brain/ledger/slim.py` | `open_brain.ledger.slim` | `open_brain_legacy.ledger.slim` | `legacy-private` |
-| `src/open_brain/ledger/stage.py` | `open_brain.ledger.stage` | `open_brain_legacy.ledger.stage` | `legacy-private` |
-| `src/open_brain/ledger/store.py` | `open_brain.ledger.store` | `open_brain_legacy.ledger.store` | `legacy-private` |
-| `src/open_brain/ledger/synthesis.py` | `open_brain.ledger.synthesis` | `open_brain_legacy.ledger.synthesis` | `legacy-private` |
-| `src/open_brain/ledger/synthesis_store.py` | `open_brain.ledger.synthesis_store` | `open_brain_legacy.ledger.synthesis_store` | `legacy-private` |
-| `src/open_brain/migrate/__init__.py` | `open_brain.migrate` | `open_brain_legacy.migrate` | `legacy-private` |
-| `src/open_brain/migrate/_models.py` | `open_brain.migrate._models` | `open_brain_legacy.migrate._models` | `legacy-private` |
-| `src/open_brain/migrate/_support.py` | `open_brain.migrate._support` | `open_brain_legacy.migrate._support` | `legacy-private` |
-| `src/open_brain/migrate/config.py` | `open_brain.migrate.config` | `open_brain_legacy.migrate.config` | `legacy-private` |
-| `src/open_brain/migrate/content.py` | `open_brain.migrate.content` | `open_brain_legacy.migrate.content` | `legacy-private` |
-| `src/open_brain/migrate/state.py` | `open_brain.migrate.state` | `open_brain_legacy.migrate.state` | `legacy-private` |
-| `src/open_brain/operations/__init__.py` | `open_brain.operations` | `open_brain_legacy.operations` | `legacy-private` |
-| `src/open_brain/operations/backup.py` | `open_brain.operations.backup` | `open_brain_legacy.operations.backup` | `legacy-private` |
-| `src/open_brain/operations/backup_writer.py` | `open_brain.operations.backup_writer` | `open_brain_legacy.operations.backup_writer` | `legacy-private` |
-| `src/open_brain/operations/capture_jobs.py` | `open_brain.operations.capture_jobs` | `open_brain_legacy.operations.capture_jobs` | `legacy-private` |
-| `src/open_brain/operations/catalog.py` | `open_brain.operations.catalog` | `open_brain_legacy.operations.catalog` | `legacy-private` |
-| `src/open_brain/operations/curation_runtime.py` | `open_brain.operations.curation_runtime` | `open_brain_legacy.operations.curation_runtime` | `legacy-private` |
-| `src/open_brain/operations/cutover.py` | `open_brain.operations.cutover` | `open_brain_legacy.operations.cutover` | `legacy-private` |
-| `src/open_brain/operations/cutover_doctor.py` | `open_brain.operations.cutover_doctor` | `open_brain_legacy.operations.cutover_doctor` | `legacy-private` |
-| `src/open_brain/operations/cutover_verification.py` | `open_brain.operations.cutover_verification` | `open_brain_legacy.operations.cutover_verification` | `legacy-private` |
-| `src/open_brain/operations/doctor.py` | `open_brain.operations.doctor` | `open_brain_legacy.operations.doctor` | `legacy-private` |
-| `src/open_brain/operations/git_sync_runtime.py` | `open_brain.operations.git_sync_runtime` | `open_brain_legacy.operations.git_sync_runtime` | `legacy-private` |
-| `src/open_brain/operations/index.py` | `open_brain.operations.index` | `open_brain_legacy.operations.index` | `legacy-private` |
-| `src/open_brain/operations/index_writer.py` | `open_brain.operations.index_writer` | `open_brain_legacy.operations.index_writer` | `legacy-private` |
-| `src/open_brain/operations/local_effect.py` | `open_brain.operations.local_effect` | `open_brain_legacy.operations.local_effect` | `legacy-private` |
-| `src/open_brain/operations/models.py` | `open_brain.operations.models` | `open_brain_legacy.operations.models` | `legacy-private` |
-| `src/open_brain/operations/now.py` | `open_brain.operations.now` | `open_brain_legacy.operations.now` | `legacy-private` |
-| `src/open_brain/operations/now_runtime.py` | `open_brain.operations.now_runtime` | `open_brain_legacy.operations.now_runtime` | `legacy-private` |
-| `src/open_brain/operations/optional_jobs.py` | `open_brain.operations.optional_jobs` | `open_brain_legacy.operations.optional_jobs` | `legacy-private` |
-| `src/open_brain/operations/probes.py` | `open_brain.operations.probes` | `open_brain_legacy.operations.probes` | `legacy-private` |
-| `src/open_brain/operations/production_bindings.py` | `open_brain.operations.production_bindings` | `open_brain_legacy.operations.production_bindings` | `legacy-private` |
-| `src/open_brain/operations/recovery.py` | `open_brain.operations.recovery` | `open_brain_legacy.operations.recovery` | `legacy-private` |
-| `src/open_brain/operations/render.py` | `open_brain.operations.render` | `open_brain_legacy.operations.render` | `legacy-private` |
-| `src/open_brain/operations/replay_journal.py` | `open_brain.operations.replay_journal` | `open_brain_legacy.operations.replay_journal` | `legacy-private` |
-| `src/open_brain/operations/retention.py` | `open_brain.operations.retention` | `open_brain_legacy.operations.retention` | `legacy-private` |
-| `src/open_brain/operations/runlog.py` | `open_brain.operations.runlog` | `open_brain_legacy.operations.runlog` | `legacy-private` |
-| `src/open_brain/operations/runlog_store.py` | `open_brain.operations.runlog_store` | `open_brain_legacy.operations.runlog_store` | `legacy-private` |
-| `src/open_brain/operations/scheduled_results.py` | `open_brain.operations.scheduled_results` | `open_brain_legacy.operations.scheduled_results` | `legacy-private` |
-| `src/open_brain/operations/scheduler.py` | `open_brain.operations.scheduler` | `open_brain_legacy.operations.scheduler` | `legacy-private` |
-| `src/open_brain/operations/shadow.py` | `open_brain.operations.shadow` | `open_brain_legacy.operations.shadow` | `legacy-private` |
-| `src/open_brain/operations/status.py` | `open_brain.operations.status` | `open_brain_legacy.operations.status` | `legacy-private` |
-| `src/open_brain/operations/writer_jobs.py` | `open_brain.operations.writer_jobs` | `open_brain_legacy.operations.writer_jobs` | `legacy-private` |
-| `src/open_brain/parity/__init__.py` | `open_brain.parity` | `open_brain_legacy.parity` | `legacy-private` |
-| `src/open_brain/parity/harness.py` | `open_brain.parity.harness` | `open_brain_legacy.parity.harness` | `legacy-private` |
-| `src/open_brain/parity/observation.py` | `open_brain.parity.observation` | `open_brain_legacy.parity.observation` | `legacy-private` |
-| `src/open_brain/parity/runner.py` | `open_brain.parity.runner` | `open_brain_legacy.parity.runner` | `legacy-private` |
-| `src/open_brain/portable/__init__.py` | `open_brain.portable` | `open_brain_engine.portable` | `remove` |
-| `src/open_brain/portable/v1.py` | `open_brain.portable.v1` | `open_brain_engine.portable.v1` | `remove` |
-| `src/open_brain/production/__init__.py` | `open_brain.production` | `open_brain_legacy.production` | `legacy-private` |
-| `src/open_brain/production/application.py` | `open_brain.production.application` | `open_brain_legacy.production.application` | `legacy-private` |
-| `src/open_brain/production/assets.py` | `open_brain.production.assets` | `open_brain_legacy.production.assets` | `legacy-private` |
-| `src/open_brain/production/capture.py` | `open_brain.production.capture` | `open_brain_legacy.production.capture` | `legacy-private` |
-| `src/open_brain/production/capture_publication.py` | `open_brain.production.capture_publication` | `open_brain_legacy.production.capture_publication` | `legacy-private` |
-| `src/open_brain/production/curation.py` | `open_brain.production.curation` | `open_brain_legacy.production.curation` | `legacy-private` |
-| `src/open_brain/production/errors.py` | `open_brain.production.errors` | `open_brain_legacy.production.errors` | `legacy-private` |
-| `src/open_brain/production/git_sync.py` | `open_brain.production.git_sync` | `open_brain_legacy.production.git_sync` | `legacy-private` |
-| `src/open_brain/production/imessage.py` | `open_brain.production.imessage` | `open_brain_legacy.production.imessage` | `legacy-private` |
-| `src/open_brain/production/local_jobs.py` | `open_brain.production.local_jobs` | `open_brain_legacy.production.local_jobs` | `legacy-private` |
-| `src/open_brain/production/media.py` | `open_brain.production.media` | `open_brain_legacy.production.media` | `legacy-private` |
-| `src/open_brain/production/optional_automation.py` | `open_brain.production.optional_automation` | `open_brain_legacy.production.optional_automation` | `legacy-private` |
-| `src/open_brain/production/personal_capture.py` | `open_brain.production.personal_capture` | `open_brain_legacy.production.personal_capture` | `legacy-private` |
-| `src/open_brain/production/project_commit_bridge.py` | `open_brain.production.project_commit_bridge` | `open_brain_legacy.production.project_commit_bridge` | `legacy-private` |
-| `src/open_brain/production/providers.py` | `open_brain.production.providers` | `open_brain_legacy.production.providers` | `legacy-private` |
-| `src/open_brain/production/retention.py` | `open_brain.production.retention` | `open_brain_legacy.production.retention` | `legacy-private` |
-| `src/open_brain/production/runtime.py` | `open_brain.production.runtime` | `open_brain_legacy.production.runtime` | `legacy-private` |
-| `src/open_brain/production/sqlite_backup.py` | `open_brain.production.sqlite_backup` | `open_brain_legacy.production.sqlite_backup` | `legacy-private` |
-| `src/open_brain/production/transport.py` | `open_brain.production.transport` | `open_brain_legacy.production.transport` | `legacy-private` |
-| `src/open_brain/production/youtube_bridge.py` | `open_brain.production.youtube_bridge` | `open_brain_legacy.production.youtube_bridge` | `legacy-private` |
-| `src/open_brain/production/youtube_poll.py` | `open_brain.production.youtube_poll` | `open_brain_connectors.production.youtube_poll` | `remove` |
-| `src/open_brain/profile.py` | `open_brain.profile` | `open_brain.profile` | `retain` |
-| `src/open_brain/providers/__init__.py` | `open_brain.providers` | `open_brain_engine.providers` | `remove` |
-| `src/open_brain/providers/base.py` | `open_brain.providers.base` | `open_brain_engine.providers.base` | `remove` |
-| `src/open_brain/providers/deterministic.py` | `open_brain.providers.deterministic` | `open_brain_engine.providers.deterministic` | `remove` |
-| `src/open_brain/providers/local.py` | `open_brain.providers.local` | `open_brain_legacy.providers.local` | `legacy-private` |
-| `src/open_brain/providers/optional_cloud.py` | `open_brain.providers.optional_cloud` | `open_brain_legacy.providers.optional_cloud` | `legacy-private` |
-| `src/open_brain/providers/transcription.py` | `open_brain.providers.transcription` | `open_brain_legacy.providers.transcription` | `legacy-private` |
-| `src/open_brain/release/__init__.py` | `open_brain.release` | `open_brain_legacy.release` | `legacy-private` |
-| `src/open_brain/release/day_zero.py` | `open_brain.release.day_zero` | `open_brain_legacy.release.day_zero` | `legacy-private` |
-| `src/open_brain/release/evidence.py` | `open_brain.release.evidence` | `open_brain_legacy.release.evidence` | `legacy-private` |
-| `src/open_brain/release/installation.py` | `open_brain.release.installation` | `open_brain_legacy.release.installation` | `legacy-private` |
-| `src/open_brain/release/replacement.py` | `open_brain.release.replacement` | `open_brain_legacy.release.replacement` | `legacy-private` |
-| `src/open_brain/release/stabilization.py` | `open_brain.release.stabilization` | `open_brain_legacy.release.stabilization` | `legacy-private` |
-| `src/open_brain/review/__init__.py` | `open_brain.review` | `open_brain_engine.review` | `remove` |
-| `src/open_brain/review/maintenance.py` | `open_brain.review.maintenance` | `open_brain_legacy.review.maintenance` | `legacy-private` |
-| `src/open_brain/review/models.py` | `open_brain.review.models` | `open_brain_engine.review.models` | `remove` |
-| `src/open_brain/review/routing.py` | `open_brain.review.routing` | `open_brain_legacy.review.routing` | `legacy-private` |
-| `src/open_brain/review/service.py` | `open_brain.review.service` | `open_brain_legacy.review.service` | `legacy-private` |
-| `src/open_brain/review/store.py` | `open_brain.review.store` | `open_brain_legacy.review.store` | `legacy-private` |
-| `src/open_brain/services/__init__.py` | `open_brain.services` | `open_brain.services` | `retain` |
-| `src/open_brain/services/appliance_application.py` | `open_brain.services.appliance_application` | `open_brain.services.appliance_application` | `retain` |
-| `src/open_brain/services/appliance_auth.py` | `open_brain.services.appliance_auth` | `open_brain.services.appliance_auth` | `retain` |
-| `src/open_brain/services/appliance_daemon.py` | `open_brain.services.appliance_daemon` | `open_brain.services.appliance_daemon` | `retain` |
-| `src/open_brain/services/appliance_entrypoints.py` | `open_brain.services.appliance_entrypoints` | `open_brain.services.appliance_entrypoints` | `retain` |
-| `src/open_brain/services/appliance_history.py` | `open_brain.services.appliance_history` | `open_brain.services.appliance_history` | `retain` |
-| `src/open_brain/services/appliance_init.py` | `open_brain.services.appliance_init` | `open_brain.services.appliance_init` | `retain` |
-| `src/open_brain/services/appliance_lifecycle.py` | `open_brain.services.appliance_lifecycle` | `open_brain.services.appliance_lifecycle` | `retain` |
-| `src/open_brain/services/appliance_recovery.py` | `open_brain.services.appliance_recovery` | `open_brain.services.appliance_recovery` | `retain` |
-| `src/open_brain/services/appliance_scheduler.py` | `open_brain.services.appliance_scheduler` | `open_brain.services.appliance_scheduler` | `retain` |
-| `src/open_brain/services/appliance_status.py` | `open_brain.services.appliance_status` | `open_brain.services.appliance_status` | `retain` |
-| `src/open_brain/services/appliance_supervisors.py` | `open_brain.services.appliance_supervisors` | `open_brain.services.appliance_supervisors` | `retain` |
-| `src/open_brain/services/application.py` | `open_brain.services.application` | `open_brain_legacy.services.application` | `legacy-private` |
-| `src/open_brain/services/capabilities.py` | `open_brain.services.capabilities` | `open_brain_legacy.services.capabilities` | `legacy-private` |
-| `src/open_brain/services/composition.py` | `open_brain.services.composition` | `open_brain.services.composition` | `retain` |
-| `src/open_brain/services/connectors.py` | `open_brain.services.connectors` | `open_brain.services.connectors` | `retain` |
-| `src/open_brain/services/entrypoints.py` | `open_brain.services.entrypoints` | `open_brain_legacy.services.entrypoints` | `legacy-private` |
-| `src/open_brain/services/http_server.py` | `open_brain.services.http_server` | `open_brain.services.http_server` | `retain` |
-| `src/open_brain/services/mcp_stdio.py` | `open_brain.services.mcp_stdio` | `open_brain.services.mcp_stdio` | `retain` |
-| `src/open_brain/services/phase1_application.py` | `open_brain.services.phase1_application` | `open_brain.services.phase1_application` | `retain` |
-| `src/open_brain/services/phase1_entrypoints.py` | `open_brain.services.phase1_entrypoints` | `open_brain.services.phase1_entrypoints` | `retain` |
-| `src/open_brain/services/runtime.py` | `open_brain.services.runtime` | `open_brain.services.runtime` | `retain` |
-| `src/open_brain/storage/__init__.py` | `open_brain.storage` | `open_brain_engine.storage` | `remove` |
-| `src/open_brain/storage/filesystem.py` | `open_brain.storage.filesystem` | `open_brain_engine.storage.filesystem` | `remove` |
-| `src/open_brain/storage/frontmatter.py` | `open_brain.storage.frontmatter` | `open_brain_engine.storage.frontmatter` | `remove` |
-| `src/open_brain/storage/locks.py` | `open_brain.storage.locks` | `open_brain_engine.storage.locks` | `remove` |
-| `src/open_brain/storage/markdown.py` | `open_brain.storage.markdown` | `open_brain_engine.storage.markdown` | `remove` |
-| `src/open_brain/storage/operational.py` | `open_brain.storage.operational` | `open_brain_engine.storage.operational` | `remove` |
-| `src/open_brain/storage/sqlite.py` | `open_brain.storage.sqlite` | `open_brain_engine.storage.sqlite` | `remove` |
-| `src/open_brain/storage/staging.py` | `open_brain.storage.staging` | `open_brain_engine.storage.staging` | `remove` |
-| `src/open_brain/storage/writer_record.py` | `open_brain.storage.writer_record` | `open_brain_engine.storage.writer_record` | `remove` |
+| Source identity | Current file | State | Current import | Target import | Old-path disposition |
+|---|---|---|---|---|---|
+| `src/open_brain/__init__.py` | `packages/engine/src/open_brain_engine/__init__.py` | `moved` | `open_brain` | `open_brain_engine` | `remove` |
+| `src/open_brain/__main__.py` | `src/open_brain/__main__.py` | `planned` | `open_brain.__main__` | `open_brain.__main__` | `retain` |
+| `src/open_brain/capture/__init__.py` | `packages/engine/src/open_brain_engine/capture/__init__.py` | `moved` | `open_brain.capture` | `open_brain_engine.capture` | `remove` |
+| `src/open_brain/capture/auth.py` | `src/open_brain/capture/auth.py` | `planned` | `open_brain.capture.auth` | `open_brain.capture.auth` | `retain` |
+| `src/open_brain/capture/distillation.py` | `src/open_brain/capture/distillation.py` | `planned` | `open_brain.capture.distillation` | `open_brain_legacy.capture.distillation` | `legacy-private` |
+| `src/open_brain/capture/distillation_worker.py` | `src/open_brain/capture/distillation_worker.py` | `planned` | `open_brain.capture.distillation_worker` | `open_brain_legacy.capture.distillation_worker` | `legacy-private` |
+| `src/open_brain/capture/drain.py` | `src/open_brain/capture/drain.py` | `planned` | `open_brain.capture.drain` | `open_brain_legacy.capture.drain` | `legacy-private` |
+| `src/open_brain/capture/egress.py` | `src/open_brain/capture/egress.py` | `planned` | `open_brain.capture.egress` | `open_brain_legacy.capture.egress` | `legacy-private` |
+| `src/open_brain/capture/extractors/__init__.py` | `src/open_brain/capture/extractors/__init__.py` | `planned` | `open_brain.capture.extractors` | `open_brain_connectors.capture.extractors` | `remove` |
+| `src/open_brain/capture/extractors/article.py` | `src/open_brain/capture/extractors/article.py` | `planned` | `open_brain.capture.extractors.article` | `open_brain_legacy.capture.extractors.article` | `legacy-private` |
+| `src/open_brain/capture/extractors/social.py` | `src/open_brain/capture/extractors/social.py` | `planned` | `open_brain.capture.extractors.social` | `open_brain_legacy.capture.extractors.social` | `legacy-private` |
+| `src/open_brain/capture/extractors/text.py` | `src/open_brain/capture/extractors/text.py` | `planned` | `open_brain.capture.extractors.text` | `open_brain_legacy.capture.extractors.text` | `legacy-private` |
+| `src/open_brain/capture/extractors/youtube.py` | `src/open_brain/capture/extractors/youtube.py` | `planned` | `open_brain.capture.extractors.youtube` | `open_brain_connectors.capture.extractors.youtube` | `remove` |
+| `src/open_brain/capture/http.py` | `src/open_brain/capture/http.py` | `planned` | `open_brain.capture.http` | `open_brain.capture.http` | `retain` |
+| `src/open_brain/capture/media.py` | `src/open_brain/capture/media.py` | `planned` | `open_brain.capture.media` | `open_brain_connectors.capture.media` | `remove` |
+| `src/open_brain/capture/models.py` | `packages/engine/src/open_brain_engine/capture/models.py` | `moved` | `open_brain.capture.models` | `open_brain_engine.capture.models` | `remove` |
+| `src/open_brain/capture/poll.py` | `src/open_brain/capture/poll.py` | `planned` | `open_brain.capture.poll` | `open_brain_connectors.capture.poll` | `remove` |
+| `src/open_brain/capture/queue.py` | `src/open_brain/capture/queue.py` | `planned` | `open_brain.capture.queue` | `open_brain_legacy.capture.queue` | `legacy-private` |
+| `src/open_brain/capture/redaction.py` | `packages/engine/src/open_brain_engine/capture/redaction.py` | `moved` | `open_brain.capture.redaction` | `open_brain_engine.capture.redaction` | `remove` |
+| `src/open_brain/capture/service.py` | `src/open_brain/capture/service.py` | `planned` | `open_brain.capture.service` | `open_brain_legacy.capture.service` | `legacy-private` |
+| `src/open_brain/cli/__init__.py` | `src/open_brain/cli/__init__.py` | `planned` | `open_brain.cli` | `open_brain.cli` | `retain` |
+| `src/open_brain/cli/_common.py` | `src/open_brain/cli/_common.py` | `planned` | `open_brain.cli._common` | `open_brain.cli._common` | `retain` |
+| `src/open_brain/cli/_registry.py` | `src/open_brain/cli/_registry.py` | `planned` | `open_brain.cli._registry` | `open_brain_legacy.cli._registry` | `legacy-private` |
+| `src/open_brain/cli/capture.py` | `src/open_brain/cli/capture.py` | `planned` | `open_brain.cli.capture` | `open_brain_legacy.cli.capture` | `legacy-private` |
+| `src/open_brain/cli/config.py` | `src/open_brain/cli/config.py` | `planned` | `open_brain.cli.config` | `open_brain_legacy.cli.config` | `legacy-private` |
+| `src/open_brain/cli/doctor.py` | `src/open_brain/cli/doctor.py` | `planned` | `open_brain.cli.doctor` | `open_brain_legacy.cli.doctor` | `legacy-private` |
+| `src/open_brain/cli/explain.py` | `src/open_brain/cli/explain.py` | `planned` | `open_brain.cli.explain` | `open_brain_legacy.cli.explain` | `legacy-private` |
+| `src/open_brain/cli/ledger.py` | `src/open_brain/cli/ledger.py` | `planned` | `open_brain.cli.ledger` | `open_brain_legacy.cli.ledger` | `legacy-private` |
+| `src/open_brain/cli/main.py` | `src/open_brain/cli/main.py` | `planned` | `open_brain.cli.main` | `open_brain_legacy.cli.main` | `legacy-private` |
+| `src/open_brain/cli/migrate.py` | `src/open_brain/cli/migrate.py` | `planned` | `open_brain.cli.migrate` | `open_brain_legacy.cli.migrate` | `legacy-private` |
+| `src/open_brain/cli/operations.py` | `src/open_brain/cli/operations.py` | `planned` | `open_brain.cli.operations` | `open_brain_legacy.cli.operations` | `legacy-private` |
+| `src/open_brain/cli/phase1.py` | `src/open_brain/cli/phase1.py` | `planned` | `open_brain.cli.phase1` | `open_brain.cli.phase1` | `retain` |
+| `src/open_brain/cli/phase1_registry.py` | `src/open_brain/cli/phase1_registry.py` | `planned` | `open_brain.cli.phase1_registry` | `open_brain.cli.phase1_registry` | `retain` |
+| `src/open_brain/cli/phase6_adapters.py` | `src/open_brain/cli/phase6_adapters.py` | `planned` | `open_brain.cli.phase6_adapters` | `open_brain_legacy.cli.phase6_adapters` | `legacy-private` |
+| `src/open_brain/cli/production_adapters.py` | `src/open_brain/cli/production_adapters.py` | `planned` | `open_brain.cli.production_adapters` | `open_brain_legacy.cli.production_adapters` | `legacy-private` |
+| `src/open_brain/cli/proposals.py` | `src/open_brain/cli/proposals.py` | `planned` | `open_brain.cli.proposals` | `open_brain_legacy.cli.proposals` | `legacy-private` |
+| `src/open_brain/cli/query.py` | `src/open_brain/cli/query.py` | `planned` | `open_brain.cli.query` | `open_brain_legacy.cli.query` | `legacy-private` |
+| `src/open_brain/cli/review.py` | `src/open_brain/cli/review.py` | `planned` | `open_brain.cli.review` | `open_brain_legacy.cli.review` | `legacy-private` |
+| `src/open_brain/cli/scheduled.py` | `src/open_brain/cli/scheduled.py` | `planned` | `open_brain.cli.scheduled` | `open_brain_legacy.cli.scheduled` | `legacy-private` |
+| `src/open_brain/cli/social.py` | `src/open_brain/cli/social.py` | `planned` | `open_brain.cli.social` | `open_brain_legacy.cli.social` | `legacy-private` |
+| `src/open_brain/cli/status.py` | `src/open_brain/cli/status.py` | `planned` | `open_brain.cli.status` | `open_brain_legacy.cli.status` | `legacy-private` |
+| `src/open_brain/config.py` | `src/open_brain/config.py` | `planned` | `open_brain.config` | `open_brain.config` | `retain` |
+| `src/open_brain/core/__init__.py` | `packages/engine/src/open_brain_engine/core/__init__.py` | `moved` | `open_brain.core` | `open_brain_engine.core` | `remove` |
+| `src/open_brain/core/ids.py` | `packages/engine/src/open_brain_engine/core/ids.py` | `moved` | `open_brain.core.ids` | `open_brain_engine.core.ids` | `remove` |
+| `src/open_brain/core/locks.py` | `packages/engine/src/open_brain_engine/core/locks.py` | `moved` | `open_brain.core.locks` | `open_brain_engine.core.locks` | `remove` |
+| `src/open_brain/core/models.py` | `packages/engine/src/open_brain_engine/core/models.py` | `moved` | `open_brain.core.models` | `open_brain_engine.core.models` | `remove` |
+| `src/open_brain/core/policy.py` | `packages/engine/src/open_brain_engine/core/policy.py` | `moved` | `open_brain.core.policy` | `open_brain_engine.core.policy` | `remove` |
+| `src/open_brain/core/ports.py` | `packages/engine/src/open_brain_engine/core/ports.py` | `moved` | `open_brain.core.ports` | `open_brain_engine.core.ports` | `remove` |
+| `src/open_brain/dev/__init__.py` | `src/open_brain/dev/__init__.py` | `planned` | `open_brain.dev` | `open_brain_dev` | `remove` |
+| `src/open_brain/dev/artifact_policy.py` | `src/open_brain/dev/artifact_policy.py` | `planned` | `open_brain.dev.artifact_policy` | `open_brain_dev.artifact_policy` | `remove` |
+| `src/open_brain/dev/public_history_audit.py` | `src/open_brain/dev/public_history_audit.py` | `planned` | `open_brain.dev.public_history_audit` | `open_brain_dev.public_history_audit` | `remove` |
+| `src/open_brain/dev/release_audit.py` | `src/open_brain/dev/release_audit.py` | `planned` | `open_brain.dev.release_audit` | `open_brain_dev.release_audit` | `remove` |
+| `src/open_brain/engine/__init__.py` | `packages/engine/src/open_brain_engine/engine/__init__.py` | `moved` | `open_brain.engine` | `open_brain_engine.engine` | `remove` |
+| `src/open_brain/engine/authority.py` | `packages/engine/src/open_brain_engine/engine/authority.py` | `moved` | `open_brain.engine.authority` | `open_brain_engine.engine.authority` | `remove` |
+| `src/open_brain/engine/backup.py` | `packages/engine/src/open_brain_engine/engine/backup.py` | `moved` | `open_brain.engine.backup` | `open_brain_engine.engine.backup` | `remove` |
+| `src/open_brain/engine/backup_ports.py` | `packages/engine/src/open_brain_engine/engine/backup_ports.py` | `moved` | `open_brain.engine.backup_ports` | `open_brain_engine.engine.backup_ports` | `remove` |
+| `src/open_brain/engine/capture.py` | `packages/engine/src/open_brain_engine/engine/capture.py` | `moved` | `open_brain.engine.capture` | `open_brain_engine.engine.capture` | `remove` |
+| `src/open_brain/engine/contracts.py` | `packages/engine/src/open_brain_engine/engine/contracts.py` | `moved` | `open_brain.engine.contracts` | `open_brain_engine.engine.contracts` | `remove` |
+| `src/open_brain/engine/local.py` | `packages/engine/src/open_brain_engine/engine/local.py` | `moved` | `open_brain.engine.local` | `open_brain_engine.engine.local` | `remove` |
+| `src/open_brain/engine/local_store.py` | `packages/engine/src/open_brain_engine/engine/local_store.py` | `moved` | `open_brain.engine.local_store` | `open_brain_engine.engine.local_store` | `remove` |
+| `src/open_brain/engine/maintenance.py` | `packages/engine/src/open_brain_engine/engine/maintenance.py` | `moved` | `open_brain.engine.maintenance` | `open_brain_engine.engine.maintenance` | `remove` |
+| `src/open_brain/engine/materializer.py` | `packages/engine/src/open_brain_engine/engine/materializer.py` | `moved` | `open_brain.engine.materializer` | `open_brain_engine.engine.materializer` | `remove` |
+| `src/open_brain/engine/normalization.py` | `packages/engine/src/open_brain_engine/engine/normalization.py` | `moved` | `open_brain.engine.normalization` | `open_brain_engine.engine.normalization` | `remove` |
+| `src/open_brain/engine/portability.py` | `packages/engine/src/open_brain_engine/engine/portability.py` | `moved` | `open_brain.engine.portability` | `open_brain_engine.engine.portability` | `remove` |
+| `src/open_brain/engine/portability_ports.py` | `packages/engine/src/open_brain_engine/engine/portability_ports.py` | `moved` | `open_brain.engine.portability_ports` | `open_brain_engine.engine.portability_ports` | `remove` |
+| `src/open_brain/engine/portable_index.py` | `packages/engine/src/open_brain_engine/engine/portable_index.py` | `moved` | `open_brain.engine.portable_index` | `open_brain_engine.engine.portable_index` | `remove` |
+| `src/open_brain/engine/reconciliation.py` | `packages/engine/src/open_brain_engine/engine/reconciliation.py` | `moved` | `open_brain.engine.reconciliation` | `open_brain_engine.engine.reconciliation` | `remove` |
+| `src/open_brain/engine/retrieval.py` | `packages/engine/src/open_brain_engine/engine/retrieval.py` | `moved` | `open_brain.engine.retrieval` | `open_brain_engine.engine.retrieval` | `remove` |
+| `src/open_brain/engine/review.py` | `packages/engine/src/open_brain_engine/engine/review.py` | `moved` | `open_brain.engine.review` | `open_brain_engine.engine.review` | `remove` |
+| `src/open_brain/engine/spaces.py` | `packages/engine/src/open_brain_engine/engine/spaces.py` | `moved` | `open_brain.engine.spaces` | `open_brain_engine.engine.spaces` | `remove` |
+| `src/open_brain/events/__init__.py` | `packages/engine/src/open_brain_engine/events/__init__.py` | `moved` | `open_brain.events` | `open_brain_engine.events` | `remove` |
+| `src/open_brain/events/store.py` | `packages/engine/src/open_brain_engine/events/store.py` | `moved` | `open_brain.events.store` | `open_brain_engine.events.store` | `remove` |
+| `src/open_brain/integrations/__init__.py` | `src/open_brain/integrations/__init__.py` | `planned` | `open_brain.integrations` | `open_brain.integrations` | `retain` |
+| `src/open_brain/integrations/config.py` | `src/open_brain/integrations/config.py` | `planned` | `open_brain.integrations.config` | `open_brain.integrations.config` | `retain` |
+| `src/open_brain/integrations/context.py` | `src/open_brain/integrations/context.py` | `planned` | `open_brain.integrations.context` | `open_brain_legacy.integrations.context` | `legacy-private` |
+| `src/open_brain/integrations/dev_workflows.py` | `src/open_brain/integrations/dev_workflows.py` | `planned` | `open_brain.integrations.dev_workflows` | `open_brain_legacy.integrations.dev_workflows` | `legacy-private` |
+| `src/open_brain/integrations/finance.py` | `src/open_brain/integrations/finance.py` | `planned` | `open_brain.integrations.finance` | `open_brain_legacy.integrations.finance` | `legacy-private` |
+| `src/open_brain/integrations/hooks.py` | `src/open_brain/integrations/hooks.py` | `planned` | `open_brain.integrations.hooks` | `open_brain_legacy.integrations.hooks` | `legacy-private` |
+| `src/open_brain/integrations/life_os.py` | `src/open_brain/integrations/life_os.py` | `planned` | `open_brain.integrations.life_os` | `open_brain_legacy.integrations.life_os` | `legacy-private` |
+| `src/open_brain/integrations/life_os_runtime.py` | `src/open_brain/integrations/life_os_runtime.py` | `planned` | `open_brain.integrations.life_os_runtime` | `open_brain_legacy.integrations.life_os_runtime` | `legacy-private` |
+| `src/open_brain/integrations/mail_calendar.py` | `src/open_brain/integrations/mail_calendar.py` | `planned` | `open_brain.integrations.mail_calendar` | `open_brain_legacy.integrations.mail_calendar` | `legacy-private` |
+| `src/open_brain/integrations/mcp.py` | `src/open_brain/integrations/mcp.py` | `planned` | `open_brain.integrations.mcp` | `open_brain.integrations.mcp` | `retain` |
+| `src/open_brain/integrations/messaging.py` | `src/open_brain/integrations/messaging.py` | `planned` | `open_brain.integrations.messaging` | `open_brain_legacy.integrations.messaging` | `legacy-private` |
+| `src/open_brain/integrations/messaging_runtime.py` | `src/open_brain/integrations/messaging_runtime.py` | `planned` | `open_brain.integrations.messaging_runtime` | `open_brain_legacy.integrations.messaging_runtime` | `legacy-private` |
+| `src/open_brain/integrations/obsidian.py` | `src/open_brain/integrations/obsidian.py` | `planned` | `open_brain.integrations.obsidian` | `open_brain_legacy.integrations.obsidian` | `legacy-private` |
+| `src/open_brain/integrations/phase1_ui.py` | `src/open_brain/integrations/phase1_ui.py` | `planned` | `open_brain.integrations.phase1_ui` | `open_brain.integrations.phase1_ui` | `retain` |
+| `src/open_brain/integrations/ports.py` | `src/open_brain/integrations/ports.py` | `planned` | `open_brain.integrations.ports` | `open_brain.integrations.ports` | `retain` |
+| `src/open_brain/integrations/relationships.py` | `src/open_brain/integrations/relationships.py` | `planned` | `open_brain.integrations.relationships` | `open_brain_legacy.integrations.relationships` | `legacy-private` |
+| `src/open_brain/integrations/repository_identity.py` | `src/open_brain/integrations/repository_identity.py` | `planned` | `open_brain.integrations.repository_identity` | `open_brain_legacy.integrations.repository_identity` | `legacy-private` |
+| `src/open_brain/integrations/retrieval.py` | `src/open_brain/integrations/retrieval.py` | `planned` | `open_brain.integrations.retrieval` | `open_brain_legacy.integrations.retrieval` | `legacy-private` |
+| `src/open_brain/integrations/runtime_audit.py` | `src/open_brain/integrations/runtime_audit.py` | `planned` | `open_brain.integrations.runtime_audit` | `open_brain_legacy.integrations.runtime_audit` | `legacy-private` |
+| `src/open_brain/integrations/ui.py` | `src/open_brain/integrations/ui.py` | `planned` | `open_brain.integrations.ui` | `open_brain.integrations.ui` | `retain` |
+| `src/open_brain/ledger/__init__.py` | `src/open_brain/ledger/__init__.py` | `planned` | `open_brain.ledger` | `open_brain_legacy.ledger` | `legacy-private` |
+| `src/open_brain/ledger/age.py` | `src/open_brain/ledger/age.py` | `planned` | `open_brain.ledger.age` | `open_brain_legacy.ledger.age` | `legacy-private` |
+| `src/open_brain/ledger/embed.py` | `src/open_brain/ledger/embed.py` | `planned` | `open_brain.ledger.embed` | `open_brain_legacy.ledger.embed` | `legacy-private` |
+| `src/open_brain/ledger/index.py` | `src/open_brain/ledger/index.py` | `planned` | `open_brain.ledger.index` | `open_brain_legacy.ledger.index` | `legacy-private` |
+| `src/open_brain/ledger/merge.py` | `src/open_brain/ledger/merge.py` | `planned` | `open_brain.ledger.merge` | `open_brain_legacy.ledger.merge` | `legacy-private` |
+| `src/open_brain/ledger/models.py` | `src/open_brain/ledger/models.py` | `planned` | `open_brain.ledger.models` | `open_brain_legacy.ledger.models` | `legacy-private` |
+| `src/open_brain/ledger/reconcile.py` | `src/open_brain/ledger/reconcile.py` | `planned` | `open_brain.ledger.reconcile` | `open_brain_legacy.ledger.reconcile` | `legacy-private` |
+| `src/open_brain/ledger/reinforce.py` | `src/open_brain/ledger/reinforce.py` | `planned` | `open_brain.ledger.reinforce` | `open_brain_legacy.ledger.reinforce` | `legacy-private` |
+| `src/open_brain/ledger/render.py` | `src/open_brain/ledger/render.py` | `planned` | `open_brain.ledger.render` | `open_brain_legacy.ledger.render` | `legacy-private` |
+| `src/open_brain/ledger/requarantine.py` | `src/open_brain/ledger/requarantine.py` | `planned` | `open_brain.ledger.requarantine` | `open_brain_legacy.ledger.requarantine` | `legacy-private` |
+| `src/open_brain/ledger/sanitize.py` | `src/open_brain/ledger/sanitize.py` | `planned` | `open_brain.ledger.sanitize` | `open_brain_legacy.ledger.sanitize` | `legacy-private` |
+| `src/open_brain/ledger/scan.py` | `src/open_brain/ledger/scan.py` | `planned` | `open_brain.ledger.scan` | `open_brain_legacy.ledger.scan` | `legacy-private` |
+| `src/open_brain/ledger/service.py` | `src/open_brain/ledger/service.py` | `planned` | `open_brain.ledger.service` | `open_brain_legacy.ledger.service` | `legacy-private` |
+| `src/open_brain/ledger/slim.py` | `src/open_brain/ledger/slim.py` | `planned` | `open_brain.ledger.slim` | `open_brain_legacy.ledger.slim` | `legacy-private` |
+| `src/open_brain/ledger/stage.py` | `src/open_brain/ledger/stage.py` | `planned` | `open_brain.ledger.stage` | `open_brain_legacy.ledger.stage` | `legacy-private` |
+| `src/open_brain/ledger/store.py` | `src/open_brain/ledger/store.py` | `planned` | `open_brain.ledger.store` | `open_brain_legacy.ledger.store` | `legacy-private` |
+| `src/open_brain/ledger/synthesis.py` | `src/open_brain/ledger/synthesis.py` | `planned` | `open_brain.ledger.synthesis` | `open_brain_legacy.ledger.synthesis` | `legacy-private` |
+| `src/open_brain/ledger/synthesis_store.py` | `src/open_brain/ledger/synthesis_store.py` | `planned` | `open_brain.ledger.synthesis_store` | `open_brain_legacy.ledger.synthesis_store` | `legacy-private` |
+| `src/open_brain/migrate/__init__.py` | `src/open_brain/migrate/__init__.py` | `planned` | `open_brain.migrate` | `open_brain_legacy.migrate` | `legacy-private` |
+| `src/open_brain/migrate/_models.py` | `src/open_brain/migrate/_models.py` | `planned` | `open_brain.migrate._models` | `open_brain_legacy.migrate._models` | `legacy-private` |
+| `src/open_brain/migrate/_support.py` | `src/open_brain/migrate/_support.py` | `planned` | `open_brain.migrate._support` | `open_brain_legacy.migrate._support` | `legacy-private` |
+| `src/open_brain/migrate/config.py` | `src/open_brain/migrate/config.py` | `planned` | `open_brain.migrate.config` | `open_brain_legacy.migrate.config` | `legacy-private` |
+| `src/open_brain/migrate/content.py` | `src/open_brain/migrate/content.py` | `planned` | `open_brain.migrate.content` | `open_brain_legacy.migrate.content` | `legacy-private` |
+| `src/open_brain/migrate/state.py` | `src/open_brain/migrate/state.py` | `planned` | `open_brain.migrate.state` | `open_brain_legacy.migrate.state` | `legacy-private` |
+| `src/open_brain/operations/__init__.py` | `src/open_brain/operations/__init__.py` | `planned` | `open_brain.operations` | `open_brain_legacy.operations` | `legacy-private` |
+| `src/open_brain/operations/backup.py` | `src/open_brain/operations/backup.py` | `planned` | `open_brain.operations.backup` | `open_brain_legacy.operations.backup` | `legacy-private` |
+| `src/open_brain/operations/backup_writer.py` | `src/open_brain/operations/backup_writer.py` | `planned` | `open_brain.operations.backup_writer` | `open_brain_legacy.operations.backup_writer` | `legacy-private` |
+| `src/open_brain/operations/capture_jobs.py` | `src/open_brain/operations/capture_jobs.py` | `planned` | `open_brain.operations.capture_jobs` | `open_brain_legacy.operations.capture_jobs` | `legacy-private` |
+| `src/open_brain/operations/catalog.py` | `src/open_brain/operations/catalog.py` | `planned` | `open_brain.operations.catalog` | `open_brain_legacy.operations.catalog` | `legacy-private` |
+| `src/open_brain/operations/curation_runtime.py` | `src/open_brain/operations/curation_runtime.py` | `planned` | `open_brain.operations.curation_runtime` | `open_brain_legacy.operations.curation_runtime` | `legacy-private` |
+| `src/open_brain/operations/cutover.py` | `src/open_brain/operations/cutover.py` | `planned` | `open_brain.operations.cutover` | `open_brain_legacy.operations.cutover` | `legacy-private` |
+| `src/open_brain/operations/cutover_doctor.py` | `src/open_brain/operations/cutover_doctor.py` | `planned` | `open_brain.operations.cutover_doctor` | `open_brain_legacy.operations.cutover_doctor` | `legacy-private` |
+| `src/open_brain/operations/cutover_verification.py` | `src/open_brain/operations/cutover_verification.py` | `planned` | `open_brain.operations.cutover_verification` | `open_brain_legacy.operations.cutover_verification` | `legacy-private` |
+| `src/open_brain/operations/doctor.py` | `src/open_brain/operations/doctor.py` | `planned` | `open_brain.operations.doctor` | `open_brain_legacy.operations.doctor` | `legacy-private` |
+| `src/open_brain/operations/git_sync_runtime.py` | `src/open_brain/operations/git_sync_runtime.py` | `planned` | `open_brain.operations.git_sync_runtime` | `open_brain_legacy.operations.git_sync_runtime` | `legacy-private` |
+| `src/open_brain/operations/index.py` | `src/open_brain/operations/index.py` | `planned` | `open_brain.operations.index` | `open_brain_legacy.operations.index` | `legacy-private` |
+| `src/open_brain/operations/index_writer.py` | `src/open_brain/operations/index_writer.py` | `planned` | `open_brain.operations.index_writer` | `open_brain_legacy.operations.index_writer` | `legacy-private` |
+| `src/open_brain/operations/local_effect.py` | `src/open_brain/operations/local_effect.py` | `planned` | `open_brain.operations.local_effect` | `open_brain_legacy.operations.local_effect` | `legacy-private` |
+| `src/open_brain/operations/models.py` | `src/open_brain/operations/models.py` | `planned` | `open_brain.operations.models` | `open_brain_legacy.operations.models` | `legacy-private` |
+| `src/open_brain/operations/now.py` | `src/open_brain/operations/now.py` | `planned` | `open_brain.operations.now` | `open_brain_legacy.operations.now` | `legacy-private` |
+| `src/open_brain/operations/now_runtime.py` | `src/open_brain/operations/now_runtime.py` | `planned` | `open_brain.operations.now_runtime` | `open_brain_legacy.operations.now_runtime` | `legacy-private` |
+| `src/open_brain/operations/optional_jobs.py` | `src/open_brain/operations/optional_jobs.py` | `planned` | `open_brain.operations.optional_jobs` | `open_brain_legacy.operations.optional_jobs` | `legacy-private` |
+| `src/open_brain/operations/probes.py` | `src/open_brain/operations/probes.py` | `planned` | `open_brain.operations.probes` | `open_brain_legacy.operations.probes` | `legacy-private` |
+| `src/open_brain/operations/production_bindings.py` | `src/open_brain/operations/production_bindings.py` | `planned` | `open_brain.operations.production_bindings` | `open_brain_legacy.operations.production_bindings` | `legacy-private` |
+| `src/open_brain/operations/recovery.py` | `src/open_brain/operations/recovery.py` | `planned` | `open_brain.operations.recovery` | `open_brain_legacy.operations.recovery` | `legacy-private` |
+| `src/open_brain/operations/render.py` | `src/open_brain/operations/render.py` | `planned` | `open_brain.operations.render` | `open_brain_legacy.operations.render` | `legacy-private` |
+| `src/open_brain/operations/replay_journal.py` | `src/open_brain/operations/replay_journal.py` | `planned` | `open_brain.operations.replay_journal` | `open_brain_legacy.operations.replay_journal` | `legacy-private` |
+| `src/open_brain/operations/retention.py` | `src/open_brain/operations/retention.py` | `planned` | `open_brain.operations.retention` | `open_brain_legacy.operations.retention` | `legacy-private` |
+| `src/open_brain/operations/runlog.py` | `src/open_brain/operations/runlog.py` | `planned` | `open_brain.operations.runlog` | `open_brain_legacy.operations.runlog` | `legacy-private` |
+| `src/open_brain/operations/runlog_store.py` | `src/open_brain/operations/runlog_store.py` | `planned` | `open_brain.operations.runlog_store` | `open_brain_legacy.operations.runlog_store` | `legacy-private` |
+| `src/open_brain/operations/scheduled_results.py` | `src/open_brain/operations/scheduled_results.py` | `planned` | `open_brain.operations.scheduled_results` | `open_brain_legacy.operations.scheduled_results` | `legacy-private` |
+| `src/open_brain/operations/scheduler.py` | `src/open_brain/operations/scheduler.py` | `planned` | `open_brain.operations.scheduler` | `open_brain_legacy.operations.scheduler` | `legacy-private` |
+| `src/open_brain/operations/shadow.py` | `src/open_brain/operations/shadow.py` | `planned` | `open_brain.operations.shadow` | `open_brain_legacy.operations.shadow` | `legacy-private` |
+| `src/open_brain/operations/status.py` | `src/open_brain/operations/status.py` | `planned` | `open_brain.operations.status` | `open_brain_legacy.operations.status` | `legacy-private` |
+| `src/open_brain/operations/writer_jobs.py` | `src/open_brain/operations/writer_jobs.py` | `planned` | `open_brain.operations.writer_jobs` | `open_brain_legacy.operations.writer_jobs` | `legacy-private` |
+| `src/open_brain/parity/__init__.py` | `src/open_brain/parity/__init__.py` | `planned` | `open_brain.parity` | `open_brain_legacy.parity` | `legacy-private` |
+| `src/open_brain/parity/harness.py` | `src/open_brain/parity/harness.py` | `planned` | `open_brain.parity.harness` | `open_brain_legacy.parity.harness` | `legacy-private` |
+| `src/open_brain/parity/observation.py` | `src/open_brain/parity/observation.py` | `planned` | `open_brain.parity.observation` | `open_brain_legacy.parity.observation` | `legacy-private` |
+| `src/open_brain/parity/runner.py` | `src/open_brain/parity/runner.py` | `planned` | `open_brain.parity.runner` | `open_brain_legacy.parity.runner` | `legacy-private` |
+| `src/open_brain/portable/__init__.py` | `packages/engine/src/open_brain_engine/portable/__init__.py` | `moved` | `open_brain.portable` | `open_brain_engine.portable` | `remove` |
+| `src/open_brain/portable/v1.py` | `packages/engine/src/open_brain_engine/portable/v1.py` | `moved` | `open_brain.portable.v1` | `open_brain_engine.portable.v1` | `remove` |
+| `src/open_brain/production/__init__.py` | `src/open_brain/production/__init__.py` | `planned` | `open_brain.production` | `open_brain_legacy.production` | `legacy-private` |
+| `src/open_brain/production/application.py` | `src/open_brain/production/application.py` | `planned` | `open_brain.production.application` | `open_brain_legacy.production.application` | `legacy-private` |
+| `src/open_brain/production/assets.py` | `src/open_brain/production/assets.py` | `planned` | `open_brain.production.assets` | `open_brain_legacy.production.assets` | `legacy-private` |
+| `src/open_brain/production/capture.py` | `src/open_brain/production/capture.py` | `planned` | `open_brain.production.capture` | `open_brain_legacy.production.capture` | `legacy-private` |
+| `src/open_brain/production/capture_publication.py` | `src/open_brain/production/capture_publication.py` | `planned` | `open_brain.production.capture_publication` | `open_brain_legacy.production.capture_publication` | `legacy-private` |
+| `src/open_brain/production/curation.py` | `src/open_brain/production/curation.py` | `planned` | `open_brain.production.curation` | `open_brain_legacy.production.curation` | `legacy-private` |
+| `src/open_brain/production/errors.py` | `src/open_brain/production/errors.py` | `planned` | `open_brain.production.errors` | `open_brain_legacy.production.errors` | `legacy-private` |
+| `src/open_brain/production/git_sync.py` | `src/open_brain/production/git_sync.py` | `planned` | `open_brain.production.git_sync` | `open_brain_legacy.production.git_sync` | `legacy-private` |
+| `src/open_brain/production/imessage.py` | `src/open_brain/production/imessage.py` | `planned` | `open_brain.production.imessage` | `open_brain_legacy.production.imessage` | `legacy-private` |
+| `src/open_brain/production/local_jobs.py` | `src/open_brain/production/local_jobs.py` | `planned` | `open_brain.production.local_jobs` | `open_brain_legacy.production.local_jobs` | `legacy-private` |
+| `src/open_brain/production/media.py` | `src/open_brain/production/media.py` | `planned` | `open_brain.production.media` | `open_brain_legacy.production.media` | `legacy-private` |
+| `src/open_brain/production/optional_automation.py` | `src/open_brain/production/optional_automation.py` | `planned` | `open_brain.production.optional_automation` | `open_brain_legacy.production.optional_automation` | `legacy-private` |
+| `src/open_brain/production/personal_capture.py` | `src/open_brain/production/personal_capture.py` | `planned` | `open_brain.production.personal_capture` | `open_brain_legacy.production.personal_capture` | `legacy-private` |
+| `src/open_brain/production/project_commit_bridge.py` | `src/open_brain/production/project_commit_bridge.py` | `planned` | `open_brain.production.project_commit_bridge` | `open_brain_legacy.production.project_commit_bridge` | `legacy-private` |
+| `src/open_brain/production/providers.py` | `src/open_brain/production/providers.py` | `planned` | `open_brain.production.providers` | `open_brain_legacy.production.providers` | `legacy-private` |
+| `src/open_brain/production/retention.py` | `src/open_brain/production/retention.py` | `planned` | `open_brain.production.retention` | `open_brain_legacy.production.retention` | `legacy-private` |
+| `src/open_brain/production/runtime.py` | `src/open_brain/production/runtime.py` | `planned` | `open_brain.production.runtime` | `open_brain_legacy.production.runtime` | `legacy-private` |
+| `src/open_brain/production/sqlite_backup.py` | `src/open_brain/production/sqlite_backup.py` | `planned` | `open_brain.production.sqlite_backup` | `open_brain_legacy.production.sqlite_backup` | `legacy-private` |
+| `src/open_brain/production/transport.py` | `src/open_brain/production/transport.py` | `planned` | `open_brain.production.transport` | `open_brain_legacy.production.transport` | `legacy-private` |
+| `src/open_brain/production/youtube_bridge.py` | `src/open_brain/production/youtube_bridge.py` | `planned` | `open_brain.production.youtube_bridge` | `open_brain_legacy.production.youtube_bridge` | `legacy-private` |
+| `src/open_brain/production/youtube_poll.py` | `src/open_brain/production/youtube_poll.py` | `planned` | `open_brain.production.youtube_poll` | `open_brain_connectors.production.youtube_poll` | `remove` |
+| `src/open_brain/profile.py` | `src/open_brain/profile.py` | `planned` | `open_brain.profile` | `open_brain.profile` | `retain` |
+| `src/open_brain/providers/__init__.py` | `packages/engine/src/open_brain_engine/providers/__init__.py` | `moved` | `open_brain.providers` | `open_brain_engine.providers` | `remove` |
+| `src/open_brain/providers/base.py` | `packages/engine/src/open_brain_engine/providers/base.py` | `moved` | `open_brain.providers.base` | `open_brain_engine.providers.base` | `remove` |
+| `src/open_brain/providers/deterministic.py` | `packages/engine/src/open_brain_engine/providers/deterministic.py` | `moved` | `open_brain.providers.deterministic` | `open_brain_engine.providers.deterministic` | `remove` |
+| `src/open_brain/providers/local.py` | `src/open_brain/providers/local.py` | `planned` | `open_brain.providers.local` | `open_brain_legacy.providers.local` | `legacy-private` |
+| `src/open_brain/providers/optional_cloud.py` | `src/open_brain/providers/optional_cloud.py` | `planned` | `open_brain.providers.optional_cloud` | `open_brain_legacy.providers.optional_cloud` | `legacy-private` |
+| `src/open_brain/providers/transcription.py` | `src/open_brain/providers/transcription.py` | `planned` | `open_brain.providers.transcription` | `open_brain_legacy.providers.transcription` | `legacy-private` |
+| `src/open_brain/release/__init__.py` | `src/open_brain/release/__init__.py` | `planned` | `open_brain.release` | `open_brain_legacy.release` | `legacy-private` |
+| `src/open_brain/release/day_zero.py` | `src/open_brain/release/day_zero.py` | `planned` | `open_brain.release.day_zero` | `open_brain_legacy.release.day_zero` | `legacy-private` |
+| `src/open_brain/release/evidence.py` | `src/open_brain/release/evidence.py` | `planned` | `open_brain.release.evidence` | `open_brain_legacy.release.evidence` | `legacy-private` |
+| `src/open_brain/release/installation.py` | `src/open_brain/release/installation.py` | `planned` | `open_brain.release.installation` | `open_brain_legacy.release.installation` | `legacy-private` |
+| `src/open_brain/release/replacement.py` | `src/open_brain/release/replacement.py` | `planned` | `open_brain.release.replacement` | `open_brain_legacy.release.replacement` | `legacy-private` |
+| `src/open_brain/release/stabilization.py` | `src/open_brain/release/stabilization.py` | `planned` | `open_brain.release.stabilization` | `open_brain_legacy.release.stabilization` | `legacy-private` |
+| `src/open_brain/review/__init__.py` | `packages/engine/src/open_brain_engine/review/__init__.py` | `moved` | `open_brain.review` | `open_brain_engine.review` | `remove` |
+| `src/open_brain/review/maintenance.py` | `src/open_brain/review/maintenance.py` | `planned` | `open_brain.review.maintenance` | `open_brain_legacy.review.maintenance` | `legacy-private` |
+| `src/open_brain/review/models.py` | `packages/engine/src/open_brain_engine/review/models.py` | `moved` | `open_brain.review.models` | `open_brain_engine.review.models` | `remove` |
+| `src/open_brain/review/routing.py` | `src/open_brain/review/routing.py` | `planned` | `open_brain.review.routing` | `open_brain_legacy.review.routing` | `legacy-private` |
+| `src/open_brain/review/service.py` | `src/open_brain/review/service.py` | `planned` | `open_brain.review.service` | `open_brain_legacy.review.service` | `legacy-private` |
+| `src/open_brain/review/store.py` | `src/open_brain/review/store.py` | `planned` | `open_brain.review.store` | `open_brain_legacy.review.store` | `legacy-private` |
+| `src/open_brain/services/__init__.py` | `src/open_brain/services/__init__.py` | `planned` | `open_brain.services` | `open_brain.services` | `retain` |
+| `src/open_brain/services/appliance_application.py` | `src/open_brain/services/appliance_application.py` | `planned` | `open_brain.services.appliance_application` | `open_brain.services.appliance_application` | `retain` |
+| `src/open_brain/services/appliance_auth.py` | `src/open_brain/services/appliance_auth.py` | `planned` | `open_brain.services.appliance_auth` | `open_brain.services.appliance_auth` | `retain` |
+| `src/open_brain/services/appliance_daemon.py` | `src/open_brain/services/appliance_daemon.py` | `planned` | `open_brain.services.appliance_daemon` | `open_brain.services.appliance_daemon` | `retain` |
+| `src/open_brain/services/appliance_entrypoints.py` | `src/open_brain/services/appliance_entrypoints.py` | `planned` | `open_brain.services.appliance_entrypoints` | `open_brain.services.appliance_entrypoints` | `retain` |
+| `src/open_brain/services/appliance_history.py` | `src/open_brain/services/appliance_history.py` | `planned` | `open_brain.services.appliance_history` | `open_brain.services.appliance_history` | `retain` |
+| `src/open_brain/services/appliance_init.py` | `src/open_brain/services/appliance_init.py` | `planned` | `open_brain.services.appliance_init` | `open_brain.services.appliance_init` | `retain` |
+| `src/open_brain/services/appliance_lifecycle.py` | `src/open_brain/services/appliance_lifecycle.py` | `planned` | `open_brain.services.appliance_lifecycle` | `open_brain.services.appliance_lifecycle` | `retain` |
+| `src/open_brain/services/appliance_recovery.py` | `src/open_brain/services/appliance_recovery.py` | `planned` | `open_brain.services.appliance_recovery` | `open_brain.services.appliance_recovery` | `retain` |
+| `src/open_brain/services/appliance_scheduler.py` | `src/open_brain/services/appliance_scheduler.py` | `planned` | `open_brain.services.appliance_scheduler` | `open_brain.services.appliance_scheduler` | `retain` |
+| `src/open_brain/services/appliance_status.py` | `src/open_brain/services/appliance_status.py` | `planned` | `open_brain.services.appliance_status` | `open_brain.services.appliance_status` | `retain` |
+| `src/open_brain/services/appliance_supervisors.py` | `src/open_brain/services/appliance_supervisors.py` | `planned` | `open_brain.services.appliance_supervisors` | `open_brain.services.appliance_supervisors` | `retain` |
+| `src/open_brain/services/application.py` | `src/open_brain/services/application.py` | `planned` | `open_brain.services.application` | `open_brain_legacy.services.application` | `legacy-private` |
+| `src/open_brain/services/capabilities.py` | `src/open_brain/services/capabilities.py` | `planned` | `open_brain.services.capabilities` | `open_brain_legacy.services.capabilities` | `legacy-private` |
+| `src/open_brain/services/composition.py` | `src/open_brain/services/composition.py` | `planned` | `open_brain.services.composition` | `open_brain.services.composition` | `retain` |
+| `src/open_brain/services/connectors.py` | `src/open_brain/services/connectors.py` | `planned` | `open_brain.services.connectors` | `open_brain.services.connectors` | `retain` |
+| `src/open_brain/services/entrypoints.py` | `src/open_brain/services/entrypoints.py` | `planned` | `open_brain.services.entrypoints` | `open_brain_legacy.services.entrypoints` | `legacy-private` |
+| `src/open_brain/services/http_server.py` | `src/open_brain/services/http_server.py` | `planned` | `open_brain.services.http_server` | `open_brain.services.http_server` | `retain` |
+| `src/open_brain/services/mcp_stdio.py` | `src/open_brain/services/mcp_stdio.py` | `planned` | `open_brain.services.mcp_stdio` | `open_brain.services.mcp_stdio` | `retain` |
+| `src/open_brain/services/phase1_application.py` | `src/open_brain/services/phase1_application.py` | `planned` | `open_brain.services.phase1_application` | `open_brain.services.phase1_application` | `retain` |
+| `src/open_brain/services/phase1_entrypoints.py` | `src/open_brain/services/phase1_entrypoints.py` | `planned` | `open_brain.services.phase1_entrypoints` | `open_brain.services.phase1_entrypoints` | `retain` |
+| `src/open_brain/services/runtime.py` | `src/open_brain/services/runtime.py` | `planned` | `open_brain.services.runtime` | `open_brain.services.runtime` | `retain` |
+| `src/open_brain/storage/__init__.py` | `packages/engine/src/open_brain_engine/storage/__init__.py` | `moved` | `open_brain.storage` | `open_brain_engine.storage` | `remove` |
+| `src/open_brain/storage/filesystem.py` | `packages/engine/src/open_brain_engine/storage/filesystem.py` | `moved` | `open_brain.storage.filesystem` | `open_brain_engine.storage.filesystem` | `remove` |
+| `src/open_brain/storage/frontmatter.py` | `packages/engine/src/open_brain_engine/storage/frontmatter.py` | `moved` | `open_brain.storage.frontmatter` | `open_brain_engine.storage.frontmatter` | `remove` |
+| `src/open_brain/storage/locks.py` | `packages/engine/src/open_brain_engine/storage/locks.py` | `moved` | `open_brain.storage.locks` | `open_brain_engine.storage.locks` | `remove` |
+| `src/open_brain/storage/markdown.py` | `packages/engine/src/open_brain_engine/storage/markdown.py` | `moved` | `open_brain.storage.markdown` | `open_brain_engine.storage.markdown` | `remove` |
+| `src/open_brain/storage/operational.py` | `packages/engine/src/open_brain_engine/storage/operational.py` | `moved` | `open_brain.storage.operational` | `open_brain_engine.storage.operational` | `remove` |
+| `src/open_brain/storage/sqlite.py` | `packages/engine/src/open_brain_engine/storage/sqlite.py` | `moved` | `open_brain.storage.sqlite` | `open_brain_engine.storage.sqlite` | `remove` |
+| `src/open_brain/storage/staging.py` | `packages/engine/src/open_brain_engine/storage/staging.py` | `moved` | `open_brain.storage.staging` | `open_brain_engine.storage.staging` | `remove` |
+| `src/open_brain/storage/writer_record.py` | `packages/engine/src/open_brain_engine/storage/writer_record.py` | `moved` | `open_brain.storage.writer_record` | `open_brain_engine.storage.writer_record` | `remove` |

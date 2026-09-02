@@ -13,10 +13,10 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Protocol
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import PrivacyDecision, ValidationError
-from open_brain.core.ports import Provider, TextModelRequest, TextModelResult
-from open_brain.storage.frontmatter import markdown_relative_path
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import PrivacyDecision, ValidationError
+from open_brain_engine.core.ports import Provider, TextModelRequest, TextModelResult
+from open_brain_engine.storage.frontmatter import markdown_relative_path
 
 from .merge import TrustedCitation
 from .sanitize import LedgerSection, SanitizedLeaf, sanitize_leaf

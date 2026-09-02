@@ -8,10 +8,7 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
-
-from open_brain.capture.extractors.youtube import YouTubeExtractionRequest
-from open_brain.capture.http import HttpRequest, ShareHttpHandler
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureLease,
     CaptureRedactionResult,
     CaptureWorkItem,
@@ -25,10 +22,9 @@ from open_brain.capture.models import (
     QueueErrorCode,
     TranscriptState,
 )
-from open_brain.capture.redaction import REDACTION_POLICY_VERSION, VersionedCaptureRedactor
-from open_brain.capture.service import CaptureService, ProcessStatus
-from open_brain.core.ids import CaptureId, ReviewId
-from open_brain.core.models import (
+from open_brain_engine.capture.redaction import REDACTION_POLICY_VERSION, VersionedCaptureRedactor
+from open_brain_engine.core.ids import CaptureId, ReviewId
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -43,7 +39,7 @@ from open_brain.core.models import (
     RawCapture,
     SourceType,
 )
-from open_brain.core.ports import (
+from open_brain_engine.core.ports import (
     CaptureQueue,
     EventRecord,
     EventStore,
@@ -53,9 +49,13 @@ from open_brain.core.ports import (
     RawStore,
     RedactionReceipt,
 )
-from open_brain.engine import open_local_engine
+from open_brain_engine.engine import open_local_engine
+from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore
+
+from open_brain.capture.extractors.youtube import YouTubeExtractionRequest
+from open_brain.capture.http import HttpRequest, ShareHttpHandler
+from open_brain.capture.service import CaptureService, ProcessStatus
 from open_brain.profile import compile_single_user_local
-from open_brain.storage.filesystem import AtomicFilesystemRawStore
 
 FIXED_TIME = datetime(2026, 8, 13, 12, 0, tzinfo=UTC)
 

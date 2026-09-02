@@ -17,7 +17,7 @@ from enum import StrEnum
 from importlib.metadata import entry_points
 from typing import Protocol, cast, runtime_checkable
 
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureReceipt,
     ContentOrigin,
     Payload,

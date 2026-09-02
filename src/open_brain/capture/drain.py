@@ -11,9 +11,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol, cast
 
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.extractors.social import SocialExtractionRequest
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureLease,
     CaptureWorkItem,
     ExtractionFailure,
@@ -22,9 +20,12 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     QueueErrorCode,
 )
-from open_brain.core.ids import canonical_json_bytes, validate_identifier
-from open_brain.core.models import SourceType
-from open_brain.core.ports import CaptureQueue, PutDisposition, PutResult
+from open_brain_engine.core.ids import canonical_json_bytes, validate_identifier
+from open_brain_engine.core.models import SourceType
+from open_brain_engine.core.ports import CaptureQueue, PutDisposition, PutResult
+
+from open_brain.capture.extractors import ExtractionRequest
+from open_brain.capture.extractors.social import SocialExtractionRequest
 
 
 class DrainItemState(StrEnum):

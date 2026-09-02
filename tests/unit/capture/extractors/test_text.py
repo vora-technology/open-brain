@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.extractors.text import TextExtractor
-from open_brain.capture.models import ExtractionState, ExtractorKind, TranscriptState
-from open_brain.core.models import (
+from open_brain_engine.capture.models import ExtractionState, ExtractorKind, TranscriptState
+from open_brain_engine.core.models import (
     Authority,
     ContentKind,
     PrivacyDecision,
@@ -11,6 +9,9 @@ from open_brain.core.models import (
     PrivacyTier,
     SourceType,
 )
+
+from open_brain.capture.extractors import ExtractionRequest
+from open_brain.capture.extractors.text import TextExtractor
 
 
 def _privacy(*, external_egress: bool = True) -> PrivacyDecision:

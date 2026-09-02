@@ -5,10 +5,15 @@ from dataclasses import replace
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import PrivacyDecision
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.storage.frontmatter import (
+    AtomicMarkdownReader,
+    AtomicMarkdownSink,
+    markdown_relative_path,
+)
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import PrivacyDecision
-from open_brain.core.ports import TextModelRequest, TextModelResult
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.render import RenderDisposition, SynthesisRenderer
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
@@ -25,11 +30,6 @@ from open_brain.ledger.synthesis import (
     prepare_synthesis_batch,
 )
 from open_brain.ledger.synthesis_store import SqliteSynthesisStore
-from open_brain.storage.frontmatter import (
-    AtomicMarkdownReader,
-    AtomicMarkdownSink,
-    markdown_relative_path,
-)
 from tests.unit.ledger.test_scan import _taxonomy
 from tests.unit.ledger.test_stage import _record
 

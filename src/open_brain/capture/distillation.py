@@ -11,12 +11,12 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol, cast
 
-from open_brain.capture.models import ExtractionState, NormalizedExtraction
-from open_brain.core.ids import canonical_json_bytes, validate_identifier
-from open_brain.core.models import ContentKind, PrivacyDecision
-from open_brain.core.policy import BoundaryErrorCode, BoundaryResult
-from open_brain.core.ports import PutDisposition, PutResult, TextModelRequest
-from open_brain.providers.base import ProviderService
+from open_brain_engine.capture.models import ExtractionState, NormalizedExtraction
+from open_brain_engine.core.ids import canonical_json_bytes, validate_identifier
+from open_brain_engine.core.models import ContentKind, PrivacyDecision
+from open_brain_engine.core.policy import BoundaryErrorCode, BoundaryResult
+from open_brain_engine.core.ports import PutDisposition, PutResult, TextModelRequest
+from open_brain_engine.providers.base import ProviderService
 
 
 @dataclass(frozen=True, slots=True)

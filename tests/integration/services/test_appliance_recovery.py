@@ -11,13 +11,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureAction,
     TextPayload,
     acquire_daemon_authority,
     open_local_engine,
 )
+
 from open_brain.profile import open_existing_single_user_local
 from open_brain.services.appliance_application import ApplianceApplication
 from open_brain.services.appliance_daemon import (

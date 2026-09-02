@@ -9,9 +9,8 @@ from datetime import datetime
 from hashlib import sha256
 from typing import Protocol
 
-from open_brain.capture.models import CaptureWorkItem, ShareRequest, ShareResponse
-from open_brain.cli._common import ExitCode, redacted_error
-from open_brain.core.models import (
+from open_brain_engine.capture.models import CaptureWorkItem, ShareRequest, ShareResponse
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     CaptureSource,
     CaptureWhyOrigin,
@@ -21,8 +20,10 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.policy import classify_privacy
-from open_brain.core.ports import PutDisposition, PutResult
+from open_brain_engine.core.policy import classify_privacy
+from open_brain_engine.core.ports import PutDisposition, PutResult
+
+from open_brain.cli._common import ExitCode, redacted_error
 
 _PRIVACY_POLICY_VERSION = "privacy-v1"
 

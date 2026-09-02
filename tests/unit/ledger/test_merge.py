@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import PurePosixPath
 
 import pytest
+from open_brain_engine.core.models import ContentOrigin, PrivacyTier
 
-from open_brain.core.models import ContentOrigin, PrivacyTier
 from open_brain.ledger.merge import (
     MergeCode,
     TrustedCitation,

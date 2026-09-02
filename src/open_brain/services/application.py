@@ -9,6 +9,21 @@ from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
 
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.core.ports import Clock
+from open_brain_engine.engine import (
+    EngineTaskSet,
+    LockScope,
+    PublicJobCaptureContext,
+    PublicJobCaptureSink,
+    open_local_engine,
+)
+from open_brain_engine.events.store import SqliteEventStore
+from open_brain_engine.providers.base import ProviderService
+from open_brain_engine.storage.locks import FileLease, LockBusyError, inspect_file_leases
+from open_brain_engine.storage.sqlite import SCHEMA_VERSION, inspect_event_schema
+from open_brain_engine.storage.writer_record import WriterRecordError, read_canonical_writer_record
+
 from open_brain.capture.distillation_worker import DistillationProcessStatus
 from open_brain.capture.egress import OutboundFetcher
 from open_brain.capture.http import BodyReader, ShareHttpHandler
@@ -27,16 +42,6 @@ from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 from open_brain.cli.production_adapters import build_production_command_adapters
 from open_brain.cli.review import ReviewCommandAdapter
 from open_brain.config import AppConfig, ConfigError, SecretRefKind
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.core.ports import Clock
-from open_brain.engine import (
-    EngineTaskSet,
-    LockScope,
-    PublicJobCaptureContext,
-    PublicJobCaptureSink,
-    open_local_engine,
-)
-from open_brain.events.store import SqliteEventStore
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.life_os import LifePlanRequest, LifeResetRequest
 from open_brain.integrations.life_os_runtime import LifeOSPlanningRuntime
@@ -163,7 +168,6 @@ from open_brain.production.sqlite_backup import (
 )
 from open_brain.production.transport import DnsPinnedHttpTransport, SystemResolver
 from open_brain.profile import compile_single_user_local
-from open_brain.providers.base import ProviderService
 from open_brain.review.maintenance import predecessor_curation_taxonomy
 from open_brain.review.store import (
     REVIEW_SCHEMA_VERSION,
@@ -187,9 +191,6 @@ from open_brain.services.runtime import (
     load_private_http_bind_config,
     read_private_service_secret,
 )
-from open_brain.storage.locks import FileLease, LockBusyError, inspect_file_leases
-from open_brain.storage.sqlite import SCHEMA_VERSION, inspect_event_schema
-from open_brain.storage.writer_record import WriterRecordError, read_canonical_writer_record
 
 _LOCK_STALE_AFTER_SECONDS = {
     LockScope.SHARED_WRITER: 300,

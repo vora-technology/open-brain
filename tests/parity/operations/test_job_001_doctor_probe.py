@@ -5,8 +5,8 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 import pytest
+from open_brain_engine.engine import LockScope
 
-from open_brain.engine import LockScope
 from open_brain.operations.catalog import get_job
 from open_brain.operations.doctor import (
     DoctorRole,

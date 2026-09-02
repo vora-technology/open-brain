@@ -8,8 +8,8 @@ import time
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
 
-from open_brain.core.ids import canonical_json_bytes
 from open_brain.services.appliance_auth import derive_appliance_credential
 from open_brain.services.appliance_daemon import ApplianceDaemon
 from open_brain.services.appliance_init import (

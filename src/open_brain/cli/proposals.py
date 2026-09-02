@@ -7,9 +7,10 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 
+from open_brain_engine.review.models import ReviewAggregate
+
 from open_brain.cli._common import ExitCode, redacted_error
 from open_brain.cli.review import ReviewDecisionService, decide_review, list_reviews
-from open_brain.review.models import ReviewAggregate
 
 
 @dataclass(frozen=True, slots=True)

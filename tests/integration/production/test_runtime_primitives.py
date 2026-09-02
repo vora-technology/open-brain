@@ -12,16 +12,16 @@ from pathlib import Path
 from typing import BinaryIO, cast
 
 import pytest
-
-from open_brain.capture.egress import OutboundFetcher, PinnedRequest, TransportResponse
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
     RawAssetRef,
 )
-from open_brain.core.ports import FetchRequest, StagedExecutionRequest
+from open_brain_engine.core.ports import FetchRequest, StagedExecutionRequest
+
+from open_brain.capture.egress import OutboundFetcher, PinnedRequest, TransportResponse
 from open_brain.production import (
     ContentAddressedDerivedAssetStore,
     DnsPinnedHttpTransport,

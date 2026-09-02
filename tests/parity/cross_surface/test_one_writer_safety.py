@@ -1,4 +1,5 @@
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
+
 from open_brain.operations.catalog import JOB_CATALOG, get_job
 from open_brain.operations.models import (
     DeploymentTarget,

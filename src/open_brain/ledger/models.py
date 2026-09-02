@@ -10,8 +10,8 @@ from hashlib import sha256
 from pathlib import PurePosixPath
 from typing import TypedDict
 
-from open_brain.core.ids import CaptureId, canonical_json_bytes, validate_identifier
-from open_brain.core.models import (
+from open_brain_engine.core.ids import CaptureId, canonical_json_bytes, validate_identifier
+from open_brain_engine.core.models import (
     CaptureSource,
     ContentKind,
     PrivacyDecision,
@@ -19,7 +19,7 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.ports import RedactionReceipt
+from open_brain_engine.core.ports import RedactionReceipt
 
 _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9_-]{0,127}$")
 _VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")

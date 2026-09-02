@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
 
-from open_brain.core.ids import canonical_json_bytes
+from open_brain_engine.core.ids import canonical_json_bytes
 
 _OPAQUE_REF = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 

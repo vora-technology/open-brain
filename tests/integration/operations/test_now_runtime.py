@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from open_brain_engine.core.models import PrivacyTier
+from open_brain_engine.engine import LockScope
 
 import open_brain.operations.now_runtime as now_runtime
-from open_brain.core.models import PrivacyTier
-from open_brain.engine import LockScope
 from open_brain.operations.models import DeploymentTarget
 from open_brain.operations.now import NowItem, NowProjectionInput, NowRoots, check_now
 from open_brain.operations.now_runtime import (

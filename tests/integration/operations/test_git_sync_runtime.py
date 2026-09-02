@@ -7,8 +7,8 @@ from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.engine import LockScope
 
-from open_brain.engine import LockScope
 from open_brain.operations.git_sync_runtime import (
     GitCommand,
     GitCommandResult,

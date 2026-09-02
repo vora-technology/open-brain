@@ -11,9 +11,28 @@ from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain.core.ids import CaptureId, canonical_json_bytes, capture_id_for, review_id_for
-from open_brain.core.models import Intent, PrivacyTier
-from open_brain.core.ports import Clock
+from open_brain_engine.core.ids import (
+    CaptureId,
+    canonical_json_bytes,
+    capture_id_for,
+    review_id_for,
+)
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.core.ports import Clock
+from open_brain_engine.review.models import Actor, ActorKind, ReviewAggregate, ReviewProposal
+from open_brain_engine.storage.filesystem import (
+    DuplicateConflictError,
+    RootConfinementError,
+    StorageError,
+)
+from open_brain_engine.storage.sqlite import (
+    Migration,
+    SchemaError,
+    connect_database,
+    connect_database_read_only,
+    migrate,
+)
+
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.messaging import (
     MessageBatch,
@@ -35,20 +54,7 @@ from open_brain.integrations.ports import (
     ReviewWriteRequest,
     ReviewWriteResult,
 )
-from open_brain.review.models import Actor, ActorKind, ReviewAggregate, ReviewProposal
 from open_brain.review.store import SqliteReviewStore
-from open_brain.storage.filesystem import (
-    DuplicateConflictError,
-    RootConfinementError,
-    StorageError,
-)
-from open_brain.storage.sqlite import (
-    Migration,
-    SchemaError,
-    connect_database,
-    connect_database_read_only,
-    migrate,
-)
 
 _OPAQUE_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _CURSOR_SENTINEL = "cursor_root"

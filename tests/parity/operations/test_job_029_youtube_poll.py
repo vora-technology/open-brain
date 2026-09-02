@@ -5,8 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -19,6 +18,7 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+
 from open_brain.operations.capture_jobs import (
     CaptureJobApplication,
     CaptureJobContractError,

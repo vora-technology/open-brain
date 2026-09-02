@@ -44,20 +44,20 @@ def _write_sdist(path: Path, members: list[str]) -> None:
 
 
 def test_phase_zero_policy_matches_explicit_hatch_configuration() -> None:
-    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    build = pyproject["tool"]["hatch"]["build"]["targets"]
+    pyproject = tomllib.loads(
+        (ROOT / "packages/engine/pyproject.toml").read_text(encoding="utf-8")
+    )
+    hatch_build = pyproject["tool"]["hatch"]["build"]
+    build = hatch_build["targets"]
     wheel = _artifact_config("wheel")
     sdist = _artifact_config("sdist")
 
-    assert _policy()["phase"] == "0-explicit-boundary"
+    assert _policy()["phase"] == "4-engine-isolation"
+    assert hatch_build["ignore-vcs"] is True
     assert build["wheel"]["packages"] == wheel["configured_package_roots"]
-    force_includes = [
-        {"source": source, "destination": destination}
-        for source, destination in build["wheel"]["force-include"].items()
-    ]
-    assert force_includes == wheel["force_includes"]
+    assert wheel["force_includes"] == []
     assert build["sdist"]["include"] == sdist["configured_includes"]
-    assert wheel["status"] == sdist["status"] == "explicit-current-not-release-ready"
+    assert wheel["status"] == sdist["status"] == "engine-isolated-unpublished"
 
 
 def test_phase_zero_policy_verifies_required_and_forbidden_members(tmp_path: Path) -> None:
@@ -70,10 +70,11 @@ def test_phase_zero_policy_verifies_required_and_forbidden_members(tmp_path: Pat
 
     assert verify_artifacts(POLICY_PATH, [wheel, sdist]) == []
 
-    _write_wheel(wheel, [*wheel_members, "open_brain/portable/conformance/v1/.open-brain/x"])
+    leaked = "open_brain_engine/portable/conformance/v1/.open-brain/x"
+    _write_wheel(wheel, [*wheel_members, leaked])
     findings = verify_artifacts(POLICY_PATH, [wheel, sdist])
     assert [(finding.member, finding.rule) for finding in findings] == [
-        ("open_brain/portable/conformance/v1/.open-brain/x", "forbidden-member")
+        (leaked, "forbidden-member")
     ]
 
 
@@ -81,31 +82,43 @@ def test_phase_zero_policy_requires_every_schema_and_conformance_fixture() -> No
     wheel_members = set(required_members_for_policy(POLICY_PATH, "wheel"))
     sdist_members = set(required_members_for_policy(POLICY_PATH, "sdist"))
     schema_files = {
-        path.relative_to(ROOT / "schemas/portable-brain/v1").as_posix()
-        for path in (ROOT / "schemas/portable-brain/v1").rglob("*")
+        path.relative_to(
+            ROOT / "packages/engine/src/open_brain_engine/portable/schemas/v1"
+        ).as_posix()
+        for path in (ROOT / "packages/engine/src/open_brain_engine/portable/schemas/v1").rglob(
+            "*"
+        )
         if path.is_file()
     }
     fixture_files = {
-        path.relative_to(ROOT / "tests/fixtures/portable-brain/v1").as_posix()
-        for path in (ROOT / "tests/fixtures/portable-brain/v1").rglob("*")
+        path.relative_to(
+            ROOT / "packages/engine/src/open_brain_engine/portable/conformance/v1"
+        ).as_posix()
+        for path in (
+            ROOT / "packages/engine/src/open_brain_engine/portable/conformance/v1"
+        ).rglob("*")
         if path.is_file()
     }
 
     assert {
-        f"open_brain/portable/schemas/v1/{path}" for path in schema_files
-    } == {
-        path for path in wheel_members if path.startswith("open_brain/portable/schemas/v1/")
-    }
-    assert {
-        f"open_brain/portable/conformance/v1/{path}" for path in fixture_files
+        f"open_brain_engine/portable/schemas/v1/{path}" for path in schema_files
     } == {
         path
         for path in wheel_members
-        if path.startswith("open_brain/portable/conformance/v1/")
+        if path.startswith("open_brain_engine/portable/schemas/v1/")
     }
-    assert {f"schemas/portable-brain/v1/{path}" for path in schema_files} <= sdist_members
     assert {
-        f"tests/fixtures/portable-brain/v1/{path}" for path in fixture_files
+        f"open_brain_engine/portable/conformance/v1/{path}" for path in fixture_files
+    } == {
+        path
+        for path in wheel_members
+        if path.startswith("open_brain_engine/portable/conformance/v1/")
+    }
+    assert {
+        f"src/open_brain_engine/portable/schemas/v1/{path}" for path in schema_files
+    } <= sdist_members
+    assert {
+        f"src/open_brain_engine/portable/conformance/v1/{path}" for path in fixture_files
     } <= sdist_members
 
 

@@ -5,9 +5,9 @@ import stat
 from pathlib import Path
 
 import pytest
+from open_brain_engine.engine import ProviderMode
 
 import open_brain.profile as profile_module
-from open_brain.engine import ProviderMode
 from open_brain.profile import (
     ProfileError,
     compile_single_user_local,
@@ -59,7 +59,7 @@ def test_profile_imports_only_the_public_engine_surface() -> None:
         and node.module.startswith("open_brain")
     }
 
-    assert imports == {"open_brain.engine"}
+    assert imports == {"open_brain_engine.engine"}
 
 
 def test_single_user_local_compiles_one_root_with_stable_identities_and_none_provider(

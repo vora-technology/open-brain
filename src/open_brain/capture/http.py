@@ -10,8 +10,7 @@ from hashlib import sha256
 from typing import Protocol, cast
 from urllib.parse import urlsplit
 
-from open_brain.capture.auth import BearerAuthenticator
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureAction,
     CapturePipeline,
     CaptureReceipt,
@@ -30,6 +29,8 @@ from open_brain.engine import (
     TextPayload,
     classify_privacy,
 )
+
+from open_brain.capture.auth import BearerAuthenticator
 
 BODY_LIMIT_BYTES = 100_000
 REQUEST_TIMEOUT_SECONDS = 5.0

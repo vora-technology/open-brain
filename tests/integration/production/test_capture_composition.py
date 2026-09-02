@@ -6,15 +6,8 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.capture.distillation_worker import DistillationProcessStatus
-from open_brain.capture.extractors.social import SocialMediaResult
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import MediaCommand, MediaTool
-from open_brain.capture.models import CaptureWorkItem
-from open_brain.capture.queue import FilesystemCaptureQueue
-from open_brain.capture.service import ProcessStatus
-from open_brain.config import AppConfig, RetainedRoots
-from open_brain.core.models import (
+from open_brain_engine.capture.models import CaptureWorkItem
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -27,10 +20,18 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.providers.base import ProviderService
+
+from open_brain.capture.distillation_worker import DistillationProcessStatus
+from open_brain.capture.extractors.social import SocialMediaResult
+from open_brain.capture.extractors.youtube import YouTubeMediaResult
+from open_brain.capture.media import MediaCommand, MediaTool
+from open_brain.capture.queue import FilesystemCaptureQueue
+from open_brain.capture.service import ProcessStatus
+from open_brain.config import AppConfig, RetainedRoots
 from open_brain.production.capture import compose_production_capture_runtime
 from open_brain.production.personal_capture import PersonalCaptureStatus
-from open_brain.providers.base import ProviderService
 
 FIXED_TIME = datetime(2026, 8, 25, 12, 0, tzinfo=UTC)
 

@@ -8,11 +8,10 @@ from pathlib import Path
 from typing import Literal, cast
 
 import pytest
-
-from open_brain.core.ids import CaptureId
-from open_brain.core.models import Intent, PrivacyTier
-from open_brain.core.ports import PutDisposition, PutResult
-from open_brain.review.models import (
+from open_brain_engine.core.ids import CaptureId
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.core.ports import PutDisposition, PutResult
+from open_brain_engine.review.models import (
     Actor,
     ActorKind,
     ReviewDecisionCommand,
@@ -20,9 +19,10 @@ from open_brain.review.models import (
     ReviewState,
     ReviewStateConflict,
 )
+from open_brain_engine.storage.filesystem import RootConfinementError
+
 from open_brain.review.service import OwnerAuthoredOutput, ReviewApplicationService
 from open_brain.review.store import SqliteReviewStore
-from open_brain.storage.filesystem import RootConfinementError
 
 FIXED_TIME = datetime(2026, 8, 13, 12, tzinfo=UTC)
 

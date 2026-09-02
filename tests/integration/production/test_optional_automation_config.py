@@ -5,22 +5,22 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import Intent, PrivacyTier
-from open_brain.production.optional_automation import (
-    OptionalAutomationConfigError,
-    approved_life_os_candidates,
-    load_private_life_os_config,
-    load_private_messages_config,
-)
-from open_brain.review.models import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.review.models import (
     Actor,
     ActorKind,
     ReviewAggregate,
     ReviewDecisionCommand,
     ReviewProposal,
     ReviewState,
+)
+
+from open_brain.production.optional_automation import (
+    OptionalAutomationConfigError,
+    approved_life_os_candidates,
+    load_private_life_os_config,
+    load_private_messages_config,
 )
 from open_brain.review.store import SqliteReviewStore
 

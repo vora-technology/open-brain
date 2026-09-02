@@ -4,8 +4,23 @@ from datetime import UTC, date, datetime
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.review.models import (
+    Actor,
+    ActorKind,
+    ApprovedIntentRecord,
+    ReviewAggregate,
+    ReviewDecisionCommand,
+    ReviewProposal,
+    ReviewState,
+)
+from open_brain_engine.storage.filesystem import (
+    DurabilityError,
+    RootConfinementError,
+    atomic_replace,
+    read_confined,
+)
 
-from open_brain.core.models import Intent, PrivacyTier
 from open_brain.integrations.life_os import (
     CalendarBlockRequest,
     CalendarBlockWriteDisposition,
@@ -22,21 +37,6 @@ from open_brain.integrations.life_os_runtime import (
     LifeOSRuntimeDisposition,
     LifeOSRuntimeOperation,
     LifeOSRuntimeStateError,
-)
-from open_brain.review.models import (
-    Actor,
-    ActorKind,
-    ApprovedIntentRecord,
-    ReviewAggregate,
-    ReviewDecisionCommand,
-    ReviewProposal,
-    ReviewState,
-)
-from open_brain.storage.filesystem import (
-    DurabilityError,
-    RootConfinementError,
-    atomic_replace,
-    read_confined,
 )
 
 _STATE_RELATIVE = PurePosixPath("runtime/life_os/planning-runtime.json")

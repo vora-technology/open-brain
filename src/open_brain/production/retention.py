@@ -13,9 +13,10 @@ from enum import StrEnum
 from pathlib import Path
 from typing import cast
 
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.ports import Clock
+
 from open_brain.config import AppConfig
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.ports import Clock
 from open_brain.operations.retention import (
     RetentionArtifactKind,
     RetentionCandidate,

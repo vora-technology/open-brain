@@ -8,20 +8,15 @@ from enum import StrEnum
 from hashlib import sha256
 from typing import Protocol, cast
 
-from open_brain.capture.distillation import (
-    DistillationInput,
-    DistillationService,
-    DistilledCapture,
-)
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     DistillationLease,
     DistillationWorkItem,
     NormalizedExtraction,
     QueueErrorCode,
 )
-from open_brain.core.ids import CaptureId
-from open_brain.core.models import CaptureEnvelope, PrivacyDecision
-from open_brain.core.ports import (
+from open_brain_engine.core.ids import CaptureId
+from open_brain_engine.core.models import CaptureEnvelope, PrivacyDecision
+from open_brain_engine.core.ports import (
     CaptureQueue,
     Clock,
     EventRecord,
@@ -29,6 +24,12 @@ from open_brain.core.ports import (
     PutDisposition,
     PutResult,
     RawStore,
+)
+
+from open_brain.capture.distillation import (
+    DistillationInput,
+    DistillationService,
+    DistilledCapture,
 )
 
 

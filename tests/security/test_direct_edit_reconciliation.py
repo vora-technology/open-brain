@@ -4,14 +4,14 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureAction,
     TextPayload,
     acquire_daemon_authority,
     open_authoritative_local_engine,
     open_local_engine,
 )
+
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 
 

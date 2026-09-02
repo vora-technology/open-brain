@@ -12,6 +12,15 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import parse_qs, urlsplit
 
+from open_brain_engine.engine import (
+    CaptureReceipt,
+    ContentOrigin,
+    PrivacyDecision,
+    Provenance,
+    PublicJobCaptureSink,
+    ReferencePayload,
+)
+
 from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
 from open_brain.capture.media import MediaCommand
 from open_brain.capture.poll import (
@@ -22,14 +31,6 @@ from open_brain.capture.poll import (
     PollRequestOrigin,
     PollRequestResult,
     YouTubePoller,
-)
-from open_brain.engine import (
-    CaptureReceipt,
-    ContentOrigin,
-    PrivacyDecision,
-    Provenance,
-    PublicJobCaptureSink,
-    ReferencePayload,
 )
 from open_brain.services.connectors import (
     ConnectorBudget,

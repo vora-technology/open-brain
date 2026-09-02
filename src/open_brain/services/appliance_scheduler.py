@@ -13,8 +13,8 @@ from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 from typing import Final, cast
 
-from open_brain.engine import LocalEngineContext, canonical_json_bytes
-from open_brain.storage.operational import (
+from open_brain_engine.engine import LocalEngineContext, canonical_json_bytes
+from open_brain_engine.storage.operational import (
     RootIdentity,
     StorageError,
     WriteState,

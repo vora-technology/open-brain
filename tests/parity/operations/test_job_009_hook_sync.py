@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
+
 from open_brain.operations.catalog import get_job
 from open_brain.operations.models import JobState
 from open_brain.operations.writer_jobs import (

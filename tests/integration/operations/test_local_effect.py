@@ -5,9 +5,9 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
+from open_brain_engine.engine import LockScope
 
 import open_brain.operations.local_effect as local_effect
-from open_brain.engine import LockScope
 from open_brain.operations.local_effect import (
     EmptyBatchApplication,
     FilesystemEmptyEffectCapability,

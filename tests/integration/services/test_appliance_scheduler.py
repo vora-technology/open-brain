@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine.engine import LocalEngineContext, canonical_json_bytes
 
-from open_brain.engine import LocalEngineContext, canonical_json_bytes
 from open_brain.profile import compile_single_user_local
 from open_brain.services.appliance_scheduler import (
     APPLIANCE_SCHEDULER_DIRECTORY,

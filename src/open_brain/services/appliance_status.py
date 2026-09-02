@@ -8,7 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
-from open_brain.engine import MaintenanceSnapshot, read_maintenance_snapshot
+from open_brain_engine.engine import MaintenanceSnapshot, read_maintenance_snapshot
+
 from open_brain.integrations.ui import UiBindConfig
 from open_brain.profile import open_existing_single_user_local
 

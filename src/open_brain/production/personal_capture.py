@@ -7,14 +7,7 @@ from datetime import timedelta
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
 
-from open_brain.capture.distillation import (
-    DistillationInput,
-    DistillationService,
-    DistilledCapture,
-)
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.extractors.text import TextExtractor
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureLease,
     CaptureWorkItem,
     ExtractionMetadata,
@@ -24,14 +17,22 @@ from open_brain.capture.models import (
     QueueErrorCode,
     TranscriptState,
 )
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     PrivacyReason,
     PrivacyTier,
     RawCapture,
     SourceType,
 )
-from open_brain.core.ports import CaptureQueue, Clock, RawStore
-from open_brain.storage.filesystem import atomic_write_new
+from open_brain_engine.core.ports import CaptureQueue, Clock, RawStore
+from open_brain_engine.storage.filesystem import atomic_write_new
+
+from open_brain.capture.distillation import (
+    DistillationInput,
+    DistillationService,
+    DistilledCapture,
+)
+from open_brain.capture.extractors import ExtractionRequest
+from open_brain.capture.extractors.text import TextExtractor
 
 _PERSONAL_REASONS = {
     PrivacyReason.PERSONAL_LOCAL_ONLY,

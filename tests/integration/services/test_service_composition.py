@@ -5,7 +5,8 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from open_brain.engine import CaptureReceipt
+from open_brain_engine.engine import CaptureReceipt
+
 from open_brain.integrations.ports import (
     FeedbackOutcome,
     PageDocument,

@@ -6,10 +6,7 @@ from collections.abc import Mapping
 from enum import StrEnum
 from hashlib import sha256
 
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.extractors.social import SocialExtractionRequest
-from open_brain.capture.extractors.youtube import YouTubeExtractionRequest
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureLease,
     CaptureRedactionResult,
     CaptureWorkItem,
@@ -20,14 +17,14 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     QueueErrorCode,
 )
-from open_brain.capture.redaction import REDACTION_POLICY_VERSION, VersionedCaptureRedactor
-from open_brain.core.models import (
+from open_brain_engine.capture.redaction import REDACTION_POLICY_VERSION, VersionedCaptureRedactor
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     PrivacyReason,
     RawCapture,
     SourceType,
 )
-from open_brain.core.ports import (
+from open_brain_engine.core.ports import (
     CaptureQueue,
     Clock,
     EventRecord,
@@ -36,6 +33,10 @@ from open_brain.core.ports import (
     PutDisposition,
     RawStore,
 )
+
+from open_brain.capture.extractors import ExtractionRequest
+from open_brain.capture.extractors.social import SocialExtractionRequest
+from open_brain.capture.extractors.youtube import YouTubeExtractionRequest
 
 _PRIVATE_HOLD_REASONS = frozenset(
     {

@@ -61,6 +61,18 @@ NO_ADDITIONAL_TERMS_MARKER = "# no additional project terms"
 PORTABLE_FIXTURE_PATHS = (
     ("tests", "fixtures", "portable-brain", "v1", "brain-root"),
     ("open_brain", "portable", "conformance", "v1", "brain-root"),
+    (
+        "packages",
+        "engine",
+        "src",
+        "open_brain_engine",
+        "portable",
+        "conformance",
+        "v1",
+        "brain-root",
+    ),
+    ("open_brain_engine", "portable", "conformance", "v1", "brain-root"),
+    ("src", "open_brain_engine", "portable", "conformance", "v1", "brain-root"),
 )
 
 

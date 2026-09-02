@@ -9,7 +9,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from open_brain.capture.models import CaptureWorkItem, ShareRequest, ShareResponse
+from open_brain_engine.capture.models import CaptureWorkItem, ShareRequest, ShareResponse
+from open_brain_engine.core.models import PrivacyTier
+from open_brain_engine.core.ports import PutResult
+from open_brain_engine.engine import CaptureAction, CaptureReceipt, Payload
+
 from open_brain.capture.queue import FilesystemCaptureQueue, read_pending_queue_snapshot
 from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
 from open_brain.cli.ledger import scan as scan_ledger
@@ -22,9 +26,6 @@ from open_brain.cli.operations import (
 )
 from open_brain.cli.production_adapters import ProductionCommandDependencies
 from open_brain.config import AppConfig
-from open_brain.core.models import PrivacyTier
-from open_brain.core.ports import PutResult
-from open_brain.engine import CaptureAction, CaptureReceipt, Payload
 from open_brain.integrations.ports import PageDocument, PageReadRequest
 from open_brain.integrations.retrieval import (
     FilesystemWorkRetriever,

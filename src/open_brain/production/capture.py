@@ -8,6 +8,26 @@ from dataclasses import dataclass
 from hashlib import sha256
 from typing import Protocol, cast
 
+from open_brain_engine.capture.models import Extractor
+from open_brain_engine.core.ids import (
+    CaptureId,
+    ReviewId,
+    canonical_json_bytes,
+    capture_id_for,
+    review_id_for,
+)
+from open_brain_engine.core.models import Intent, PrivacyDecision, SourceType
+from open_brain_engine.core.ports import (
+    Clock,
+    FetchRequest,
+    FetchResponse,
+    IdGenerator,
+    OutboundFetcher,
+)
+from open_brain_engine.events.store import SqliteEventStore
+from open_brain_engine.providers.base import ProviderService
+from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore
+
 from open_brain.capture.distillation import DistillationService, FilesystemDistillationStore
 from open_brain.capture.distillation_worker import (
     DistillationProcessStatus,
@@ -17,36 +37,17 @@ from open_brain.capture.extractors.article import ArticleExtractor
 from open_brain.capture.extractors.social import SocialExtractor, SocialMediaAdapter
 from open_brain.capture.extractors.text import TextExtractor
 from open_brain.capture.extractors.youtube import YouTubeExtractor, YouTubeMediaAdapter
-from open_brain.capture.models import Extractor
 from open_brain.capture.queue import (
     FilesystemCaptureQueue,
     FilesystemDistillationQueue,
 )
 from open_brain.capture.service import CaptureService, ProcessStatus
 from open_brain.config import AppConfig
-from open_brain.core.ids import (
-    CaptureId,
-    ReviewId,
-    canonical_json_bytes,
-    capture_id_for,
-    review_id_for,
-)
-from open_brain.core.models import Intent, PrivacyDecision, SourceType
-from open_brain.core.ports import (
-    Clock,
-    FetchRequest,
-    FetchResponse,
-    IdGenerator,
-    OutboundFetcher,
-)
-from open_brain.events.store import SqliteEventStore
 from open_brain.production.capture_publication import CaptureDestinationPublisher
 from open_brain.production.personal_capture import (
     PersonalCaptureStatus,
     PersonalCaptureWorker,
 )
-from open_brain.providers.base import ProviderService
-from open_brain.storage.filesystem import AtomicFilesystemRawStore
 
 
 class CaptureMediaAdapter(SocialMediaAdapter, YouTubeMediaAdapter, Protocol):

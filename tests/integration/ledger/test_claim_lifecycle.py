@@ -4,8 +4,9 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from open_brain.core.models import PrivacyTier
-from open_brain.core.policy import classify_privacy
+from open_brain_engine.core.models import PrivacyTier
+from open_brain_engine.core.policy import classify_privacy
+
 from open_brain.ledger.age import age_claims
 from open_brain.ledger.embed import embed_claims
 from open_brain.ledger.index import ClaimInput, ClaimStatus, index_claims

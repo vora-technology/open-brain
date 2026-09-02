@@ -3,8 +3,8 @@ from __future__ import annotations
 from hashlib import sha256
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
 
-from open_brain.core.ids import canonical_json_bytes
 from open_brain.operations.writer_jobs import (
     EffectCommand,
     EffectParameter,

@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pytest
-
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
@@ -12,8 +11,9 @@ from open_brain.core.models import (
     RawAssetRef,
     ValidationError,
 )
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.providers.base import ProviderFailure
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.providers.base import ProviderFailure
+
 from open_brain.providers.transcription import (
     MAX_TRANSCRIPTION_MEDIA_BYTES,
     TranscriptionRequest,

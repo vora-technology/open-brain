@@ -5,23 +5,23 @@ from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
 import pytest
-
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import Intent, PrivacyTier, ValidationError
-from open_brain.review.maintenance import (
-    CurationClass,
-    CurationTarget,
-    CurationTaxonomy,
-    ReviewTargetEdit,
-    predecessor_curation_taxonomy,
-)
-from open_brain.review.models import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import Intent, PrivacyTier, ValidationError
+from open_brain_engine.review.models import (
     Actor,
     ActorKind,
     ReviewAggregate,
     ReviewDecisionCommand,
     ReviewProposal,
     ReviewState,
+)
+
+from open_brain.review.maintenance import (
+    CurationClass,
+    CurationTarget,
+    CurationTaxonomy,
+    ReviewTargetEdit,
+    predecessor_curation_taxonomy,
 )
 from open_brain.review.store import ReviewStoreError, SqliteReviewStore
 

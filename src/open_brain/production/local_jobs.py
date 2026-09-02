@@ -13,7 +13,10 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol
 
-from open_brain.core.ids import canonical_json_bytes
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.review.models import ReviewAggregate, ReviewState
+from open_brain_engine.storage.filesystem import atomic_replace, read_confined
+
 from open_brain.integrations.hooks import HookPlan, TemporaryHookPlanner
 from open_brain.integrations.ports import HookInstallRequest, HookKind
 from open_brain.operations.git_sync_runtime import GitCommand, GitCommandRunner
@@ -26,8 +29,6 @@ from open_brain.operations.writer_jobs import (
     WriterJobError,
     WriterJobInvocation,
 )
-from open_brain.review.models import ReviewAggregate, ReviewState
-from open_brain.storage.filesystem import atomic_replace, read_confined
 
 _OPAQUE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _REVISION_ID = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?")

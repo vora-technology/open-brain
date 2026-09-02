@@ -5,16 +5,16 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
-
-from open_brain.capture.extractors.social import SocialExtractionRequest, SocialExtractor
-from open_brain.capture.models import ExtractionFailure, ExtractionState
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.core.ports import (
+from open_brain_engine.capture.models import ExtractionFailure, ExtractionState
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.core.ports import (
     FetchRequest,
     FetchResponse,
     StagedExecutionRequest,
     StagedExecutionResult,
 )
+
+from open_brain.capture.extractors.social import SocialExtractionRequest, SocialExtractor
 
 _SYNTHETIC_LEAK = "outside-canary|environment-canary|socket-canary|network-canary|raw-error-canary"
 

@@ -12,8 +12,8 @@ from time import monotonic
 from typing import NoReturn, Protocol
 from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 
-from open_brain.core.models import PrivacyDecision
-from open_brain.core.ports import FetchRequest, FetchResponse
+from open_brain_engine.core.models import PrivacyDecision
+from open_brain_engine.core.ports import FetchRequest, FetchResponse
 
 _DEFAULT_MAX_BYTES = 2 * 1024 * 1024
 _DEFAULT_MAX_REDIRECTS = 3

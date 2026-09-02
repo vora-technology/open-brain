@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Protocol
 
+from open_brain_engine.engine import LockScope
+
 from open_brain.config import AppConfig, ConfigError
-from open_brain.engine import LockScope
 
 from .doctor import DoctorProbe, ProbeReading
 from .models import DeploymentTarget, OperationsValidationError

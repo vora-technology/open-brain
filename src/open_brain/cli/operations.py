@@ -7,8 +7,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
+from open_brain_engine.core.models import PrivacyTier
+
 from open_brain.cli._common import ExitCode, redacted_error
-from open_brain.core.models import PrivacyTier
 from open_brain.operations.runlog import RunMetadata
 from open_brain.production.retention import RetentionReport
 

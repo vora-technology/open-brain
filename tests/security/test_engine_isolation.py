@@ -9,7 +9,7 @@ from pathlib import Path
 def test_public_engine_opens_and_exercises_phase1_without_app_or_connector_modules(
     tmp_path: Path,
 ) -> None:
-    source = Path(__file__).parents[2] / "src"
+    source = Path(__file__).parents[2] / "packages" / "engine" / "src"
     root = tmp_path / "engine-root"
     program = f"""
 import json
@@ -19,7 +19,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 sys.path.insert(0, {str(source)!r})
-from open_brain.engine import (
+from open_brain_engine.engine import (
     LocalEngineContext,
     ProposalDraft,
     ProviderMode,

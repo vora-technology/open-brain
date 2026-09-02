@@ -8,8 +8,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Protocol
 
+from open_brain_engine.core.models import PrivacyDecision
+
 from open_brain.cli._common import ExitCode, redacted_error
-from open_brain.core.models import PrivacyDecision
 from open_brain.ledger.age import age_claims
 from open_brain.ledger.embed import embed_claims
 from open_brain.ledger.index import ClaimInput, ClaimRecord, index_claims

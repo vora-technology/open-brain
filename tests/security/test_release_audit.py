@@ -90,6 +90,20 @@ def test_public_portable_fixture_paths_are_narrowly_allowed(tmp_path: Path) -> N
     assert "forbidden-path-family" in {finding.rule for finding in audit(root, denylist)}
 
 
+def test_engine_source_portable_fixture_paths_are_narrowly_allowed(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    denylist = write_safe_tree(root)
+    fixture = (
+        root
+        / "packages/engine/src/open_brain_engine/portable/conformance/v1/brain-root"
+        / "sources/captures/capture.json"
+    )
+    fixture.parent.mkdir(parents=True)
+    fixture.write_text("synthetic public conformance fixture", encoding="utf-8")
+
+    assert audit(root, denylist) == []
+
+
 def test_oversized_content_fails_closed(tmp_path: Path) -> None:
     root = tmp_path / "project"
     denylist = write_safe_tree(root)
@@ -155,11 +169,11 @@ def test_packaged_portable_fixture_paths_are_narrowly_allowed(tmp_path: Path) ->
     artifact = tmp_path / "release.whl"
     with zipfile.ZipFile(artifact, "w") as archive:
         archive.writestr(
-            "open_brain/portable/conformance/v1/brain-root/content/spaces/demo/_space.md",
+            "open_brain_engine/portable/conformance/v1/brain-root/content/spaces/demo/_space.md",
             "synthetic public conformance fixture",
         )
         archive.writestr(
-            "open_brain/portable/conformance/v1/brain-root/sources/captures/capture.json",
+            "open_brain_engine/portable/conformance/v1/brain-root/sources/captures/capture.json",
             "synthetic public conformance fixture",
         )
 
@@ -167,7 +181,7 @@ def test_packaged_portable_fixture_paths_are_narrowly_allowed(tmp_path: Path) ->
 
     with zipfile.ZipFile(artifact, "a") as archive:
         archive.writestr(
-            "open_brain/portable/conformance/v2/brain-root/content/private.md",
+            "open_brain_engine/portable/conformance/v2/brain-root/content/private.md",
             "synthetic",
         )
     assert "forbidden-path-family" in {

@@ -6,9 +6,10 @@ from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.engine import LockScope
+from open_brain_engine.storage.filesystem import DurabilityError, atomic_write_new
 
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.engine import LockScope
 from open_brain.operations.index import IndexRoots, check_index
 from open_brain.operations.index_writer import IndexEffectCapability, IndexWriterApplication
 from open_brain.operations.models import DeploymentTarget
@@ -23,7 +24,6 @@ from open_brain.operations.writer_jobs import (
     get_writer_job_spec,
     run_writer_job,
 )
-from open_brain.storage.filesystem import DurabilityError, atomic_write_new
 from tests.unit.storage._factories import FixedClock
 
 

@@ -12,7 +12,18 @@ from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 
-from open_brain.core.models import ContentKind, Intent, Provenance, SourceType
+from open_brain_engine.core.models import ContentKind, Intent, Provenance, SourceType
+from open_brain_engine.storage.filesystem import (
+    DuplicateConflictError,
+    DurabilityError,
+    RootConfinementError,
+    StorageError,
+    WriteState,
+    atomic_write_new,
+    read_confined,
+)
+from open_brain_engine.storage.markdown import MarkdownFormatError, parse_markdown, render_markdown
+
 from open_brain.integrations.ports import (
     PageDocument,
     PageReadRequest,
@@ -22,16 +33,6 @@ from open_brain.integrations.ports import (
     VaultWriteRequest,
     VaultWriteResult,
 )
-from open_brain.storage.filesystem import (
-    DuplicateConflictError,
-    DurabilityError,
-    RootConfinementError,
-    StorageError,
-    WriteState,
-    atomic_write_new,
-    read_confined,
-)
-from open_brain.storage.markdown import MarkdownFormatError, parse_markdown, render_markdown
 
 _OPAQUE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _MAX_TEXT = 2 * 1024 * 1024

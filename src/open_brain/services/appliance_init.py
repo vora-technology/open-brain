@@ -12,7 +12,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from open_brain.engine import (
+from open_brain_engine.engine import (
     PHASE1_STATE_SCHEMA_VERSION,
     StateSchemaUnavailableError,
     canonical_json_bytes,
@@ -20,6 +20,7 @@ from open_brain.engine import (
     open_local_engine,
     read_maintenance_snapshot,
 )
+
 from open_brain.profile import (
     SingleUserLocalProfile,
     compile_single_user_local,

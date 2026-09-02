@@ -7,9 +7,10 @@ from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 
-from open_brain.core.models import SourceType
+from open_brain_engine.core.models import SourceType
+from open_brain_engine.storage.markdown import MarkdownFormatError, parse_markdown, render_markdown
+
 from open_brain.integrations.obsidian import ObsidianTaxonomy
-from open_brain.storage.markdown import MarkdownFormatError, parse_markdown, render_markdown
 
 from ._models import (
     ActionKind,

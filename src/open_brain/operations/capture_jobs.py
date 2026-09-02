@@ -7,9 +7,9 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import Protocol
 
-from open_brain.core.models import CaptureEnvelope, CaptureWhyOrigin, Provenance
-from open_brain.core.ports import PutDisposition
-from open_brain.engine import LockScope, PublicJobCaptureSink, ReferencePayload, TextPayload
+from open_brain_engine.core.models import CaptureEnvelope, CaptureWhyOrigin, Provenance
+from open_brain_engine.core.ports import PutDisposition
+from open_brain_engine.engine import LockScope, PublicJobCaptureSink, ReferencePayload, TextPayload
 
 from .catalog import get_job
 from .models import HostRole, JobSpec, JobState, OutputPolicy, WriterScope

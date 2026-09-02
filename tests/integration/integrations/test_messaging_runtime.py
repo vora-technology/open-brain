@@ -6,9 +6,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.ids import capture_id_for, review_id_for
+from open_brain_engine.core.models import Intent
+from open_brain_engine.storage.filesystem import RootConfinementError
+from open_brain_engine.storage.sqlite import connect_database
 
-from open_brain.core.ids import capture_id_for, review_id_for
-from open_brain.core.models import Intent
 from open_brain.integrations.config import IntegrationConfig
 from open_brain.integrations.messaging import MessageBatch, MessageCandidate, MessageConfidence
 from open_brain.integrations.messaging_runtime import (
@@ -28,8 +30,6 @@ from open_brain.integrations.ports import (
     SyncStatus,
 )
 from open_brain.review.store import SqliteReviewStore
-from open_brain.storage.filesystem import RootConfinementError
-from open_brain.storage.sqlite import connect_database
 from tests.unit.storage._factories import FixedClock
 
 

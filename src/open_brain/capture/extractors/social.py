@@ -8,8 +8,7 @@ from html.parser import HTMLParser
 from typing import Protocol, cast
 from urllib.parse import urlsplit
 
-from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand, MediaTool
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     ExtractionFailure,
     ExtractionMetadata,
     ExtractionState,
@@ -17,9 +16,11 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.core.models import ContentKind, PrivacyDecision, RawAssetRef, SourceType
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import FetchRequest, OutboundFetcher
+from open_brain_engine.core.models import ContentKind, PrivacyDecision, RawAssetRef, SourceType
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import FetchRequest, OutboundFetcher
+
+from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand, MediaTool
 from open_brain.providers.transcription import TranscriptionRequest, TranscriptionService
 
 _PLATFORMS = {

@@ -2,21 +2,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from open_brain.capture.extractors.social import (
-    SocialExtractionRequest,
-    SocialExtractor,
-    SocialMediaResult,
-)
-from open_brain.capture.media import MediaCommand, MediaTool
-from open_brain.capture.models import ExtractionFailure, ExtractionState, TranscriptState
-from open_brain.core.models import (
+from open_brain_engine.capture.models import ExtractionFailure, ExtractionState, TranscriptState
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
     RawAssetRef,
 )
-from open_brain.core.ports import FetchRequest, FetchResponse
+from open_brain_engine.core.ports import FetchRequest, FetchResponse
+
+from open_brain.capture.extractors.social import (
+    SocialExtractionRequest,
+    SocialExtractor,
+    SocialMediaResult,
+)
+from open_brain.capture.media import MediaCommand, MediaTool
 from open_brain.providers.transcription import (
     TranscriptionRequest,
     TranscriptionResult,

@@ -8,9 +8,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-
-from open_brain import parity
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     CaptureSource,
     CaptureWhyOrigin,
@@ -21,7 +19,9 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.policy import IntentPolicyReason, classify_privacy, route_intent
+from open_brain_engine.core.policy import IntentPolicyReason, classify_privacy, route_intent
+
+from open_brain import parity
 
 _FIXTURES = Path(__file__).with_name("capture_scenarios.json")
 _CAPTURED_AT = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)

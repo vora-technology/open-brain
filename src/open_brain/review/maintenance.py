@@ -13,10 +13,9 @@ from pathlib import PurePosixPath
 from types import MappingProxyType
 from typing import cast
 
-from open_brain.core.ids import ReviewId, canonical_json_bytes, validate_identifier
-from open_brain.core.models import PrivacyTier, ValidationError
-
-from .models import Actor, ActorKind, ReviewAggregate, ReviewState
+from open_brain_engine.core.ids import ReviewId, canonical_json_bytes, validate_identifier
+from open_brain_engine.core.models import PrivacyTier, ValidationError
+from open_brain_engine.review.models import Actor, ActorKind, ReviewAggregate, ReviewState
 
 _CATEGORY = re.compile(r"[a-z0-9][a-z0-9._-]{0,63}")
 _SLUG_PART = re.compile(r"[a-z0-9][a-z0-9._-]{0,127}")

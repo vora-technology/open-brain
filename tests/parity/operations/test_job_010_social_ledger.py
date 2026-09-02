@@ -4,10 +4,19 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.ids import CaptureId, ReviewId
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.engine import LockScope
+from open_brain_engine.review.models import (
+    Actor,
+    ActorKind,
+    ApprovedIntentRecord,
+    ReviewAggregate,
+    ReviewDecisionCommand,
+    ReviewProposal,
+    ReviewState,
+)
 
-from open_brain.core.ids import CaptureId, ReviewId
-from open_brain.core.models import Intent, PrivacyTier
-from open_brain.engine import LockScope
 from open_brain.operations.catalog import get_job
 from open_brain.operations.models import (
     DeploymentTarget,
@@ -29,15 +38,6 @@ from open_brain.operations.writer_jobs import (
     WriterJobError,
     WriterJobInvocation,
     run_writer_job,
-)
-from open_brain.review.models import (
-    Actor,
-    ActorKind,
-    ApprovedIntentRecord,
-    ReviewAggregate,
-    ReviewDecisionCommand,
-    ReviewProposal,
-    ReviewState,
 )
 
 

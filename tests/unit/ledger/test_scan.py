@@ -7,9 +7,8 @@ from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
 import pytest
-
-from open_brain.capture.models import DistillationWorkItem
-from open_brain.core.models import (
+from open_brain_engine.capture.models import DistillationWorkItem
+from open_brain_engine.core.models import (
     CaptureSource,
     CaptureWhyOrigin,
     ContentKind,
@@ -18,8 +17,9 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.policy import classify_privacy
-from open_brain.core.ports import EventRecord, RedactionReceipt
+from open_brain_engine.core.policy import classify_privacy
+from open_brain_engine.core.ports import EventRecord, RedactionReceipt
+
 from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy, LedgerValidationError
 from open_brain.ledger.scan import scan_distillation_work_item, scan_source_root
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import MappingProxyType
 
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
 
 from .models import (
     HostRole,

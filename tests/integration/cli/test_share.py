@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from open_brain.capture.models import CapturePipeline, ShareRequest, ShareResponse, ShareStatus
+from open_brain_engine.capture.models import (
+    CapturePipeline,
+    ShareRequest,
+    ShareResponse,
+    ShareStatus,
+)
+
 from open_brain.cli._common import ExitCode
 from open_brain.cli.capture import share_capture
 

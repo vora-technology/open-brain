@@ -7,9 +7,8 @@ from pathlib import Path, PurePosixPath
 from typing import Literal, cast
 
 import pytest
-
-from open_brain.capture.models import DistillationWorkItem
-from open_brain.core.models import (
+from open_brain_engine.capture.models import DistillationWorkItem
+from open_brain_engine.core.models import (
     CaptureSource,
     CaptureWhyOrigin,
     ContentKind,
@@ -17,14 +16,21 @@ from open_brain.core.models import (
     PrivacyTier,
     SourceType,
 )
-from open_brain.core.policy import classify_privacy
-from open_brain.core.ports import (
+from open_brain_engine.core.policy import classify_privacy
+from open_brain_engine.core.ports import (
     EventRecord,
     PutDisposition,
     PutResult,
     RedactedMarkdownDocument,
     RedactionReceipt,
 )
+from open_brain_engine.storage.frontmatter import (
+    AtomicMarkdownReader,
+    AtomicMarkdownSink,
+    markdown_relative_path,
+    rendered_markdown_bytes,
+)
+
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.models import LedgerRoute, LedgerScanRecord, LedgerTaxonomy
 from open_brain.ledger.reconcile import LedgerReconciler, ReconcileDisposition
@@ -40,12 +46,6 @@ from open_brain.ledger.service import (
 )
 from open_brain.ledger.stage import LedgerStage, stage_scan_record
 from open_brain.ledger.store import SqliteLedgerStore
-from open_brain.storage.frontmatter import (
-    AtomicMarkdownReader,
-    AtomicMarkdownSink,
-    markdown_relative_path,
-    rendered_markdown_bytes,
-)
 
 
 class _Stop(RuntimeError):

@@ -9,15 +9,8 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
-
-from open_brain.capture.models import CaptureWorkItem, QueueErrorCode
-from open_brain.capture.queue import (
-    FilesystemCaptureQueue,
-    QueueImmutableConflictError,
-    QueueWriteError,
-    read_pending_queue_snapshot,
-)
-from open_brain.core.models import (
+from open_brain_engine.capture.models import CaptureWorkItem, QueueErrorCode
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -30,7 +23,14 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.ports import PutDisposition
+from open_brain_engine.core.ports import PutDisposition
+
+from open_brain.capture.queue import (
+    FilesystemCaptureQueue,
+    QueueImmutableConflictError,
+    QueueWriteError,
+    read_pending_queue_snapshot,
+)
 
 FIXED_TIME = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
 

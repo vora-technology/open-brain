@@ -3,8 +3,17 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from open_brain.core.ids import CaptureId, canonical_json_bytes
-from open_brain.core.models import Intent, PrivacyTier
+from open_brain_engine.core.ids import CaptureId, canonical_json_bytes
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.review.models import (
+    Actor,
+    ActorKind,
+    ReviewAggregate,
+    ReviewDecisionCommand,
+    ReviewProposal,
+    ReviewState,
+)
+
 from open_brain.integrations.hooks import TemporaryHookPlanner
 from open_brain.integrations.ports import HookInstallRequest, HookKind
 from open_brain.operations.git_sync_runtime import GitCommand, GitCommandResult
@@ -19,14 +28,6 @@ from open_brain.production.local_jobs import (
     WorkWikiLintApplication,
     build_hook_plans,
     scan_work_wiki,
-)
-from open_brain.review.models import (
-    Actor,
-    ActorKind,
-    ReviewAggregate,
-    ReviewDecisionCommand,
-    ReviewProposal,
-    ReviewState,
 )
 
 FIXED_TIME = datetime(2026, 8, 25, 12, tzinfo=UTC)

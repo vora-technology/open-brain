@@ -10,11 +10,10 @@ from hashlib import sha256
 from pathlib import Path
 from typing import cast
 
+import open_brain_engine.engine.portability as portability_module
 import pytest
-
-import open_brain.engine.portability as portability_module
-from open_brain.core.ids import portable_canonical_json_bytes
-from open_brain.engine import (
+from open_brain_engine.core.ids import portable_canonical_json_bytes
+from open_brain_engine.engine import (
     BrainEngine,
     DecisionOutcome,
     EventPayload,
@@ -24,17 +23,21 @@ from open_brain.engine import (
     ProposalDraft,
     TextPayload,
 )
-from open_brain.engine.materializer import Materialization, materialize_portable_root
-from open_brain.engine.portability_ports import PortableWritePort, portable_write_port
-from open_brain.portable import PortableValidationError, validate_portable_root
-from open_brain.portable.v1 import PortableSnapshot, validated_portable_snapshot
-from open_brain.profile import compile_single_user_local
-from open_brain.storage.filesystem import RootConfinementError
-from open_brain.storage.locks import FileLease
-from open_brain.storage.markdown import parse_markdown, render_markdown
-from open_brain.storage.staging import SiblingStage
+from open_brain_engine.engine.materializer import Materialization, materialize_portable_root
+from open_brain_engine.engine.portability_ports import PortableWritePort, portable_write_port
+from open_brain_engine.portable import PortableValidationError, validate_portable_root
+from open_brain_engine.portable.v1 import PortableSnapshot, validated_portable_snapshot
+from open_brain_engine.storage.filesystem import RootConfinementError
+from open_brain_engine.storage.locks import FileLease
+from open_brain_engine.storage.markdown import parse_markdown, render_markdown
+from open_brain_engine.storage.staging import SiblingStage
 
-FIXTURE_ROOT = Path(__file__).parents[2] / "fixtures" / "portable-brain" / "v1" / "brain-root"
+from open_brain.profile import compile_single_user_local
+
+FIXTURE_ROOT = (
+    Path(__file__).parents[3]
+    / "packages/engine/src/open_brain_engine/portable/conformance/v1/brain-root"
+)
 
 
 def _engine(root: Path, *, faults: set[PortabilityFault] | None = None) -> BrainEngine:

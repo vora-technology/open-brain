@@ -11,11 +11,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import Intent
-from open_brain.core.ports import Clock
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import Intent
+from open_brain_engine.core.ports import Clock
+from open_brain_engine.review.models import ReviewState
+
 from open_brain.integrations.life_os import ReviewGatedActionCandidate
-from open_brain.review.models import ReviewState
 from open_brain.review.store import SqliteReviewStore
 
 _MAX_CONFIG_BYTES = 64 * 1024

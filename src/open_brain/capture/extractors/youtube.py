@@ -5,8 +5,7 @@ from dataclasses import dataclass
 from typing import Protocol
 from urllib.parse import parse_qs, urlsplit
 
-from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
-from open_brain.engine import (
+from open_brain_engine.engine import (
     ContentKind,
     ExtractionFailure,
     ExtractionMetadata,
@@ -17,6 +16,8 @@ from open_brain.engine import (
     SourceType,
     TranscriptState,
 )
+
+from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 _YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com"}

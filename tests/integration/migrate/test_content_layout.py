@@ -5,6 +5,8 @@ from dataclasses import replace
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.core.models import SourceType
+from open_brain_engine.storage.filesystem import RootConfinementError
 
 from open_brain.cli.migrate import (
     DisposableMigrationTarget,
@@ -12,7 +14,6 @@ from open_brain.cli.migrate import (
     plan_migration,
     restore_migration,
 )
-from open_brain.core.models import SourceType
 from open_brain.integrations.obsidian import ObsidianTaxonomy
 from open_brain.migrate import (
     IssueCode,
@@ -25,7 +26,6 @@ from open_brain.migrate import (
 from open_brain.migrate import content as content_module
 from open_brain.migrate._support import move_file as actual_move
 from open_brain.migrate.content import apply_content_layout, plan_content_layout
-from open_brain.storage.filesystem import RootConfinementError
 
 from ._synthetic import note_fields, write_note
 

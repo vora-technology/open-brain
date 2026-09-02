@@ -7,8 +7,10 @@ from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.engine import LockScope
+from open_brain_engine.storage.filesystem import DurabilityError, atomic_write_new
+from open_brain_engine.storage.writer_record import CanonicalWriterRecord
 
-from open_brain.engine import LockScope
 from open_brain.operations.backup import BackupError, BackupObject
 from open_brain.operations.backup_writer import (
     BackupEffectCapability,
@@ -27,8 +29,6 @@ from open_brain.operations.writer_jobs import (
     get_writer_job_spec,
     run_writer_job,
 )
-from open_brain.storage.filesystem import DurabilityError, atomic_write_new
-from open_brain.storage.writer_record import CanonicalWriterRecord
 from tests.unit.storage._factories import FixedClock
 
 _CREATED_AT = datetime(2026, 8, 16, 12, 0, tzinfo=UTC)

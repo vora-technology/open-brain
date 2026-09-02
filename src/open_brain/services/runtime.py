@@ -12,6 +12,9 @@ from pathlib import Path
 from typing import Protocol
 from urllib.parse import urlsplit
 
+from open_brain_engine.engine import EngineTaskSet, PublicJobCaptureSink
+from open_brain_engine.engine.contracts import DaemonMutationPath
+
 from open_brain.capture.http import CaptureAcceptor, ShareHttpHandler
 from open_brain.config import (
     AppConfig,
@@ -19,8 +22,6 @@ from open_brain.config import (
     SecretResolutionError,
     resolve_secret,
 )
-from open_brain.engine import EngineTaskSet, PublicJobCaptureSink
-from open_brain.engine.contracts import DaemonMutationPath
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ui import UiBindConfig

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+from open_brain_engine.core.models import PrivacyTier
+
 from open_brain.cli._common import (
     CommandDispatchResult,
     ExitCode,
@@ -32,7 +34,6 @@ from open_brain.cli.proposals import list_proposals
 from open_brain.cli.query import query_work
 from open_brain.cli.social import SocialCompatibilityAction, compatibility
 from open_brain.cli.status import show_status
-from open_brain.core.models import PrivacyTier
 from open_brain.integrations.ports import WorkRetriever
 from open_brain.operations.status import StatusResult
 

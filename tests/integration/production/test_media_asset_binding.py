@@ -3,9 +3,10 @@ from __future__ import annotations
 from hashlib import sha256
 from pathlib import Path
 
+from open_brain_engine.capture.models import ExtractionFailure
+from open_brain_engine.core.models import RawAssetRef
+
 from open_brain.capture.media import collect_staged_media
-from open_brain.capture.models import ExtractionFailure
-from open_brain.core.models import RawAssetRef
 from open_brain.production.assets import ContentAddressedRawAssetStore
 
 

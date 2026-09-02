@@ -9,11 +9,17 @@ from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain.capture.models import DistillationWorkItem
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import CaptureSource, ContentKind, ContentOrigin, Provenance, SourceType
-from open_brain.core.policy import classify_privacy
-from open_brain.core.ports import EventRecord
+from open_brain_engine.capture.models import DistillationWorkItem
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import (
+    CaptureSource,
+    ContentKind,
+    ContentOrigin,
+    Provenance,
+    SourceType,
+)
+from open_brain_engine.core.policy import classify_privacy
+from open_brain_engine.core.ports import EventRecord
 
 from .models import LedgerScanRecord, LedgerTaxonomy, LedgerValidationError, validate_source_locator
 

@@ -3,9 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import cast
 
+from open_brain_engine.core.models import PrivacyDecision
+
 from open_brain.cli._common import ExitCode
 from open_brain.cli.ledger import synthesis
-from open_brain.core.models import PrivacyDecision
 from open_brain.ledger.render import RenderResult, SynthesisRenderer
 from open_brain.ledger.synthesis import SynthesisError, SynthesisOutcome, SynthesisRequest
 from open_brain.ledger.synthesis_store import DurableSynthesisRecord, SqliteSynthesisStore

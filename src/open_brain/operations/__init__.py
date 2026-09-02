@@ -1,6 +1,6 @@
 """Pure operations contracts and scheduler manifest rendering."""
 
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
 
 from .catalog import JOB_CATALOG, JOBS_BY_ID, get_job
 from .models import (

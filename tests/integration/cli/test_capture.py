@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from open_brain.capture.models import CaptureWorkItem
+from open_brain_engine.capture.models import CaptureWorkItem
+from open_brain_engine.core.ports import PutDisposition, PutResult
+
 from open_brain.cli._common import ExitCode
 from open_brain.cli.capture import capture_stdin, capture_text
-from open_brain.core.ports import PutDisposition, PutResult
 
 FIXED_TIME = datetime(2026, 8, 14, 12, tzinfo=UTC)
 

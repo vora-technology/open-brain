@@ -10,8 +10,8 @@ from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.storage.sqlite import connect_database
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.storage.sqlite import connect_database
 
 from .merge import TrustedCitation
 from .sanitize import (

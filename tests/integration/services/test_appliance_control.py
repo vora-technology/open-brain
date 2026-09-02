@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
 
-from open_brain.core.ids import canonical_json_bytes
 from open_brain.services.appliance_daemon import (
     MAXIMUM_CONTROL_ENVELOPE_BYTES,
     ApplianceControlProtocolError,

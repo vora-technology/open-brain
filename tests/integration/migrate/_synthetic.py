@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from open_brain.storage.markdown import render_markdown
+from open_brain_engine.storage.markdown import render_markdown
 
 
 def note_fields(

@@ -12,9 +12,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
 
 from open_brain.config import AppConfig, NamedSecretRef, RetainedRoots, SecretRef
-from open_brain.core.ids import canonical_json_bytes
 from open_brain.integrations.ui import UiBindConfig
 from open_brain.services.http_server import HttpRouteMode
 from open_brain.services.phase1_application import SingleUserLocalApplication
@@ -37,9 +37,9 @@ from open_brain.services.runtime import (
 def test_cli_process_startup_uses_the_app_owned_composition_root() -> None:
     root = Path(__file__).parents[3]
     application = root / "src" / "open_brain" / "services" / "application.py"
-    scripts = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"][
-        "scripts"
-    ]
+    scripts = tomllib.loads(
+        (root / "packages/app/pyproject.toml").read_text(encoding="utf-8")
+    )["project"]["scripts"]
     module_source = (root / "src" / "open_brain" / "__main__.py").read_text(encoding="utf-8")
 
     assert application.is_file()

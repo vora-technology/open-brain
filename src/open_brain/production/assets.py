@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.core.models import RawAssetRef
+from open_brain_engine.core.models import RawAssetRef
 
 from .errors import ProductionRuntimeError, RuntimeFailureCode
 

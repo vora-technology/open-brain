@@ -7,10 +7,9 @@ from pathlib import Path, PurePosixPath
 from typing import Literal, cast
 
 import pytest
-
-from open_brain.capture.models import DistillationWorkItem
-from open_brain.core.ids import canonical_json_bytes, review_id_for
-from open_brain.core.models import (
+from open_brain_engine.capture.models import DistillationWorkItem
+from open_brain_engine.core.ids import canonical_json_bytes, review_id_for
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     CaptureSource,
     CaptureWhyOrigin,
@@ -21,8 +20,15 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.policy import IntentPolicyReason, classify_privacy
-from open_brain.core.ports import EventRecord, PutDisposition, PutResult, RedactionReceipt
+from open_brain_engine.core.policy import IntentPolicyReason, classify_privacy
+from open_brain_engine.core.ports import EventRecord, PutDisposition, PutResult, RedactionReceipt
+from open_brain_engine.review.models import ReviewAggregate, ReviewProposal, ReviewState
+from open_brain_engine.storage.frontmatter import (
+    AtomicMarkdownReader,
+    AtomicMarkdownSink,
+    markdown_relative_path,
+)
+
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
@@ -35,7 +41,6 @@ from open_brain.ledger.service import (
 )
 from open_brain.ledger.stage import LedgerStage, stage_scan_record
 from open_brain.ledger.store import SqliteLedgerStore
-from open_brain.review.models import ReviewAggregate, ReviewProposal, ReviewState
 from open_brain.review.routing import (
     IntentRoutingDestination,
     IntentRoutingError,
@@ -44,11 +49,6 @@ from open_brain.review.routing import (
 )
 from open_brain.review.service import OwnerAuthoredOutput, ReviewApplicationService
 from open_brain.review.store import SqliteReviewStore
-from open_brain.storage.frontmatter import (
-    AtomicMarkdownReader,
-    AtomicMarkdownSink,
-    markdown_relative_path,
-)
 
 FIXED_TIME = datetime(2026, 8, 13, 12, tzinfo=UTC)
 

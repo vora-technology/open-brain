@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from open_brain.core.ports import RedactedMarkdownDocument
+from open_brain_engine.core.ports import RedactedMarkdownDocument
+from open_brain_engine.storage.frontmatter import (
+    AtomicMarkdownReader,
+    AtomicMarkdownSink,
+    markdown_relative_path,
+)
+
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
 from open_brain.ledger.service import (
@@ -12,11 +18,6 @@ from open_brain.ledger.service import (
 )
 from open_brain.ledger.stage import LedgerStage, stage_scan_record
 from open_brain.ledger.store import SqliteLedgerStore, inspect_published_references
-from open_brain.storage.frontmatter import (
-    AtomicMarkdownReader,
-    AtomicMarkdownSink,
-    markdown_relative_path,
-)
 
 from .test_stage import _record
 

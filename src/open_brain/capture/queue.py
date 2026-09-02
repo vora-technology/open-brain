@@ -14,7 +14,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import cast
 
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureLease,
     CaptureWorkItem,
     DistillationLease,
@@ -25,8 +25,8 @@ from open_brain.capture.models import (
     _timestamp,
     _utc_datetime,
 )
-from open_brain.core.ids import canonical_json_bytes, validate_identifier
-from open_brain.core.ports import PutDisposition, PutResult
+from open_brain_engine.core.ids import canonical_json_bytes, validate_identifier
+from open_brain_engine.core.ports import PutDisposition, PutResult
 
 MAX_ATTEMPTS = 3
 _DISTILLATION_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")

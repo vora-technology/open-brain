@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from open_brain_engine.core.models import PrivacyTier
+
 from open_brain.cli._common import ExitCode
 from open_brain.cli.operations import DigestOutputMode, DigestReport, render_digest
-from open_brain.core.models import PrivacyTier
 
 
 @dataclass

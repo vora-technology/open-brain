@@ -12,7 +12,7 @@ from contextlib import suppress
 from pathlib import Path
 from types import MappingProxyType
 
-from open_brain.engine import LocalEngineContext, ProviderMode
+from open_brain_engine.engine import LocalEngineContext, ProviderMode
 
 
 class ProfileError(ValueError):

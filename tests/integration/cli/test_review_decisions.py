@@ -4,22 +4,9 @@ import json
 from datetime import UTC, datetime
 
 import pytest
-
-from open_brain.cli._common import ExitCode
-from open_brain.cli._registry import CommandAdapterRegistry
-from open_brain.cli.main import main
-from open_brain.cli.review import ReviewCommandAdapter, decide_review
-from open_brain.core.ids import ReviewId
-from open_brain.core.models import Intent, PrivacyTier
-from open_brain.review.maintenance import (
-    ArchivedReview,
-    ArchiveResult,
-    CurationClass,
-    CurationTarget,
-    CurationTaxonomy,
-    ReviewTargetEdit,
-)
-from open_brain.review.models import (
+from open_brain_engine.core.ids import ReviewId
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.review.models import (
     Actor,
     ActorKind,
     ReviewAggregate,
@@ -27,6 +14,19 @@ from open_brain.review.models import (
     ReviewDecisionResult,
     ReviewProposal,
     ReviewState,
+)
+
+from open_brain.cli._common import ExitCode
+from open_brain.cli._registry import CommandAdapterRegistry
+from open_brain.cli.main import main
+from open_brain.cli.review import ReviewCommandAdapter, decide_review
+from open_brain.review.maintenance import (
+    ArchivedReview,
+    ArchiveResult,
+    CurationClass,
+    CurationTarget,
+    CurationTaxonomy,
+    ReviewTargetEdit,
 )
 
 FIXED_TIME = datetime(2026, 8, 14, 12, tzinfo=UTC)

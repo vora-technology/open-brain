@@ -10,9 +10,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Protocol
 
-from open_brain.core.ids import ReviewId, canonical_json_bytes
-from open_brain.engine import LockScope
-from open_brain.review.models import ApprovedIntentRecord, ReviewAggregate, ReviewState
+from open_brain_engine.core.ids import ReviewId, canonical_json_bytes
+from open_brain_engine.engine import LockScope
+from open_brain_engine.review.models import ApprovedIntentRecord, ReviewAggregate, ReviewState
 
 from .catalog import get_job
 from .models import DeploymentTarget, HostRole

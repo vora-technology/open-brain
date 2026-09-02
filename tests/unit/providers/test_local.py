@@ -1,9 +1,9 @@
 import pytest
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import TextModelRequest
+from open_brain_engine.providers.base import ProviderFailure
 
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import TextModelRequest
-from open_brain.providers.base import ProviderFailure
 from open_brain.providers.local import LocalProvider
 
 

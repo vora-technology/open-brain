@@ -236,6 +236,108 @@ def import_probe_findings(probe: ImportProbe, repository_root: Path) -> list[Fin
     return []
 
 
+def _engine_contract_source() -> str:
+    return """from __future__ import annotations
+
+import importlib.util
+import json
+import sys
+from importlib.resources import files
+
+import open_brain_engine
+import open_brain_engine.engine as engine
+from open_brain_engine.core.ids import canonical_json_bytes
+
+
+def main() -> None:
+    assert open_brain_engine.__version__ == "0.1.0"
+    assert engine.__all__
+    assert all(hasattr(engine, name) for name in engine.__all__)
+    assert canonical_json_bytes({"second": 2, "first": 1}) == b'{"first":1,"second":2}'
+    portable = files("open_brain_engine.portable")
+    assert portable.joinpath("schemas/v1/common.json").is_file()
+    assert portable.joinpath("conformance/v1/cases.json").is_file()
+    forbidden = ("open_brain", "open_brain_connectors", "open_brain_legacy")
+    assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    print(json.dumps({
+        "forbidden_available": [],
+        "module_paths": [open_brain_engine.__file__, engine.__file__],
+        "sys_path": sys.path,
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+def engine_isolation_findings(root: Path, work: Path) -> list[Finding]:
+    """Build and execute the engine contract without repository source access."""
+
+    project = root / "packages/engine"
+    if not (project / "pyproject.toml").is_file():
+        return [Finding("P4H007", "engine-isolation", "engine project is absent")]
+    dist = work / "dist"
+    environment = work / "venv"
+    run_root = work / "run"
+    dist.mkdir(parents=True, exist_ok=True)
+    run_root.mkdir(parents=True, exist_ok=True)
+    try:
+        run_checked(build_command(project, dist), cwd=run_root)
+    except (OSError, subprocess.SubprocessError):
+        return [Finding("P4H007", "engine-isolation", "engine build failed")]
+    wheels = sorted(dist.glob("open_brain_engine-*.whl"))
+    sdists = sorted(dist.glob("open_brain_engine-*.tar.gz"))
+    if len(wheels) != 1 or len(sdists) != 1:
+        return [Finding("P4H001", "engine-isolation", "engine artifacts are incomplete")]
+    wheel = wheels[0]
+    findings = artifact_findings(
+        wheel,
+        ArtifactContract(
+            subject="engine-wheel",
+            required_members=(
+                "open_brain_engine/__init__.py",
+                "open_brain_engine/engine/__init__.py",
+                "open_brain_engine/portable/schemas/v1/common.json",
+                "open_brain_engine/portable/conformance/v1/cases.json",
+            ),
+            forbidden_patterns=(
+                "open_brain/**",
+                "open_brain_connectors/**",
+                "open_brain_legacy/**",
+                "tests/**",
+                "tools/**",
+            ),
+            expected_name="open-brain-engine",
+            expected_version="0.1.0",
+        ),
+    )
+    if findings:
+        return findings
+    try:
+        run_checked(create_environment_command(environment), cwd=run_root)
+        python = environment / "bin/python"
+        run_checked(install_command(python, [wheel]), cwd=run_root)
+        contract = run_root / "engine_contract.py"
+        contract.write_text(_engine_contract_source(), encoding="utf-8")
+        completed = run_checked((os.fspath(python), "-I", os.fspath(contract)), cwd=run_root)
+        payload = json.loads(completed.stdout)
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+        return [Finding("P4H007", "engine-isolation", "installed engine contract failed")]
+    module_paths = payload.get("module_paths") if isinstance(payload, dict) else None
+    sys_path = payload.get("sys_path") if isinstance(payload, dict) else None
+    if not isinstance(module_paths, list) or not all(
+        isinstance(item, str) for item in module_paths
+    ):
+        return [Finding("P4H007", "engine-isolation", "module origin evidence is malformed")]
+    if not isinstance(sys_path, list) or not all(isinstance(item, str) for item in sys_path):
+        return [Finding("P4H007", "engine-isolation", "interpreter path evidence is malformed")]
+    return import_probe_findings(
+        ImportProbe(tuple(cast(list[str], module_paths)), tuple(cast(list[str], sys_path))),
+        root,
+    )
+
+
 def current_layout_findings(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     for distribution in ("engine", "app", "connectors", "legacy"):

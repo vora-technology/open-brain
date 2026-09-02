@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine import __version__
 
-from open_brain import __version__
 from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import SCHEDULED_ROUTES
 from open_brain.cli.main import build_parser, main
@@ -53,7 +53,7 @@ def _scheduled_surface() -> list[dict[str, object]]:
 
 
 def _packaging_surface() -> dict[str, object]:
-    packaging = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    packaging = tomllib.loads((ROOT / "packages/app/pyproject.toml").read_text())
     project = packaging["project"]
     return {
         "distribution": project["name"],

@@ -12,7 +12,8 @@ from hashlib import sha256
 from pathlib import Path, PurePosixPath
 from typing import cast
 
-from open_brain.core.ids import canonical_json_bytes
+from open_brain_engine.core.ids import canonical_json_bytes
+
 from open_brain.operations.git_sync_runtime import (
     GitCommand,
     GitCommandResult,

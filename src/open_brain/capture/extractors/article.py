@@ -5,8 +5,7 @@ from __future__ import annotations
 import unicodedata
 from html.parser import HTMLParser
 
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     ExtractionFailure,
     ExtractionMetadata,
     ExtractionState,
@@ -14,9 +13,11 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.core.ids import canonicalize_source_url
-from open_brain.core.models import ContentKind, PrivacyDecision, SourceType
-from open_brain.core.ports import FetchRequest, OutboundFetcher
+from open_brain_engine.core.ids import canonicalize_source_url
+from open_brain_engine.core.models import ContentKind, PrivacyDecision, SourceType
+from open_brain_engine.core.ports import FetchRequest, OutboundFetcher
+
+from open_brain.capture.extractors import ExtractionRequest
 
 ArticleExtractionRequest = ExtractionRequest
 

@@ -8,14 +8,14 @@ from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import PrivacyDecision
-from open_brain.core.ports import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import PrivacyDecision
+from open_brain_engine.core.ports import (
     PutDisposition,
     RedactedMarkdownDocument,
     RedactionReceipt,
 )
-from open_brain.storage.frontmatter import (
+from open_brain_engine.storage.frontmatter import (
     AtomicMarkdownReader,
     AtomicMarkdownSink,
     markdown_relative_path,

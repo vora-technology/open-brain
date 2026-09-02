@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.extractors.article import ArticleExtractor
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     ExtractionFailure,
     ExtractionState,
     ExtractorKind,
     TranscriptState,
 )
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     ContentKind,
     PrivacyDecision,
@@ -18,7 +16,10 @@ from open_brain.core.models import (
     PrivacyTier,
     SourceType,
 )
-from open_brain.core.ports import FetchRequest, FetchResponse
+from open_brain_engine.core.ports import FetchRequest, FetchResponse
+
+from open_brain.capture.extractors import ExtractionRequest
+from open_brain.capture.extractors.article import ArticleExtractor
 
 
 def _privacy(*, external_egress: bool = True) -> PrivacyDecision:

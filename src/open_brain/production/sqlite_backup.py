@@ -8,8 +8,9 @@ from dataclasses import dataclass, field
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.ports import Clock
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.ports import Clock
+
 from open_brain.operations.backup import (
     BackupObject,
     BackupStore,

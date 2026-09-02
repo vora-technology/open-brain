@@ -47,7 +47,7 @@ def test_canonical_move_manifest_is_complete_and_valid() -> None:
     assert validate_manifest(ROOT, manifest) == []
     assert len(_runtime(manifest)) == 224
     subjects = _subjects(manifest)
-    assert sum(record["kind"] == "test" for record in subjects.values()) == 253
+    assert sum(record["kind"] == "test" for record in subjects.values()) == 255
     assert sum(record["kind"] in {"schema", "fixture"} for record in subjects.values()) == 36
 
 
@@ -68,6 +68,21 @@ def test_validator_rejects_missing_and_stale_subjects() -> None:
 
     assert "P4M002" in _codes(validate_manifest(ROOT, missing))
     assert "P4M003" in _codes(validate_manifest(ROOT, stale))
+
+
+def test_validator_requires_explicit_consistent_movement_state() -> None:
+    missing = deepcopy(_manifest())
+    del _runtime(missing)["core/models.py"]["movement_state"]
+    invalid = deepcopy(_manifest())
+    _runtime(invalid)["core/models.py"]["movement_state"] = "copied"
+    inconsistent = deepcopy(_manifest())
+    record = _runtime(inconsistent)["core/models.py"]
+    record["movement_state"] = "moved"
+    record["current_path"] = "src/open_brain/core/models.py"
+
+    assert "P4M011" in _codes(validate_manifest(ROOT, missing))
+    assert "P4M011" in _codes(validate_manifest(ROOT, invalid))
+    assert "P4M011" in _codes(validate_manifest(ROOT, inconsistent))
 
 
 def test_validator_rejects_duplicate_and_out_of_distribution_destinations() -> None:

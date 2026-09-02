@@ -5,10 +5,12 @@ from enum import StrEnum
 from hashlib import sha256
 from typing import Protocol
 
-from open_brain.core.ids import ReviewId, canonical_json_bytes
-from open_brain.core.models import CaptureEnvelope, Intent, PrivacyTier, ValidationError
-from open_brain.core.policy import IntentPolicyReason, route_intent
-from open_brain.core.ports import Clock, PutDisposition, PutResult
+from open_brain_engine.core.ids import ReviewId, canonical_json_bytes
+from open_brain_engine.core.models import CaptureEnvelope, Intent, PrivacyTier, ValidationError
+from open_brain_engine.core.policy import IntentPolicyReason, route_intent
+from open_brain_engine.core.ports import Clock, PutDisposition, PutResult
+from open_brain_engine.review.models import Actor, ActorKind, ReviewAggregate, ReviewProposal
+
 from open_brain.ledger.models import LedgerValidationError
 from open_brain.ledger.service import (
     ApplyResult,
@@ -16,8 +18,6 @@ from open_brain.ledger.service import (
     PreparedLedgerApply,
 )
 from open_brain.ledger.stage import LedgerStage
-
-from .models import Actor, ActorKind, ReviewAggregate, ReviewProposal
 
 
 class IntentRoutingError(ValidationError):

@@ -13,24 +13,25 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import quote, unquote
 
-from open_brain.capture.http import HttpRequest
-from open_brain.cli._common import CommandFamilyAdapter
-from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
-from open_brain.cli.scheduled import scheduled_result_envelope
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     ContentOrigin,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
 )
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureAction,
     ProposalDraft,
     Provenance,
     ReferencePayload,
     TextPayload,
 )
+
+from open_brain.capture.http import HttpRequest
+from open_brain.cli._common import CommandFamilyAdapter
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
+from open_brain.cli.scheduled import scheduled_result_envelope
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiRequest
 from open_brain.operations.scheduled_results import ScheduledDispatchResult

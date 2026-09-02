@@ -18,8 +18,8 @@ from pathlib import Path
 from time import sleep as _sleep
 from typing import Protocol, cast
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -32,7 +32,8 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.engine import PublicJobCaptureSink
+from open_brain_engine.engine import PublicJobCaptureSink
+
 from open_brain.operations.capture_jobs import get_capture_job
 
 _MAX_CONFIG_BYTES = 64 * 1024

@@ -16,13 +16,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol, cast
 
-from open_brain.capture.extractors.youtube import (
-    YouTubeExtractionRequest,
-    YouTubeExtractor,
-    YouTubeMediaAdapter,
-    video_id_from_url,
-)
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureEnvelope,
     ExtractionState,
     NormalizedExtraction,
@@ -32,6 +26,13 @@ from open_brain.engine import (
     ValidationError,
     canonical_json_bytes,
     validate_identifier,
+)
+
+from open_brain.capture.extractors.youtube import (
+    YouTubeExtractionRequest,
+    YouTubeExtractor,
+    YouTubeMediaAdapter,
+    video_id_from_url,
 )
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")

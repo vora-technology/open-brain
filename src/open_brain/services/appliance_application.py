@@ -7,15 +7,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from open_brain.cli._common import CommandFamilyAdapter
-from open_brain.cli.phase1 import build_phase1_command_adapters
-from open_brain.engine import (
+from open_brain_engine.engine import (
     EngineTaskSet,
     PageResult,
     ScopedRetrievalTask,
     open_authoritative_local_engine,
     open_local_read_view,
 )
+
+from open_brain.cli._common import CommandFamilyAdapter
+from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import BrowserSessionStore, Phase1UiHandler
 from open_brain.integrations.ports import (

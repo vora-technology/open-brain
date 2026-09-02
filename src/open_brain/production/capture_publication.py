@@ -7,17 +7,18 @@ from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain.capture.distillation import DistilledCapture
-from open_brain.capture.models import NormalizedExtraction
-from open_brain.core.models import (
+from open_brain_engine.capture.models import NormalizedExtraction
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     CaptureWhyOrigin,
     ContentOrigin,
     PrivacyTier,
     SourceType,
 )
-from open_brain.core.ports import PutDisposition, PutResult
-from open_brain.storage.filesystem import WriteState, atomic_write_new, read_confined
+from open_brain_engine.core.ports import PutDisposition, PutResult
+from open_brain_engine.storage.filesystem import WriteState, atomic_write_new, read_confined
+
+from open_brain.capture.distillation import DistilledCapture
 
 _EXTERNAL_SOURCES = frozenset({SourceType.WEB, SourceType.SOCIAL, SourceType.YOUTUBE})
 

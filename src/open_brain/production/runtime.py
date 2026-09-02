@@ -18,8 +18,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import IO, Protocol
 
-from open_brain.core.models import PrivacyDecision, RawAssetRef
-from open_brain.core.ports import StagedExecutionRequest, StagedExecutionResult
+from open_brain_engine.core.models import PrivacyDecision, RawAssetRef
+from open_brain_engine.core.ports import StagedExecutionRequest, StagedExecutionResult
 
 from .errors import ProductionRuntimeError, RuntimeFailureCode
 

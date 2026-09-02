@@ -9,10 +9,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Protocol
 
-from open_brain.core.models import PrivacyDecision, RawAssetRef, ValidationError
-from open_brain.core.policy import BoundaryErrorCode, BoundaryResult
-
-from .base import OptionalExtraUnavailable, ProviderFailure
+from open_brain_engine.core.models import PrivacyDecision, RawAssetRef, ValidationError
+from open_brain_engine.core.policy import BoundaryErrorCode, BoundaryResult
+from open_brain_engine.providers.base import OptionalExtraUnavailable, ProviderFailure
 
 MAX_TRANSCRIPTION_MEDIA_BYTES = 50 * 1024 * 1024
 MAX_TRANSCRIPTION_OUTPUT_BYTES = 2 * 1024 * 1024

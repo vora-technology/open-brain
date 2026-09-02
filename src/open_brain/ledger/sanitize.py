@@ -10,15 +10,15 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import sha256
 
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     ExtractionMetadata,
     ExtractionState,
     ExtractorKind,
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.capture.redaction import VersionedCaptureRedactor
-from open_brain.core.models import (
+from open_brain_engine.capture.redaction import VersionedCaptureRedactor
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     CaptureSource,
     CaptureWhyOrigin,
@@ -27,7 +27,7 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.core.policy import classify_privacy
+from open_brain_engine.core.policy import classify_privacy
 
 
 class LedgerSection(StrEnum):

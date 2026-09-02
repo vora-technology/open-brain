@@ -7,6 +7,7 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.models import RawAssetRef
 
 from open_brain.capture.extractors.social import SocialMediaResult
 from open_brain.capture.extractors.youtube import YouTubeMediaResult
@@ -17,7 +18,6 @@ from open_brain.capture.media import (
     MediaTool,
 )
 from open_brain.config import AppConfig, RetainedRoots
-from open_brain.core.models import RawAssetRef
 from open_brain.production.errors import ProductionRuntimeError, RuntimeFailureCode
 from open_brain.production.media import (
     BoundedCaptureMediaAdapter,

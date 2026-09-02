@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import Protocol
 from urllib.parse import parse_qs, urlsplit
 
+from open_brain_engine.capture.models import ExtractionFailure
+from open_brain_engine.core.ids import canonicalize_source_url
+from open_brain_engine.core.models import RawAssetRef
+
 from open_brain.capture.extractors.social import SocialMediaResult
 from open_brain.capture.extractors.youtube import YouTubeMediaResult
 from open_brain.capture.media import (
@@ -18,10 +22,7 @@ from open_brain.capture.media import (
     MediaRunResult,
     MediaTool,
 )
-from open_brain.capture.models import ExtractionFailure
 from open_brain.config import AppConfig
-from open_brain.core.ids import canonicalize_source_url
-from open_brain.core.models import RawAssetRef
 from open_brain.production.assets import ContentAddressedRawAssetStore
 from open_brain.production.errors import ProductionRuntimeError, RuntimeFailureCode
 

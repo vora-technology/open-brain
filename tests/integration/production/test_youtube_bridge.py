@@ -4,12 +4,13 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CapturePipeline,
     ShareRequest,
     ShareResponse,
     ShareStatus,
 )
+
 from open_brain.production.youtube_bridge import PublicJobShareSubmitter, consume_youtube_spool
 from open_brain.services.application import SingleUserLocalApplication
 

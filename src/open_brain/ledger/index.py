@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import sha256
 
-from open_brain.core.ids import canonical_json_bytes
+from open_brain_engine.core.ids import canonical_json_bytes
 
 from .merge import TrustedCitation
 from .sanitize import LedgerSection, sanitize_leaf

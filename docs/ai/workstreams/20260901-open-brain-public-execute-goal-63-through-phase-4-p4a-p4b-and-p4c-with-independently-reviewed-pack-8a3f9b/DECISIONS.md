@@ -83,3 +83,39 @@
   before any native adapter/spec exists.
 - Why: P4-W0 must make the decision reproducible, while P4-W5 owns build/smoke
   execution. This avoids a placeholder toolchain and unnecessary root weight.
+
+## D-009: keep stable source identities and track movement separately
+
+- Chosen: retain each manifest key as the stable source identity, add an
+  explicit `movement_state`, and change `current_path` to the target only after
+  that distribution's isolated artifact contract passes.
+- Rejected: re-key every record to its destination during each wave, which
+  would erase the stable source-to-target identity and create large unrelated
+  rewrites in later waves.
+- Why: the plan requires the engine contract to pass before manifest state is
+  changed to moved. A stable identity plus current and target paths represents
+  that order directly and lets the validator reject copied, stale, or
+  prematurely claimed files.
+
+## D-010: keep the Phase 7 capture parity scenario with legacy parity
+
+- Chosen: correct `test_capture_scenarios.py` from engine to legacy ownership
+  and leave it at its source path until P4-W4.
+- Rejected: make the engine test tree import app parity and consume a
+  legacy-owned scenario resource.
+- Why: collection after the mechanical move proved the test exercises the
+  Phase 7 parity harness and its paired legacy fixture, not an isolated engine
+  contract. Keeping both in the same later wave preserves the dependency graph
+  and prevents a false engine-isolation claim.
+
+## D-011: retain shared test factories in the workspace
+
+- Chosen: keep `tests/unit/storage/_factories.py` as a workspace-owned shared
+  test helper and keep `tests/integration/migrate/_synthetic.py` with the
+  legacy migration wave.
+- Rejected: place either helper in the engine test tree while app, operations,
+  parity, or migration tests still import it from the shared test namespace.
+- Why: full-suite collection proved the storage factory has cross-distribution
+  consumers and the synthetic note helper serves migration tests. Their
+  original engine assignments would make unrelated test suites depend on the
+  engine test package and misstate ownership.

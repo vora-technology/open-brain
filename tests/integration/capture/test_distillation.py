@@ -5,20 +5,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-
-from open_brain.capture.distillation import (
-    DistillationInput,
-    DistillationService,
-    FilesystemDistillationStore,
-)
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     ExtractionMetadata,
     ExtractionState,
     ExtractorKind,
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     ContentKind,
     PrivacyDecision,
@@ -26,9 +20,15 @@ from open_brain.core.models import (
     PrivacyTier,
     SourceType,
 )
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import TextModelRequest, TextModelResult
-from open_brain.providers.base import ProviderFailure, ProviderService
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.providers.base import ProviderFailure, ProviderService
+
+from open_brain.capture.distillation import (
+    DistillationInput,
+    DistillationService,
+    FilesystemDistillationStore,
+)
 
 
 def _privacy() -> PrivacyDecision:

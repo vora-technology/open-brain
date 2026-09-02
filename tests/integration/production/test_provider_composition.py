@@ -8,16 +8,16 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
-from open_brain.config import AppConfig, NamedSecretRef, RetainedRoots, SecretRef
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
 )
-from open_brain.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+
+from open_brain.config import AppConfig, NamedSecretRef, RetainedRoots, SecretRef
 from open_brain.production.providers import (
     LocalProviderRuntimeConfig,
     ProductionProviderConfigError,
@@ -141,8 +141,8 @@ import sys
 from types import SimpleNamespace
 
 sys.path.insert(0, {str(source)!r})
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.core.ports import TextModelRequest
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.core.ports import TextModelRequest
 from open_brain.production.providers import LocalProviderRuntimeConfig, ProviderComposition
 
 class LocalTransport:

@@ -8,6 +8,8 @@ from typing import cast
 
 import pytest
 
+from tools.phase4.move_manifest import validate_manifest
+
 REPOSITORY_ROOT = Path(__file__).parents[2]
 CLASSIFICATION_PATH = REPOSITORY_ROOT / "docs" / "v0-package-classification.json"
 SOURCE_ROOT = REPOSITORY_ROOT / "src" / "open_brain"
@@ -65,6 +67,25 @@ def _classified_files(classification: dict[str, object]) -> dict[str, object]:
     if not isinstance(files, dict):
         raise TypeError("classification files must be an object")
     return cast(dict[str, object], files)
+
+
+def _planned_source_classification(classification: dict[str, object]) -> dict[str, object]:
+    planned = deepcopy(classification)
+    files = _classified_files(planned)
+    planned["files"] = {
+        path: value
+        for path, value in files.items()
+        if isinstance(value, dict) and value.get("movement_state") != "moved"
+    }
+    planned_files = cast(dict[str, object], planned["files"])
+    reviews = planned.get("dynamic_import_reviews")
+    if isinstance(reviews, list):
+        planned["dynamic_import_reviews"] = [
+            review
+            for review in reviews
+            if isinstance(review, dict) and review.get("path") in planned_files
+        ]
+    return planned
 
 
 def _metadata(files: dict[str, object], relative_path: str) -> dict[str, object]:
@@ -413,8 +434,10 @@ def _live_debt_errors(
 def test_every_immediate_package_has_one_explicit_classification() -> None:
     classification = _load_classification()
     packages = classification["packages"]
+    files = _classified_files(classification)
     assert isinstance(packages, dict)
-    assert set(packages) == _package_directories(SOURCE_ROOT)
+    origin_packages = {Path(path).parts[0] for path in files if len(Path(path).parts) > 1}
+    assert set(packages) == origin_packages
     assert all(
         isinstance(package, dict)
         and all(
@@ -428,17 +451,26 @@ def test_every_immediate_package_has_one_explicit_classification() -> None:
 def test_every_root_module_has_one_explicit_classification() -> None:
     classification = _load_classification()
     root_modules = classification["root_modules"]
+    files = _classified_files(classification)
     assert isinstance(root_modules, dict)
-    assert set(root_modules) == _root_modules(SOURCE_ROOT)
+    origin_modules = {Path(path).stem for path in files if len(Path(path).parts) == 1}
+    assert set(root_modules) == origin_modules
 
 
 def test_every_runtime_file_has_one_authoritative_owner() -> None:
     classification = _load_classification()
-    assert _ownership_errors(SOURCE_ROOT, classification) == []
+    assert validate_manifest(REPOSITORY_ROOT, classification) == []
+    assert all(
+        isinstance(value, dict)
+        and value.get("owner") in OWNERS
+        and value.get("api") in {"public", "internal"}
+        and isinstance(value.get("roles"), list)
+        for value in _classified_files(classification).values()
+    )
 
 
 def test_current_namespace_imports_have_classified_file_endpoints() -> None:
-    classification = _load_classification()
+    classification = _planned_source_classification(_load_classification())
     classified_paths = set(_classified_files(classification))
     references = [
         reference
@@ -450,13 +482,39 @@ def test_current_namespace_imports_have_classified_file_endpoints() -> None:
 
 
 def test_nonliteral_dynamic_import_sites_are_explicitly_reviewed() -> None:
-    classification = _load_classification()
+    classification = _planned_source_classification(_load_classification())
     assert _dynamic_import_review_errors(SOURCE_ROOT, classification) == []
 
 
 def test_current_import_violations_exactly_match_temporary_live_debt() -> None:
-    classification = _load_classification()
+    classification = _planned_source_classification(_load_classification())
     assert _live_debt_errors(SOURCE_ROOT, classification) == []
+
+
+def test_engine_distribution_imports_no_other_runtime_distribution() -> None:
+    engine_root = REPOSITORY_ROOT / "packages/engine/src/open_brain_engine"
+    forbidden: set[str] = set()
+    for path in sorted(engine_root.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            modules: list[str] = []
+            if isinstance(node, ast.Import):
+                modules.extend(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                modules.append(node.module)
+            elif isinstance(node, ast.Call) and _is_dynamic_import_call(node) and node.args:
+                argument = node.args[0]
+                if isinstance(argument, ast.Constant) and isinstance(argument.value, str):
+                    modules.append(argument.value)
+            for module in modules:
+                if module == "open_brain" or module.startswith(
+                    ("open_brain.", "open_brain_connectors", "open_brain_legacy")
+                ):
+                    line = cast(int, getattr(node, "lineno", 0))
+                    forbidden.add(
+                        f"{path.relative_to(REPOSITORY_ROOT).as_posix()}:{line} -> {module}"
+                    )
+    assert forbidden == set()
 
 
 def test_p2_w1_owner_edges_are_closed() -> None:
@@ -547,9 +605,9 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
 
 
 def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_free() -> None:
-    project = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))[
-        "project"
-    ]
+    project = tomllib.loads(
+        (REPOSITORY_ROOT / "packages/app/pyproject.toml").read_text(encoding="utf-8")
+    )["project"]
     scripts = project["scripts"]
     phase1_entrypoints = (SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
         encoding="utf-8"
@@ -575,7 +633,7 @@ def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_f
     assert "open-brain-http" not in appliance_entrypoints
     assert "JOB-00" not in appliance_entrypoints
     assert "open_brain.storage.filesystem" not in scheduler
-    assert "open_brain.storage.operational" in scheduler
+    assert "open_brain_engine.storage.operational" in scheduler
     operational = _metadata(files, "storage/operational.py")
     assert {key: operational[key] for key in ("api", "owner", "roles")} == {
         "api": "public",

@@ -3,19 +3,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CapturePipeline,
     CaptureWorkItem,
     ShareRequest,
     ShareResponse,
     ShareStatus,
 )
+from open_brain_engine.core.ports import PutDisposition, PutResult
+
 from open_brain.cli._common import ExitCode
 from open_brain.cli.production_adapters import (
     ProductionCommandAdapter,
     ProductionCommandDependencies,
 )
-from open_brain.core.ports import PutDisposition, PutResult
 from open_brain.integrations.ports import RetrievalBatch, RetrievalRequest
 from open_brain.operations.status import StatusResult, collect_status
 

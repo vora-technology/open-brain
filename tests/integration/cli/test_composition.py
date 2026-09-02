@@ -12,25 +12,9 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.models import CaptureWorkItem
-from open_brain.capture.poll import FilesystemYouTubePollState
-from open_brain.capture.queue import FilesystemCaptureQueue
-from open_brain.cli._common import ExitCode
-from open_brain.cli._registry import SCHEDULED_ROUTES, command_names
-from open_brain.cli.main import main
-from open_brain.cli.scheduled import ScheduledDispatchStatus, dispatch_scheduled_route
-from open_brain.config import (
-    AppConfig,
-    NamedSecretRef,
-    RetainedRoots,
-    SecretRef,
-    SecretRefKind,
-)
-from open_brain.core.ids import canonical_json_bytes, capture_id_for, review_id_for
-from open_brain.core.models import (
+from open_brain_engine.capture.models import CaptureWorkItem
+from open_brain_engine.core.ids import canonical_json_bytes, capture_id_for, review_id_for
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -44,7 +28,36 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
+from open_brain_engine.providers.base import ProviderService
+from open_brain_engine.providers.deterministic import DeterministicDistillationProvider
+from open_brain_engine.review.models import (
+    Actor,
+    ActorKind,
+    ReviewAggregate,
+    ReviewDecisionCommand,
+    ReviewProposal,
+    ReviewState,
+)
+from open_brain_engine.storage.locks import LockBusyError
+from open_brain_engine.storage.sqlite import connect_database, migrate
+from open_brain_engine.storage.writer_record import write_canonical_writer_record
+
+from open_brain.capture.extractors.youtube import YouTubeMediaResult
+from open_brain.capture.media import MediaCommand
+from open_brain.capture.poll import FilesystemYouTubePollState
+from open_brain.capture.queue import FilesystemCaptureQueue
+from open_brain.cli._common import ExitCode
+from open_brain.cli._registry import SCHEDULED_ROUTES, command_names
+from open_brain.cli.main import main
+from open_brain.cli.scheduled import ScheduledDispatchStatus, dispatch_scheduled_route
+from open_brain.config import (
+    AppConfig,
+    NamedSecretRef,
+    RetainedRoots,
+    SecretRef,
+    SecretRefKind,
+)
 from open_brain.integrations.life_os import LifePlanRequest
 from open_brain.integrations.life_os_runtime import (
     LifeOSPlanningRuntime,
@@ -77,20 +90,10 @@ from open_brain.production.youtube_poll import (
     YouTubeReferenceTransport,
     load_private_youtube_config,
 )
-from open_brain.providers.base import ProviderService
-from open_brain.providers.deterministic import DeterministicDistillationProvider
 from open_brain.review.maintenance import (
     CurationClass,
     CurationTarget,
     predecessor_curation_taxonomy,
-)
-from open_brain.review.models import (
-    Actor,
-    ActorKind,
-    ReviewAggregate,
-    ReviewDecisionCommand,
-    ReviewProposal,
-    ReviewState,
 )
 from open_brain.review.store import SqliteReviewStore
 from open_brain.services.application import (
@@ -112,9 +115,6 @@ from open_brain.services.connectors import (
 )
 from open_brain.services.entrypoints import run_legacy_cli as run
 from open_brain.services.http_server import HttpServerFactory
-from open_brain.storage.locks import LockBusyError
-from open_brain.storage.sqlite import connect_database, migrate
-from open_brain.storage.writer_record import write_canonical_writer_record
 
 _VALID_ENVIRONMENT = {
     "OPEN_BRAIN_STATE_ROOT": "/synthetic/state",

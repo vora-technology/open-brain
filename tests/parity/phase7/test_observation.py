@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine.core.ids import ReviewId, canonical_json_bytes
+from open_brain_engine.core.models import Intent
+from open_brain_engine.core.policy import IntentPolicyReason
 
 from open_brain.cli.doctor import show_doctor
-from open_brain.core.ids import ReviewId, canonical_json_bytes
-from open_brain.core.models import Intent
-from open_brain.core.policy import IntentPolicyReason
 from open_brain.operations.doctor import (
     DoctorResult,
     DoctorRole,

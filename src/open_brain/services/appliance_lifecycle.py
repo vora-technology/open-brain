@@ -12,8 +12,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol, cast
 
-from open_brain.engine import LockScope, canonical_json_bytes
-from open_brain.storage.operational import (
+from open_brain_engine.engine import LockScope, canonical_json_bytes
+from open_brain_engine.storage.operational import (
     FileLease,
     RootIdentity,
     StorageError,

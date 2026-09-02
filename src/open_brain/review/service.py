@@ -5,11 +5,10 @@ from datetime import datetime
 from hashlib import sha256
 from typing import Protocol
 
-from open_brain.core.ids import CaptureId, ReviewId, canonical_json_bytes
-from open_brain.core.models import Intent, ValidationError
-from open_brain.core.ports import Clock, PutDisposition, PutResult
-
-from .models import (
+from open_brain_engine.core.ids import CaptureId, ReviewId, canonical_json_bytes
+from open_brain_engine.core.models import Intent, ValidationError
+from open_brain_engine.core.ports import Clock, PutDisposition, PutResult
+from open_brain_engine.review.models import (
     Actor,
     ApprovedIntentRecord,
     ReviewAggregate,
@@ -18,6 +17,7 @@ from .models import (
     ReviewProposal,
     capture_reference_for,
 )
+
 from .store import PendingReviewOutput, SqliteReviewStore
 
 

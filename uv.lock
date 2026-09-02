@@ -2,6 +2,25 @@ version = 1
 revision = 3
 requires-python = ">=3.12, <3.15"
 
+[manifest]
+members = [
+    "open-brain",
+    "open-brain-connectors",
+    "open-brain-engine",
+    "open-brain-legacy",
+]
+
+[manifest.dependency-groups]
+dev = [
+    { name = "build", specifier = ">=1.2.2,<2" },
+    { name = "cryptography", specifier = ">=50,<51" },
+    { name = "jsonschema", specifier = ">=4.25,<5" },
+    { name = "mypy", specifier = ">=1.15,<2" },
+    { name = "open-brain-engine", editable = "packages/engine" },
+    { name = "pytest", specifier = ">=8.3,<10" },
+    { name = "ruff", specifier = ">=0.11,<1" },
+]
+
 [[package]]
 name = "annotated-types"
 version = "0.8.0"
@@ -460,36 +479,53 @@ wheels = [
 [[package]]
 name = "open-brain"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "packages/app" }
+dependencies = [
+    { name = "open-brain-engine" },
+]
 
 [package.optional-dependencies]
 cloud = [
     { name = "openai" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "build" },
-    { name = "cryptography" },
-    { name = "jsonschema" },
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
+[package.metadata]
+requires-dist = [
+    { name = "open-brain-engine", editable = "packages/engine" },
+    { name = "openai", marker = "extra == 'cloud'", specifier = ">=1.99,<3" },
+]
+provides-extras = ["cloud", "integrations", "mcp"]
+
+[[package]]
+name = "open-brain-connectors"
+version = "0.1.0"
+source = { virtual = "packages/connectors" }
+dependencies = [
+    { name = "open-brain" },
+    { name = "open-brain-engine" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "openai", marker = "extra == 'cloud'", specifier = ">=1.99,<3" }]
-provides-extras = ["cloud", "integrations", "mcp"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "build", specifier = ">=1.2.2,<2" },
-    { name = "cryptography", specifier = ">=50,<51" },
-    { name = "jsonschema", specifier = ">=4.25,<5" },
-    { name = "mypy", specifier = ">=1.15,<2" },
-    { name = "pytest", specifier = ">=8.3,<10" },
-    { name = "ruff", specifier = ">=0.11,<1" },
+requires-dist = [
+    { name = "open-brain", virtual = "packages/app" },
+    { name = "open-brain-engine", editable = "packages/engine" },
 ]
+
+[[package]]
+name = "open-brain-engine"
+version = "0.1.0"
+source = { editable = "packages/engine" }
+
+[[package]]
+name = "open-brain-legacy"
+version = "0.1.0"
+source = { virtual = "packages/legacy" }
+dependencies = [
+    { name = "open-brain-engine" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "open-brain-engine", editable = "packages/engine" }]
 
 [[package]]
 name = "openai"

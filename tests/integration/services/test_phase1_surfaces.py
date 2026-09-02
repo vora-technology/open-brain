@@ -11,17 +11,17 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-
-from open_brain.cli._common import CommandAdapterLookup, ExitCode
-from open_brain.cli.main import main
-from open_brain.cli.phase1 import build_phase1_command_adapters
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import BrainEngine, ProposalDraft, ReferencePayload, TextPayload
-from open_brain.engine.contracts import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import BrainEngine, ProposalDraft, ReferencePayload, TextPayload
+from open_brain_engine.engine.contracts import (
     DaemonMutationPathUnavailableError,
     MutationAuthorityOwner,
     MutationTransport,
 )
+
+from open_brain.cli._common import CommandAdapterLookup, ExitCode
+from open_brain.cli.main import main
+from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
     Phase1UiRequest,

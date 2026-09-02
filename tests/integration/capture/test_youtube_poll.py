@@ -5,19 +5,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import (
-    FilesystemYouTubePollState,
-    PollItemState,
-    PollRecord,
-    PollRequestDisposition,
-    PrivacyReclassificationProof,
-    PrivacyReclassificationVerifier,
-    YouTubePoller,
-)
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -29,6 +17,18 @@ from open_brain.core.models import (
     PrivacyTier,
     Provenance,
     SourceType,
+)
+
+from open_brain.capture.extractors.youtube import YouTubeMediaResult
+from open_brain.capture.media import MediaCommand
+from open_brain.capture.poll import (
+    FilesystemYouTubePollState,
+    PollItemState,
+    PollRecord,
+    PollRequestDisposition,
+    PrivacyReclassificationProof,
+    PrivacyReclassificationVerifier,
+    YouTubePoller,
 )
 
 FIXED_TIME = datetime(2026, 8, 13, 12, 0, tzinfo=UTC)

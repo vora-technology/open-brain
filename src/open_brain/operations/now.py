@@ -11,8 +11,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Protocol
 
-from open_brain.core.models import PrivacyTier
-from open_brain.engine import LockScope
+from open_brain_engine.core.models import PrivacyTier
+from open_brain_engine.engine import LockScope
 
 from .models import DeploymentTarget, HostRole
 

@@ -6,7 +6,8 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from open_brain import __version__
+from open_brain_engine import __version__
+
 from open_brain.cli._common import (
     CommandAdapterLookup,
     ExitCode,

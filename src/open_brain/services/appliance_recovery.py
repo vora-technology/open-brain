@@ -11,7 +11,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from open_brain.engine import (
+from open_brain_engine.engine import (
     BackupReceipt,
     EngineTaskSet,
     PortabilityReceipt,
@@ -19,8 +19,7 @@ from open_brain.engine import (
     canonical_json_bytes,
     open_authoritative_local_engine,
 )
-from open_brain.profile import open_existing_single_user_local
-from open_brain.storage.operational import (
+from open_brain_engine.storage.operational import (
     RootIdentity,
     StorageError,
     atomic_replace,
@@ -29,6 +28,8 @@ from open_brain.storage.operational import (
     read_confined,
     read_confined_tree,
 )
+
+from open_brain.profile import open_existing_single_user_local
 
 from .appliance_init import APPLIANCE_OWNER_CREDENTIAL, _ensure_owner_file
 from .appliance_scheduler import ApplianceJobResult, ApplianceRunContext, ApplianceScheduler

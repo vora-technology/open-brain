@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
 
-from open_brain.core.ports import PutDisposition, PutResult
-from open_brain.storage.frontmatter import AtomicMarkdownReader, rendered_markdown_bytes
+from open_brain_engine.core.ports import PutDisposition, PutResult
+from open_brain_engine.storage.frontmatter import AtomicMarkdownReader, rendered_markdown_bytes
 
 from .service import PreparedLedgerApply
 from .store import LedgerStoreError, SqliteLedgerStore

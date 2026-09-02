@@ -5,9 +5,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import PublicJobCaptureSink
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import PublicJobCaptureSink
 from open_brain.production.imessage import (
     ImessageConfigError,
     ProductionImessageIngress,

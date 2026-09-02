@@ -9,10 +9,10 @@ from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from open_brain.core.models import PrivacyDecision
-from open_brain.core.ports import RedactedMarkdownDocument, RedactionReceipt
-from open_brain.storage.filesystem import StorageError
-from open_brain.storage.sqlite import connect_database
+from open_brain_engine.core.models import PrivacyDecision
+from open_brain_engine.core.ports import RedactedMarkdownDocument, RedactionReceipt
+from open_brain_engine.storage.filesystem import StorageError
+from open_brain_engine.storage.sqlite import connect_database
 
 if TYPE_CHECKING:
     from .synthesis import PreparedSynthesis

@@ -4,6 +4,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
+from open_brain_engine.capture.models import ExtractionFailure, ExtractionState
+from open_brain_engine.core.models import (
+    Authority,
+    ContentKind,
+    PrivacyDecision,
+    PrivacyReason,
+    PrivacyTier,
+    RawAssetRef,
+    SourceType,
+)
+from open_brain_engine.core.ports import FetchResponse
 
 from open_brain.capture.extractors import ExtractionRequest
 from open_brain.capture.extractors.article import ArticleExtractor
@@ -15,17 +26,6 @@ from open_brain.capture.extractors.social import (
 from open_brain.capture.extractors.text import TextExtractor
 from open_brain.capture.extractors.youtube import YouTubeExtractionRequest, YouTubeExtractor
 from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand, MediaTool
-from open_brain.capture.models import ExtractionFailure, ExtractionState
-from open_brain.core.models import (
-    Authority,
-    ContentKind,
-    PrivacyDecision,
-    PrivacyReason,
-    PrivacyTier,
-    RawAssetRef,
-    SourceType,
-)
-from open_brain.core.ports import FetchResponse
 
 
 def _privacy(*, egress: bool = True, cloud: bool = False) -> PrivacyDecision:

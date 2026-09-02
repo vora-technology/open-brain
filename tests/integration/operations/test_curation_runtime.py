@@ -7,10 +7,9 @@ from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
 import pytest
-
-from open_brain.capture.models import DistillationWorkItem
-from open_brain.core.ids import CaptureId, ReviewId
-from open_brain.core.models import (
+from open_brain_engine.capture.models import DistillationWorkItem
+from open_brain_engine.core.ids import CaptureId, ReviewId
+from open_brain_engine.core.models import (
     CaptureSource,
     CaptureWhyOrigin,
     ContentKind,
@@ -19,9 +18,24 @@ from open_brain.core.models import (
     PrivacyTier,
     SourceType,
 )
-from open_brain.core.policy import classify_privacy
-from open_brain.core.ports import EventRecord, PutDisposition, PutResult, RedactionReceipt
-from open_brain.engine import LockScope
+from open_brain_engine.core.policy import classify_privacy
+from open_brain_engine.core.ports import EventRecord, PutDisposition, PutResult, RedactionReceipt
+from open_brain_engine.engine import LockScope
+from open_brain_engine.review.models import (
+    Actor,
+    ActorKind,
+    ApprovedIntentRecord,
+    ReviewAggregate,
+    ReviewDecisionCommand,
+    ReviewProposal,
+    ReviewState,
+)
+from open_brain_engine.storage.frontmatter import (
+    AtomicMarkdownReader,
+    AtomicMarkdownSink,
+    markdown_relative_path,
+)
+
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.models import LedgerRoute, LedgerScanRecord, LedgerTaxonomy
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
@@ -49,20 +63,6 @@ from open_brain.operations.writer_jobs import (
     JobRunDisposition,
     WriterJobError,
     run_writer_job,
-)
-from open_brain.review.models import (
-    Actor,
-    ActorKind,
-    ApprovedIntentRecord,
-    ReviewAggregate,
-    ReviewDecisionCommand,
-    ReviewProposal,
-    ReviewState,
-)
-from open_brain.storage.frontmatter import (
-    AtomicMarkdownReader,
-    AtomicMarkdownSink,
-    markdown_relative_path,
 )
 from tests.unit.storage._factories import FixedClock
 

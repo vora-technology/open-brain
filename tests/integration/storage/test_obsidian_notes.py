@@ -6,8 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     CaptureWhyOrigin,
     ContentKind,
     ContentOrigin,
@@ -15,6 +14,8 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+from open_brain_engine.storage.filesystem import DuplicateConflictError, RootConfinementError
+
 from open_brain.integrations import (
     PageReadRequest,
     TrustLabel,
@@ -27,7 +28,6 @@ from open_brain.integrations.obsidian import (
     ObsidianTaxonomy,
     ObsidianVault,
 )
-from open_brain.storage.filesystem import DuplicateConflictError, RootConfinementError
 
 CAPTURED_AT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
 PROCESSED_AT = datetime(2026, 1, 2, 4, 5, 6, tzinfo=UTC)

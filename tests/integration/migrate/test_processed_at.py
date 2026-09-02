@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from open_brain_engine.storage.markdown import parse_markdown
 
 from open_brain.cli.migrate import apply_migration, plan_migration
 from open_brain.migrate import IssueCode, MigrationBlockedError, MigrationState, restore_backup
@@ -10,7 +11,6 @@ from open_brain.migrate.content import (
     apply_processed_at_backfill,
     plan_processed_at_backfill,
 )
-from open_brain.storage.markdown import parse_markdown
 
 from ._synthetic import note_fields, write_note
 

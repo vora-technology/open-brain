@@ -16,19 +16,20 @@ from pathlib import Path
 from typing import Protocol
 from urllib.parse import urlsplit
 
-from open_brain.config import (
-    AppConfig,
-    NamedSecretRef,
-    SecretResolutionError,
-    resolve_secret,
-)
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.providers.base import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.providers.base import (
     CloudFactory,
     ProviderService,
     SecretResolver,
     lazy_cloud_factory,
     unavailable_cloud_factory,
+)
+
+from open_brain.config import (
+    AppConfig,
+    NamedSecretRef,
+    SecretResolutionError,
+    resolve_secret,
 )
 from open_brain.providers.local import LocalProvider, LocalTransport
 

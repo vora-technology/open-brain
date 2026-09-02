@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import pytest
+from open_brain_engine.capture.models import ExtractionFailure, ExtractionState, TranscriptState
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 
 from open_brain.capture.extractors.youtube import (
     YouTubeExtractionRequest,
@@ -10,8 +12,6 @@ from open_brain.capture.extractors.youtube import (
     YouTubeMediaResult,
 )
 from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
-from open_brain.capture.models import ExtractionFailure, ExtractionState, TranscriptState
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 
 
 def _privacy(*, egress: bool = True) -> PrivacyDecision:

@@ -21,6 +21,7 @@ TOOLCHAIN_RELATIVE: Final = Path("release/phase4-toolchain.json")
 RUNTIME_FIELDS: Final = frozenset(
     {
         "current_path",
+        "movement_state",
         "target_distribution",
         "target_path",
         "runtime_namespace",
@@ -36,6 +37,7 @@ SUBJECT_FIELDS: Final = frozenset(
     {
         "kind",
         "current_path",
+        "movement_state",
         "target_distribution",
         "target_path",
         "runtime_namespace",
@@ -125,9 +127,17 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
             if previous != kind:
                 raise ManifestError(f"overlapping subject discovery: {path}")
 
-    add(_files(root, "tests/**/*.py"), "test")
-    add(_files(root, "schemas/**/*"), "schema")
-    add(_files(root, "tests/fixtures/**/*"), "fixture")
+    add(_files(root, "tests/**/*.py") | _files(root, "packages/*/tests/**/*.py"), "test")
+    add(
+        _files(root, "schemas/**/*")
+        | _files(root, "packages/*/src/*/portable/schemas/**/*"),
+        "schema",
+    )
+    add(
+        _files(root, "tests/fixtures/**/*")
+        | _files(root, "packages/*/src/*/portable/conformance/**/*"),
+        "fixture",
+    )
     parity_resource = root / "tests/parity/phase7/capture_scenarios.json"
     if parity_resource.is_file():
         add({parity_resource.relative_to(root).as_posix()}, "test-resource")
@@ -148,7 +158,12 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
 
     release_tools = {
         path
-        for pattern in (".github/**/*.yml", ".github/**/*.yaml", "tools/phase4/*.py")
+        for pattern in (
+            ".github/**/*.yml",
+            ".github/**/*.yaml",
+            "packages/*/pyproject.toml",
+            "tools/phase4/*.py",
+        )
         for path in _files(root, pattern)
     }
     release_tools.update(
@@ -174,15 +189,40 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
         raise ManifestError("phase4 reserved_entry_points must be sorted and unique")
     add(reserved_entry_points, "entry-point")
 
-    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
-    scripts = project.get("project", {}).get("scripts", {})
-    if not isinstance(scripts, dict):
-        raise ManifestError("project scripts must be an object")
-    add(
-        {f"pyproject.toml#project.scripts.{name}" for name in scripts if isinstance(name, str)},
-        "entry-point",
-    )
+    for path in sorted((root / "packages").glob("*/pyproject.toml")) + [
+        root / "pyproject.toml"
+    ]:
+        if not path.is_file():
+            continue
+        project = tomllib.loads(path.read_text(encoding="utf-8"))
+        metadata = project.get("project", {})
+        scripts = metadata.get("scripts", {}) if isinstance(metadata, dict) else {}
+        if not isinstance(scripts, dict):
+            raise ManifestError("project scripts must be an object")
+        relative = path.relative_to(root).as_posix()
+        add(
+            {
+                f"{relative}#project.scripts.{name}"
+                for name in scripts
+                if isinstance(name, str)
+            },
+            "entry-point",
+        )
     return dict(sorted(subjects.items()))
+
+
+def discover_runtime_paths(root: Path) -> set[str]:
+    """Discover runtime Python files in the monolith and Phase 4 destinations."""
+
+    return {
+        path
+        for pattern in (
+            "src/open_brain/**/*.py",
+            "packages/*/src/**/*.py",
+            "tools/open_brain_phase4/**/*.py",
+        )
+        for path in _files(root, pattern)
+    }
 
 
 def _target_module(target_path: str, namespace: str) -> str | None:
@@ -228,8 +268,9 @@ def _record_findings(
     if not required <= set(record):
         findings.append(Finding("P4M011", key, "required manifest fields are missing"))
         return findings
-    if record.get("current_path") != key:
-        findings.append(Finding("P4M011", key, "current_path does not match its key"))
+    movement_state = record.get("movement_state")
+    if movement_state not in {"planned", "moved"}:
+        findings.append(Finding("P4M011", key, "movement state is invalid"))
     if not runtime and record.get("kind") != kind:
         findings.append(Finding("P4M011", key, "subject kind does not match discovery"))
 
@@ -253,6 +294,11 @@ def _record_findings(
         previous = destinations.setdefault(target_path, key)
         if previous != key:
             findings.append(Finding("P4M004", key, f"destination also owned by {previous}"))
+        expected_current = target_path if movement_state == "moved" else key
+        if record.get("current_path") != expected_current:
+            findings.append(
+                Finding("P4M011", key, "current path disagrees with movement state")
+            )
 
     owner = record.get("test_owner")
     if owner not in {"engine", "app", "connector", "legacy", "workspace"}:
@@ -325,7 +371,7 @@ def _subject_exists(root: Path, key: str, kind: str) -> bool:
     path = root / raw_path
     if not path.is_file():
         return False
-    if kind != "entry-point" or raw_path == "pyproject.toml":
+    if kind != "entry-point" or raw_path.endswith("pyproject.toml"):
         return True
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=raw_path)
@@ -360,14 +406,30 @@ def _identity_findings(root: Path, phase4: Mapping[str, object]) -> list[Finding
     try:
         compatibility = load_manifest(root / COMPATIBILITY_RELATIVE)
         toolchain = load_manifest(root / TOOLCHAIN_RELATIVE)
-        project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     except (ManifestError, OSError, UnicodeError, tomllib.TOMLDecodeError):
         return [Finding("P4M010", "phase4.release_identity", "identity authority is unreadable")]
     version = identity.get("candidate_version")
     schema_range = identity.get("portable_schema")
-    project_version = project.get("project", {}).get("version")
+    declared_versions: list[object] = []
+    for path in [root / "pyproject.toml", *sorted((root / "packages").glob("*/pyproject.toml"))]:
+        if not path.is_file():
+            continue
+        try:
+            project = tomllib.loads(path.read_text(encoding="utf-8")).get("project")
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError):
+            return [
+                Finding("P4M010", "phase4.release_identity", "package identity is unreadable")
+            ]
+        if isinstance(project, dict) and project.get("name") in {
+            "open-brain",
+            "open-brain-connectors",
+            "open-brain-engine",
+            "open-brain-legacy",
+        }:
+            declared_versions.append(project.get("version"))
     if (
-        version != project_version
+        not declared_versions
+        or any(project_version != version for project_version in declared_versions)
         or version != compatibility.get("candidate_version")
         or version != toolchain.get("candidate_version")
         or schema_range != compatibility.get("portable_schema")
@@ -397,19 +459,18 @@ def validate_manifest(root: Path, manifest: Mapping[str, object]) -> list[Findin
     files_value = manifest.get("files")
     if not isinstance(source_root_value, str) or not isinstance(files_value, dict):
         return sorted(findings + [Finding("P4M001", "files", "runtime inventory is malformed")])
-    source_root = root / source_root_value
-    discovered_runtime = {
-        path.relative_to(source_root).as_posix()
-        for path in source_root.rglob("*.py")
-        if path.is_file() and "__pycache__" not in path.parts
-    }
     runtime = cast(dict[str, object], files_value)
-    for path in sorted(discovered_runtime - set(runtime)):
-        findings.append(
-            Finding("P4M002", f"{source_root_value}/{path}", "unclassified runtime file")
-        )
-    for path in sorted(set(runtime) - discovered_runtime):
-        findings.append(Finding("P4M003", f"{source_root_value}/{path}", "stale runtime subject"))
+    discovered_runtime = discover_runtime_paths(root)
+    declared_runtime: set[str] = set()
+    for value in runtime.values():
+        if isinstance(value, dict):
+            current_path = value.get("current_path")
+            if isinstance(current_path, str):
+                declared_runtime.add(current_path)
+    for path in sorted(discovered_runtime - declared_runtime):
+        findings.append(Finding("P4M002", path, "unclassified runtime file"))
+    for path in sorted(declared_runtime - discovered_runtime):
+        findings.append(Finding("P4M003", path, "stale runtime subject"))
 
     destinations: dict[str, str] = {}
     for relative, value in sorted(runtime.items()):
@@ -437,17 +498,29 @@ def validate_manifest(root: Path, manifest: Mapping[str, object]) -> list[Findin
         discovered_subjects = discover_subject_kinds(root, manifest)
     except (ManifestError, OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:
         return sorted(findings + [Finding("P4M001", "phase4.subjects", str(exc))])
-    for path in sorted(set(discovered_subjects) - set(subjects)):
+    declared_subjects: set[str] = set()
+    for value in subjects.values():
+        if isinstance(value, dict):
+            current_path = value.get("current_path")
+            if isinstance(current_path, str):
+                declared_subjects.add(current_path)
+    for path in sorted(set(discovered_subjects) - declared_subjects):
         findings.append(Finding("P4M002", path, "unclassified non-runtime subject"))
-    for path in sorted(set(subjects) - set(discovered_subjects)):
+    for path in sorted(declared_subjects - set(discovered_subjects)):
         findings.append(Finding("P4M003", path, "stale non-runtime subject"))
     for key, value in sorted(subjects.items()):
-        kind = discovered_subjects.get(key, "unknown")
-        if kind != "unknown" and not _subject_exists(root, key, kind):
-            findings.append(Finding("P4M002", key, "subject source is missing"))
         if not isinstance(value, dict):
             findings.append(Finding("P4M011", key, "subject record is not an object"))
             continue
+        current_path_value = value.get("current_path")
+        current_path = current_path_value if isinstance(current_path_value, str) else ""
+        kind = discovered_subjects.get(current_path, "unknown")
+        if (
+            kind != "unknown"
+            and current_path
+            and not _subject_exists(root, current_path, kind)
+        ):
+            findings.append(Finding("P4M002", current_path, "subject source is missing"))
         findings.extend(
             _record_findings(
                 key=key,
@@ -490,14 +563,15 @@ def render_move_report(manifest: Mapping[str, object]) -> str:
         f"- Total subjects: `{len(rows)}`",
         *[f"- {name}: `{count}`" for name, count in sorted(counts.items())],
         "",
-        "| Current subject | Kind | Distribution | Target | Artifacts |",
-        "|---|---|---|---|---|",
+        "| Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |",
+        "|---|---|---|---|---|---|---|",
     ]
     for path, record in rows:
         kind = str(record.get("kind", "runtime"))
         artifacts = ", ".join(cast(list[str], record.get("artifact_disposition", [])))
         lines.append(
-            f"| `{path}` | `{kind}` | `{record.get('target_distribution')}` | "
+            f"| `{path}` | `{record.get('current_path')}` | `{record.get('movement_state')}` | "
+            f"`{kind}` | `{record.get('target_distribution')}` | "
             f"`{record.get('target_path')}` | `{artifacts}` |"
         )
     return "\n".join(lines) + "\n"
@@ -511,14 +585,16 @@ def render_import_report(manifest: Mapping[str, object]) -> str:
         "",
         "Generated from `docs/v0-package-classification.json`; do not edit by hand.",
         "",
-        "| Current file | Current import | Target import | Old-path disposition |",
-        "|---|---|---|---|",
+        "| Source identity | Current file | State | Current import | Target import | "
+        "Old-path disposition |",
+        "|---|---|---|---|---|---|",
     ]
     for relative, raw in sorted(files.items()):
         record = cast(dict[str, object], raw)
         rewrite = cast(dict[str, object], record["import_rewrite"])
         lines.append(
-            f"| `{source_root}/{relative}` | `{rewrite['from']}` | `{rewrite['to']}` | "
+            f"| `{source_root}/{relative}` | `{record.get('current_path')}` | "
+            f"`{record.get('movement_state')}` | `{rewrite['from']}` | `{rewrite['to']}` | "
             f"`{record['old_import_disposition']}` |"
         )
     return "\n".join(lines) + "\n"

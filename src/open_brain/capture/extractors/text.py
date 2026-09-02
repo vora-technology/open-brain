@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import unicodedata
 
-from open_brain.capture.extractors import ExtractionRequest
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     ExtractionFailure,
     ExtractionMetadata,
     ExtractionState,
@@ -13,7 +12,9 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.core.models import ContentKind, PrivacyDecision, SourceType
+from open_brain_engine.core.models import ContentKind, PrivacyDecision, SourceType
+
+from open_brain.capture.extractors import ExtractionRequest
 
 _TITLE_MAX_CHARACTERS = 80
 TextExtractionRequest = ExtractionRequest

@@ -31,7 +31,7 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy
       - run: uv run pytest -q
-      - run: uv run python -m build
+      - run: make build
 
   appliance-source-checkout-macos:
     runs-on: macos-14

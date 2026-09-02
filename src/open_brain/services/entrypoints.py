@@ -68,6 +68,8 @@ def run_legacy_cli(
     environment: Mapping[str, object] | None = None,
 ) -> int:
     """Load process configuration and dispatch through the CLI representation."""
+    from open_brain_engine.storage.locks import LockBusyError
+
     from open_brain.cli._common import ExitCode
     from open_brain.cli._registry import scheduled_route_spec
     from open_brain.cli.main import main
@@ -79,7 +81,6 @@ def run_legacy_cli(
         classify_exit_code,
     )
     from open_brain.operations.runlog_store import FilesystemRunLogStore, RunLogStoreError
-    from open_brain.storage.locks import LockBusyError
 
     env = os.environ if environment is None else environment
     arguments = tuple(sys.argv[1:] if argv is None else argv)

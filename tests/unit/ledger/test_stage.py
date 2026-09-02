@@ -5,8 +5,8 @@ from dataclasses import replace
 from pathlib import Path, PurePosixPath
 
 import pytest
+from open_brain_engine.core.ports import EventRecord, RedactionReceipt
 
-from open_brain.core.ports import EventRecord, RedactionReceipt
 from open_brain.ledger.models import LedgerScanRecord, LedgerValidationError
 from open_brain.ledger.scan import scan_distillation_work_item, scan_source_root
 from open_brain.ledger.stage import StageDisposition, stage_manifest_entry, stage_scan_record

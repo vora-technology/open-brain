@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import PurePosixPath
 
-from open_brain.core.models import ContentOrigin
+from open_brain_engine.core.models import ContentOrigin
 
 from .sanitize import LedgerSection, SanitizedLeaf
 from .stage import LedgerStage

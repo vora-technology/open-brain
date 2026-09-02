@@ -14,23 +14,27 @@ from hashlib import sha256
 from types import MappingProxyType
 
 import pytest
+from open_brain_engine.capture.models import CaptureWorkItem as AuthoritativeCaptureWorkItem
+from open_brain_engine.capture.models import QueueErrorCode as AuthoritativeQueueErrorCode
+from open_brain_engine.capture.models import QueueItemState as AuthoritativeQueueState
+from open_brain_engine.core.models import CaptureEnvelope as AuthoritativeCaptureEnvelope
+from open_brain_engine.core.models import CaptureWhyOrigin as AuthoritativeOwnerContext
+from open_brain_engine.core.models import ContentKind as AuthoritativeContentKind
+from open_brain_engine.core.models import ContentOrigin as AuthoritativeContentOrigin
+from open_brain_engine.core.models import Intent as AuthoritativeIntent
+from open_brain_engine.core.models import PrivacyDecision as AuthoritativePrivacyDecision
+from open_brain_engine.core.models import PrivacyTier as AuthoritativePrivacyTier
+from open_brain_engine.core.models import Provenance as AuthoritativeProvenance
+from open_brain_engine.core.models import SourceType as AuthoritativeSourceType
+from open_brain_engine.review.models import Actor as AuthoritativeReviewActor
+from open_brain_engine.review.models import ActorKind as AuthoritativeActorKind
+from open_brain_engine.review.models import ReviewProposal as AuthoritativeReviewProposal
+from open_brain_engine.review.models import ReviewState as AuthoritativeReviewState
 
 import open_brain.parity as parity_module
 import open_brain.parity.harness as harness_module
-from open_brain.capture.models import CaptureWorkItem as AuthoritativeCaptureWorkItem
-from open_brain.capture.models import QueueErrorCode as AuthoritativeQueueErrorCode
-from open_brain.capture.models import QueueItemState as AuthoritativeQueueState
 from open_brain.cli._common import _PUBLIC_OUTPUT_SCHEMA_KEYS
 from open_brain.cli._common import ExitCode as AuthoritativeExitCode
-from open_brain.core.models import CaptureEnvelope as AuthoritativeCaptureEnvelope
-from open_brain.core.models import CaptureWhyOrigin as AuthoritativeOwnerContext
-from open_brain.core.models import ContentKind as AuthoritativeContentKind
-from open_brain.core.models import ContentOrigin as AuthoritativeContentOrigin
-from open_brain.core.models import Intent as AuthoritativeIntent
-from open_brain.core.models import PrivacyDecision as AuthoritativePrivacyDecision
-from open_brain.core.models import PrivacyTier as AuthoritativePrivacyTier
-from open_brain.core.models import Provenance as AuthoritativeProvenance
-from open_brain.core.models import SourceType as AuthoritativeSourceType
 from open_brain.operations.doctor import DoctorCheck as AuthoritativeDoctorCheck
 from open_brain.operations.doctor import DoctorOutcome as AuthoritativeDoctorOutcome
 from open_brain.operations.doctor import DoctorResult as AuthoritativeDoctorResult
@@ -89,10 +93,6 @@ from open_brain.parity import (
     SyntheticParityResult,
     compare_synthetic_parity,
 )
-from open_brain.review.models import Actor as AuthoritativeReviewActor
-from open_brain.review.models import ActorKind as AuthoritativeActorKind
-from open_brain.review.models import ReviewProposal as AuthoritativeReviewProposal
-from open_brain.review.models import ReviewState as AuthoritativeReviewState
 
 _DIGEST_A = "a" * 64
 _DIGEST_B = "b" * 64

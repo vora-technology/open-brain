@@ -8,9 +8,7 @@ import json
 from dataclasses import dataclass
 from typing import cast
 
-from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
-from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureAction,
     CaptureTask,
     DecisionOutcome,
@@ -25,6 +23,9 @@ from open_brain.engine import (
     TextPayload,
     project_public_space,
 )
+
+from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 
 
 @dataclass(frozen=True, slots=True)

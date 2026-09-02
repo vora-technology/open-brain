@@ -4,13 +4,13 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from open_brain_engine.capture.models import DistillationWorkItem, QueueErrorCode
+from open_brain_engine.core.ports import PutDisposition
 
-from open_brain.capture.models import DistillationWorkItem, QueueErrorCode
 from open_brain.capture.queue import (
     FilesystemDistillationQueue,
     QueueImmutableConflictError,
 )
-from open_brain.core.ports import PutDisposition
 
 FIXED_TIME = datetime(2026, 8, 25, 12, 0, tzinfo=UTC)
 

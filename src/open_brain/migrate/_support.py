@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain.storage.filesystem import RootConfinementError
+from open_brain_engine.storage.filesystem import RootConfinementError
 
 from ._models import (
     BackupEntry,

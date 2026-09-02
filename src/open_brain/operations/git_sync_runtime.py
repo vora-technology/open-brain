@@ -10,9 +10,13 @@ from pathlib import Path, PurePosixPath
 from typing import Protocol
 from urllib.parse import urlsplit
 
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import LockScope
-from open_brain.storage.filesystem import DuplicateConflictError, atomic_write_new, read_confined
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import LockScope
+from open_brain_engine.storage.filesystem import (
+    DuplicateConflictError,
+    atomic_write_new,
+    read_confined,
+)
 
 from .writer_jobs import (
     EffectCommand,

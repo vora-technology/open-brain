@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from open_brain_engine.engine import CaptureAction, CaptureReceipt, Payload, open_local_engine
 
 from open_brain.capture.http import (
     BODY_LIMIT_BYTES,
@@ -16,7 +17,6 @@ from open_brain.capture.http import (
     RequestReadTimeout,
     ShareHttpHandler,
 )
-from open_brain.engine import CaptureAction, CaptureReceipt, Payload, open_local_engine
 from open_brain.profile import compile_single_user_local
 
 

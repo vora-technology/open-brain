@@ -6,15 +6,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.capture.distillation import (
-    DistillationService,
-    FilesystemDistillationStore,
-)
-from open_brain.capture.distillation_worker import (
-    DistillationProcessStatus,
-    DistillationWorker,
-)
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     DistillationWorkItem,
     ExtractionMetadata,
     ExtractionState,
@@ -22,9 +14,8 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.capture.queue import FilesystemDistillationQueue
-from open_brain.capture.redaction import VersionedCaptureRedactor
-from open_brain.core.models import (
+from open_brain_engine.capture.redaction import VersionedCaptureRedactor
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -38,10 +29,20 @@ from open_brain.core.models import (
     RawCapture,
     SourceType,
 )
-from open_brain.core.ports import EventRecord, TextModelRequest, TextModelResult
-from open_brain.events.store import SqliteEventStore
-from open_brain.providers.base import ProviderService
-from open_brain.storage.filesystem import AtomicFilesystemRawStore
+from open_brain_engine.core.ports import EventRecord, TextModelRequest, TextModelResult
+from open_brain_engine.events.store import SqliteEventStore
+from open_brain_engine.providers.base import ProviderService
+from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore
+
+from open_brain.capture.distillation import (
+    DistillationService,
+    FilesystemDistillationStore,
+)
+from open_brain.capture.distillation_worker import (
+    DistillationProcessStatus,
+    DistillationWorker,
+)
+from open_brain.capture.queue import FilesystemDistillationQueue
 
 FIXED_TIME = datetime(2026, 8, 25, 12, 0, tzinfo=UTC)
 

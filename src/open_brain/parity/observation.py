@@ -14,7 +14,7 @@ from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 from typing import NoReturn, Protocol, cast, runtime_checkable
 
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureWorkItem,
     DistillationWorkItem,
     ExtractionMetadata,
@@ -23,15 +23,9 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.capture.queue import FilesystemCaptureQueue
-from open_brain.capture.redaction import VersionedCaptureRedactor
-from open_brain.cli._registry import CommandAdapterRegistry
-from open_brain.cli.doctor import DoctorCliResult, show_doctor
-from open_brain.cli.main import main as open_brain_cli
-from open_brain.cli.operations import OperationsCliResult, show_cron
-from open_brain.cli.status import StatusCliResult, show_status
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.core.models import (
+from open_brain_engine.capture.redaction import VersionedCaptureRedactor
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.core.models import (
     CaptureEnvelope,
     CaptureSource,
     CaptureWhyOrigin,
@@ -43,13 +37,27 @@ from open_brain.core.models import (
     RawCapture,
     SourceType,
 )
-from open_brain.core.policy import classify_privacy
-from open_brain.core.ports import (
+from open_brain_engine.core.policy import classify_privacy
+from open_brain_engine.core.ports import (
     EventRecord,
     PutDisposition,
     PutResult,
     RedactionReceipt,
 )
+from open_brain_engine.review.models import ActorKind, ReviewProposal, ReviewState
+from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore, raw_relative_path
+from open_brain_engine.storage.frontmatter import (
+    AtomicMarkdownReader,
+    AtomicMarkdownSink,
+    markdown_relative_path,
+)
+
+from open_brain.capture.queue import FilesystemCaptureQueue
+from open_brain.cli._registry import CommandAdapterRegistry
+from open_brain.cli.doctor import DoctorCliResult, show_doctor
+from open_brain.cli.main import main as open_brain_cli
+from open_brain.cli.operations import OperationsCliResult, show_cron
+from open_brain.cli.status import StatusCliResult, show_status
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.models import LedgerRoute, LedgerTaxonomy
 from open_brain.ledger.sanitize import LedgerSection, sanitize_leaf
@@ -75,7 +83,6 @@ from open_brain.operations.doctor import (
 )
 from open_brain.operations.runlog import RunMetadata
 from open_brain.operations.status import StatusMetric, StatusReading, collect_status
-from open_brain.review.models import ActorKind, ReviewProposal, ReviewState
 from open_brain.review.routing import (
     IntentRoutingDestination,
     IntentRoutingResult,
@@ -84,12 +91,6 @@ from open_brain.review.routing import (
 )
 from open_brain.review.service import OwnerAuthoredOutput, ReviewApplicationService
 from open_brain.review.store import SqliteReviewStore
-from open_brain.storage.filesystem import AtomicFilesystemRawStore, raw_relative_path
-from open_brain.storage.frontmatter import (
-    AtomicMarkdownReader,
-    AtomicMarkdownSink,
-    markdown_relative_path,
-)
 
 _CAPTURED_AT = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 _SCENARIO_FIELDS = frozenset(

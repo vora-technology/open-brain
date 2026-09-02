@@ -7,19 +7,19 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import TextPayload, open_local_engine
-from open_brain.engine.local import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import TextPayload, open_local_engine
+from open_brain_engine.engine.local import (
     ReadViewUnavailableError,
     StateSchemaUnavailableError,
     open_local_read_view,
 )
-from open_brain.engine.maintenance import (
+from open_brain_engine.engine.maintenance import (
     APPLIANCE_BACKUP_EVIDENCE,
     APPLIANCE_EXPORT_EVIDENCE,
     read_maintenance_snapshot,
 )
+
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain.services.appliance_init import initialize_appliance
 
@@ -136,7 +136,7 @@ import json
 import sys
 from pathlib import Path
 
-from open_brain.storage.locks import FileLease
+from open_brain_engine.storage.locks import FileLease
 
 root = Path(sys.argv[1])
 with FileLease(root / ".open-brain", "synthetic-holder").acquire_shared_writer():

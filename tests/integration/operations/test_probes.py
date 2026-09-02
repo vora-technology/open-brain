@@ -3,9 +3,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from open_brain_engine.engine import LockScope
+from open_brain_engine.storage.locks import HeldLeaseSnapshot, LockStateSnapshot
+from open_brain_engine.storage.writer_record import CanonicalWriterRecord
+
 from open_brain.capture.queue import PendingQueueSnapshot
 from open_brain.config import AppConfig, ConfigError, RetainedRoots
-from open_brain.engine import LockScope
 from open_brain.operations.doctor import (
     DoctorRole,
     ProbeName,
@@ -27,8 +30,6 @@ from open_brain.operations.probes import (
     unavailable_probe,
     writer_ownership_probe,
 )
-from open_brain.storage.locks import HeldLeaseSnapshot, LockStateSnapshot
-from open_brain.storage.writer_record import CanonicalWriterRecord
 
 _LOCK_THRESHOLDS = {
     LockScope.SHARED_WRITER: 60,

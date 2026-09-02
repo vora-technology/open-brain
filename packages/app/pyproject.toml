@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "open-brain"
+version = "0.1.0"
+description = "Local-first Open Brain application."
+requires-python = ">=3.12,<3.15"
+license = "Apache-2.0"
+authors = [{ name = "Open Brain contributors" }]
+dependencies = ["open-brain-engine==0.1.0"]
+
+[project.optional-dependencies]
+cloud = ["openai>=1.99,<3"]
+integrations = []
+mcp = []
+
+[project.scripts]
+open-brain = "open_brain.services.appliance_entrypoints:run_cli"
+open-brain-mcp = "open_brain.services.appliance_entrypoints:run_mcp"
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+open-brain-engine = { workspace = true }

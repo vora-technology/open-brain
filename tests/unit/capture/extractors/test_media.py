@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 
 import pytest
+from open_brain_engine.capture.models import ExtractionFailure
+from open_brain_engine.core.models import RawAssetRef
 
 from open_brain.capture import media as media_module
 from open_brain.capture.media import (
@@ -16,8 +18,6 @@ from open_brain.capture.media import (
     MediaLimits,
     collect_staged_media,
 )
-from open_brain.capture.models import ExtractionFailure
-from open_brain.core.models import RawAssetRef
 
 MIB = 1024 * 1024
 

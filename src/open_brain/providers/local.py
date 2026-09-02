@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from open_brain.core.models import PrivacyDecision, ValidationError
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import TextModelRequest, TextModelResult
-
-from .base import ProviderFailure
+from open_brain_engine.core.models import PrivacyDecision, ValidationError
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.providers.base import ProviderFailure
 
 
 class LocalTransport(Protocol):

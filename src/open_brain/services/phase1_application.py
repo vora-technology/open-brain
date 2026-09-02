@@ -7,15 +7,16 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-from open_brain.capture.http import BodyReader, ShareHttpHandler
-from open_brain.cli.phase1 import build_phase1_command_adapters
-from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
-from open_brain.engine import (
+from open_brain_engine.engine import (
     EngineTaskSet,
     PublicJobCaptureContext,
     PublicJobCaptureSink,
     open_local_engine,
 )
+
+from open_brain.capture.http import BodyReader, ShareHttpHandler
+from open_brain.cli.phase1 import build_phase1_command_adapters
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ports import RetrievalFeedbackReceipt, RetrievalFeedbackRequest

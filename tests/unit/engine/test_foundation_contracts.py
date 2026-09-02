@@ -7,9 +7,8 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-
-from open_brain.core.ids import portable_canonical_json_bytes
-from open_brain.core.models import (
+from open_brain_engine.core.ids import portable_canonical_json_bytes
+from open_brain_engine.core.models import (
     Authority,
     CaptureWhyOrigin,
     ContentOrigin,
@@ -19,7 +18,7 @@ from open_brain.core.models import (
     PrivacyTier,
     Provenance,
 )
-from open_brain.engine import (
+from open_brain_engine.engine import (
     CaptureAction,
     CaptureSubmission,
     EngineTaskSet,
@@ -29,13 +28,14 @@ from open_brain.engine import (
     TextPayload,
     open_local_engine,
 )
-from open_brain.engine.local import (
+from open_brain_engine.engine.local import (
     BrainEngine,
     CaptureTasks,
     InboxSpaceTasks,
     RetrievalTasks,
     ReviewTasks,
 )
+
 from open_brain.profile import compile_single_user_local
 
 
@@ -241,7 +241,7 @@ def test_scoped_fetch_denies_a_known_canonical_result_before_content_projection(
         reads.append("canonical content read")
         raise AssertionError("scoped fetch must not read a disallowed canonical file")
 
-    monkeypatch.setattr("open_brain.engine.retrieval.read_confined", read_if_called)
+    monkeypatch.setattr('open_brain_engine.engine.retrieval.read_confined', read_if_called)
 
     known_disallowed = scoped.fetch(denied_result.result_id)
     unknown = scoped.fetch("result_00000000-0000-4000-8000-000000000000")

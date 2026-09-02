@@ -8,15 +8,15 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.models import Authority, PrivacyReason, PrivacyTier
-from open_brain.engine import (
+from open_brain_engine.core.models import Authority, PrivacyReason, PrivacyTier
+from open_brain_engine.engine import (
     ContentOrigin,
     PrivacyDecision,
     Provenance,
     ProviderMode,
     ReferencePayload,
 )
+
 from open_brain.services.application import SingleUserLocalApplication
 from open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,

@@ -8,8 +8,8 @@ from enum import StrEnum
 from hashlib import sha256
 from typing import Protocol
 
-from open_brain.core.ids import capture_id_for, review_id_for
-from open_brain.core.models import Intent
+from open_brain_engine.core.ids import capture_id_for, review_id_for
+from open_brain_engine.core.models import Intent
 
 from .config import IntegrationConfig
 from .ports import (

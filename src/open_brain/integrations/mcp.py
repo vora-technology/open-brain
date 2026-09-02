@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, TypedDict
 
-from open_brain.engine import RetrievalResult, ScopedRetrievalTask
+from open_brain_engine.engine import RetrievalResult, ScopedRetrievalTask
 
 from .ports import (
     FeedbackOutcome,

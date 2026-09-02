@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from open_brain_engine.core.models import PrivacyDecision, PrivacyTier
+from open_brain_engine.core.policy import classify_privacy
+
 from open_brain.cli._common import ExitCode
 from open_brain.cli.ledger import claim_lifecycle
 from open_brain.cli.social import SocialCompatibilityAction, compatibility
-from open_brain.core.models import PrivacyDecision, PrivacyTier
-from open_brain.core.policy import classify_privacy
 from open_brain.ledger.index import ClaimInput, ClaimRecord
 from open_brain.ledger.merge import TrustedCitation
 from open_brain.ledger.render import ClaimViewRenderer, ClaimViewResult, RenderDisposition

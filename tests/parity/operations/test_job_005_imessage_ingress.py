@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -17,7 +17,8 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
+
 from open_brain.operations.capture_jobs import CaptureWrite, get_capture_job
 from open_brain.operations.models import HostRole, WriterScope
 from open_brain.services.application import SingleUserLocalApplication

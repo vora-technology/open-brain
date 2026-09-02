@@ -4,16 +4,16 @@ from dataclasses import dataclass, field
 from types import SimpleNamespace
 
 import pytest
-
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
 )
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import TextModelRequest, TextModelResult
-from open_brain.providers.base import OptionalExtraUnavailable, ProviderFailure
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.providers.base import OptionalExtraUnavailable, ProviderFailure
+
 from open_brain.providers.optional_cloud import OpenAICloudProvider, create_provider
 
 

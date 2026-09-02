@@ -7,24 +7,23 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.ids import CaptureId
-from open_brain.core.models import (
+from open_brain_engine.core.ids import CaptureId
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
 )
-from open_brain.core.ports import (
+from open_brain_engine.core.ports import (
     EventRecord,
     RedactedMarkdownDocument,
     RedactionFinding,
     RedactionFindingCategory,
     RedactionReceipt,
 )
-from open_brain.events.store import SqliteEventStore
-from open_brain.storage.filesystem import DuplicateConflictError
-from open_brain.storage.frontmatter import AtomicMarkdownSink, markdown_relative_path
+from open_brain_engine.events.store import SqliteEventStore
+from open_brain_engine.storage.filesystem import DuplicateConflictError
+from open_brain_engine.storage.frontmatter import AtomicMarkdownSink, markdown_relative_path
 
 FIXED_TIME = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
 STREAM_ID = CaptureId("cap_" + "a" * 64)
@@ -250,7 +249,7 @@ def test_work_tier_sinks_reject_disallowed_privacy_before_io(
     def no_file_open(*args: object, **kwargs: object) -> None:
         raise AssertionError("Markdown write attempted")
 
-    monkeypatch.setattr("open_brain.storage.frontmatter.atomic_write_new", no_file_open)
+    monkeypatch.setattr('open_brain_engine.storage.frontmatter.atomic_write_new', no_file_open)
     with pytest.raises(Exception, match="work-tier privacy decision rejected"):
         AtomicMarkdownSink(root=tmp_path).write_if_absent(document)
 

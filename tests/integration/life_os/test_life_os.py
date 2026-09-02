@@ -2,7 +2,17 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 
-from open_brain.core.models import Intent, PrivacyTier
+from open_brain_engine.core.models import Intent, PrivacyTier
+from open_brain_engine.review.models import (
+    Actor,
+    ActorKind,
+    ApprovedIntentRecord,
+    ReviewAggregate,
+    ReviewDecisionCommand,
+    ReviewProposal,
+    ReviewState,
+)
+
 from open_brain.integrations import Capability, IntegrationConfig
 from open_brain.integrations.life_os import (
     CalendarBlockPort,
@@ -18,15 +28,6 @@ from open_brain.integrations.life_os import (
     LifeResetDisposition,
     LifeResetRequest,
     ReviewGatedActionCandidate,
-)
-from open_brain.review.models import (
-    Actor,
-    ActorKind,
-    ApprovedIntentRecord,
-    ReviewAggregate,
-    ReviewDecisionCommand,
-    ReviewProposal,
-    ReviewState,
 )
 
 

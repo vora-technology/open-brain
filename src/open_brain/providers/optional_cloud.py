@@ -7,12 +7,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Protocol, cast
 
-from open_brain.capture.redaction import has_redaction_finding
-from open_brain.core.models import PrivacyDecision, PrivacyTier, ValidationError
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import Provider, TextModelRequest, TextModelResult
-
-from .base import OptionalExtraUnavailable, ProviderFailure
+from open_brain_engine.capture.redaction import has_redaction_finding
+from open_brain_engine.core.models import PrivacyDecision, PrivacyTier, ValidationError
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import Provider, TextModelRequest, TextModelResult
+from open_brain_engine.providers.base import OptionalExtraUnavailable, ProviderFailure
 
 _MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}")
 

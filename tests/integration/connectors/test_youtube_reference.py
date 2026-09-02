@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.engine import CaptureReceipt, PublicJobCaptureSink
 
 from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
 from open_brain.capture.media import MediaCommand
@@ -15,8 +17,6 @@ from open_brain.capture.poll import (
     PollRecord,
     PollRequestOrigin,
 )
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.engine import CaptureReceipt, PublicJobCaptureSink
 from open_brain.production.youtube_poll import (
     YouTubePollCheckpoint,
     YouTubeReferenceConnector,

@@ -7,16 +7,16 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
-
-from open_brain.core.ids import canonical_json_bytes
-from open_brain.engine import (
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import (
     BackupFault,
     CaptureAction,
     InjectedFault,
     TextPayload,
     open_local_engine,
 )
-from open_brain.engine.portability_ports import LocalTenantStorage
+from open_brain_engine.engine.portability_ports import LocalTenantStorage
+
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain.services.appliance_init import initialize_appliance
 from open_brain.services.appliance_scheduler import ApplianceJobResult, ApplianceScheduler

@@ -6,8 +6,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from open_brain_engine.engine import BackupReceipt, CaptureAction, TextPayload, open_local_engine
+from open_brain_engine.storage.operational import LockBusyError
 
-from open_brain.engine import BackupReceipt, CaptureAction, TextPayload, open_local_engine
 from open_brain.profile import open_existing_single_user_local
 from open_brain.services.appliance_init import initialize_appliance
 from open_brain.services.appliance_lifecycle import (
@@ -26,7 +27,6 @@ from open_brain.services.appliance_recovery import (
     ApplianceBackupResult,
     ApplianceReplacementPreflight,
 )
-from open_brain.storage.operational import LockBusyError
 
 
 def test_upgrade_orders_verified_recovery_migrations_activation_restart_and_doctor(

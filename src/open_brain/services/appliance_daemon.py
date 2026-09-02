@@ -17,13 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final, cast
 
-from open_brain.capture.http import ShareHttpHandler
-from open_brain.cli._common import (
-    ExitCode,
-    adapter_failed_envelope,
-    validate_adapter_envelope,
-)
-from open_brain.engine import (
+from open_brain_engine.engine import (
     DaemonAuthorityCapability,
     LocalEngineContext,
     TextPayload,
@@ -31,6 +25,13 @@ from open_brain.engine import (
     canonical_json_bytes,
     recover_authoritative_local_engine,
     require_daemon_authority,
+)
+
+from open_brain.capture.http import ShareHttpHandler
+from open_brain.cli._common import (
+    ExitCode,
+    adapter_failed_envelope,
+    validate_adapter_envelope,
 )
 from open_brain.integrations.phase1_ui import BrowserSessionStore
 from open_brain.profile import open_existing_single_user_local

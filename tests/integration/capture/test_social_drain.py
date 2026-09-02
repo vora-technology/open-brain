@@ -4,14 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
-from open_brain.capture.drain import (
-    CaptureDrain,
-    DrainItemState,
-    DrainProcessStatus,
-    FilesystemDrainOutcomeStore,
-)
-from open_brain.capture.models import (
+from open_brain_engine.capture.models import (
     CaptureWorkItem,
     ExtractionFailure,
     ExtractionMetadata,
@@ -20,8 +13,7 @@ from open_brain.capture.models import (
     NormalizedExtraction,
     TranscriptState,
 )
-from open_brain.capture.queue import FilesystemCaptureQueue
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,
@@ -34,6 +26,14 @@ from open_brain.core.models import (
     Provenance,
     SourceType,
 )
+
+from open_brain.capture.drain import (
+    CaptureDrain,
+    DrainItemState,
+    DrainProcessStatus,
+    FilesystemDrainOutcomeStore,
+)
+from open_brain.capture.queue import FilesystemCaptureQueue
 
 FIXED_TIME = datetime(2026, 8, 13, 12, 0, tzinfo=UTC)
 

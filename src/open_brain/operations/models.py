@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 
-from open_brain.engine import LockScope
+from open_brain_engine.engine import LockScope
 
 
 class OperationsValidationError(ValueError):
