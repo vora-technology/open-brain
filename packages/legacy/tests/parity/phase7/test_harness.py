@@ -33,8 +33,8 @@ from open_brain_engine.review.models import ReviewState as AuthoritativeReviewSt
 
 import open_brain_legacy.parity as parity_module
 import open_brain_legacy.parity.harness as harness_module
-from open_brain.cli._common import _PUBLIC_OUTPUT_SCHEMA_KEYS
-from open_brain.cli._common import ExitCode as AuthoritativeExitCode
+from open_brain_legacy._compat.open_brain.cli._common import _PUBLIC_OUTPUT_SCHEMA_KEYS
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode as AuthoritativeExitCode
 from open_brain_legacy.operations.doctor import DoctorCheck as AuthoritativeDoctorCheck
 from open_brain_legacy.operations.doctor import DoctorOutcome as AuthoritativeDoctorOutcome
 from open_brain_legacy.operations.doctor import DoctorResult as AuthoritativeDoctorResult

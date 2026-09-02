@@ -418,7 +418,7 @@ def _graph_findings(phase4: Mapping[str, object]) -> list[Finding]:
         "app": ["engine"],
         "connectors": ["app", "engine"],
         "engine": [],
-        "legacy": ["app", "connectors", "engine"],
+        "legacy": ["engine"],
     }
     if graph != expected:
         return [Finding("P4M007", "phase4.runtime_dependency_graph", "forbidden edge or cycle")]

@@ -24,7 +24,7 @@ from open_brain_engine.storage.filesystem import (
 )
 from open_brain_engine.storage.markdown import MarkdownFormatError, parse_markdown, render_markdown
 
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     PageDocument,
     PageReadRequest,
     RedactedText,

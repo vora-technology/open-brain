@@ -12,7 +12,7 @@ from pathlib import Path
 
 from open_brain_engine.storage.filesystem import StorageError, read_confined
 
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     FeedbackOutcome,
     RedactedText,
     RetrievalBatch,

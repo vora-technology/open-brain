@@ -9,13 +9,13 @@ from typing import Protocol
 
 from open_brain_engine.core.models import PrivacyTier
 
-from open_brain.cli._common import (
+from open_brain_legacy._compat.open_brain.cli._common import (
     CommandDispatchResult,
     ExitCode,
     redacted_error,
     validate_adapter_envelope,
 )
-from open_brain.integrations.ports import WorkRetriever
+from open_brain_legacy._compat.open_brain.integrations.ports import WorkRetriever
 from open_brain_legacy.cli._registry import CommandAdapterRegistry
 from open_brain_legacy.cli.capture import (
     CaptureEnqueuer,

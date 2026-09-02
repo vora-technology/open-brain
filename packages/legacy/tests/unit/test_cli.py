@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 from open_brain_legacy.cli._registry import CommandAdapterRegistry, command_names
 from open_brain_legacy.cli.main import main
 

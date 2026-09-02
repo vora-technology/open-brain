@@ -2,12 +2,12 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `587`
+- Total subjects: `623`
 - app: `77`
 - connectors: `18`
 - engine: `104`
-- legacy: `299`
-- workspace: `89`
+- legacy: `333`
+- workspace: `91`
 
 | Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |
 |---|---|---|---|---|---|---|
@@ -81,6 +81,40 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `schemas/portable-brain/v1/text.json` | `packages/engine/src/open_brain_engine/portable/schemas/v1/text.json` | `moved` | `schema` | `engine` | `packages/engine/src/open_brain_engine/portable/schemas/v1/text.json` | `engine-sdist, engine-wheel` |
 | `src/open_brain/__init__.py` | `packages/engine/src/open_brain_engine/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/__main__.py` | `packages/app/src/open_brain/__main__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/__main__.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/_compat/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/capture/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/capture/auth.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/auth.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/auth.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/capture/http.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/http.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/http.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/cli/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/cli/_common.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/_common.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/_common.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/cli/phase1.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/cli/phase1_registry.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1_registry.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1_registry.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/config.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/config.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/config.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/extensions/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/extensions/connectors.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/connectors.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/connectors.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/integrations/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/integrations/config.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/config.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/config.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/integrations/mcp.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/mcp.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/mcp.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/integrations/phase1_ui.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/phase1_ui.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/phase1_ui.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/integrations/ports.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ports.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ports.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/integrations/ui.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ui.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ui.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/profile.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/profile.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/profile.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/appliance_auth.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/appliance_auth.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/appliance_auth.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/composition.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/composition.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/composition.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/connectors.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/connectors.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/connectors.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/http_server.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/http_server.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/http_server.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/mcp_stdio.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/mcp_stdio.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/mcp_stdio.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain/services/runtime.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/runtime.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain/services/runtime.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/capture/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/capture/extractors/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/capture/extractors/youtube.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/youtube.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/youtube.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/capture/media.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/media.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/media.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/capture/poll.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/poll.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/poll.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/production/__init__.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/__init__.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/__init__.py` | `legacy-only` |
+| `src/open_brain/_compat/open_brain_connectors/production/youtube_poll.py` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/youtube_poll.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/youtube_poll.py` | `legacy-only` |
 | `src/open_brain/capture/__init__.py` | `packages/engine/src/open_brain_engine/capture/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/capture/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/capture/auth.py` | `packages/app/src/open_brain/capture/auth.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/capture/auth.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/capture/distillation.py` | `packages/legacy/src/open_brain_legacy/capture/distillation.py` | `moved` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/distillation.py` | `legacy-only` |
@@ -522,6 +556,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/phase4/test_connector_distribution.py` | `tests/phase4/test_connector_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_connector_distribution.py` | `excluded` |
 | `tests/phase4/test_engine_distribution.py` | `tests/phase4/test_engine_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_engine_distribution.py` | `excluded` |
 | `tests/phase4/test_move_manifest.py` | `tests/phase4/test_move_manifest.py` | `moved` | `test` | `workspace` | `tests/phase4/test_move_manifest.py` | `excluded` |
+| `tests/phase4/test_readiness_preflight.py` | `tests/phase4/test_readiness_preflight.py` | `moved` | `test` | `workspace` | `tests/phase4/test_readiness_preflight.py` | `excluded` |
 | `tests/phase4/test_rewrite_imports.py` | `tests/phase4/test_rewrite_imports.py` | `moved` | `test` | `workspace` | `tests/phase4/test_rewrite_imports.py` | `excluded` |
 | `tests/security/test_appliance_auth.py` | `tests/security/test_appliance_auth.py` | `moved` | `test` | `workspace` | `tests/security/test_appliance_auth.py` | `excluded` |
 | `tests/security/test_appliance_logs.py` | `tests/security/test_appliance_logs.py` | `moved` | `test` | `workspace` | `tests/security/test_appliance_logs.py` | `excluded` |
@@ -596,5 +631,6 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tools/phase4/__init__.py` | `tools/phase4/__init__.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/__init__.py` | `excluded` |
 | `tools/phase4/acceptance_harness.py` | `tools/phase4/acceptance_harness.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/acceptance_harness.py` | `excluded` |
 | `tools/phase4/move_manifest.py` | `tools/phase4/move_manifest.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/move_manifest.py` | `excluded` |
+| `tools/phase4/readiness_preflight.py` | `tools/phase4/readiness_preflight.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/readiness_preflight.py` | `excluded` |
 | `tools/phase4/rewrite_imports.py` | `tools/phase4/rewrite_imports.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/rewrite_imports.py` | `excluded` |
 | `uv.lock` | `uv.lock` | `moved` | `release-tool` | `workspace` | `uv.lock` | `excluded` |

@@ -32,7 +32,8 @@ The engine cannot import app, connector, legacy, or workspace modules. The app d
 manifest. Mutating installed CLI/UI requests go through the appliance daemon; MCP receives only
 space-scoped read capabilities and metadata feedback. The connector distribution depends on exact
 app and engine versions. It may import app code only through the published provisional extension
-modules under `open_brain.extensions`.
+modules under `open_brain.extensions`. The private legacy distribution depends only on the engine;
+its retained predecessor support is confined to `open_brain_legacy._compat`.
 
 ## Key files
 
@@ -47,6 +48,7 @@ modules under `open_brain.extensions`.
 | `packages/app/src/open_brain/extensions/connectors.py` | Published provisional connector values and app-owned host contracts |
 | `packages/app/src/open_brain/extensions/connector_worker_v1.py` | Bounded worker request, receipt, process, capability, and replay protocol |
 | `packages/connectors/src/open_brain_connectors/conformance.py` | Real YouTube reference conformance run and entry-point object |
+| `tools/phase4/readiness_preflight.py` | Reusable read-only P4-W5 through P4-W9 readiness snapshot with boolean and opaque-receipt output only |
 | `packages/app/src/open_brain/profile.py` | Single-user local Brain-root compiler and stable owner identity |
 | `packages/app/src/open_brain/services/appliance_entrypoints.py` | Installed `open-brain` and `open-brain-mcp` callables |
 | `packages/app/src/open_brain/services/appliance_daemon.py` | Sole installed mutation authority and control transport |
@@ -56,7 +58,7 @@ modules under `open_brain.extensions`.
 | `packages/app/tests/contract/test_v0_wheel_gates.py` | Explicit wheel-only `V0-GATE-07` and `V0-GATE-13` journeys |
 | `tests/phase4/test_connector_distribution.py` | Wheel-only connector build, import-boundary, entry-point, worker, replay, and CI contracts |
 | `tools/phase4/acceptance_harness.py` | Wheel build/install isolation, membership, import, and installed-test contracts |
-| `src/open_brain/dev/artifact_policy.py` | Multi-distribution wheel/sdist membership verifier |
+| `tools/open_brain_dev/artifact_policy.py` | Multi-distribution wheel/sdist membership verifier |
 | `docs/architecture.md` | Package and dependency boundaries |
 | `docs/privacy-model.md` | Privacy, public-result projection, connector evidence, and provider-routing invariants |
 

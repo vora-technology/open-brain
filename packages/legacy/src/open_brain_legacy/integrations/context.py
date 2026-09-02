@@ -8,7 +8,12 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
-from open_brain.integrations.ports import RedactedText, RetrievalBatch, RetrievalRequest, TrustLabel
+from open_brain_legacy._compat.open_brain.integrations.ports import (
+    RedactedText,
+    RetrievalBatch,
+    RetrievalRequest,
+    TrustLabel,
+)
 
 from .repository_identity import StableRepoIdentity
 from .retrieval import WorkPageSnapshot

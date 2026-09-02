@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 import pytest
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli._registry import CommandAdapterRegistry, command_names
 from open_brain_legacy.cli.main import main
 

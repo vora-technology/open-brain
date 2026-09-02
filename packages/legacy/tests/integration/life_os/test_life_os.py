@@ -13,7 +13,7 @@ from open_brain_engine.review.models import (
     ReviewState,
 )
 
-from open_brain.integrations import Capability, IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations import Capability, IntegrationConfig
 from open_brain_legacy.integrations.life_os import (
     CalendarBlockPort,
     CalendarBlockRequest,

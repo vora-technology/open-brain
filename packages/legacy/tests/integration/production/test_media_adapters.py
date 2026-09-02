@@ -9,9 +9,11 @@ from pathlib import Path
 import pytest
 from open_brain_engine.core.models import RawAssetRef
 
-from open_brain.config import AppConfig, RetainedRoots
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
-from open_brain_connectors.capture.media import (
+from open_brain_legacy._compat.open_brain.config import AppConfig, RetainedRoots
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeMediaResult,
+)
+from open_brain_legacy._compat.open_brain_connectors.capture.media import (
     DEFAULT_MEDIA_LIMITS,
     MediaCommand,
     MediaRunResult,

@@ -6,7 +6,7 @@ from pathlib import Path
 from open_brain_engine.capture.models import ExtractionFailure
 from open_brain_engine.core.models import RawAssetRef
 
-from open_brain_connectors.capture.media import collect_staged_media
+from open_brain_legacy._compat.open_brain_connectors.capture.media import collect_staged_media
 from open_brain_legacy.production.assets import ContentAddressedRawAssetStore
 
 

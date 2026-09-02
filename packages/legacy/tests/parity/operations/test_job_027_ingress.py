@@ -4,7 +4,7 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from open_brain.capture.http import HttpRequest, ShareHttpHandler
+from open_brain_legacy._compat.open_brain.capture.http import HttpRequest, ShareHttpHandler
 from open_brain_legacy.operations.capture_jobs import CaptureWrite, get_capture_job
 from open_brain_legacy.operations.models import JobState, TriggerKind
 from open_brain_legacy.services.application import SingleUserLocalApplication

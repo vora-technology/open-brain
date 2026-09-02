@@ -45,9 +45,9 @@ def test_canonical_move_manifest_is_complete_and_valid() -> None:
     manifest = _manifest()
 
     assert validate_manifest(ROOT, manifest) == []
-    assert len(_runtime(manifest)) == 232
+    assert len(_runtime(manifest)) == 266
     subjects = _subjects(manifest)
-    assert sum(record["kind"] == "test" for record in subjects.values()) == 260
+    assert sum(record["kind"] == "test" for record in subjects.values()) == 261
     assert sum(record["kind"] in {"schema", "fixture"} for record in subjects.values()) == 36
 
 
@@ -57,6 +57,14 @@ def test_p4a_has_no_unresolved_movement_or_monolith_tree() -> None:
     assert not (ROOT / "src/open_brain").exists()
     assert all(record["movement_state"] == "moved" for record in _runtime(manifest).values())
     assert all(record["movement_state"] == "moved" for record in _subjects(manifest).values())
+
+
+def test_project_instructions_name_the_current_artifact_policy_tool() -> None:
+    instructions = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+
+    assert "src/open_brain/dev/artifact_policy.py" not in instructions
+    assert "tools/open_brain_dev/artifact_policy.py" in instructions
+    assert (ROOT / "tools/open_brain_dev/artifact_policy.py").is_file()
 
 
 def test_generated_move_and_import_reports_are_exact() -> None:
@@ -101,8 +109,7 @@ def test_p4a_entry_points_are_moved_to_their_owning_distributions() -> None:
     }
 
     connector_key = (
-        "packages/connectors/pyproject.toml#project.entry-points."
-        "open_brain.connectors.v1.youtube"
+        "packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube"
     )
 
     assert connector_key in entry_points

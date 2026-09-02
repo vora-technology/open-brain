@@ -18,8 +18,8 @@ from open_brain_engine.storage.filesystem import (
     read_confined,
 )
 
-from open_brain.integrations.config import IntegrationConfig
-from open_brain.integrations.ports import Capability
+from open_brain_legacy._compat.open_brain.integrations.config import IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations.ports import Capability
 
 from .life_os import (
     CalendarBlockPort,

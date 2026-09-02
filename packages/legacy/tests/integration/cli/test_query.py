@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from open_brain.cli._common import ExitCode
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     RedactedText,
     RetrievalBatch,
     RetrievalHit,

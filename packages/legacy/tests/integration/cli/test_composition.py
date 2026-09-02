@@ -43,15 +43,15 @@ from open_brain_engine.storage.locks import LockBusyError
 from open_brain_engine.storage.sqlite import connect_database, migrate
 from open_brain_engine.storage.writer_record import write_canonical_writer_record
 
-from open_brain.cli._common import ExitCode
-from open_brain.config import (
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.config import (
     AppConfig,
     NamedSecretRef,
     RetainedRoots,
     SecretRef,
     SecretRefKind,
 )
-from open_brain.services.connectors import (
+from open_brain_legacy._compat.open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
     ConnectorBudget,
     ConnectorBudgetLimits,
@@ -63,11 +63,13 @@ from open_brain.services.connectors import (
     ConnectorRegistry,
     ConnectorRunContext,
 )
-from open_brain.services.http_server import HttpServerFactory
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
-from open_brain_connectors.capture.media import MediaCommand
-from open_brain_connectors.capture.poll import FilesystemYouTubePollState
-from open_brain_connectors.production.youtube_poll import (
+from open_brain_legacy._compat.open_brain.services.http_server import HttpServerFactory
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeMediaResult,
+)
+from open_brain_legacy._compat.open_brain_connectors.capture.media import MediaCommand
+from open_brain_legacy._compat.open_brain_connectors.capture.poll import FilesystemYouTubePollState
+from open_brain_legacy._compat.open_brain_connectors.production.youtube_poll import (
     YouTubePollCheckpoint,
     YouTubeReferenceConnector,
     YouTubeReferenceTransport,

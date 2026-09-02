@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.ledger import reconcile
 from open_brain_legacy.ledger.reconcile import ReconcileDisposition, ReconcileResult
 from open_brain_legacy.ledger.service import PreparedLedgerApply

@@ -23,7 +23,7 @@ from open_brain_engine.engine import LockScope
 from open_brain_engine.storage.locks import FileLease, LockBusyError
 from open_brain_engine.storage.writer_record import WriterRecordError, read_canonical_writer_record
 
-from open_brain.config import AppConfig, ConfigError
+from open_brain_legacy._compat.open_brain.config import AppConfig, ConfigError
 
 _SCHEMA_VERSION = 1
 _MAX_RECORD_BYTES = 64 * 1024

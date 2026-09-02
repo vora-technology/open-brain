@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from open_brain.integrations.ports import SyncStatus
+from open_brain_legacy._compat.open_brain.integrations.ports import SyncStatus
 from open_brain_legacy.integrations.finance import (
     FakeFinanceProvider,
     FinanceIntegration,

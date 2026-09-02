@@ -52,9 +52,11 @@ from open_brain_engine.core.ports import (
 from open_brain_engine.engine import open_local_engine
 from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore
 
-from open_brain.capture.http import HttpRequest, ShareHttpHandler
-from open_brain.profile import compile_single_user_local
-from open_brain_connectors.capture.extractors.youtube import YouTubeExtractionRequest
+from open_brain_legacy._compat.open_brain.capture.http import HttpRequest, ShareHttpHandler
+from open_brain_legacy._compat.open_brain.profile import compile_single_user_local
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeExtractionRequest,
+)
 from open_brain_legacy.capture.service import CaptureService, ProcessStatus
 
 FIXED_TIME = datetime(2026, 8, 13, 12, 0, tzinfo=UTC)

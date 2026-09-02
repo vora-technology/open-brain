@@ -548,5 +548,38 @@
   passed with the same public-only fixture. Gitleaks 8.30.1 found no leaks
   across 90 commits, and actionlint passed.
 - All local P4-W4 source, package, matrix, artifact, and audit gates are green.
-  Exact-head CI and the independent review remain pending. Reviewer budget is
-  zero active and zero total.
+  Exact-head CI run `33642529540`, Release audit `33642529483`, and CodeQL
+  `33642524132` all passed at evidence commit
+  `7927162096330355520f2de756aa45b48ccb6493`. Local, remote, and PR source
+  identities match. The fresh independent review is now reserved as child 14;
+  reviewer budget is one active and one total.
+- Child 14 (`01a0628c-d723-73e0-96cc-f2b3d8ca3f63`) returned
+  `NOT_READY`, P0/P1/P2 `0/1/1`, against exact source `7927162`.
+  `P4A-001` proves D-040 broadened the approved engine-only legacy dependency
+  into 42 app-importing files and eight connector-importing files, including
+  distribution-private modules. `P4A-002` proves `CLAUDE.md` still names the
+  deleted `src/open_brain/dev/artifact_policy.py` path. No other finding
+  survived review. The same lineage is retained for rereview after both
+  regressions and repairs pass exact-head CI.
+- Both reviewer findings were reproduced before repair. The dependency
+  regression observed `{app, connectors, engine}` instead of the approved
+  `{engine}` graph, and the instruction regression found the deleted artifact
+  policy path.
+- The repaired legacy source has zero static app or connector imports. The
+  canonical graph, validator, package metadata, lockfile, and private artifact
+  metadata all declare only `open-brain-engine==0.1.0`. Thirty-four supporting
+  modules are contained in the legacy-only `_compat` namespace and classified
+  as private compatibility.
+- A new clean-room contract builds engine and legacy with `--no-sources`,
+  installs only those two wheels, imports every module in the legacy wheel, and
+  proves the app and connector namespaces are unavailable. It passes, as do all
+  2,147 legacy tests.
+- The P4-W5 readiness preflight has seven passing tests. It invokes each of the
+  six required read-only probes once, fails closed without propagating raw
+  errors, emits only booleans and `rct_v1_` opaque receipts, validates restored
+  snapshots, and reuses one snapshot through P4-W5, P4-W6, P4-W7, P4-W8, and
+  P4-W9 without another probe call.
+- Current local verification passes 98 Phase 4/architecture tests, Ruff,
+  strict MyPy on 536 files, manifest validation, all 3,182 repository tests,
+  six source-free shipping builds, artifact policy, `uv lock --check`, and
+  `git diff --check`. Exact-commit audits and remote checks remain pending.

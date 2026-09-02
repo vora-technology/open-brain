@@ -8,7 +8,12 @@ from pathlib import Path
 
 import pytest
 
-from open_brain.config import AppConfig, RetainedRootIdentities, RetainedRoots, SecretRef
+from open_brain_legacy._compat.open_brain.config import (
+    AppConfig,
+    RetainedRootIdentities,
+    RetainedRoots,
+    SecretRef,
+)
 from open_brain_legacy.migrate.config import (
     EVIDENCE_VERSION,
     PRIVATE_MODE,

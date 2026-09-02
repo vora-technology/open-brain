@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 import pytest
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli._registry import CommandAdapterRegistry
 from open_brain_legacy.cli.doctor import DoctorCommandAdapter, show_doctor
 from open_brain_legacy.cli.main import main

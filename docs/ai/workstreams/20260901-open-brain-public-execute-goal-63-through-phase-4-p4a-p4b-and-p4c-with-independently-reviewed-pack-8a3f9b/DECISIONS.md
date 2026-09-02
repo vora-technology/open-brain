@@ -455,3 +455,34 @@
   compatibility package, so these declared inward edges cannot make a shipping
   artifact depend on legacy. Truthful metadata removes the hidden source-path
   dependency while retaining predecessor behavior for private compatibility.
+
+## D-041: restore the reviewed legacy dependency boundary
+
+- Chosen: treat D-040 as a failed hypothesis after independent finding
+  `P4A-001`. Restore `legacy -> engine`, remove every legacy runtime import of
+  app-private and connector modules, and keep the predecessor behavior that
+  cannot use a current published interface inside the legacy-only `_compat`
+  namespace. That snapshot consumes engine interfaces and is excluded from
+  every shipping artifact.
+- Rejected: amend the governing plan during its execution, declare broad
+  private implementation dependencies, move app or source-specific connector
+  behavior into engine, or make the validator bless the observed source graph.
+- Why: a dependency can point away from shipping code and still violate the
+  reviewed architecture. The private legacy boundary is the designated home
+  for predecessor compatibility, while engine remains app-independent and the
+  app and connector distributions retain sole ownership of current behavior.
+
+## D-042: use one read-only readiness preflight from P4-W5 through P4-W9
+
+- Chosen: before P4-W5, add one reusable preflight covering signing,
+  notarization, macOS ARM64, Linux x86_64, disk capacity, and recovery access.
+  Its public result contains only booleans and opaque receipt identifiers; all
+  probes are injected read-only capabilities. The serialized snapshot validates
+  on restore and is reused unchanged through `P4-W5` to `P4-W9` without calling
+  a probe again.
+- Rejected: rediscover readiness independently in each wave, emit host paths or
+  credential details, or let the preflight sign, notarize, recover, deploy, or
+  mutate a host.
+- Why: one stable preflight prevents gate drift across P4B and P4C while
+  keeping private topology, credentials, and raw operational output outside the
+  public repository.

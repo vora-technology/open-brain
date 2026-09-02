@@ -10,7 +10,7 @@ from typing import Protocol
 
 from open_brain_engine.core.models import PrivacyDecision
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 from open_brain_legacy.ledger.age import age_claims
 from open_brain_legacy.ledger.embed import embed_claims
 from open_brain_legacy.ledger.index import ClaimInput, ClaimRecord, index_claims

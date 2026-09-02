@@ -17,7 +17,12 @@ from open_brain_engine.core.models import (
 )
 from open_brain_engine.core.ports import TextModelRequest, TextModelResult
 
-from open_brain.config import AppConfig, NamedSecretRef, RetainedRoots, SecretRef
+from open_brain_legacy._compat.open_brain.config import (
+    AppConfig,
+    NamedSecretRef,
+    RetainedRoots,
+    SecretRef,
+)
 from open_brain_legacy.production.providers import (
     LocalProviderRuntimeConfig,
     ProductionProviderConfigError,

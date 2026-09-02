@@ -10,8 +10,8 @@ from collections.abc import Callable, Mapping
 from dataclasses import replace
 from pathlib import Path
 
-from open_brain.config import AppConfig, ConfigError
-from open_brain.services.connectors import (
+from open_brain_legacy._compat.open_brain.config import AppConfig, ConfigError
+from open_brain_legacy._compat.open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
     ConnectorBudget,
     ConnectorBudgetLimits,
@@ -24,7 +24,7 @@ from open_brain.services.connectors import (
     ConnectorRunContext,
     RunContextFactory,
 )
-from open_brain.services.runtime import (
+from open_brain_legacy._compat.open_brain.services.runtime import (
     ServiceConfigurationError,
     _utc_now,
     bind_from_environment,
@@ -70,7 +70,7 @@ def run_legacy_cli(
     """Load process configuration and dispatch through the CLI representation."""
     from open_brain_engine.storage.locks import LockBusyError
 
-    from open_brain.cli._common import ExitCode
+    from open_brain_legacy._compat.open_brain.cli._common import ExitCode
     from open_brain_legacy.cli._registry import scheduled_route_spec
     from open_brain_legacy.cli.main import main
     from open_brain_legacy.operations.models import ExitClass
@@ -236,8 +236,10 @@ def _configure_youtube_connector(
     ):
         return application, {}
 
-    from open_brain_connectors.capture.poll import FilesystemYouTubePollState
-    from open_brain_connectors.production.youtube_poll import (
+    from open_brain_legacy._compat.open_brain_connectors.capture.poll import (
+        FilesystemYouTubePollState,
+    )
+    from open_brain_legacy._compat.open_brain_connectors.production.youtube_poll import (
         YouTubePollCheckpoint,
         YouTubeReferenceConnector,
         YouTubeReferenceTransport,
@@ -256,7 +258,10 @@ def _configure_youtube_connector(
     )
     entry = _StaticConnectorEntryPoint(
         name="youtube",
-        value="open_brain_connectors.production.youtube_poll:YouTubeReferenceConnector",
+        value=(
+            "open_brain_legacy._compat.open_brain_connectors.production.youtube_poll:"
+            "YouTubeReferenceConnector"
+        ),
         load=YouTubeReferenceConnector,
     )
     configured_application = replace(

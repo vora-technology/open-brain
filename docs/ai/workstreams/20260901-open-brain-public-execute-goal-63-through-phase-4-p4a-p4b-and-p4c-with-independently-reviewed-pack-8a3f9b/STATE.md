@@ -89,9 +89,9 @@
 
 ## Next action
 
-Commit the exact P4-W4 evidence checkpoint, push the P4A candidate, and require
-all exact-head CI, Release audit, and CodeQL jobs green before dispatching the
-fresh read-only review.
+Commit the locally green P4A repair, rerun the source/history/secret audits on
+that exact commit, push it, and require exact-head CI, Release audit, and
+CodeQL green before resuming child 14 for rereview.
 
 ## P4-W0 complete
 
@@ -495,5 +495,28 @@ fresh read-only review.
   and the 76-test isolation matrix on Python 3.12, 3.13, and 3.14.
 - Source/artifact and reachable-history audits, Gitleaks 8.30.1 over 90
   commits, actionlint, lockfile integrity, and diff integrity pass. Exact-head
-  CI and independent review remain. Reviewer budget is zero active and zero
-  total.
+  CI `33642529540`, Release audit `33642529483`, and CodeQL `33642524132` are
+  green at `7927162096330355520f2de756aa45b48ccb6493`; local, remote, and PR
+  source match. Child 14 is reserved for the independent final review, and the
+  reviewer budget is one active and one total.
+- Child 14 returned `NOT_READY`, P0/P1/P2 `0/1/1`. P4-W5 remains blocked.
+  The reviewer lineage is closed while repairs run and will be resumed only
+  after a new exact candidate passes all local and remote gates.
+- D-040 is superseded. The canonical graph, legacy package metadata, lockfile,
+  source imports, and private wheel metadata now require only
+  `open-brain-engine==0.1.0`. Thirty-four app/connector support modules needed
+  only by predecessor execution are quarantined under
+  `open_brain_legacy._compat`; no shipping artifact contains that namespace.
+- The clean-room legacy contract installs only the engine and legacy wheels,
+  imports every packaged legacy module, and proves `open_brain` and
+  `open_brain_connectors` remain unavailable. The complete 2,147-test legacy
+  suite also passes.
+- `CLAUDE.md` names the canonical artifact-policy path. The reusable readiness
+  preflight covers signing, notarization, macOS ARM64, Linux x86_64, disk
+  capacity, and recovery access. Its public snapshot contains only booleans and
+  validated opaque receipts and can be restored for P4-W5 through P4-W9 without
+  rerunning any probe.
+- Current local repair gates pass: 98 Phase 4/architecture tests, Ruff, strict
+  MyPy on 536 files, manifest validation, all 3,182 repository tests, six
+  source-free shipping artifacts, artifact policy, lockfile integrity, and
+  diff integrity. Exact-commit audits and remote checks remain pending.

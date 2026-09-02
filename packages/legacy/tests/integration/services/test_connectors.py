@@ -17,8 +17,8 @@ from open_brain_engine.engine import (
     ReferencePayload,
 )
 
-from open_brain.extensions.connectors import CONNECTOR_ENTRY_POINT_GROUP
-from open_brain.services.connectors import (
+from open_brain_legacy._compat.open_brain.extensions.connectors import CONNECTOR_ENTRY_POINT_GROUP
+from open_brain_legacy._compat.open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
     ConnectorBudget,
     ConnectorBudgetLimits,

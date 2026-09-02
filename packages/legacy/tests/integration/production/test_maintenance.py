@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from open_brain_engine.core.ids import canonical_json_bytes
 
-from open_brain.config import AppConfig, RetainedRoots
+from open_brain_legacy._compat.open_brain.config import AppConfig, RetainedRoots
 from open_brain_legacy.production.retention import (
     ProductionRetentionError,
     compose_production_retention_service,

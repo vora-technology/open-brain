@@ -7,7 +7,7 @@ import stat
 from dataclasses import dataclass
 from pathlib import Path
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 from open_brain_legacy.integrations.obsidian import ObsidianTaxonomy
 from open_brain_legacy.migrate import (
     BackupReceipt,

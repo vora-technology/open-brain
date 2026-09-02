@@ -26,7 +26,7 @@ from open_brain_engine.core.models import (
 from open_brain_engine.core.ports import CaptureQueue, Clock, RawStore
 from open_brain_engine.storage.filesystem import atomic_write_new
 
-from open_brain_connectors.capture.extractors import ExtractionRequest
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors import ExtractionRequest
 from open_brain_legacy.capture.distillation import (
     DistillationInput,
     DistillationService,

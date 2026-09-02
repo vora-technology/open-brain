@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from open_brain_engine.core.models import PrivacyTier
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.operations import DigestOutputMode, DigestReport, render_digest
 
 

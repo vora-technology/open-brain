@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.ledger import slim
 from open_brain_legacy.ledger.slim import LedgerSourceView, PreparedSlim, SlimResult
 

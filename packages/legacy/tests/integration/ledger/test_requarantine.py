@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.ledger import requarantine
 from open_brain_legacy.ledger.merge import TrustedCitation
 from open_brain_legacy.ledger.requarantine import (

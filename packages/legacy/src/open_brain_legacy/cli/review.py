@@ -19,7 +19,7 @@ from open_brain_engine.review.models import (
     ReviewState,
 )
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 from open_brain_legacy.review.maintenance import (
     ArchiveResult,
     CurationTarget,

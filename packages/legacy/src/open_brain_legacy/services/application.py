@@ -24,28 +24,35 @@ from open_brain_engine.storage.locks import FileLease, LockBusyError, inspect_fi
 from open_brain_engine.storage.sqlite import SCHEMA_VERSION, inspect_event_schema
 from open_brain_engine.storage.writer_record import WriterRecordError, read_canonical_writer_record
 
-from open_brain.capture.http import BodyReader, ShareHttpHandler
-from open_brain.cli._common import (
+from open_brain_legacy._compat.open_brain.capture.http import BodyReader, ShareHttpHandler
+from open_brain_legacy._compat.open_brain.cli._common import (
     CommandDispatchResult,
     ExitCode,
     redacted_error,
     unavailable_envelope,
 )
-from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
-from open_brain.config import AppConfig, ConfigError, SecretRefKind
-from open_brain.integrations.config import IntegrationConfig
-from open_brain.integrations.mcp import EngineMcpAdapter
-from open_brain.integrations.phase1_ui import Phase1UiHandler
-from open_brain.integrations.ports import Capability, ProviderSyncRequest, SyncStatus
-from open_brain.profile import compile_single_user_local
-from open_brain.services.connectors import (
+from open_brain_legacy._compat.open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
+from open_brain_legacy._compat.open_brain.config import AppConfig, ConfigError, SecretRefKind
+from open_brain_legacy._compat.open_brain.integrations.config import IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations.mcp import EngineMcpAdapter
+from open_brain_legacy._compat.open_brain.integrations.phase1_ui import Phase1UiHandler
+from open_brain_legacy._compat.open_brain.integrations.ports import (
+    Capability,
+    ProviderSyncRequest,
+    SyncStatus,
+)
+from open_brain_legacy._compat.open_brain.profile import compile_single_user_local
+from open_brain_legacy._compat.open_brain.services.connectors import (
     ConnectorHost,
     ConnectorOutcome,
     ConnectorProfile,
     RunContextFactory,
 )
-from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
-from open_brain.services.runtime import (
+from open_brain_legacy._compat.open_brain.services.http_server import (
+    HttpRouteMode,
+    HttpServerFactory,
+)
+from open_brain_legacy._compat.open_brain.services.runtime import (
     ServiceConfigurationError,
     compose_http_from_config,
     load_private_http_bind_config,
@@ -237,7 +244,7 @@ class SingleUserLocalApplication:
         return tuple(item.name for item in self.connector_host.discover(self.connector_profile))
 
     def cli_adapters(self) -> Phase1CommandAdapterRegistry:
-        from open_brain.cli.phase1 import build_phase1_command_adapters
+        from open_brain_legacy._compat.open_brain.cli.phase1 import build_phase1_command_adapters
 
         return build_phase1_command_adapters(self.tasks.phase1)
 

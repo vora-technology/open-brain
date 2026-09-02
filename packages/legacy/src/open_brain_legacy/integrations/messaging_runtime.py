@@ -33,8 +33,8 @@ from open_brain_engine.storage.sqlite import (
     migrate,
 )
 
-from open_brain.integrations.config import IntegrationConfig
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.config import IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
     ProviderSyncResult,

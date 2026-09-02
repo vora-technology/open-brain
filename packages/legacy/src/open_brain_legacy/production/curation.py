@@ -25,7 +25,7 @@ from open_brain_engine.storage.frontmatter import (
     markdown_relative_path,
 )
 
-from open_brain.config import AppConfig
+from open_brain_legacy._compat.open_brain.config import AppConfig
 from open_brain_legacy.ledger.merge import TrustedCitation
 from open_brain_legacy.ledger.models import LedgerTaxonomy
 from open_brain_legacy.ledger.sanitize import LedgerSection, sanitize_leaf

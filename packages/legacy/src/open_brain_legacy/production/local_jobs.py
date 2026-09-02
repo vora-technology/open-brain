@@ -17,7 +17,7 @@ from open_brain_engine.core.ids import canonical_json_bytes
 from open_brain_engine.review.models import ReviewAggregate, ReviewState
 from open_brain_engine.storage.filesystem import atomic_replace, read_confined
 
-from open_brain.integrations.ports import HookInstallRequest, HookKind
+from open_brain_legacy._compat.open_brain.integrations.ports import HookInstallRequest, HookKind
 from open_brain_legacy.integrations.hooks import HookPlan, TemporaryHookPlanner
 from open_brain_legacy.operations.git_sync_runtime import GitCommand, GitCommandRunner
 from open_brain_legacy.operations.writer_jobs import (

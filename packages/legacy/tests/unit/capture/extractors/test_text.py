@@ -10,7 +10,7 @@ from open_brain_engine.core.models import (
     SourceType,
 )
 
-from open_brain_connectors.capture.extractors import ExtractionRequest
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors import ExtractionRequest
 from open_brain_legacy.capture.extractors.text import TextExtractor
 
 

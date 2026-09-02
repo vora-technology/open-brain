@@ -14,9 +14,13 @@ from open_brain_engine.core.models import PrivacyTier
 from open_brain_engine.core.ports import PutResult
 from open_brain_engine.engine import CaptureAction, CaptureReceipt, Payload
 
-from open_brain.cli._common import CommandDispatchResult, ExitCode, redacted_error
-from open_brain.config import AppConfig
-from open_brain.integrations.ports import PageDocument, PageReadRequest
+from open_brain_legacy._compat.open_brain.cli._common import (
+    CommandDispatchResult,
+    ExitCode,
+    redacted_error,
+)
+from open_brain_legacy._compat.open_brain.config import AppConfig
+from open_brain_legacy._compat.open_brain.integrations.ports import PageDocument, PageReadRequest
 from open_brain_legacy.capture.queue import FilesystemCaptureQueue, read_pending_queue_snapshot
 from open_brain_legacy.cli.ledger import scan as scan_ledger
 from open_brain_legacy.cli.operations import (

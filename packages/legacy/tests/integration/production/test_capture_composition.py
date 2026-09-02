@@ -23,9 +23,11 @@ from open_brain_engine.core.models import (
 from open_brain_engine.core.ports import TextModelRequest, TextModelResult
 from open_brain_engine.providers.base import ProviderService
 
-from open_brain.config import AppConfig, RetainedRoots
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
-from open_brain_connectors.capture.media import MediaCommand, MediaTool
+from open_brain_legacy._compat.open_brain.config import AppConfig, RetainedRoots
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeMediaResult,
+)
+from open_brain_legacy._compat.open_brain_connectors.capture.media import MediaCommand, MediaTool
 from open_brain_legacy.capture.distillation_worker import DistillationProcessStatus
 from open_brain_legacy.capture.extractors.social import SocialMediaResult
 from open_brain_legacy.capture.queue import FilesystemCaptureQueue

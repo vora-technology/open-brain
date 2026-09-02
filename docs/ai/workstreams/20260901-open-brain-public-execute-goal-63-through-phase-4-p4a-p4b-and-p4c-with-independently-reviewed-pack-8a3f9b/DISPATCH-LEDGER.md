@@ -268,11 +268,31 @@ coordinator-owned.
 
 - Status: active
 - Active children: 0 of 6
-- Total children: 0 of 12
+- Total children: 1 of 12
 - Identical failures: 0 of 2
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; no child write scope is reserved
-- Review lineage: unreserved until the exact P4A candidate passes all
-  applicable CI, Release audit, and CodeQL checks
+- Review lineage: child 14 completed the first review at
+  `7927162096330355520f2de756aa45b48ccb6493`; retain the same lineage and
+  resume it only after the repair candidate passes exact-head remote checks
 - Reset authority: D-038 closes the P4-W3 lineage and starts P4-W4 with a fresh
   child budget
+
+## Child 14: P4-W4 and P4A final review
+
+- Status: complete; lineage retained for rereview
+- Agent ID: `01a0628c-d723-73e0-96cc-f2b3d8ca3f63`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only independent reviewer
+- Write scope: none
+- Source scope: public repository through
+  `7927162096330355520f2de756aa45b48ccb6493`
+- Evidence: exact-head CI `33642529540`, Release audit `33642529483`, and
+  CodeQL `33642524132` are green
+- Required result: `READY` with P0/P1/P2 `0/0/0`; otherwise return bounded
+  findings with exact source evidence
+- Result: `NOT_READY`; P0/P1/P2 `0/1/1`. `P4A-001` rejects D-040's broad
+  legacy-to-app/connector dependency as weaker than the governing plan and
+  published migration-interface boundary. `P4A-002` identifies the removed
+  artifact-policy path retained in `CLAUDE.md`.

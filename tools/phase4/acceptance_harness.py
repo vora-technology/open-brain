@@ -583,6 +583,131 @@ def engine_isolation_findings(root: Path, work: Path) -> list[Finding]:
     )
 
 
+def _legacy_contract_source() -> str:
+    return """from __future__ import annotations
+
+import importlib
+import importlib.metadata
+import importlib.util
+import json
+import sys
+
+import open_brain_engine
+
+
+def main() -> None:
+    distribution = importlib.metadata.distribution("open-brain-legacy")
+    assert distribution.version == "0.1.0"
+    assert tuple(distribution.requires or ()) == ("open-brain-engine==0.1.0",)
+    forbidden = ("open_brain", "open_brain_connectors")
+    assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    modules = set()
+    for entry in distribution.files or ():
+        parts = list(entry.parts)
+        if not parts or parts[0] != "open_brain_legacy" or not parts[-1].endswith(".py"):
+            continue
+        parts[-1] = parts[-1].removesuffix(".py")
+        if parts[-1] == "__init__":
+            parts.pop()
+        if parts:
+            modules.add(".".join(parts))
+    imported = [importlib.import_module(name) for name in sorted(modules)]
+    assert imported
+    assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    representative = importlib.import_module("open_brain_legacy.services.application")
+    print(json.dumps({
+        "module_paths": [representative.__file__, open_brain_engine.__file__],
+        "sys_path": sys.path,
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+def legacy_isolation_findings(root: Path, work: Path) -> list[Finding]:
+    """Build and import legacy with only its declared engine dependency installed."""
+
+    engine_project = root / "packages/engine"
+    legacy_project = root / "packages/legacy"
+    if not (legacy_project / "src/open_brain_legacy").is_dir():
+        return [Finding("P4H007", "legacy-isolation", "legacy project is absent")]
+    engine_dist = work / "engine-dist"
+    legacy_dist = work / "legacy-dist"
+    environment = work / "venv"
+    run_root = work / "run"
+    for path in (engine_dist, legacy_dist, run_root):
+        path.mkdir(parents=True, exist_ok=True)
+    try:
+        run_checked(build_command(engine_project, engine_dist), cwd=run_root)
+        run_checked(build_command(legacy_project, legacy_dist), cwd=run_root)
+    except (OSError, subprocess.SubprocessError):
+        return [Finding("P4H007", "legacy-isolation", "legacy or engine build failed")]
+    engine_wheels = sorted(engine_dist.glob("open_brain_engine-*.whl"))
+    legacy_wheels = sorted(legacy_dist.glob("open_brain_legacy-*.whl"))
+    legacy_sdists = sorted(legacy_dist.glob("open_brain_legacy-*.tar.gz"))
+    if len(engine_wheels) != 1 or len(legacy_wheels) != 1 or len(legacy_sdists) != 1:
+        return [Finding("P4H001", "legacy-isolation", "legacy artifacts are incomplete")]
+    legacy_wheel = legacy_wheels[0]
+    findings = artifact_findings(
+        legacy_wheel,
+        ArtifactContract(
+            subject="legacy-wheel",
+            required_members=(
+                "open_brain_legacy/services/application.py",
+                "open_brain_legacy/_compat/open_brain/config.py",
+                "open_brain_legacy/_compat/open_brain_connectors/capture/media.py",
+            ),
+            forbidden_patterns=(
+                "open_brain/**",
+                "open_brain_connectors/**",
+                "open_brain_engine/**",
+                "tests/**",
+                "tools/**",
+            ),
+            expected_name="open-brain-legacy",
+            expected_version="0.1.0",
+        ),
+    )
+    if findings:
+        return findings
+    stage = "create product environment"
+    try:
+        run_checked(create_environment_command(environment), cwd=run_root)
+        python = environment / "bin/python"
+        stage = "install product wheels"
+        run_checked(
+            install_command(python, [engine_wheels[0], legacy_wheel]),
+            cwd=run_root,
+        )
+        contract = run_root / "legacy_contract.py"
+        contract.write_text(_legacy_contract_source(), encoding="utf-8")
+        stage = "run installed legacy contract"
+        completed = run_checked((os.fspath(python), "-I", os.fspath(contract)), cwd=run_root)
+        payload = json.loads(completed.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError):
+        return [
+            Finding(
+                "P4H007",
+                "legacy-isolation",
+                f"installed legacy contract failed at {stage}",
+            )
+        ]
+    module_paths = payload.get("module_paths") if isinstance(payload, dict) else None
+    sys_path = payload.get("sys_path") if isinstance(payload, dict) else None
+    if not isinstance(module_paths, list) or not all(
+        isinstance(item, str) for item in module_paths
+    ):
+        return [Finding("P4H007", "legacy-isolation", "module origin evidence is malformed")]
+    if not isinstance(sys_path, list) or not all(isinstance(item, str) for item in sys_path):
+        return [Finding("P4H007", "legacy-isolation", "interpreter path evidence is malformed")]
+    return import_probe_findings(
+        ImportProbe(tuple(cast(list[str], module_paths)), tuple(cast(list[str], sys_path))),
+        root,
+    )
+
+
 def _app_contract_source() -> str:
     return """from __future__ import annotations
 

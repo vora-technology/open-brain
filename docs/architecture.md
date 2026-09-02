@@ -26,8 +26,9 @@ The package map uses these ownership boundaries:
 - `operations`: doctor, scheduling, retention, backup, and recovery behavior.
 - `dev`: workspace-only development and release-safety tools under `tools/open_brain_dev`.
 - `legacy`: retained predecessor and operational compatibility files under the private
-  `open_brain_legacy` namespace. This outer compatibility package declares exact app, connector,
-  and engine dependencies. No default or shipping artifact depends on or packages legacy code.
+  `open_brain_legacy` namespace. It depends only on the published engine and keeps the app and
+  source-specific behavior needed by the predecessor inside its private `_compat` namespace. No
+  default or shipping artifact depends on or packages legacy code.
 
 Private deployment configuration contains values and rendered manifests, never patched or copied application source.
 

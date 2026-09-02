@@ -55,6 +55,788 @@
       "target_path": "packages/app/src/open_brain/__main__.py",
       "test_owner": "app"
     },
+    "_compat/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat",
+        "to": "open_brain_legacy._compat"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain",
+        "to": "open_brain_legacy._compat.open_brain"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/capture/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.capture",
+        "to": "open_brain_legacy._compat.open_brain.capture"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/capture/auth.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/auth.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.capture.auth",
+        "to": "open_brain_legacy._compat.open_brain.capture.auth"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/auth.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/capture/http.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/http.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.capture.http",
+        "to": "open_brain_legacy._compat.open_brain.capture.http"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/capture/http.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/cli/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.cli",
+        "to": "open_brain_legacy._compat.open_brain.cli"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/cli/_common.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/_common.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.cli._common",
+        "to": "open_brain_legacy._compat.open_brain.cli._common"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/_common.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/cli/phase1.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.cli.phase1",
+        "to": "open_brain_legacy._compat.open_brain.cli.phase1"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/cli/phase1_registry.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1_registry.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.cli.phase1_registry",
+        "to": "open_brain_legacy._compat.open_brain.cli.phase1_registry"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/cli/phase1_registry.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/config.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/config.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.config",
+        "to": "open_brain_legacy._compat.open_brain.config"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/config.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/extensions/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.extensions",
+        "to": "open_brain_legacy._compat.open_brain.extensions"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/extensions/connectors.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/connectors.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.extensions.connectors",
+        "to": "open_brain_legacy._compat.open_brain.extensions.connectors"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/extensions/connectors.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/integrations/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.integrations",
+        "to": "open_brain_legacy._compat.open_brain.integrations"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/integrations/config.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/config.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.integrations.config",
+        "to": "open_brain_legacy._compat.open_brain.integrations.config"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/config.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/integrations/mcp.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/mcp.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.integrations.mcp",
+        "to": "open_brain_legacy._compat.open_brain.integrations.mcp"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/mcp.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/integrations/phase1_ui.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/phase1_ui.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.integrations.phase1_ui",
+        "to": "open_brain_legacy._compat.open_brain.integrations.phase1_ui"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/phase1_ui.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/integrations/ports.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ports.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.integrations.ports",
+        "to": "open_brain_legacy._compat.open_brain.integrations.ports"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ports.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/integrations/ui.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ui.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.integrations.ui",
+        "to": "open_brain_legacy._compat.open_brain.integrations.ui"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/integrations/ui.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/profile.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/profile.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.profile",
+        "to": "open_brain_legacy._compat.open_brain.profile"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/profile.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services",
+        "to": "open_brain_legacy._compat.open_brain.services"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/appliance_auth.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/appliance_auth.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services.appliance_auth",
+        "to": "open_brain_legacy._compat.open_brain.services.appliance_auth"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/appliance_auth.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/composition.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/composition.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services.composition",
+        "to": "open_brain_legacy._compat.open_brain.services.composition"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/composition.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/connectors.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/connectors.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services.connectors",
+        "to": "open_brain_legacy._compat.open_brain.services.connectors"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/connectors.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/http_server.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/http_server.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services.http_server",
+        "to": "open_brain_legacy._compat.open_brain.services.http_server"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/http_server.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/mcp_stdio.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/mcp_stdio.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services.mcp_stdio",
+        "to": "open_brain_legacy._compat.open_brain.services.mcp_stdio"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/mcp_stdio.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain/services/runtime.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/runtime.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain.services.runtime",
+        "to": "open_brain_legacy._compat.open_brain.services.runtime"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain/services/runtime.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors",
+        "to": "open_brain_legacy._compat.open_brain_connectors"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/capture/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.capture",
+        "to": "open_brain_legacy._compat.open_brain_connectors.capture"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/capture/extractors/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.capture.extractors",
+        "to": "open_brain_legacy._compat.open_brain_connectors.capture.extractors"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/capture/extractors/youtube.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/youtube.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube",
+        "to": "open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/extractors/youtube.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/capture/media.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/media.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.capture.media",
+        "to": "open_brain_legacy._compat.open_brain_connectors.capture.media"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/media.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/capture/poll.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/poll.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.capture.poll",
+        "to": "open_brain_legacy._compat.open_brain_connectors.capture.poll"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/capture/poll.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/production/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.production",
+        "to": "open_brain_legacy._compat.open_brain_connectors.production"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/__init__.py",
+      "test_owner": "legacy"
+    },
+    "_compat/open_brain_connectors/production/youtube_poll.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "legacy-only"
+      ],
+      "current_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/youtube_poll.py",
+      "import_rewrite": {
+        "from": "open_brain_legacy._compat.open_brain_connectors.production.youtube_poll",
+        "to": "open_brain_legacy._compat.open_brain_connectors.production.youtube_poll"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "legacy-private",
+      "owner": "legacy",
+      "resource_requirements": [],
+      "roles": [
+        "compatibility"
+      ],
+      "runtime_namespace": "open_brain_legacy",
+      "target_distribution": "legacy",
+      "target_path": "packages/legacy/src/open_brain_legacy/_compat/open_brain_connectors/production/youtube_poll.py",
+      "test_owner": "legacy"
+    },
     "capture/__init__.py": {
       "api": "internal",
       "api_status": "distribution-private",
@@ -5037,6 +5819,12 @@
     }
   },
   "packages": {
+    "_compat": {
+      "classification": "legacy",
+      "current_scope": "Private distribution-local compatibility support for predecessor execution.",
+      "phase_1_action": "Keep quarantined inside legacy; shipping namespaces must not import it.",
+      "target_owner": "legacy"
+    },
     "capture": {
       "classification": "mixed",
       "current_scope": "Generated from authoritative file ownership.",
@@ -5180,8 +5968,6 @@
       ],
       "engine": [],
       "legacy": [
-        "app",
-        "connectors",
         "engine"
       ]
     },
@@ -9862,6 +10648,22 @@
         "target_path": "tests/phase4/test_move_manifest.py",
         "test_owner": "workspace"
       },
+      "tests/phase4/test_readiness_preflight.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tests/phase4/test_readiness_preflight.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tests/phase4/test_readiness_preflight.py",
+        "test_owner": "workspace"
+      },
       "tests/phase4/test_rewrite_imports.py": {
         "api_status": "test-only",
         "artifact_disposition": [
@@ -11044,6 +11846,22 @@
         "runtime_namespace": null,
         "target_distribution": "workspace",
         "target_path": "tools/phase4/move_manifest.py",
+        "test_owner": "workspace"
+      },
+      "tools/phase4/readiness_preflight.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tools/phase4/readiness_preflight.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tools/phase4/readiness_preflight.py",
         "test_owner": "workspace"
       },
       "tools/phase4/rewrite_imports.py": {

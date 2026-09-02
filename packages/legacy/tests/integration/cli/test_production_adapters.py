@@ -12,8 +12,8 @@ from open_brain_engine.capture.models import (
 )
 from open_brain_engine.core.ports import PutDisposition, PutResult
 
-from open_brain.cli._common import ExitCode
-from open_brain.integrations.ports import RetrievalBatch, RetrievalRequest
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.integrations.ports import RetrievalBatch, RetrievalRequest
 from open_brain_legacy.cli.production_adapters import (
     ProductionCommandAdapter,
     ProductionCommandDependencies,

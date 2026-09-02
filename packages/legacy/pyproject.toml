@@ -10,8 +10,6 @@ requires-python = ">=3.12,<3.15"
 license = "Apache-2.0"
 authors = [{ name = "Open Brain contributors" }]
 dependencies = [
-  "open-brain==0.1.0",
-  "open-brain-connectors==0.1.0",
   "open-brain-engine==0.1.0",
 ]
 
@@ -19,8 +17,6 @@ dependencies = [
 package = false
 
 [tool.uv.sources]
-open-brain = { workspace = true }
-open-brain-connectors = { workspace = true }
 open-brain-engine = { workspace = true }
 
 [tool.hatch.build]

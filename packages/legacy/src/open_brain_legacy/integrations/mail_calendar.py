@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from open_brain.integrations.config import IntegrationConfig
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.config import IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
     ProviderSyncResult,

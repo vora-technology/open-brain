@@ -3,7 +3,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from open_brain.integrations import Capability, IntegrationConfig, ProviderSyncRequest, SyncStatus
+from open_brain_legacy._compat.open_brain.integrations import (
+    Capability,
+    IntegrationConfig,
+    ProviderSyncRequest,
+    SyncStatus,
+)
 from open_brain_legacy.integrations.mail_calendar import (
     AgendaItem,
     CalendarEvent,

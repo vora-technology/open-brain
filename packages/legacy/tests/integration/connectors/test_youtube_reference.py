@@ -9,7 +9,7 @@ import pytest
 from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain_engine.engine import CaptureReceipt, PublicJobCaptureSink
 
-from open_brain.services.connectors import (
+from open_brain_legacy._compat.open_brain.services.connectors import (
     ConnectorBudget,
     ConnectorBudgetLimits,
     ConnectorCaptureIdentity,
@@ -18,15 +18,18 @@ from open_brain.services.connectors import (
     ConnectorRunContext,
     ConnectorRunEvidence,
 )
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
-from open_brain_connectors.capture.media import MediaCommand
-from open_brain_connectors.capture.poll import (
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeMediaAdapter,
+    YouTubeMediaResult,
+)
+from open_brain_legacy._compat.open_brain_connectors.capture.media import MediaCommand
+from open_brain_legacy._compat.open_brain_connectors.capture.poll import (
     FilesystemYouTubePollState,
     PollItemState,
     PollRecord,
     PollRequestOrigin,
 )
-from open_brain_connectors.production.youtube_poll import (
+from open_brain_legacy._compat.open_brain_connectors.production.youtube_poll import (
     YouTubePollCheckpoint,
     YouTubeReferenceConnector,
     YouTubeReferenceTransport,

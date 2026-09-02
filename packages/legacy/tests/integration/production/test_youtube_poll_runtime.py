@@ -14,10 +14,12 @@ from open_brain_engine.core.models import (
 )
 from open_brain_engine.engine import PublicJobCaptureSink
 
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
-from open_brain_connectors.capture.media import MediaCommand
-from open_brain_connectors.capture.poll import PollItemState
-from open_brain_connectors.production.youtube_poll import (
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeMediaResult,
+)
+from open_brain_legacy._compat.open_brain_connectors.capture.media import MediaCommand
+from open_brain_legacy._compat.open_brain_connectors.capture.poll import PollItemState
+from open_brain_legacy._compat.open_brain_connectors.production.youtube_poll import (
     YouTubePollConfigError,
     compose_production_youtube_poll_runtime,
     load_private_youtube_config,

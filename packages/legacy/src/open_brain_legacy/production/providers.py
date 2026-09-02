@@ -25,7 +25,7 @@ from open_brain_engine.providers.base import (
     unavailable_cloud_factory,
 )
 
-from open_brain.config import (
+from open_brain_legacy._compat.open_brain.config import (
     AppConfig,
     NamedSecretRef,
     SecretResolutionError,

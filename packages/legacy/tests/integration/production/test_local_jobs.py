@@ -14,7 +14,7 @@ from open_brain_engine.review.models import (
     ReviewState,
 )
 
-from open_brain.integrations.ports import HookInstallRequest, HookKind
+from open_brain_legacy._compat.open_brain.integrations.ports import HookInstallRequest, HookKind
 from open_brain_legacy.integrations.hooks import TemporaryHookPlanner
 from open_brain_legacy.operations.git_sync_runtime import GitCommand, GitCommandResult
 from open_brain_legacy.operations.writer_jobs import WriterJobInvocation, get_writer_job_spec

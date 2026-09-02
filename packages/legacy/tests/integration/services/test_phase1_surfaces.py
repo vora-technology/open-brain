@@ -19,17 +19,17 @@ from open_brain_engine.engine.contracts import (
     MutationTransport,
 )
 
-from open_brain.cli._common import CommandAdapterLookup, ExitCode
-from open_brain.cli.phase1 import build_phase1_command_adapters
-from open_brain.integrations.phase1_ui import (
+from open_brain.services.appliance_init import initialize_appliance
+from open_brain.services.phase1_application import SingleUserLocalApplication
+from open_brain_legacy._compat.open_brain.cli._common import CommandAdapterLookup, ExitCode
+from open_brain_legacy._compat.open_brain.cli.phase1 import build_phase1_command_adapters
+from open_brain_legacy._compat.open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
     Phase1UiRequest,
     Phase1UiResponse,
 )
-from open_brain.profile import compile_single_user_local
-from open_brain.services.appliance_init import initialize_appliance
-from open_brain.services.phase1_application import SingleUserLocalApplication
-from open_brain.services.runtime import (
+from open_brain_legacy._compat.open_brain.profile import compile_single_user_local
+from open_brain_legacy._compat.open_brain.services.runtime import (
     RESERVED_APPLIANCE_APPLICATION_MODULE,
     RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
 )

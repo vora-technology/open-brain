@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from open_brain.integrations import Capability, IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations import Capability, IntegrationConfig
 from open_brain_legacy.integrations.life_os import (
     InMemoryLifePlanStore,
     LifeOSIntegration,

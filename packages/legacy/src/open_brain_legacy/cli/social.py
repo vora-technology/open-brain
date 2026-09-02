@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from enum import StrEnum
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 
 
 class SocialCompatibilityAction(StrEnum):

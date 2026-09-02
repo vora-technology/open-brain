@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from open_brain.integrations.ports import RetrievalBatch, RetrievalRequest, TrustLabel
+from open_brain_legacy._compat.open_brain.integrations.ports import (
+    RetrievalBatch,
+    RetrievalRequest,
+    TrustLabel,
+)
 from open_brain_legacy.integrations.context import (
     ContextRequest,
     ContextStatus,

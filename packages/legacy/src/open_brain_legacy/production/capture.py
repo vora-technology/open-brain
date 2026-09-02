@@ -28,8 +28,11 @@ from open_brain_engine.events.store import SqliteEventStore
 from open_brain_engine.providers.base import ProviderService
 from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore
 
-from open_brain.config import AppConfig
-from open_brain_connectors.capture.extractors.youtube import YouTubeExtractor, YouTubeMediaAdapter
+from open_brain_legacy._compat.open_brain.config import AppConfig
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeExtractor,
+    YouTubeMediaAdapter,
+)
 from open_brain_legacy.capture.distillation import DistillationService, FilesystemDistillationStore
 from open_brain_legacy.capture.distillation_worker import (
     DistillationProcessStatus,

@@ -7,7 +7,7 @@ from open_brain_engine.capture.models import (
     ShareStatus,
 )
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.capture import share_capture
 
 

@@ -29,7 +29,7 @@ from open_brain_engine.review.models import (
 )
 from open_brain_engine.storage.writer_record import write_canonical_writer_record
 
-from open_brain.config import (
+from open_brain_legacy._compat.open_brain.config import (
     AppConfig,
     LedgerConfig,
     LedgerRouteConfig,

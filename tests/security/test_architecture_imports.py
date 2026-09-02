@@ -637,7 +637,7 @@ def test_p2_w1_owner_edges_are_closed() -> None:
     assert storage_operations == set()
 
 
-def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
+def test_p4_w4_legacy_composition_uses_distribution_local_compatibility() -> None:
     classification = _load_classification()
     classified_paths = set(_classified_files(classification))
 
@@ -652,11 +652,12 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     entrypoints = targets("services/entrypoints.py")
     application = targets("services/application.py")
     production_application = targets("production/application.py")
+    compatibility_runtime = "_compat/open_brain/services/runtime.py"
 
-    assert {"services/application.py", "services/runtime.py"} <= entrypoints
+    assert {"services/application.py", compatibility_runtime} <= entrypoints
     assert "services/capabilities.py" not in entrypoints
     assert "production/application.py" not in entrypoints
-    assert {"services/capabilities.py", "services/runtime.py"} <= application
+    assert {"services/capabilities.py", compatibility_runtime} <= application
     assert "services/entrypoints.py" not in application
     assert production_application == {"services/application.py"}
 

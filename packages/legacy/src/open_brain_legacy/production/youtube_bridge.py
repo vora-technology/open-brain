@@ -15,7 +15,7 @@ from typing import Protocol
 from open_brain_engine.capture.models import ShareRequest, ShareResponse
 from open_brain_engine.engine import PublicJobCaptureSink
 
-from open_brain.capture.http import enqueue_share
+from open_brain_legacy._compat.open_brain.capture.http import enqueue_share
 from open_brain_legacy.services.application import SingleUserLocalApplication
 
 _SCHEMA_VERSION = 1

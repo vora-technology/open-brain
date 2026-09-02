@@ -16,7 +16,7 @@ from typing import cast
 from open_brain_engine.core.ids import canonical_json_bytes
 from open_brain_engine.core.ports import Clock
 
-from open_brain.config import AppConfig
+from open_brain_legacy._compat.open_brain.config import AppConfig
 from open_brain_legacy.operations.retention import (
     RetentionArtifactKind,
     RetentionCandidate,

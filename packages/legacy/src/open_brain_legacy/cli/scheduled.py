@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from typing import Protocol, TextIO
 
-from open_brain.cli._common import redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import redacted_error
 from open_brain_legacy.cli._registry import ScheduledRouteSpec
 from open_brain_legacy.operations.capture_jobs import CaptureJobApplication, get_capture_job
 from open_brain_legacy.operations.catalog import get_job

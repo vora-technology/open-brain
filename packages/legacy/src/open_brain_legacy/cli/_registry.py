@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Literal
 
-from open_brain.cli._common import CommandFamilyAdapter
+from open_brain_legacy._compat.open_brain.cli._common import CommandFamilyAdapter
 from open_brain_legacy.operations.catalog import get_job
 
 

@@ -5,8 +5,12 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
-from open_brain.cli._common import ExitCode, redacted_error
-from open_brain.integrations.ports import RetrievalBatch, RetrievalRequest, WorkRetriever
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.integrations.ports import (
+    RetrievalBatch,
+    RetrievalRequest,
+    WorkRetriever,
+)
 
 
 @dataclass(frozen=True, slots=True)

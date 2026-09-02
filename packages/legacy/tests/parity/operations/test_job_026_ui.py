@@ -1,12 +1,12 @@
 import json
 
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     PageDocument,
     PageReadRequest,
     RedactedText,
     TrustLabel,
 )
-from open_brain.integrations.ui import UiBindConfig, UiHandler, UiRequest
+from open_brain_legacy._compat.open_brain.integrations.ui import UiBindConfig, UiHandler, UiRequest
 from open_brain_legacy.operations.models import HostRole, JobState, WriterScope
 from open_brain_legacy.operations.optional_jobs import compose_ui_job
 

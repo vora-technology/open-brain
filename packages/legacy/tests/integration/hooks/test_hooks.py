@@ -5,7 +5,7 @@ import subprocess
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     HookEmitResult,
     HookInstallRequest,
     HookInstallStatus,

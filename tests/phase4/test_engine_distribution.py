@@ -9,7 +9,11 @@ from pathlib import Path
 
 import pytest
 
-from tools.phase4.acceptance_harness import build_command, engine_isolation_findings
+from tools.phase4.acceptance_harness import (
+    build_command,
+    engine_isolation_findings,
+    legacy_isolation_findings,
+)
 
 ROOT = Path(__file__).parents[2]
 _IMPORT_DISTRIBUTIONS = {
@@ -23,6 +27,7 @@ _PROJECT_NAMES = {
     "connectors": "open-brain-connectors",
     "engine": "open-brain-engine",
 }
+_AUTHORITATIVE_LEGACY_DEPENDENCIES = {"engine"}
 
 
 def _static_distribution_imports(source_root: Path, *, owner: str) -> set[str]:
@@ -53,15 +58,21 @@ def test_legacy_declares_its_canonical_static_distribution_dependencies() -> Non
     phase4 = manifest["phase4"]
     graph = phase4["runtime_dependency_graph"]
     version = phase4["release_identity"]["candidate_version"]
-    metadata = tomllib.loads(
-        (ROOT / "packages/legacy/pyproject.toml").read_text(encoding="utf-8")
-    )
-    expected = {f"{_PROJECT_NAMES[owner]}=={version}" for owner in graph["legacy"]}
+    metadata = tomllib.loads((ROOT / "packages/legacy/pyproject.toml").read_text(encoding="utf-8"))
+    expected = {
+        f"{_PROJECT_NAMES[owner]}=={version}" for owner in _AUTHORITATIVE_LEGACY_DEPENDENCIES
+    }
 
-    assert _static_distribution_imports(
-        ROOT / "packages/legacy/src", owner="legacy"
-    ) == set(graph["legacy"])
+    assert set(graph["legacy"]) == _AUTHORITATIVE_LEGACY_DEPENDENCIES
+    assert (
+        _static_distribution_imports(ROOT / "packages/legacy/src", owner="legacy")
+        == _AUTHORITATIVE_LEGACY_DEPENDENCIES
+    )
     assert set(metadata["project"]["dependencies"]) == expected
+
+
+def test_legacy_builds_and_imports_with_only_the_engine_wheel(tmp_path: Path) -> None:
+    assert legacy_isolation_findings(ROOT, tmp_path) == []
 
 
 @pytest.mark.parametrize("distribution", ("legacy",))
@@ -90,6 +101,6 @@ def test_legacy_distribution_builds_private_artifacts_without_workspace_sources(
     with zipfile.ZipFile(wheels[0]) as archive:
         metadata_name = next(name for name in archive.namelist() if name.endswith("/METADATA"))
         artifact_metadata = archive.read(metadata_name).decode("utf-8")
-    assert "Requires-Dist: open-brain==0.1.0" in artifact_metadata
-    assert "Requires-Dist: open-brain-connectors==0.1.0" in artifact_metadata
+    assert "Requires-Dist: open-brain==0.1.0" not in artifact_metadata
+    assert "Requires-Dist: open-brain-connectors==0.1.0" not in artifact_metadata
     assert "Requires-Dist: open-brain-engine==0.1.0" in artifact_metadata

@@ -9,7 +9,7 @@ from datetime import datetime
 
 from open_brain_engine.review.models import ReviewAggregate
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 from open_brain_legacy.cli.review import ReviewDecisionService, decide_review, list_reviews
 
 

@@ -14,9 +14,11 @@ from open_brain_engine.capture.models import ExtractionFailure
 from open_brain_engine.core.ids import canonicalize_source_url
 from open_brain_engine.core.models import RawAssetRef
 
-from open_brain.config import AppConfig
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
-from open_brain_connectors.capture.media import (
+from open_brain_legacy._compat.open_brain.config import AppConfig
+from open_brain_legacy._compat.open_brain_connectors.capture.extractors.youtube import (
+    YouTubeMediaResult,
+)
+from open_brain_legacy._compat.open_brain_connectors.capture.media import (
     BoundedMediaRunner,
     MediaCommand,
     MediaRunResult,

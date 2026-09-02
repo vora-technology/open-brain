@@ -8,7 +8,7 @@ from typing import Protocol
 
 from open_brain_engine.engine import LockScope
 
-from open_brain.config import AppConfig, ConfigError
+from open_brain_legacy._compat.open_brain.config import AppConfig, ConfigError
 
 from .doctor import DoctorProbe, ProbeReading
 from .models import DeploymentTarget, OperationsValidationError

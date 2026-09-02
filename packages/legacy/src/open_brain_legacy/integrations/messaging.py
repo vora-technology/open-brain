@@ -11,8 +11,8 @@ from typing import Protocol
 from open_brain_engine.core.ids import capture_id_for, review_id_for
 from open_brain_engine.core.models import Intent
 
-from open_brain.integrations.config import IntegrationConfig
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.config import IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
     ProviderSyncResult,

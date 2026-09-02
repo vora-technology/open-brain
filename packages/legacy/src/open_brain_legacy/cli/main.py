@@ -8,7 +8,7 @@ from collections.abc import Sequence
 
 from open_brain_engine import __version__
 
-from open_brain.cli._common import (
+from open_brain_legacy._compat.open_brain.cli._common import (
     CommandAdapterLookup,
     ExitCode,
     adapter_failed_envelope,

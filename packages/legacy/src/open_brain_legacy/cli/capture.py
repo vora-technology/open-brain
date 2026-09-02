@@ -23,7 +23,7 @@ from open_brain_engine.core.models import (
 from open_brain_engine.core.policy import classify_privacy
 from open_brain_engine.core.ports import PutDisposition, PutResult
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 
 _PRIVACY_POLICY_VERSION = "privacy-v1"
 

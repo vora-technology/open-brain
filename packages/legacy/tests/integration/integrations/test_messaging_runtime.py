@@ -11,8 +11,8 @@ from open_brain_engine.core.models import Intent
 from open_brain_engine.storage.filesystem import RootConfinementError
 from open_brain_engine.storage.sqlite import connect_database
 
-from open_brain.integrations.config import IntegrationConfig
-from open_brain.integrations.ports import (
+from open_brain_legacy._compat.open_brain.integrations.config import IntegrationConfig
+from open_brain_legacy._compat.open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
     ReviewDisposition,

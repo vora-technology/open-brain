@@ -16,7 +16,7 @@ from open_brain_engine.core.models import (
 )
 from open_brain_engine.storage.filesystem import DuplicateConflictError, RootConfinementError
 
-from open_brain.integrations import (
+from open_brain_legacy._compat.open_brain.integrations import (
     PageReadRequest,
     TrustLabel,
     VaultWriteDisposition,

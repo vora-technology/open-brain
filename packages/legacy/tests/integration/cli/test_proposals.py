@@ -13,7 +13,7 @@ from open_brain_engine.review.models import (
     ReviewProposal,
 )
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.proposals import list_proposals, resolve_proposal
 
 FIXED_TIME = datetime(2026, 8, 14, 12, tzinfo=UTC)

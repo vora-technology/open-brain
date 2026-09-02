@@ -12,7 +12,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Final, Protocol
 
-from open_brain.config import (
+from open_brain_legacy._compat.open_brain.config import (
     AppConfig,
     ConfigError,
     NamedSecretRef,

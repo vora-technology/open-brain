@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from open_brain.cli._common import ExitCode
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode
 from open_brain_legacy.cli.explain import explain_policy
 
 

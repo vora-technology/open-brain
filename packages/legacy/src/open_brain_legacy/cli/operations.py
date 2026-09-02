@@ -9,7 +9,7 @@ from typing import Protocol
 
 from open_brain_engine.core.models import PrivacyTier
 
-from open_brain.cli._common import ExitCode, redacted_error
+from open_brain_legacy._compat.open_brain.cli._common import ExitCode, redacted_error
 from open_brain_legacy.operations.runlog import RunMetadata
 from open_brain_legacy.production.retention import RetentionReport
 
