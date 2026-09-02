@@ -8,15 +8,7 @@
     "mixed": "Current package contains more than one target ownership scope and is not exempt from Phase 1 extraction.",
     "workspace": "Current package is repository tooling and must not become a runtime dependency."
   },
-  "dynamic_import_reviews": [
-    {
-      "allowed_host": true,
-      "line": 917,
-      "owner": "app",
-      "path": "integrations/ports.py",
-      "rationale": "Loads one composition-declared optional module only after its capability is explicitly enabled; disabled adapters never invoke the loader."
-    }
-  ],
+  "dynamic_import_reviews": [],
   "files": {
     "__init__.py": {
       "api": "public",

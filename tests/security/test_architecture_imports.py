@@ -79,6 +79,8 @@ def _current_open_brain_source(
 
 def _current_open_brain_sources(
     classification: dict[str, object],
+    *,
+    source_roots: tuple[Path, ...] = (SOURCE_ROOT, APP_SOURCE_ROOT),
 ) -> list[tuple[str, Path, Path]]:
     sources: list[tuple[str, Path, Path]] = []
     for relative_path, raw_record in _classified_files(classification).items():
@@ -90,7 +92,7 @@ def _current_open_brain_sources(
         path = REPOSITORY_ROOT / current_path
         if not path.is_file():
             continue
-        for source_root in (SOURCE_ROOT, APP_SOURCE_ROOT):
+        for source_root in source_roots:
             if path.is_relative_to(source_root):
                 sources.append((relative_path, path, source_root))
                 break
@@ -112,14 +114,6 @@ def _planned_source_classification(classification: dict[str, object]) -> dict[st
         for path, value in files.items()
         if isinstance(value, dict) and value.get("movement_state") != "moved"
     }
-    planned_files = cast(dict[str, object], planned["files"])
-    reviews = planned.get("dynamic_import_reviews")
-    if isinstance(reviews, list):
-        planned["dynamic_import_reviews"] = [
-            review
-            for review in reviews
-            if isinstance(review, dict) and review.get("path") in planned_files
-        ]
     return planned
 
 
@@ -221,20 +215,29 @@ def _import_references(
     return references
 
 
+def _nonliteral_dynamic_import_lines(path: Path) -> list[int]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    return sorted(
+        {
+            node.lineno
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and _is_dynamic_import_call(node)
+            and (
+                not node.args
+                or not isinstance(node.args[0], ast.Constant)
+                or not isinstance(node.args[0].value, str)
+            )
+        }
+    )
+
+
 def _nonliteral_dynamic_import_sites(source_root: Path) -> list[DynamicImportSite]:
-    sites: set[DynamicImportSite] = set()
-    for path in _source_files(source_root):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call) or not _is_dynamic_import_call(node):
-                continue
-            argument = node.args[0] if node.args else None
-            if not (
-                isinstance(argument, ast.Constant) and isinstance(argument.value, str)
-            ):
-                sites.add(
-                    DynamicImportSite(path.relative_to(source_root).as_posix(), node.lineno)
-                )
+    sites = {
+        DynamicImportSite(path.relative_to(source_root).as_posix(), line)
+        for path in _source_files(source_root)
+        for line in _nonliteral_dynamic_import_lines(path)
+    }
     return sorted(sites, key=lambda site: (site.path, site.line))
 
 
@@ -372,8 +375,15 @@ def _dynamic_import_review_errors(
     source_root: Path,
     classification: dict[str, object],
 ) -> list[str]:
-    files = _classified_files(classification)
     sites = {(site.path, site.line) for site in _nonliteral_dynamic_import_sites(source_root)}
+    return _dynamic_import_review_errors_for_sites(sites, classification)
+
+
+def _dynamic_import_review_errors_for_sites(
+    sites: set[tuple[str, int]],
+    classification: dict[str, object],
+) -> list[str]:
+    files = _classified_files(classification)
     reviews = classification.get("dynamic_import_reviews")
     if not isinstance(reviews, list):
         raise TypeError("dynamic import reviews must be a list")
@@ -419,6 +429,22 @@ def _dynamic_import_review_errors(
         for path, line in sites - reviewed
     )
     return sorted(errors)
+
+
+def _current_dynamic_import_review_errors(
+    classification: dict[str, object],
+    *,
+    source_roots: tuple[Path, ...] = (SOURCE_ROOT, APP_SOURCE_ROOT),
+) -> list[str]:
+    sites = {
+        (relative_path, line)
+        for relative_path, path, _source_root in _current_open_brain_sources(
+            classification,
+            source_roots=source_roots,
+        )
+        for line in _nonliteral_dynamic_import_lines(path)
+    }
+    return _dynamic_import_review_errors_for_sites(sites, classification)
 
 
 def _nonliteral_dynamic_import_violations(
@@ -522,8 +548,8 @@ def test_current_namespace_imports_have_classified_file_endpoints() -> None:
 
 
 def test_nonliteral_dynamic_import_sites_are_explicitly_reviewed() -> None:
-    classification = _planned_source_classification(_load_classification())
-    assert _dynamic_import_review_errors(SOURCE_ROOT, classification) == []
+    classification = _load_classification()
+    assert _current_dynamic_import_review_errors(classification) == []
 
 
 def test_current_import_violations_exactly_match_temporary_live_debt() -> None:
@@ -948,6 +974,39 @@ def test_nonliteral_import_review_inventory_is_exact(tmp_path: Path) -> None:
         "unreviewed nonliteral dynamic import: app/extension_host.py:2"
     ]
     assert _dynamic_import_review_errors(source_root, stale) == [
+        "stale nonliteral dynamic import review: app/extension_host.py:99",
+        "unreviewed nonliteral dynamic import: app/extension_host.py:2",
+    ]
+
+
+def test_moved_source_dynamic_import_review_is_not_filtered(tmp_path: Path) -> None:
+    source_root = tmp_path / "open_brain"
+    source_path = source_root / "app" / "extension_host.py"
+    source_path.parent.mkdir(parents=True)
+    source_path.write_text(
+        "from importlib import import_module\nimport_module(module_name)\n",
+        encoding="utf-8",
+    )
+    classification = _synthetic_classification()
+    files = deepcopy(SYNTHETIC_FILES)
+    record = files["app/extension_host.py"]
+    record["current_path"] = str(source_path)
+    record["movement_state"] = "moved"
+    classification["files"] = files
+    classification["dynamic_import_reviews"] = [
+        {
+            "path": "app/extension_host.py",
+            "line": 99,
+            "owner": "app",
+            "allowed_host": True,
+            "rationale": "Stale synthetic review for a moved source.",
+        }
+    ]
+
+    assert _current_dynamic_import_review_errors(
+        classification,
+        source_roots=(source_root,),
+    ) == [
         "stale nonliteral dynamic import review: app/extension_host.py:99",
         "unreviewed nonliteral dynamic import: app/extension_host.py:2",
     ]
