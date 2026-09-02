@@ -5,7 +5,7 @@ from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
-from open_brain.release.evidence import (
+from open_brain_legacy.release.evidence import (
     EXPECTED_CAPABILITY_IDS,
     REQUIRED_DAY_CHECKS,
     ArtifactEvidence,
@@ -30,7 +30,7 @@ from open_brain.release.evidence import (
     StabilizationEvidence,
     validate_production_evidence,
 )
-from open_brain.release.installation import (
+from open_brain_legacy.release.installation import (
     InstallationPlan,
     InstallationPlanError,
     InstallationPlatform,

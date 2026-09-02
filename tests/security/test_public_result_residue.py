@@ -31,10 +31,10 @@ from open_brain_engine.engine import (
 from open_brain.capture.http import HttpRequest
 from open_brain.cli._common import CommandFamilyAdapter
 from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
-from open_brain.cli.scheduled import scheduled_result_envelope
+from open_brain_legacy.cli.scheduled import scheduled_result_envelope
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.integrations.phase1_ui import Phase1UiRequest
-from open_brain.operations.scheduled_results import ScheduledDispatchResult
+from open_brain_legacy.operations.scheduled_results import ScheduledDispatchResult
 from open_brain.services.appliance_init import APPLIANCE_OWNER_CREDENTIAL, initialize_appliance
 from open_brain.services.appliance_lifecycle import (
     ApplianceLifecycleError,

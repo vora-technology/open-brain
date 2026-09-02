@@ -22,6 +22,7 @@ on:
       - "LICENSE"
       - "NOTICE"
       - "Makefile"
+      - "tools/open_brain_dev/**"
       - "tools/phase4/**"
       - "tests/phase4/**"
       - ".github/workflows/*.yml"
@@ -50,23 +51,23 @@ jobs:
       - run: make build
       - name: Verify artifact member policy
         run: >-
-          PYTHONPATH=packages/app/src:packages/engine/src:src
-          uv run python -m open_brain.dev.artifact_policy
+          PYTHONPATH=tools
+          uv run python -m open_brain_dev.artifact_policy
           --policy release/v0-artifact-policy.json
           --artifacts dist/*
       - name: Create synthetic CI denylist
         run: printf '%s\n' "ci-private-canary-${GITHUB_RUN_ID}" > "$RUNNER_TEMP/private-denylist.txt"
       - name: Audit source tree and built artifacts
         run: >-
-          PYTHONPATH=packages/app/src:packages/engine/src:src
-          uv run python -m open_brain.dev.release_audit
+          PYTHONPATH=tools
+          uv run python -m open_brain_dev.release_audit
           --root .
           --private-denylist "$RUNNER_TEMP/private-denylist.txt"
           --artifacts dist/*
       - name: Audit reachable Git history
         run: >-
-          PYTHONPATH=packages/app/src:packages/engine/src:src
-          uv run python -m open_brain.dev.public_history_audit
+          PYTHONPATH=tools
+          uv run python -m open_brain_dev.public_history_audit
           --repository .
           --private-denylist "$RUNNER_TEMP/private-denylist.txt"
       - name: Scan Git history with Gitleaks

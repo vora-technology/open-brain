@@ -8,7 +8,7 @@ import pytest
 from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain_engine.core.ports import FetchRequest
 
-from open_brain.capture.egress import (
+from open_brain_legacy.capture.egress import (
     EgressFailure,
     EgressFailureCode,
     OutboundFetcher,

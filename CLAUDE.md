@@ -21,8 +21,8 @@
 | `packages/engine/src/open_brain_engine` | App-independent domain engine, public task contracts, persistence, Portable schemas, and conformance data |
 | `packages/app/src/open_brain` | Installed CLI/MCP entry points, appliance daemon, HTTP/UI, app configuration, and engine composition |
 | `packages/connectors` | Provisional connector distribution, YouTube reference implementation, conformance kit, and tests; not a default app dependency |
-| `packages/legacy` | Legacy distribution skeleton; not a default app or engine dependency |
-| `src/open_brain` | Classified legacy and workspace remainder awaiting P4-W4 quarantine |
+| `packages/legacy` | Physically quarantined private compatibility source; not a default app or engine dependency |
+| `tools/open_brain_dev` | Workspace-only artifact and release-safety tooling |
 | `tools/phase4` | Canonical move-manifest validation and isolated built-artifact acceptance harnesses |
 | `docs/v0-package-classification.json` | Source of truth for ownership, API status, movement, imports, tests, resources, and artifact membership |
 | `release/v0-artifact-policy.json` | One unpublished release contract keyed by Python distribution and artifact kind |

@@ -647,23 +647,23 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     assert "services/entrypoints.py" not in application
     assert production_application == {"services/application.py"}
 
-    from open_brain.production.application import (
+    from open_brain_legacy.production.application import (
         ProductionApplication as CompatibilityProductionApplication,
     )
-    from open_brain.production.application import (
+    from open_brain_legacy.production.application import (
         compose_production_application as compatibility_factory,
     )
-    from open_brain.services.application import (
+    from open_brain_legacy.services.application import (
         ProductionApplication as ApplicationProductionApplication,
     )
-    from open_brain.services.application import compose_production_application
-    from open_brain.services.capabilities import (
+    from open_brain_legacy.services.application import compose_production_application
+    from open_brain_legacy.services.capabilities import (
         ProductionApplication as CapabilityProductionApplication,
     )
-    from open_brain.services.capabilities import (
+    from open_brain_legacy.services.capabilities import (
         compose_production_application as capability_factory,
     )
-    from open_brain.services.entrypoints import (
+    from open_brain_legacy.services.entrypoints import (
         compose_production_application as entrypoint_factory,
     )
 

@@ -8,7 +8,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import cast
 
-from open_brain.dev.artifact_policy import required_members_for_policy, verify_artifacts
+from open_brain_dev.artifact_policy import required_members_for_policy, verify_artifacts
 
 ROOT = Path(__file__).parents[3]
 POLICY_PATH = ROOT / "release" / "v0-artifact-policy.json"

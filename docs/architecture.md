@@ -3,9 +3,10 @@
 > This page describes the current implementation. The proposed self-hosted and hosted product-family target is documented in [`architecture/proposed-v0-system-architecture.md`](architecture/proposed-v0-system-architecture.md).
 
 Open Brain is one uv workspace in one canonical repository. Engine, app, and connector code live
-in separate buildable distributions. The retained `src/open_brain` tree contains legacy and
-workspace code awaiting P4-W4 quarantine. One `single-user-local` profile opens one engine task set
-for one owner and one Brain root.
+in separate buildable distributions. Private compatibility source is physically quarantined under
+`packages/legacy`; workspace-only release tooling lives under `tools/open_brain_dev`. The old
+`src/open_brain` monolith no longer exists. One `single-user-local` profile opens one engine task
+set for one owner and one Brain root.
 
 The package map uses these ownership boundaries:
 
@@ -22,15 +23,15 @@ The package map uses these ownership boundaries:
 - `storage`, `providers`, and `integrations`: retained adapters selected by composition. Adapters
   do not import CLI/HTTP handlers or one another.
 - `operations`: doctor, scheduling, retention, backup, and recovery behavior.
-- `dev`: public development and release-safety tools only.
-- `legacy`: retained predecessor and operational compatibility files. The default Phase 2 path
-  does not import them; physical removal or distribution movement is deferred.
+- `dev`: workspace-only development and release-safety tools under `tools/open_brain_dev`.
+- `legacy`: retained predecessor and operational compatibility files under the private
+  `open_brain_legacy` namespace. No default or shipping artifact depends on or packages them.
 
 Private deployment configuration contains values and rendered manifests, never patched or copied application source.
 
 The file-level classification is authoritative across the workspace: every runtime file has one
-owner, such as `engine`, `app`, `connector`, `legacy`, or `workspace`. Mixed legacy packages may
-remain until P4-W4, but no file is unclassified or assigned to multiple owners.
+owner, such as `engine`, `app`, `connector`, `legacy`, or `workspace`. Every runtime file is now at
+its final P4A path; no file is unclassified or assigned to multiple owners.
 
 The app-owned `profile` module compiles one `single-user-local` Brain root into an
 engine-owned context. The engine does not import profile, CLI, UI, service, migration,

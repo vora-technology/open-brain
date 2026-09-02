@@ -14,7 +14,7 @@ from open_brain_engine.core.ports import (
     StagedExecutionResult,
 )
 
-from open_brain.capture.extractors.social import SocialExtractionRequest, SocialExtractor
+from open_brain_legacy.capture.extractors.social import SocialExtractionRequest, SocialExtractor
 
 _SYNTHETIC_LEAK = "outside-canary|environment-canary|socket-canary|network-canary|raw-error-canary"
 

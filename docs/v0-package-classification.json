@@ -106,12 +106,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/distillation.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/distillation.py",
       "import_rewrite": {
         "from": "open_brain.capture.distillation",
         "to": "open_brain_legacy.capture.distillation"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -127,12 +127,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/distillation_worker.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/distillation_worker.py",
       "import_rewrite": {
         "from": "open_brain.capture.distillation_worker",
         "to": "open_brain_legacy.capture.distillation_worker"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -148,12 +148,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/drain.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/drain.py",
       "import_rewrite": {
         "from": "open_brain.capture.drain",
         "to": "open_brain_legacy.capture.drain"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -169,12 +169,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/egress.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/egress.py",
       "import_rewrite": {
         "from": "open_brain.capture.egress",
         "to": "open_brain_legacy.capture.egress"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -212,12 +212,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/extractors/article.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/extractors/article.py",
       "import_rewrite": {
         "from": "open_brain.capture.extractors.article",
         "to": "open_brain_legacy.capture.extractors.article"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -233,12 +233,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/extractors/social.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/extractors/social.py",
       "import_rewrite": {
         "from": "open_brain.capture.extractors.social",
         "to": "open_brain_legacy.capture.extractors.social"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -254,12 +254,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/extractors/text.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/extractors/text.py",
       "import_rewrite": {
         "from": "open_brain.capture.extractors.text",
         "to": "open_brain_legacy.capture.extractors.text"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -386,12 +386,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/queue.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/queue.py",
       "import_rewrite": {
         "from": "open_brain.capture.queue",
         "to": "open_brain_legacy.capture.queue"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -429,12 +429,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/capture/service.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/capture/service.py",
       "import_rewrite": {
         "from": "open_brain.capture.service",
         "to": "open_brain_legacy.capture.service"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -496,12 +496,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/_registry.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/_registry.py",
       "import_rewrite": {
         "from": "open_brain.cli._registry",
         "to": "open_brain_legacy.cli._registry"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -517,12 +517,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/capture.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/capture.py",
       "import_rewrite": {
         "from": "open_brain.cli.capture",
         "to": "open_brain_legacy.cli.capture"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -538,12 +538,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/config.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/config.py",
       "import_rewrite": {
         "from": "open_brain.cli.config",
         "to": "open_brain_legacy.cli.config"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -559,12 +559,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/doctor.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/doctor.py",
       "import_rewrite": {
         "from": "open_brain.cli.doctor",
         "to": "open_brain_legacy.cli.doctor"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -580,12 +580,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/explain.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/explain.py",
       "import_rewrite": {
         "from": "open_brain.cli.explain",
         "to": "open_brain_legacy.cli.explain"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -601,12 +601,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/ledger.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/ledger.py",
       "import_rewrite": {
         "from": "open_brain.cli.ledger",
         "to": "open_brain_legacy.cli.ledger"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -622,12 +622,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/main.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/main.py",
       "import_rewrite": {
         "from": "open_brain.cli.main",
         "to": "open_brain_legacy.cli.main"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -643,12 +643,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/migrate.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/migrate.py",
       "import_rewrite": {
         "from": "open_brain.cli.migrate",
         "to": "open_brain_legacy.cli.migrate"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -664,12 +664,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/operations.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/operations.py",
       "import_rewrite": {
         "from": "open_brain.cli.operations",
         "to": "open_brain_legacy.cli.operations"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -731,12 +731,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/phase6_adapters.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/phase6_adapters.py",
       "import_rewrite": {
         "from": "open_brain.cli.phase6_adapters",
         "to": "open_brain_legacy.cli.phase6_adapters"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -752,12 +752,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/production_adapters.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/production_adapters.py",
       "import_rewrite": {
         "from": "open_brain.cli.production_adapters",
         "to": "open_brain_legacy.cli.production_adapters"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -773,12 +773,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/proposals.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/proposals.py",
       "import_rewrite": {
         "from": "open_brain.cli.proposals",
         "to": "open_brain_legacy.cli.proposals"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -794,12 +794,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/query.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/query.py",
       "import_rewrite": {
         "from": "open_brain.cli.query",
         "to": "open_brain_legacy.cli.query"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -815,12 +815,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/review.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/review.py",
       "import_rewrite": {
         "from": "open_brain.cli.review",
         "to": "open_brain_legacy.cli.review"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -836,12 +836,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/scheduled.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/scheduled.py",
       "import_rewrite": {
         "from": "open_brain.cli.scheduled",
         "to": "open_brain_legacy.cli.scheduled"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -857,12 +857,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/social.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/social.py",
       "import_rewrite": {
         "from": "open_brain.cli.social",
         "to": "open_brain_legacy.cli.social"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -878,12 +878,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/cli/status.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/cli/status.py",
       "import_rewrite": {
         "from": "open_brain.cli.status",
         "to": "open_brain_legacy.cli.status"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1054,12 +1054,12 @@
       "artifact_disposition": [
         "excluded"
       ],
-      "current_path": "src/open_brain/dev/__init__.py",
+      "current_path": "tools/open_brain_dev/__init__.py",
       "import_rewrite": {
         "from": "open_brain.dev",
         "to": "open_brain_dev"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
@@ -1075,12 +1075,12 @@
       "artifact_disposition": [
         "excluded"
       ],
-      "current_path": "src/open_brain/dev/artifact_policy.py",
+      "current_path": "tools/open_brain_dev/artifact_policy.py",
       "import_rewrite": {
         "from": "open_brain.dev.artifact_policy",
         "to": "open_brain_dev.artifact_policy"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
@@ -1096,12 +1096,12 @@
       "artifact_disposition": [
         "excluded"
       ],
-      "current_path": "src/open_brain/dev/public_history_audit.py",
+      "current_path": "tools/open_brain_dev/public_history_audit.py",
       "import_rewrite": {
         "from": "open_brain.dev.public_history_audit",
         "to": "open_brain_dev.public_history_audit"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
@@ -1117,12 +1117,12 @@
       "artifact_disposition": [
         "excluded"
       ],
-      "current_path": "src/open_brain/dev/release_audit.py",
+      "current_path": "tools/open_brain_dev/release_audit.py",
       "import_rewrite": {
         "from": "open_brain.dev.release_audit",
         "to": "open_brain_dev.release_audit"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
@@ -1726,12 +1726,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/context.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/context.py",
       "import_rewrite": {
         "from": "open_brain.integrations.context",
         "to": "open_brain_legacy.integrations.context"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1747,12 +1747,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/dev_workflows.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/dev_workflows.py",
       "import_rewrite": {
         "from": "open_brain.integrations.dev_workflows",
         "to": "open_brain_legacy.integrations.dev_workflows"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1768,12 +1768,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/finance.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/finance.py",
       "import_rewrite": {
         "from": "open_brain.integrations.finance",
         "to": "open_brain_legacy.integrations.finance"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1789,12 +1789,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/hooks.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/hooks.py",
       "import_rewrite": {
         "from": "open_brain.integrations.hooks",
         "to": "open_brain_legacy.integrations.hooks"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1810,12 +1810,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/life_os.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/life_os.py",
       "import_rewrite": {
         "from": "open_brain.integrations.life_os",
         "to": "open_brain_legacy.integrations.life_os"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1831,12 +1831,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/life_os_runtime.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/life_os_runtime.py",
       "import_rewrite": {
         "from": "open_brain.integrations.life_os_runtime",
         "to": "open_brain_legacy.integrations.life_os_runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1852,12 +1852,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/mail_calendar.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/mail_calendar.py",
       "import_rewrite": {
         "from": "open_brain.integrations.mail_calendar",
         "to": "open_brain_legacy.integrations.mail_calendar"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1896,12 +1896,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/messaging.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/messaging.py",
       "import_rewrite": {
         "from": "open_brain.integrations.messaging",
         "to": "open_brain_legacy.integrations.messaging"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1917,12 +1917,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/messaging_runtime.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/messaging_runtime.py",
       "import_rewrite": {
         "from": "open_brain.integrations.messaging_runtime",
         "to": "open_brain_legacy.integrations.messaging_runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -1938,12 +1938,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/obsidian.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/obsidian.py",
       "import_rewrite": {
         "from": "open_brain.integrations.obsidian",
         "to": "open_brain_legacy.integrations.obsidian"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2007,12 +2007,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/relationships.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/relationships.py",
       "import_rewrite": {
         "from": "open_brain.integrations.relationships",
         "to": "open_brain_legacy.integrations.relationships"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2028,12 +2028,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/repository_identity.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/repository_identity.py",
       "import_rewrite": {
         "from": "open_brain.integrations.repository_identity",
         "to": "open_brain_legacy.integrations.repository_identity"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2049,12 +2049,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/retrieval.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/retrieval.py",
       "import_rewrite": {
         "from": "open_brain.integrations.retrieval",
         "to": "open_brain_legacy.integrations.retrieval"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2070,12 +2070,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/integrations/runtime_audit.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/integrations/runtime_audit.py",
       "import_rewrite": {
         "from": "open_brain.integrations.runtime_audit",
         "to": "open_brain_legacy.integrations.runtime_audit"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2114,12 +2114,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/__init__.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/__init__.py",
       "import_rewrite": {
         "from": "open_brain.ledger",
         "to": "open_brain_legacy.ledger"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2135,12 +2135,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/age.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/age.py",
       "import_rewrite": {
         "from": "open_brain.ledger.age",
         "to": "open_brain_legacy.ledger.age"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2156,12 +2156,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/embed.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/embed.py",
       "import_rewrite": {
         "from": "open_brain.ledger.embed",
         "to": "open_brain_legacy.ledger.embed"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2177,12 +2177,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/index.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/index.py",
       "import_rewrite": {
         "from": "open_brain.ledger.index",
         "to": "open_brain_legacy.ledger.index"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2198,12 +2198,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/merge.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/merge.py",
       "import_rewrite": {
         "from": "open_brain.ledger.merge",
         "to": "open_brain_legacy.ledger.merge"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2219,12 +2219,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/models.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/models.py",
       "import_rewrite": {
         "from": "open_brain.ledger.models",
         "to": "open_brain_legacy.ledger.models"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2240,12 +2240,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/reconcile.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/reconcile.py",
       "import_rewrite": {
         "from": "open_brain.ledger.reconcile",
         "to": "open_brain_legacy.ledger.reconcile"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2261,12 +2261,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/reinforce.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/reinforce.py",
       "import_rewrite": {
         "from": "open_brain.ledger.reinforce",
         "to": "open_brain_legacy.ledger.reinforce"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2282,12 +2282,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/render.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/render.py",
       "import_rewrite": {
         "from": "open_brain.ledger.render",
         "to": "open_brain_legacy.ledger.render"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2303,12 +2303,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/requarantine.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/requarantine.py",
       "import_rewrite": {
         "from": "open_brain.ledger.requarantine",
         "to": "open_brain_legacy.ledger.requarantine"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2324,12 +2324,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/sanitize.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/sanitize.py",
       "import_rewrite": {
         "from": "open_brain.ledger.sanitize",
         "to": "open_brain_legacy.ledger.sanitize"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2345,12 +2345,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/scan.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/scan.py",
       "import_rewrite": {
         "from": "open_brain.ledger.scan",
         "to": "open_brain_legacy.ledger.scan"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2366,12 +2366,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/service.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/service.py",
       "import_rewrite": {
         "from": "open_brain.ledger.service",
         "to": "open_brain_legacy.ledger.service"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2387,12 +2387,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/slim.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/slim.py",
       "import_rewrite": {
         "from": "open_brain.ledger.slim",
         "to": "open_brain_legacy.ledger.slim"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2408,12 +2408,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/stage.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/stage.py",
       "import_rewrite": {
         "from": "open_brain.ledger.stage",
         "to": "open_brain_legacy.ledger.stage"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2429,12 +2429,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/store.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/store.py",
       "import_rewrite": {
         "from": "open_brain.ledger.store",
         "to": "open_brain_legacy.ledger.store"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2450,12 +2450,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/synthesis.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/synthesis.py",
       "import_rewrite": {
         "from": "open_brain.ledger.synthesis",
         "to": "open_brain_legacy.ledger.synthesis"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2471,12 +2471,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/ledger/synthesis_store.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/ledger/synthesis_store.py",
       "import_rewrite": {
         "from": "open_brain.ledger.synthesis_store",
         "to": "open_brain_legacy.ledger.synthesis_store"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2492,12 +2492,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/migrate/__init__.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/migrate/__init__.py",
       "import_rewrite": {
         "from": "open_brain.migrate",
         "to": "open_brain_legacy.migrate"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2513,12 +2513,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/migrate/_models.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/migrate/_models.py",
       "import_rewrite": {
         "from": "open_brain.migrate._models",
         "to": "open_brain_legacy.migrate._models"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2534,12 +2534,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/migrate/_support.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/migrate/_support.py",
       "import_rewrite": {
         "from": "open_brain.migrate._support",
         "to": "open_brain_legacy.migrate._support"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2555,12 +2555,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/migrate/config.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/migrate/config.py",
       "import_rewrite": {
         "from": "open_brain.migrate.config",
         "to": "open_brain_legacy.migrate.config"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2576,12 +2576,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/migrate/content.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/migrate/content.py",
       "import_rewrite": {
         "from": "open_brain.migrate.content",
         "to": "open_brain_legacy.migrate.content"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2597,12 +2597,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/migrate/state.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/migrate/state.py",
       "import_rewrite": {
         "from": "open_brain.migrate.state",
         "to": "open_brain_legacy.migrate.state"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2618,12 +2618,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/__init__.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/__init__.py",
       "import_rewrite": {
         "from": "open_brain.operations",
         "to": "open_brain_legacy.operations"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2639,12 +2639,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/backup.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/backup.py",
       "import_rewrite": {
         "from": "open_brain.operations.backup",
         "to": "open_brain_legacy.operations.backup"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2660,12 +2660,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/backup_writer.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/backup_writer.py",
       "import_rewrite": {
         "from": "open_brain.operations.backup_writer",
         "to": "open_brain_legacy.operations.backup_writer"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2681,12 +2681,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/capture_jobs.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/capture_jobs.py",
       "import_rewrite": {
         "from": "open_brain.operations.capture_jobs",
         "to": "open_brain_legacy.operations.capture_jobs"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2702,12 +2702,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/catalog.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/catalog.py",
       "import_rewrite": {
         "from": "open_brain.operations.catalog",
         "to": "open_brain_legacy.operations.catalog"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2723,12 +2723,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/curation_runtime.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/curation_runtime.py",
       "import_rewrite": {
         "from": "open_brain.operations.curation_runtime",
         "to": "open_brain_legacy.operations.curation_runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2744,12 +2744,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/cutover.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/cutover.py",
       "import_rewrite": {
         "from": "open_brain.operations.cutover",
         "to": "open_brain_legacy.operations.cutover"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2765,12 +2765,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/cutover_doctor.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/cutover_doctor.py",
       "import_rewrite": {
         "from": "open_brain.operations.cutover_doctor",
         "to": "open_brain_legacy.operations.cutover_doctor"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2786,12 +2786,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/cutover_verification.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/cutover_verification.py",
       "import_rewrite": {
         "from": "open_brain.operations.cutover_verification",
         "to": "open_brain_legacy.operations.cutover_verification"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2807,12 +2807,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/doctor.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/doctor.py",
       "import_rewrite": {
         "from": "open_brain.operations.doctor",
         "to": "open_brain_legacy.operations.doctor"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2828,12 +2828,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/git_sync_runtime.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/git_sync_runtime.py",
       "import_rewrite": {
         "from": "open_brain.operations.git_sync_runtime",
         "to": "open_brain_legacy.operations.git_sync_runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2849,12 +2849,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/index.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/index.py",
       "import_rewrite": {
         "from": "open_brain.operations.index",
         "to": "open_brain_legacy.operations.index"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2870,12 +2870,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/index_writer.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/index_writer.py",
       "import_rewrite": {
         "from": "open_brain.operations.index_writer",
         "to": "open_brain_legacy.operations.index_writer"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2891,12 +2891,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/local_effect.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/local_effect.py",
       "import_rewrite": {
         "from": "open_brain.operations.local_effect",
         "to": "open_brain_legacy.operations.local_effect"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2912,12 +2912,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/models.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/models.py",
       "import_rewrite": {
         "from": "open_brain.operations.models",
         "to": "open_brain_legacy.operations.models"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2933,12 +2933,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/now.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/now.py",
       "import_rewrite": {
         "from": "open_brain.operations.now",
         "to": "open_brain_legacy.operations.now"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2954,12 +2954,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/now_runtime.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/now_runtime.py",
       "import_rewrite": {
         "from": "open_brain.operations.now_runtime",
         "to": "open_brain_legacy.operations.now_runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2975,12 +2975,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/optional_jobs.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/optional_jobs.py",
       "import_rewrite": {
         "from": "open_brain.operations.optional_jobs",
         "to": "open_brain_legacy.operations.optional_jobs"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -2996,12 +2996,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/probes.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/probes.py",
       "import_rewrite": {
         "from": "open_brain.operations.probes",
         "to": "open_brain_legacy.operations.probes"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3017,12 +3017,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/production_bindings.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/production_bindings.py",
       "import_rewrite": {
         "from": "open_brain.operations.production_bindings",
         "to": "open_brain_legacy.operations.production_bindings"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3038,12 +3038,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/recovery.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/recovery.py",
       "import_rewrite": {
         "from": "open_brain.operations.recovery",
         "to": "open_brain_legacy.operations.recovery"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3059,12 +3059,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/render.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/render.py",
       "import_rewrite": {
         "from": "open_brain.operations.render",
         "to": "open_brain_legacy.operations.render"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3080,12 +3080,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/replay_journal.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/replay_journal.py",
       "import_rewrite": {
         "from": "open_brain.operations.replay_journal",
         "to": "open_brain_legacy.operations.replay_journal"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3101,12 +3101,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/retention.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/retention.py",
       "import_rewrite": {
         "from": "open_brain.operations.retention",
         "to": "open_brain_legacy.operations.retention"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3122,12 +3122,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/runlog.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/runlog.py",
       "import_rewrite": {
         "from": "open_brain.operations.runlog",
         "to": "open_brain_legacy.operations.runlog"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3143,12 +3143,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/runlog_store.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/runlog_store.py",
       "import_rewrite": {
         "from": "open_brain.operations.runlog_store",
         "to": "open_brain_legacy.operations.runlog_store"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3164,12 +3164,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/scheduled_results.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/scheduled_results.py",
       "import_rewrite": {
         "from": "open_brain.operations.scheduled_results",
         "to": "open_brain_legacy.operations.scheduled_results"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3185,12 +3185,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/scheduler.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/scheduler.py",
       "import_rewrite": {
         "from": "open_brain.operations.scheduler",
         "to": "open_brain_legacy.operations.scheduler"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3206,12 +3206,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/shadow.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/shadow.py",
       "import_rewrite": {
         "from": "open_brain.operations.shadow",
         "to": "open_brain_legacy.operations.shadow"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3227,12 +3227,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/status.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/status.py",
       "import_rewrite": {
         "from": "open_brain.operations.status",
         "to": "open_brain_legacy.operations.status"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3248,12 +3248,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/operations/writer_jobs.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/operations/writer_jobs.py",
       "import_rewrite": {
         "from": "open_brain.operations.writer_jobs",
         "to": "open_brain_legacy.operations.writer_jobs"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3360,12 +3360,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/parity/__init__.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/parity/__init__.py",
       "import_rewrite": {
         "from": "open_brain.parity",
         "to": "open_brain_legacy.parity"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3381,12 +3381,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/parity/harness.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/parity/harness.py",
       "import_rewrite": {
         "from": "open_brain.parity.harness",
         "to": "open_brain_legacy.parity.harness"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3402,12 +3402,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/parity/observation.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/parity/observation.py",
       "import_rewrite": {
         "from": "open_brain.parity.observation",
         "to": "open_brain_legacy.parity.observation"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3423,12 +3423,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/parity/runner.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/parity/runner.py",
       "import_rewrite": {
         "from": "open_brain.parity.runner",
         "to": "open_brain_legacy.parity.runner"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3488,12 +3488,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/__init__.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/__init__.py",
       "import_rewrite": {
         "from": "open_brain.production",
         "to": "open_brain_legacy.production"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3509,12 +3509,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/application.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/application.py",
       "import_rewrite": {
         "from": "open_brain.production.application",
         "to": "open_brain_legacy.production.application"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3530,12 +3530,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/assets.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/assets.py",
       "import_rewrite": {
         "from": "open_brain.production.assets",
         "to": "open_brain_legacy.production.assets"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3551,12 +3551,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/capture.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/capture.py",
       "import_rewrite": {
         "from": "open_brain.production.capture",
         "to": "open_brain_legacy.production.capture"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3572,12 +3572,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/capture_publication.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/capture_publication.py",
       "import_rewrite": {
         "from": "open_brain.production.capture_publication",
         "to": "open_brain_legacy.production.capture_publication"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3593,12 +3593,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/curation.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/curation.py",
       "import_rewrite": {
         "from": "open_brain.production.curation",
         "to": "open_brain_legacy.production.curation"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3614,12 +3614,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/errors.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/errors.py",
       "import_rewrite": {
         "from": "open_brain.production.errors",
         "to": "open_brain_legacy.production.errors"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3635,12 +3635,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/git_sync.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/git_sync.py",
       "import_rewrite": {
         "from": "open_brain.production.git_sync",
         "to": "open_brain_legacy.production.git_sync"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3656,12 +3656,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/imessage.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/imessage.py",
       "import_rewrite": {
         "from": "open_brain.production.imessage",
         "to": "open_brain_legacy.production.imessage"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3677,12 +3677,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/local_jobs.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/local_jobs.py",
       "import_rewrite": {
         "from": "open_brain.production.local_jobs",
         "to": "open_brain_legacy.production.local_jobs"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3698,12 +3698,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/media.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/media.py",
       "import_rewrite": {
         "from": "open_brain.production.media",
         "to": "open_brain_legacy.production.media"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3719,12 +3719,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/optional_automation.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/optional_automation.py",
       "import_rewrite": {
         "from": "open_brain.production.optional_automation",
         "to": "open_brain_legacy.production.optional_automation"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3740,12 +3740,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/personal_capture.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/personal_capture.py",
       "import_rewrite": {
         "from": "open_brain.production.personal_capture",
         "to": "open_brain_legacy.production.personal_capture"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3761,12 +3761,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/project_commit_bridge.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/project_commit_bridge.py",
       "import_rewrite": {
         "from": "open_brain.production.project_commit_bridge",
         "to": "open_brain_legacy.production.project_commit_bridge"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3782,12 +3782,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/providers.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/providers.py",
       "import_rewrite": {
         "from": "open_brain.production.providers",
         "to": "open_brain_legacy.production.providers"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3803,12 +3803,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/retention.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/retention.py",
       "import_rewrite": {
         "from": "open_brain.production.retention",
         "to": "open_brain_legacy.production.retention"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3824,12 +3824,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/runtime.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/runtime.py",
       "import_rewrite": {
         "from": "open_brain.production.runtime",
         "to": "open_brain_legacy.production.runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3845,12 +3845,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/sqlite_backup.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/sqlite_backup.py",
       "import_rewrite": {
         "from": "open_brain.production.sqlite_backup",
         "to": "open_brain_legacy.production.sqlite_backup"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3866,12 +3866,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/transport.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/transport.py",
       "import_rewrite": {
         "from": "open_brain.production.transport",
         "to": "open_brain_legacy.production.transport"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -3887,12 +3887,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/production/youtube_bridge.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/production/youtube_bridge.py",
       "import_rewrite": {
         "from": "open_brain.production.youtube_bridge",
         "to": "open_brain_legacy.production.youtube_bridge"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4019,12 +4019,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/providers/local.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/providers/local.py",
       "import_rewrite": {
         "from": "open_brain.providers.local",
         "to": "open_brain_legacy.providers.local"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4040,12 +4040,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/providers/optional_cloud.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/providers/optional_cloud.py",
       "import_rewrite": {
         "from": "open_brain.providers.optional_cloud",
         "to": "open_brain_legacy.providers.optional_cloud"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4061,12 +4061,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/providers/transcription.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/providers/transcription.py",
       "import_rewrite": {
         "from": "open_brain.providers.transcription",
         "to": "open_brain_legacy.providers.transcription"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4082,12 +4082,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/release/__init__.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/release/__init__.py",
       "import_rewrite": {
         "from": "open_brain.release",
         "to": "open_brain_legacy.release"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4103,12 +4103,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/release/day_zero.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/release/day_zero.py",
       "import_rewrite": {
         "from": "open_brain.release.day_zero",
         "to": "open_brain_legacy.release.day_zero"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4124,12 +4124,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/release/evidence.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/release/evidence.py",
       "import_rewrite": {
         "from": "open_brain.release.evidence",
         "to": "open_brain_legacy.release.evidence"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4145,12 +4145,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/release/installation.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/release/installation.py",
       "import_rewrite": {
         "from": "open_brain.release.installation",
         "to": "open_brain_legacy.release.installation"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4166,12 +4166,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/release/replacement.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/release/replacement.py",
       "import_rewrite": {
         "from": "open_brain.release.replacement",
         "to": "open_brain_legacy.release.replacement"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4187,12 +4187,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/release/stabilization.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/release/stabilization.py",
       "import_rewrite": {
         "from": "open_brain.release.stabilization",
         "to": "open_brain_legacy.release.stabilization"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4230,12 +4230,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/review/maintenance.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/review/maintenance.py",
       "import_rewrite": {
         "from": "open_brain.review.maintenance",
         "to": "open_brain_legacy.review.maintenance"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4273,12 +4273,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/review/routing.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/review/routing.py",
       "import_rewrite": {
         "from": "open_brain.review.routing",
         "to": "open_brain_legacy.review.routing"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4294,12 +4294,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/review/service.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/review/service.py",
       "import_rewrite": {
         "from": "open_brain.review.service",
         "to": "open_brain_legacy.review.service"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4315,12 +4315,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/review/store.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/review/store.py",
       "import_rewrite": {
         "from": "open_brain.review.store",
         "to": "open_brain_legacy.review.store"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4616,12 +4616,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/services/application.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/services/application.py",
       "import_rewrite": {
         "from": "open_brain.services.application",
         "to": "open_brain_legacy.services.application"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4637,12 +4637,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/services/capabilities.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/services/capabilities.py",
       "import_rewrite": {
         "from": "open_brain.services.capabilities",
         "to": "open_brain_legacy.services.capabilities"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -4707,12 +4707,12 @@
       "artifact_disposition": [
         "legacy-only"
       ],
-      "current_path": "src/open_brain/services/entrypoints.py",
+      "current_path": "packages/legacy/src/open_brain_legacy/services/entrypoints.py",
       "import_rewrite": {
         "from": "open_brain.services.entrypoints",
         "to": "open_brain_legacy.services.entrypoints"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "legacy-private",
       "owner": "legacy",
       "resource_requirements": [],
@@ -5193,7 +5193,7 @@
         "current_path": ".github/dependabot.yml",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5209,7 +5209,7 @@
         "current_path": ".github/workflows/ci.yml",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5225,7 +5225,7 @@
         "current_path": ".github/workflows/release-audit.yml",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5242,7 +5242,7 @@
         "current_path": "LICENSE",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5260,7 +5260,7 @@
         "current_path": "Makefile",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5277,7 +5277,7 @@
         "current_path": "NOTICE",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5295,7 +5295,7 @@
         "current_path": "README.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5313,7 +5313,7 @@
         "current_path": "docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json",
         "import_rewrite": null,
         "kind": "generated-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5329,7 +5329,7 @@
         "current_path": "docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md",
         "import_rewrite": null,
         "kind": "generated-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5345,7 +5345,7 @@
         "current_path": "docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-MOVE-REPORT.md",
         "import_rewrite": null,
         "kind": "generated-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5361,7 +5361,7 @@
         "current_path": "docs/architecture.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5379,7 +5379,7 @@
         "current_path": "docs/architecture/proposed-v0-system-architecture.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5397,7 +5397,7 @@
         "current_path": "docs/artifact-characterization.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5415,7 +5415,7 @@
         "current_path": "docs/capture-contract.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5433,7 +5433,7 @@
         "current_path": "docs/cli-characterization.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5451,7 +5451,7 @@
         "current_path": "docs/cli.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5469,7 +5469,7 @@
         "current_path": "docs/configuration.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5487,7 +5487,7 @@
         "current_path": "docs/current-record-characterization.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5505,7 +5505,7 @@
         "current_path": "docs/operations.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5523,7 +5523,7 @@
         "current_path": "docs/portable-brain-v1.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5541,7 +5541,7 @@
         "current_path": "docs/privacy-model.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5559,7 +5559,7 @@
         "current_path": "docs/threat-model.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5577,7 +5577,7 @@
         "current_path": "docs/v0-expansion-backlog.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5595,7 +5595,7 @@
         "current_path": "docs/v0-package-classification.json",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -5611,7 +5611,7 @@
         "current_path": "docs/v0-product-contract.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5629,7 +5629,7 @@
         "current_path": "docs/v0-release-boundary.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5647,7 +5647,7 @@
         "current_path": "examples/config.example.toml",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5665,7 +5665,7 @@
         "current_path": "examples/ios-shortcut.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5683,7 +5683,7 @@
         "current_path": "examples/synthetic-vault/README.md",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "build-metadata"
@@ -5999,7 +5999,7 @@
         "current_path": "pyproject.toml",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6059,7 +6059,7 @@
         "current_path": "release/phase4-compatibility.json",
         "import_rewrite": null,
         "kind": "release-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "release-identity"
@@ -6079,7 +6079,7 @@
         "current_path": "release/phase4-toolchain.json",
         "import_rewrite": null,
         "kind": "release-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "release-identity"
@@ -6099,7 +6099,7 @@
         "current_path": "release/public-history-allowlist.json",
         "import_rewrite": null,
         "kind": "release-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "release-identity"
@@ -6119,7 +6119,7 @@
         "current_path": "release/v0-artifact-policy.json",
         "import_rewrite": null,
         "kind": "release-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "release-identity"
@@ -6483,7 +6483,7 @@
         "current_path": "tests/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6499,7 +6499,7 @@
         "current_path": "tests/conftest.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6515,7 +6515,7 @@
         "current_path": "tests/contract/test_current_record_characterization.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6544,10 +6544,10 @@
         "artifact_disposition": [
           "legacy-only"
         ],
-        "current_path": "tests/fixtures/phase0/current_records.json",
+        "current_path": "packages/legacy/tests/fixtures/phase0/current_records.json",
         "import_rewrite": null,
         "kind": "fixture",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6560,10 +6560,10 @@
         "artifact_disposition": [
           "legacy-only"
         ],
-        "current_path": "tests/fixtures/phase0/public_cli.json",
+        "current_path": "packages/legacy/tests/fixtures/phase0/public_cli.json",
         "import_rewrite": null,
         "kind": "fixture",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6940,7 +6940,7 @@
         "current_path": "tests/integration/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6953,10 +6953,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_capture_service.py",
+        "current_path": "packages/legacy/tests/integration/capture/test_capture_service.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6969,10 +6969,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_distillation.py",
+        "current_path": "packages/legacy/tests/integration/capture/test_distillation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -6985,10 +6985,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_distillation_queue.py",
+        "current_path": "packages/legacy/tests/integration/capture/test_distillation_queue.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7001,10 +7001,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_distillation_worker.py",
+        "current_path": "packages/legacy/tests/integration/capture/test_distillation_worker.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7033,10 +7033,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_social_drain.py",
+        "current_path": "packages/legacy/tests/integration/capture/test_social_drain.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7049,10 +7049,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_social_transcription.py",
+        "current_path": "packages/legacy/tests/integration/capture/test_social_transcription.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7081,10 +7081,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_capture.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_capture.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7097,10 +7097,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_composition.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_composition.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7113,10 +7113,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_config.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_config.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7129,10 +7129,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_contract.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_contract.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7145,10 +7145,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_cron.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_cron.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7161,10 +7161,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_digest.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_digest.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7177,10 +7177,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_doctor.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_doctor.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7193,10 +7193,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_explain.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_explain.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7209,10 +7209,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_okf.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_okf.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7225,10 +7225,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_phase0_characterization.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_phase0_characterization.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7241,10 +7241,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_phase6_adapters.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_phase6_adapters.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7257,10 +7257,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_production_adapters.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_production_adapters.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7273,10 +7273,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_proposals.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_proposals.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7289,10 +7289,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_query.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_query.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7305,10 +7305,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_registry.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_registry.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7321,10 +7321,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_retention.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_retention.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7337,10 +7337,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_review.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_review.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7353,10 +7353,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_review_decisions.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_review_decisions.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7369,10 +7369,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_scheduled_routes.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_scheduled_routes.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7385,10 +7385,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_share.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_share.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7401,10 +7401,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/cli/test_status.py",
+        "current_path": "packages/legacy/tests/integration/cli/test_status.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7417,10 +7417,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/connectors/test_youtube_reference.py",
+        "current_path": "packages/legacy/tests/integration/connectors/test_youtube_reference.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7433,10 +7433,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/context/test_context.py",
+        "current_path": "packages/legacy/tests/integration/context/test_context.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7449,10 +7449,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/dev_workflows/test_dev_workflows.py",
+        "current_path": "packages/legacy/tests/integration/dev_workflows/test_dev_workflows.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7468,7 +7468,7 @@
         "current_path": "tests/integration/engine/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7561,10 +7561,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/finance/test_finance.py",
+        "current_path": "packages/legacy/tests/integration/finance/test_finance.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7577,10 +7577,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/hooks/test_hooks.py",
+        "current_path": "packages/legacy/tests/integration/hooks/test_hooks.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7609,10 +7609,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/integrations/test_life_os_runtime.py",
+        "current_path": "packages/legacy/tests/integration/integrations/test_life_os_runtime.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7625,10 +7625,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/integrations/test_messaging_runtime.py",
+        "current_path": "packages/legacy/tests/integration/integrations/test_messaging_runtime.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7641,10 +7641,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_apply.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_apply.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7657,10 +7657,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_apply_cli.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_apply_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7673,10 +7673,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_claim_lifecycle.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_claim_lifecycle.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7689,10 +7689,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_lifecycle_cli.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_lifecycle_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7705,10 +7705,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_reconcile.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_reconcile.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7721,10 +7721,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_requarantine.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_requarantine.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7737,10 +7737,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_scan_cli.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_scan_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7753,10 +7753,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_slim_cli.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_slim_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7769,10 +7769,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_stage_cli.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_stage_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7785,10 +7785,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_synthesis_cli.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_synthesis_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7801,10 +7801,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ledger/test_synthesis_persistence.py",
+        "current_path": "packages/legacy/tests/integration/ledger/test_synthesis_persistence.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7817,10 +7817,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/life_os/test_life_os.py",
+        "current_path": "packages/legacy/tests/integration/life_os/test_life_os.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7833,10 +7833,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/mail_calendar/test_mail_calendar.py",
+        "current_path": "packages/legacy/tests/integration/mail_calendar/test_mail_calendar.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7865,10 +7865,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/messaging/test_messaging.py",
+        "current_path": "packages/legacy/tests/integration/messaging/test_messaging.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7884,7 +7884,7 @@
         "current_path": "tests/integration/migrate/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7897,10 +7897,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/migrate/_synthetic.py",
+        "current_path": "packages/legacy/tests/integration/migrate/_synthetic.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7913,10 +7913,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/migrate/test_backfill.py",
+        "current_path": "packages/legacy/tests/integration/migrate/test_backfill.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7929,10 +7929,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/migrate/test_config.py",
+        "current_path": "packages/legacy/tests/integration/migrate/test_config.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7945,10 +7945,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/migrate/test_content_layout.py",
+        "current_path": "packages/legacy/tests/integration/migrate/test_content_layout.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7961,10 +7961,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/migrate/test_processed_at.py",
+        "current_path": "packages/legacy/tests/integration/migrate/test_processed_at.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7977,10 +7977,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/migrate/test_state.py",
+        "current_path": "packages/legacy/tests/integration/migrate/test_state.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7993,10 +7993,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_backup_filesystem.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_backup_filesystem.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8009,10 +8009,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_curation_runtime.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_curation_runtime.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8025,10 +8025,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_cutover.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_cutover.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8041,10 +8041,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_cutover_doctor.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_cutover_doctor.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8057,10 +8057,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_cutover_verification.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_cutover_verification.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8073,10 +8073,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_doctor_status.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_doctor_status.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8089,10 +8089,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_git_sync_runtime.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_git_sync_runtime.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8105,10 +8105,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_local_effect.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_local_effect.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8121,10 +8121,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_now_runtime.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_now_runtime.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8137,10 +8137,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_probes.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_probes.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8153,10 +8153,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_production_bindings.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_production_bindings.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8169,10 +8169,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_replay_journal.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_replay_journal.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8185,10 +8185,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_runlog_store.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_runlog_store.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8201,10 +8201,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/operations/test_shadow.py",
+        "current_path": "packages/legacy/tests/integration/operations/test_shadow.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8217,10 +8217,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_capture_composition.py",
+        "current_path": "packages/legacy/tests/integration/production/test_capture_composition.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8233,10 +8233,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_curation_composition.py",
+        "current_path": "packages/legacy/tests/integration/production/test_curation_composition.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8249,10 +8249,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_git_sync_composition.py",
+        "current_path": "packages/legacy/tests/integration/production/test_git_sync_composition.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8265,10 +8265,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_imessage_ingress.py",
+        "current_path": "packages/legacy/tests/integration/production/test_imessage_ingress.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8281,10 +8281,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_local_jobs.py",
+        "current_path": "packages/legacy/tests/integration/production/test_local_jobs.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8297,10 +8297,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_maintenance.py",
+        "current_path": "packages/legacy/tests/integration/production/test_maintenance.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8313,10 +8313,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_media_adapters.py",
+        "current_path": "packages/legacy/tests/integration/production/test_media_adapters.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8329,10 +8329,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_media_asset_binding.py",
+        "current_path": "packages/legacy/tests/integration/production/test_media_asset_binding.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8345,10 +8345,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_optional_automation_config.py",
+        "current_path": "packages/legacy/tests/integration/production/test_optional_automation_config.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8361,10 +8361,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_project_commit_bridge.py",
+        "current_path": "packages/legacy/tests/integration/production/test_project_commit_bridge.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8377,10 +8377,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_provider_composition.py",
+        "current_path": "packages/legacy/tests/integration/production/test_provider_composition.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8393,10 +8393,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_runtime_primitives.py",
+        "current_path": "packages/legacy/tests/integration/production/test_runtime_primitives.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8409,10 +8409,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_youtube_bridge.py",
+        "current_path": "packages/legacy/tests/integration/production/test_youtube_bridge.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8425,10 +8425,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/production/test_youtube_poll_runtime.py",
+        "current_path": "packages/legacy/tests/integration/production/test_youtube_poll_runtime.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8441,10 +8441,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/relationships/test_relationships.py",
+        "current_path": "packages/legacy/tests/integration/relationships/test_relationships.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8460,7 +8460,7 @@
         "current_path": "tests/integration/release/test_day_zero.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8476,7 +8476,7 @@
         "current_path": "tests/integration/release/test_release_evidence.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8492,7 +8492,7 @@
         "current_path": "tests/integration/release/test_replacement_evidence.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8508,7 +8508,7 @@
         "current_path": "tests/integration/release/test_stabilization.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8524,7 +8524,7 @@
         "current_path": "tests/integration/release/test_v0_artifact_policy.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8537,10 +8537,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/retrieval/test_repository_identity.py",
+        "current_path": "packages/legacy/tests/integration/retrieval/test_repository_identity.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8553,10 +8553,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/retrieval/test_retrieval.py",
+        "current_path": "packages/legacy/tests/integration/retrieval/test_retrieval.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8572,7 +8572,7 @@
         "current_path": "tests/integration/review/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8585,10 +8585,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/review/test_maintenance.py",
+        "current_path": "packages/legacy/tests/integration/review/test_maintenance.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8601,10 +8601,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/review/test_phase4_intent_routing.py",
+        "current_path": "packages/legacy/tests/integration/review/test_phase4_intent_routing.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8617,10 +8617,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/review/test_saved_content_intent.py",
+        "current_path": "packages/legacy/tests/integration/review/test_saved_content_intent.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8633,10 +8633,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/runtime_audit/test_runtime_audit.py",
+        "current_path": "packages/legacy/tests/integration/runtime_audit/test_runtime_audit.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8809,10 +8809,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_connectors.py",
+        "current_path": "packages/legacy/tests/integration/services/test_connectors.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8841,10 +8841,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_phase1_surfaces.py",
+        "current_path": "packages/legacy/tests/integration/services/test_phase1_surfaces.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8905,10 +8905,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/storage/test_obsidian_notes.py",
+        "current_path": "packages/legacy/tests/integration/storage/test_obsidian_notes.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8953,10 +8953,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cli/__init__.py",
+        "current_path": "packages/legacy/tests/parity/cli/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8969,10 +8969,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cli/test_command_ownership.py",
+        "current_path": "packages/legacy/tests/parity/cli/test_command_ownership.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8985,10 +8985,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cross_surface/__init__.py",
+        "current_path": "packages/legacy/tests/parity/cross_surface/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9001,10 +9001,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cross_surface/_preflight.py",
+        "current_path": "packages/legacy/tests/parity/cross_surface/_preflight.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9017,10 +9017,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cross_surface/test_one_writer_safety.py",
+        "current_path": "packages/legacy/tests/parity/cross_surface/test_one_writer_safety.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9033,10 +9033,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cross_surface/test_owner_gated_defers.py",
+        "current_path": "packages/legacy/tests/parity/cross_surface/test_owner_gated_defers.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9049,10 +9049,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/cross_surface/test_status_and_redaction.py",
+        "current_path": "packages/legacy/tests/parity/cross_surface/test_status_and_redaction.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9065,10 +9065,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_backup_writer.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_backup_writer.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9081,10 +9081,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_cutover_preflight.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_cutover_preflight.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9097,10 +9097,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_001_doctor_probe.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_001_doctor_probe.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9113,10 +9113,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_002_index_owner.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_002_index_owner.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9129,10 +9129,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_003_now_owner.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_003_now_owner.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9145,10 +9145,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_004_sqlite_snapshot.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_004_sqlite_snapshot.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9161,10 +9161,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_005_imessage_ingress.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_005_imessage_ingress.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9177,10 +9177,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_006_close_day_prepare.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_006_close_day_prepare.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9193,10 +9193,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_007_signal_scan.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_007_signal_scan.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9209,10 +9209,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_008_lint.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_008_lint.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9225,10 +9225,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_009_hook_sync.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_009_hook_sync.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9241,10 +9241,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_010_social_ledger.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_010_social_ledger.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9257,10 +9257,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_011_capture_backup.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_011_capture_backup.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9273,10 +9273,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_012_curation.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_012_curation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9289,10 +9289,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_013_writer_doctor.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_013_writer_doctor.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9305,10 +9305,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_014_full_backup.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_014_full_backup.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9321,10 +9321,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_015_git_sync.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_015_git_sync.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9337,10 +9337,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_016_index.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_016_index.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9353,10 +9353,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_016_writer.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_016_writer.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9369,10 +9369,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_017_lifeos_midday.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_017_lifeos_midday.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9385,10 +9385,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_018_lifeos_plan.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_018_lifeos_plan.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9401,10 +9401,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_019_lifeos_reset.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_019_lifeos_reset.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9417,10 +9417,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_020_message_extract.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_020_message_extract.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9433,10 +9433,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_021_message_sync.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_021_message_sync.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9449,10 +9449,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_022_now.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_022_now.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9465,10 +9465,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_023_personal_backup.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_023_personal_backup.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9481,10 +9481,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_024_retention.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_024_retention.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9497,10 +9497,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_025_runtime_state_backup.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_025_runtime_state_backup.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9513,10 +9513,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_026_ui.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_026_ui.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9529,10 +9529,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_027_ingress.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_027_ingress.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9545,10 +9545,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_028_share_ingest.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_028_share_ingest.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9561,10 +9561,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_029_youtube_poll.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_029_youtube_poll.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9577,10 +9577,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_030_now_single_writer.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_030_now_single_writer.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9593,10 +9593,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_job_contracts.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_job_contracts.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9609,10 +9609,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_phase_b_writer_specs.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_phase_b_writer_specs.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9625,10 +9625,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/operations/test_renderer.py",
+        "current_path": "packages/legacy/tests/parity/operations/test_renderer.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9641,10 +9641,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase6/test_reconciliation.py",
+        "current_path": "packages/legacy/tests/parity/phase6/test_reconciliation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9657,10 +9657,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase7/__init__.py",
+        "current_path": "packages/legacy/tests/parity/phase7/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9673,10 +9673,10 @@
         "artifact_disposition": [
           "legacy-only"
         ],
-        "current_path": "tests/parity/phase7/capture_scenarios.json",
+        "current_path": "packages/legacy/tests/parity/phase7/capture_scenarios.json",
         "import_rewrite": null,
         "kind": "test-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9689,10 +9689,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase7/test_capture_scenarios.py",
+        "current_path": "packages/legacy/tests/parity/phase7/test_capture_scenarios.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9705,10 +9705,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase7/test_executable_runner.py",
+        "current_path": "packages/legacy/tests/parity/phase7/test_executable_runner.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9721,10 +9721,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase7/test_harness.py",
+        "current_path": "packages/legacy/tests/parity/phase7/test_harness.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9737,10 +9737,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase7/test_observation.py",
+        "current_path": "packages/legacy/tests/parity/phase7/test_observation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9753,10 +9753,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/parity/phase7/test_reconciliation.py",
+        "current_path": "packages/legacy/tests/parity/phase7/test_reconciliation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9772,7 +9772,7 @@
         "current_path": "tests/phase4/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9788,7 +9788,7 @@
         "current_path": "tests/phase4/test_acceptance_harness.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9804,7 +9804,7 @@
         "current_path": "tests/phase4/test_app_distribution.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9852,7 +9852,7 @@
         "current_path": "tests/phase4/test_move_manifest.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9884,7 +9884,7 @@
         "current_path": "tests/security/test_appliance_auth.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9900,7 +9900,7 @@
         "current_path": "tests/security/test_appliance_logs.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9916,7 +9916,7 @@
         "current_path": "tests/security/test_architecture_boundaries.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9932,7 +9932,7 @@
         "current_path": "tests/security/test_architecture_imports.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9948,7 +9948,7 @@
         "current_path": "tests/security/test_direct_edit_reconciliation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9964,7 +9964,7 @@
         "current_path": "tests/security/test_engine_isolation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9980,7 +9980,7 @@
         "current_path": "tests/security/test_intent_policy_boundary.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9996,7 +9996,7 @@
         "current_path": "tests/security/test_no_network.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10012,7 +10012,7 @@
         "current_path": "tests/security/test_path_safety.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10028,7 +10028,7 @@
         "current_path": "tests/security/test_persistence_redaction.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10044,7 +10044,7 @@
         "current_path": "tests/security/test_provider_privacy.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10060,7 +10060,7 @@
         "current_path": "tests/security/test_public_result_projection.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10076,7 +10076,7 @@
         "current_path": "tests/security/test_public_result_residue.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10092,7 +10092,7 @@
         "current_path": "tests/security/test_release_audit.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10108,7 +10108,7 @@
         "current_path": "tests/security/test_release_history_audit.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10124,7 +10124,7 @@
         "current_path": "tests/security/test_ssrf.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10140,7 +10140,7 @@
         "current_path": "tests/security/test_staged_executor.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10156,7 +10156,7 @@
         "current_path": "tests/security/test_ui_sanitization.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10172,7 +10172,7 @@
         "current_path": "tests/unit/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10188,7 +10188,7 @@
         "current_path": "tests/unit/capture/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10204,7 +10204,7 @@
         "current_path": "tests/unit/capture/extractors/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10217,10 +10217,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/capture/extractors/test_article.py",
+        "current_path": "packages/legacy/tests/unit/capture/extractors/test_article.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10249,10 +10249,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/capture/extractors/test_social.py",
+        "current_path": "packages/legacy/tests/unit/capture/extractors/test_social.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10265,10 +10265,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/capture/extractors/test_text.py",
+        "current_path": "packages/legacy/tests/unit/capture/extractors/test_text.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10313,10 +10313,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/capture/test_queue.py",
+        "current_path": "packages/legacy/tests/unit/capture/test_queue.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10412,7 +10412,7 @@
         "current_path": "tests/unit/engine/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10492,7 +10492,7 @@
         "current_path": "tests/unit/ledger/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10505,10 +10505,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_merge.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_merge.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10521,10 +10521,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_sanitize.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_sanitize.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10537,10 +10537,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_scan.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_scan.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10553,10 +10553,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_slim.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_slim.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10569,10 +10569,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_stage.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_stage.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10585,10 +10585,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_store.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_store.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10601,10 +10601,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/ledger/test_synthesis.py",
+        "current_path": "packages/legacy/tests/unit/ledger/test_synthesis.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10620,7 +10620,7 @@
         "current_path": "tests/unit/providers/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10665,10 +10665,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/providers/test_local.py",
+        "current_path": "packages/legacy/tests/unit/providers/test_local.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10681,10 +10681,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/providers/test_optional_cloud.py",
+        "current_path": "packages/legacy/tests/unit/providers/test_optional_cloud.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10697,10 +10697,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/providers/test_transcription.py",
+        "current_path": "packages/legacy/tests/unit/providers/test_transcription.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10716,7 +10716,7 @@
         "current_path": "tests/unit/review/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10761,10 +10761,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/review/test_store_schema.py",
+        "current_path": "packages/legacy/tests/unit/review/test_store_schema.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10780,7 +10780,7 @@
         "current_path": "tests/unit/storage/__init__.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10857,10 +10857,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/storage/test_locks.py",
+        "current_path": "packages/legacy/tests/unit/storage/test_locks.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10953,10 +10953,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/test_cli.py",
+        "current_path": "packages/legacy/tests/unit/test_cli.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10985,10 +10985,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/test_writer_effect_parameters.py",
+        "current_path": "packages/legacy/tests/unit/test_writer_effect_parameters.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -11004,7 +11004,7 @@
         "current_path": "tools/phase4/__init__.py",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -11020,7 +11020,7 @@
         "current_path": "tools/phase4/acceptance_harness.py",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -11036,7 +11036,7 @@
         "current_path": "tools/phase4/move_manifest.py",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -11068,7 +11068,7 @@
         "current_path": "uv.lock",
         "import_rewrite": null,
         "kind": "release-tool",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,

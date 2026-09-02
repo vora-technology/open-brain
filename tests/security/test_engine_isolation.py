@@ -87,6 +87,8 @@ print(json.dumps({{
         "open_brain.cli",
         "open_brain.config",
         "open_brain.dev",
+        "open_brain_dev",
+        "open_brain_legacy",
         "open_brain.integrations",
         "open_brain.migrate",
         "open_brain.operations",

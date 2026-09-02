@@ -22,8 +22,21 @@ open-brain-engine = { workspace = true }
 
 [tool.pytest.ini_options]
 addopts = "-ra --import-mode=importlib"
-pythonpath = [".", "packages/app/src", "packages/connectors/src", "packages/engine/src", "src"]
-testpaths = ["tests", "packages/app/tests", "packages/connectors/tests", "packages/engine/tests"]
+pythonpath = [
+  ".",
+  "packages/app/src",
+  "packages/connectors/src",
+  "packages/engine/src",
+  "packages/legacy/src",
+  "tools",
+]
+testpaths = [
+  "tests",
+  "packages/app/tests",
+  "packages/connectors/tests",
+  "packages/engine/tests",
+  "packages/legacy/tests",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -33,12 +46,18 @@ line-length = 100
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["open_brain", "open_brain_connectors"]
+known-first-party = ["open_brain", "open_brain_connectors", "open_brain_dev", "open_brain_legacy"]
 known-third-party = ["open_brain_engine"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 explicit_package_bases = true
-mypy_path = ["packages/app/src", "packages/connectors/src", "packages/engine/src", "src"]
-files = ["src", "packages", "tests", "tools"]
+mypy_path = [
+  "packages/app/src",
+  "packages/connectors/src",
+  "packages/engine/src",
+  "packages/legacy/src",
+  "tools",
+]
+files = ["packages", "tests", "tools"]

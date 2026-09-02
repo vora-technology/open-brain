@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from open_brain.release.evidence import (
+from open_brain_legacy.release.evidence import (
     EXPECTED_CAPABILITY_IDS,
     CapabilityDisposition,
     CapabilityManifest,
@@ -10,7 +10,7 @@ from open_brain.release.evidence import (
     EvidenceValidationError,
     ReplacementEvidence,
 )
-from open_brain.release.replacement import validate_replacement_evidence
+from open_brain_legacy.release.replacement import validate_replacement_evidence
 
 
 def test_replacement_evidence_requires_both_predecessors() -> None:
