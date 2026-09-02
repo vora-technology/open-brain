@@ -43,6 +43,8 @@ _IMPORT_MODULE_CALLABLE: Final = "import_module"
 _BUILTIN_IMPORT_CALLABLE: Final = "__import__"
 _GETATTR_CALLABLE: Final = "getattr"
 _SYS_GETATTRIBUTE_CALLABLE: Final = "sys.__getattribute__"
+_IMPORTLIB_GETATTRIBUTE_CALLABLE: Final = "importlib.__getattribute__"
+_BUILTINS_GETATTRIBUTE_CALLABLE: Final = "builtins.__getattribute__"
 _FUNCTION_GETATTRIBUTE_CALLABLE: Final = "function.__getattribute__"
 _OBJECT_GETATTRIBUTE_CALLABLE: Final = "object.__getattribute__"
 _GLOBALS_CALLABLE: Final = "globals"
@@ -61,6 +63,8 @@ _UNSAFE_REFLECTION_CALLABLES: Final = frozenset(
         _EVAL_CALLABLE,
         _EXEC_CALLABLE,
         _SYS_GETATTRIBUTE_CALLABLE,
+        _IMPORTLIB_GETATTRIBUTE_CALLABLE,
+        _BUILTINS_GETATTRIBUTE_CALLABLE,
         _FUNCTION_GETATTRIBUTE_CALLABLE,
         _OBJECT_GETATTRIBUTE_CALLABLE,
     }
@@ -82,12 +86,14 @@ _DYNAMIC_IMPORT_CAPABILITIES: Final = frozenset(
 _BUILTINS_MEMBERS: Final[Mapping[str, str]] = {
     "__import__": _BUILTIN_IMPORT_CALLABLE,
     "__dict__": _BUILTINS_NAMESPACE,
+    "__getattribute__": _BUILTINS_GETATTRIBUTE_CALLABLE,
     "getattr": _GETATTR_CALLABLE,
     "globals": _GLOBALS_CALLABLE,
     "locals": _LOCALS_CALLABLE,
     "vars": _VARS_CALLABLE,
     "eval": _EVAL_CALLABLE,
     "exec": _EXEC_CALLABLE,
+    "object": _OBJECT_TYPE,
 }
 
 
@@ -785,17 +791,29 @@ class _ScopeNameCollector(ast.NodeVisitor):
             self.names.add(node.rest)
         self.generic_visit(node)
 
+    def _visit_comprehension(
+        self,
+        generators: Sequence[ast.comprehension],
+        values: Sequence[ast.expr],
+    ) -> None:
+        for generator in generators:
+            self.visit(generator.iter)
+            for condition in generator.ifs:
+                self.visit(condition)
+        for value in values:
+            self.visit(value)
+
     def visit_ListComp(self, node: ast.ListComp) -> None:  # noqa: N802
-        return
+        self._visit_comprehension(node.generators, (node.elt,))
 
     def visit_SetComp(self, node: ast.SetComp) -> None:  # noqa: N802
-        return
+        self._visit_comprehension(node.generators, (node.elt,))
 
     def visit_DictComp(self, node: ast.DictComp) -> None:  # noqa: N802
-        return
+        self._visit_comprehension(node.generators, (node.key, node.value))
 
     def visit_GeneratorExp(self, node: ast.GeneratorExp) -> None:  # noqa: N802
-        return
+        self._visit_comprehension(node.generators, (node.elt,))
 
 
 @dataclass(slots=True)
@@ -908,8 +926,9 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def _resolve(self, name: str) -> frozenset[str]:
         return self._resolve_from(self._scope_index, name)
 
-    def _binding_scope(self, name: str) -> int:
-        scope = self._scopes[self._scope_index]
+    def _binding_scope(self, name: str, scope_index: int | None = None) -> int:
+        selected = self._scope_index if scope_index is None else scope_index
+        scope = self._scopes[selected]
         if name in scope.global_names:
             return 0
         if name in scope.nonlocal_names:
@@ -919,7 +938,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 if name in candidate.local_names or name in candidate.bindings:
                     return parent
                 parent = candidate.parent
-        return self._scope_index
+        return selected
 
     def _bind(
         self,
@@ -927,8 +946,10 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         provenance: frozenset[str],
         *,
         review: bool = True,
+        scope_index: int | None = None,
     ) -> None:
-        self._scopes[self._binding_scope(name)].bindings[name] = provenance
+        target = self._binding_scope(name, scope_index)
+        self._scopes[target].bindings[name] = provenance
         if review:
             self._record_capabilities(f"bind:{name}", provenance)
 
@@ -939,6 +960,8 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             provenance.add(_IMPORT_MODULE_CALLABLE)
         if _IMPORTLIB_MODULE in owner and member == "__dict__":
             provenance.add(_IMPORTLIB_NAMESPACE)
+        if _IMPORTLIB_MODULE in owner and member == "__getattribute__":
+            provenance.add(_IMPORTLIB_GETATTRIBUTE_CALLABLE)
         if owner & {_BUILTINS_MODULE, _BUILTINS_NAMESPACE}:
             binding = _BUILTINS_MEMBERS.get(member)
             if binding is not None:
@@ -994,6 +1017,22 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 member = _constant_string(node.args[0])
                 if member is not None:
                     return self._member_binding(frozenset({_SYS_MODULE}), member)
+            if (
+                _IMPORTLIB_GETATTRIBUTE_CALLABLE in function
+                and len(node.args) == 1
+                and not node.keywords
+            ):
+                member = _constant_string(node.args[0])
+                if member is not None:
+                    return self._member_binding(frozenset({_IMPORTLIB_MODULE}), member)
+            if (
+                _BUILTINS_GETATTRIBUTE_CALLABLE in function
+                and len(node.args) == 1
+                and not node.keywords
+            ):
+                member = _constant_string(node.args[0])
+                if member is not None:
+                    return self._member_binding(frozenset({_BUILTINS_MODULE}), member)
             if (
                 _FUNCTION_GETATTRIBUTE_CALLABLE in function
                 and len(node.args) == 1
@@ -1248,17 +1287,13 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                     self._record("escape:dynamic-importer")
                 continue
             name = alias.asname or alias.name
-            if node.level == 0 and node.module == "importlib" and alias.name == "import_module":
-                self._bind(name, frozenset({_IMPORT_MODULE_CALLABLE}))
-            elif node.level == 0 and node.module == "builtins":
-                binding = _BUILTINS_MEMBERS.get(alias.name)
-                self._bind(
-                    name,
-                    frozenset({binding}) if binding is not None else frozenset(),
-                    review=binding != _GETATTR_CALLABLE,
-                )
-            elif node.level == 0 and node.module == "sys" and alias.name == "modules":
-                self._bind(name, frozenset({_SYS_MODULES}))
+            if node.level == 0 and node.module in {"builtins", "importlib", "sys"}:
+                owner = {
+                    "builtins": _BUILTINS_MODULE,
+                    "importlib": _IMPORTLIB_MODULE,
+                    "sys": _SYS_MODULE,
+                }[node.module]
+                self._bind(name, self._member_binding(frozenset({owner}), alias.name))
             else:
                 self._bind(name, frozenset(), review=False)
 
@@ -1279,7 +1314,20 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> None:  # noqa: N802
         self.visit(node.value)
-        self._bind_assignment(node.target, node.value)
+        if isinstance(node.target, ast.Name):
+            original_scope = self._scope_index
+            target_scope = self._scope_index
+            while self._scopes[target_scope].kind == "comprehension":
+                parent = self._scopes[target_scope].parent
+                if parent is None:
+                    break
+                target_scope = parent
+            provenance = self._binding(node.value)
+            if target_scope != original_scope:
+                provenance |= self._resolve_from(target_scope, node.target.id)
+            self._bind(node.target.id, provenance, scope_index=target_scope)
+        else:
+            self._bind_assignment(node.target, node.value)
 
     def visit_AugAssign(self, node: ast.AugAssign) -> None:  # noqa: N802
         self.visit(node.target)
@@ -1403,10 +1451,9 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         if not generators:
             return
         self.visit(generators[0].iter)
-        outer = self._snapshot()
         names = set().union(*(_target_names(generator.target) for generator in generators))
         self._push_scope(
-            kind="function",
+            kind="comprehension",
             parent=self._function_parent(),
             names=names,
             global_names=set(),
@@ -1422,7 +1469,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         for value in values:
             self.visit(value)
         self._pop_scope()
-        self._restore(outer)
 
     def visit_ListComp(self, node: ast.ListComp) -> None:  # noqa: N802
         self._visit_comprehension(node.generators, (node.elt,), node.lineno)

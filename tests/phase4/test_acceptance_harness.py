@@ -403,6 +403,28 @@ def test_app_artifact_joins_provenance_and_models_shadowing_bindings(
                 b'sys.__getattribute__("modules")["builtins"].__import__('
                 b'"open_brain_connectors")\n'
             ),
+            "open_brain/sys_dict_alias_use.py": (
+                b"from sys import __dict__ as namespace\n"
+                b'namespace["modules"]["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/sys_getattribute_alias_use.py": (
+                b"from sys import __getattribute__ as lookup\n"
+                b'lookup("modules")["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/importlib_dict_alias_use.py": (
+                b"from importlib import __dict__ as namespace\n"
+                b'namespace["import_module"]("open_brain_connectors")\n'
+            ),
+            "open_brain/importlib_getattribute_alias_use.py": (
+                b"from importlib import __getattribute__ as lookup\n"
+                b'lookup("import_module")("open_brain_connectors")\n'
+            ),
+            "open_brain/builtins_getattribute_alias_use.py": (
+                b"from builtins import __getattribute__ as lookup\n"
+                b'lookup("__import__")("open_brain_connectors")\n'
+            ),
             "open_brain/function_globals_use.py": (
                 b"def host() -> None:\n"
                 b"    return None\n"
@@ -421,6 +443,13 @@ def test_app_artifact_joins_provenance_and_models_shadowing_bindings(
                 b'object.__getattribute__(host, "__globals__")["__builtins__"]'
                 b'["__import__"]("open_brain_connectors")\n'
             ),
+            "open_brain/object_getattribute_alias_use.py": (
+                b"from builtins import object as root_object\n"
+                b"def host() -> None:\n"
+                b"    return None\n"
+                b'root_object.__getattribute__(host, "__globals__")'
+                b'["__builtins__"]["__import__"]("open_brain_connectors")\n'
+            ),
             "open_brain/lambda_globals_use.py": (
                 b"host = lambda: None\n"
                 b'host.__globals__["__builtins__"]["__import__"]('
@@ -430,6 +459,23 @@ def test_app_artifact_joins_provenance_and_models_shadowing_bindings(
                 b"import sys\n"
                 b"if False:\n"
                 b"    sys = object()\n"
+                b'sys.modules["builtins"].__import__("open_brain_connectors")\n'
+            ),
+            "open_brain/comprehension_walrus_use.py": (
+                b"import sys as real_sys\n"
+                b"[(sys := real_sys) for _ in (0,)]\n"
+                b'sys.modules["builtins"].__import__("open_brain_connectors")\n'
+            ),
+            "open_brain/comprehension_shadow.py": (
+                b"import sys\n"
+                b"def inspect(values: tuple[object, ...]) -> None:\n"
+                b"    [(sys := value) for value in values]\n"
+                b'    sys.modules["builtins"].__import__('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/normal_walrus_shadow.py": (
+                b"import sys\n"
+                b"(sys := object())\n"
                 b'sys.modules["builtins"].__import__("open_brain_connectors")\n'
             ),
             "open_brain/integrations/ports.py": (
@@ -481,14 +527,21 @@ def test_app_artifact_joins_provenance_and_models_shadowing_bindings(
     )
 
     assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H009", "open_brain/builtins_getattribute_alias_use.py"),
+        ("P4H009", "open_brain/comprehension_walrus_use.py"),
         ("P4H009", "open_brain/dead_branch_rebinding.py"),
         ("P4H009", "open_brain/function_getattribute_use.py"),
         ("P4H009", "open_brain/function_globals_use.py"),
         ("P4H009", "open_brain/integrations/ports.py"),
+        ("P4H009", "open_brain/importlib_dict_alias_use.py"),
+        ("P4H009", "open_brain/importlib_getattribute_alias_use.py"),
         ("P4H009", "open_brain/lambda_globals_use.py"),
+        ("P4H009", "open_brain/object_getattribute_alias_use.py"),
         ("P4H009", "open_brain/object_getattribute_use.py"),
+        ("P4H009", "open_brain/sys_dict_alias_use.py"),
         ("P4H008", "open_brain/sys_dict_use.py"),
         ("P4H009", "open_brain/sys_dict_use.py"),
+        ("P4H009", "open_brain/sys_getattribute_alias_use.py"),
         ("P4H009", "open_brain/sys_getattribute_use.py"),
     }
 
