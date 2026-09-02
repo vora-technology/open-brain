@@ -442,12 +442,14 @@ def test_source_checkout_cli_uses_one_brain_root_across_processes(tmp_path: Path
                 "PYTHONUTF8": "1",
             }
         )
-        socket_path = root / ".open-brain" / "run" / "control.sock"
+        status_probe = (
+            "import sys; from pathlib import Path; "
+            f"sys.path[:0] = {SOURCE_CHECKOUT_PATHS!r}; "
+            "from open_brain.services.appliance_daemon import request_status; "
+            "request_status(Path(sys.argv[1]), timeout=0.25)"
+        )
 
         def start_daemon() -> subprocess.Popen[str]:
-            previous_socket_inode = (
-                socket_path.stat().st_ino if socket_path.exists() else None
-            )
             process = subprocess.Popen(
                 _source_checkout_module_command(
                     "open_brain.services.appliance_daemon",
@@ -466,15 +468,23 @@ def test_source_checkout_cli_uses_one_brain_root_across_processes(tmp_path: Path
                     assert process.stderr is not None
                     raise AssertionError(process.stderr.read())
                 try:
-                    socket_inode = socket_path.stat().st_ino
-                except FileNotFoundError:
-                    socket_inode = None
-                if socket_inode is not None and socket_inode != previous_socket_inode:
-                    return process
+                    probe = subprocess.run(
+                        (sys.executable, "-I", "-B", "-c", status_probe, str(root)),
+                        cwd=REPOSITORY_ROOT,
+                        env=environment,
+                        capture_output=True,
+                        text=True,
+                        timeout=1,
+                    )
+                except subprocess.TimeoutExpired:
+                    pass
+                else:
+                    if probe.returncode == 0:
+                        return process
                 time.sleep(0.05)
             process.terminate()
             process.wait(timeout=5)
-            raise AssertionError("appliance daemon socket did not appear")
+            raise AssertionError("appliance daemon status did not become ready")
 
         daemon = start_daemon()
         try:
