@@ -99,14 +99,33 @@ def test_native_artifact_audit_rejects_private_residue(tmp_path: Path) -> None:
         audit_native_artifact(artifact, expected_platform=native_platform_tag())
 
 
-def test_native_smoke_uses_frozen_recovery_upgrade_rollback_and_uninstall() -> None:
+def test_native_artifact_audit_rejects_mixed_case_source_suffixes(tmp_path: Path) -> None:
+    artifact = (tmp_path / "candidate_native-p4w5").resolve()
+    resources = artifact / "_internal/open_brain/resources/supervisors"
+    resources.mkdir(parents=True)
+    executable = artifact / "open-brain"
+    executable.write_bytes(b"native executable")
+    executable.chmod(0o755)
+    (resources / "launchd.json").write_text("{}\n", encoding="utf-8")
+    (resources / "systemd.service").write_text("[Service]\n", encoding="utf-8")
+    (resources / "unexpected.PY").write_text("private source\n", encoding="utf-8")
+    NativeArtifactManifest.create(
+        artifact,
+        candidate_id="candidate_native-p4w5",
+        version="0.1.0",
+        platform_tag=native_platform_tag(),
+    ).write(artifact)
+
+    with pytest.raises(NativeBuildError, match="native build operation failed"):
+        audit_native_artifact(artifact, expected_platform=native_platform_tag())
+
+
+def test_native_smoke_uses_public_recovery_upgrade_rollback_and_uninstall() -> None:
     source = inspect.getsource(smoke_native_artifact)
 
-    for command in (
-        "__native-portable-self-check",
-        "__native-rollback-self-check",
-        '"upgrade"',
-        '"uninstall"',
-    ):
+    for command in ('"portable-export"', '"portable-import"', '"upgrade"', '"uninstall"'):
         assert command in source
+    assert "__native-portable-self-check" not in source
+    assert "__native-rollback-self-check" not in source
+    assert "shutil.rmtree(failed_artifact)" not in source
     assert "adapter.remove" not in source

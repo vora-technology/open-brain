@@ -83,6 +83,7 @@ def test_upgrade_orders_verified_recovery_migrations_activation_restart_and_doct
     assert [migration.component for migration in receipt.migrations] == ["engine", "app"]
     assert calls == [
         "compatibility",
+        "stop",
         "backup",
         "preflight",
         "migrate:engine",
@@ -106,6 +107,68 @@ def test_upgrade_orders_verified_recovery_migrations_activation_restart_and_doct
             backup_destination=tmp_path / "backup",
             disposable_root=tmp_path / "upgrade-preflight",
         )
+
+
+def test_upgrade_quiesces_an_active_daemon_before_recovery_and_restores_it_on_failure(
+    tmp_path: Path,
+) -> None:
+    root = _appliance_root(tmp_path)
+    calls: list[str] = []
+    daemon = {"active": True}
+
+    class ActiveSupervisor(_RecordingSupervisor):
+        def stop(self) -> None:
+            calls.append("stop")
+            daemon["active"] = False
+
+        def restart(self) -> None:
+            calls.append("restart")
+            daemon["active"] = True
+
+    class OfflineRecovery(_RecordingRecovery):
+        def create_backup(
+            self,
+            destination: Path,
+            *,
+            backup_id: str,
+        ) -> ApplianceBackupResult:
+            calls.append("backup")
+            assert not daemon["active"]
+            raise RuntimeError("synthetic backup failure")
+
+    service = ApplianceLifecycleService(
+        root,
+        recovery=OfflineRecovery(calls),
+        artifact_port=_RecordingArtifactLifecyclePort(
+            calls=calls,
+            active_candidate_id="candidate_current-v1",
+        ),
+        supervisor=ActiveSupervisor(calls),
+        migrations=(
+            _migration(calls, component="engine", from_version="1.0.0", to_version="1.1.0"),
+            _migration(calls, component="app", from_version="1.0.0", to_version="1.1.0"),
+        ),
+        doctor_reader=_healthy_doctor(calls),
+    )
+
+    with pytest.raises(ApplianceLifecycleError) as error:
+        service.upgrade(
+            owner_request=OwnerLifecycleRequest(
+                request_id="upgrade_123e4567-e89b-42d3-a456-426614174326",
+                requested_at="2026-09-01T12:26:00Z",
+            ),
+            candidate=ArtifactCandidate(
+                candidate_id="candidate_source-checkout-v110",
+                version="1.1.0",
+            ),
+            backup_destination=tmp_path / "backup-active-daemon",
+            disposable_root=tmp_path / "preflight-active-daemon",
+        )
+
+    assert error.value.receipt.failure_stage == "backup"
+    assert error.value.receipt.daemon_restore_state == "restored"
+    assert daemon["active"] is True
+    assert calls == ["compatibility", "stop", "backup", "restart", "status"]
 
 
 def test_upgrade_replays_durably_across_service_restart_and_rejects_conflict(
@@ -389,7 +452,15 @@ def test_upgrade_rejects_incomplete_migrations_and_mismatched_recovery_evidence(
         )
 
     assert mismatch_error.value.receipt.failure_stage == "preflight"
-    assert mismatch_calls == ["compatibility", "backup", "preflight"]
+    assert mismatch_error.value.receipt.daemon_restore_state == "restored"
+    assert mismatch_calls == [
+        "compatibility",
+        "stop",
+        "backup",
+        "preflight",
+        "restart",
+        "status",
+    ]
 
     migration_calls: list[str] = []
     migration_port = _RecordingArtifactLifecyclePort(
@@ -477,34 +548,53 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
 @pytest.mark.parametrize(
     ("stage", "expected"),
     (
-        ("engine", ["compatibility", "backup", "preflight", "migrate:engine", "rollback"]),
+        (
+            "engine",
+            [
+                "compatibility",
+                "stop",
+                "backup",
+                "preflight",
+                "migrate:engine",
+                "rollback",
+                "restart",
+                "status",
+            ],
+        ),
         (
             "app",
             [
                 "compatibility",
+                "stop",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "migrate:app",
                 "rollback",
+                "restart",
+                "status",
             ],
         ),
         (
             "activate",
             [
                 "compatibility",
+                "stop",
                 "backup",
                 "preflight",
                 "migrate:engine",
                 "migrate:app",
                 "activate",
                 "rollback",
+                "restart",
+                "status",
             ],
         ),
         (
             "restart",
             [
                 "compatibility",
+                "stop",
                 "backup",
                 "preflight",
                 "migrate:engine",
@@ -512,12 +602,15 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
                 "activate",
                 "restart",
                 "rollback",
+                "restart",
+                "status",
             ],
         ),
         (
             "doctor",
             [
                 "compatibility",
+                "stop",
                 "backup",
                 "preflight",
                 "migrate:engine",
@@ -527,6 +620,8 @@ def test_upgrade_rejects_missing_owner_request_and_incompatible_candidates_witho
                 "status",
                 "doctor",
                 "rollback",
+                "restart",
+                "status",
             ],
         ),
     ),
@@ -600,6 +695,7 @@ def test_upgrade_rolls_back_once_for_each_forward_stage_and_preserves_prior_cand
 
     assert error.value.receipt.failure_stage == stage
     assert error.value.receipt.rollback_state == "rolled_back"
+    assert error.value.receipt.daemon_restore_state == "restored"
     assert calls == expected
     assert artifact_port.rollback_count == 1
     assert artifact_port.active_candidate_id == "candidate_current-v1"
@@ -646,7 +742,8 @@ def test_upgrade_requires_verified_backup_preflight_and_bounded_rollback_failure
 
     assert backup_error.value.receipt.failure_stage == "backup"
     assert backup_error.value.receipt.rollback_state == "not_needed"
-    assert calls == ["compatibility", "backup"]
+    assert backup_error.value.receipt.daemon_restore_state == "restored"
+    assert calls == ["compatibility", "stop", "backup", "restart", "status"]
 
     second_calls: list[str] = []
     second_port = _RecordingArtifactLifecyclePort(
@@ -822,12 +919,13 @@ class _RecordingRecovery:
 class _RecordingSupervisor:
     def __init__(self, calls: list[str], fail_stage: str | None = None) -> None:
         self._calls = calls
-        self._fail_stage = fail_stage
+        self._restart_failures = 1 if fail_stage == "restart" else 0
         self.remove_count = 0
 
     def restart(self) -> None:
         self._calls.append("restart")
-        if self._fail_stage == "restart":
+        if self._restart_failures:
+            self._restart_failures -= 1
             raise RuntimeError("private restart failure")
 
     def status(self) -> str:

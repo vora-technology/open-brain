@@ -95,7 +95,10 @@ engine and app migration evidence, authority-preserving restart checks, post-mig
 data-preserving uninstall. The source-checkout artifact effect boundary stays fail-closed. The P4-W5
 frozen entry point is the first composition that injects the manifest-bound native adapter and
 bounded host supervisor effects; its target-native smoke uses only isolated temporary supervisor
-state. A distinct kernel-backed lifecycle lease serializes owner requests, while canonical
+state. Upgrade checks compatibility while the current daemon is active, journals a quiesce stage,
+stops the supervisor before offline recovery and migrations, and restores the prior daemon after a
+failed quiesced stage. Failure receipts distinguish artifact rollback from daemon restoration. A
+distinct kernel-backed lifecycle lease serializes owner requests, while canonical
 root-confined journals preserve request identity, stage, terminal receipt, conflict detection, and
 crash rollback across processes. The CLI exposes upgrade and uninstall only when composition injects
 that lifecycle port; it does not run the self-restarting lifecycle inside the daemon control loop.

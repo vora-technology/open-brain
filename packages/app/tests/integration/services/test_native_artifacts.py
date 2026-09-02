@@ -195,11 +195,11 @@ def test_native_adapter_rejects_tampering_and_escaping_symlinks_with_bounded_err
         version="0.1.0",
         artifact_kind=NATIVE_ARTIFACT_KIND,
     )
-    (candidate_path / "_internal/resource.json").write_text("tampered", encoding="utf-8")
     adapter = NativeArtifactLifecycleAdapter(
         install_root=install_root,
         current_version="0.1.0",
     )
+    (candidate_path / "_internal/resource.json").write_text("tampered", encoding="utf-8")
 
     with pytest.raises(NativeArtifactError) as tampered:
         adapter.compatibility_preflight(candidate)
@@ -298,6 +298,51 @@ def test_native_adapter_removes_only_the_active_artifact_and_preserves_unrelated
     assert unrelated.read_text(encoding="utf-8") == "preserve"
 
 
+def test_native_adapter_removes_corrupt_managed_trees_but_preserves_unregistered_state(
+    tmp_path: Path,
+) -> None:
+    install_root = _install_root(tmp_path)
+    prior = _write_candidate(
+        install_root,
+        candidate_id="candidate_native-prior",
+        version="0.1.0",
+    )
+    failed = _write_candidate(
+        install_root,
+        candidate_id="candidate_native-failed",
+        version="0.2.0",
+    )
+    adapter = NativeArtifactLifecycleAdapter(
+        install_root=install_root,
+        current_version="0.1.0",
+    )
+    prior_candidate = ArtifactCandidate(prior.name, "0.1.0", NATIVE_ARTIFACT_KIND)
+    failed_candidate = ArtifactCandidate(failed.name, "0.2.0", NATIVE_ARTIFACT_KIND)
+    adapter.activate(prior_candidate)
+    adapter.activate(failed_candidate)
+    (failed / "_internal/resource.json").write_text("corrupt", encoding="utf-8")
+    adapter.rollback(failed_candidate, prior_candidate_id=prior.name)
+    unregistered = _write_candidate(
+        install_root,
+        candidate_id="candidate_owner-unregistered",
+        version="9.9.9",
+    )
+    owner_note = install_root / "owner-note.txt"
+    owner_note.write_text("preserve", encoding="utf-8")
+
+    reopened = NativeArtifactLifecycleAdapter(
+        install_root=install_root,
+        current_version="0.1.0",
+    )
+    receipt = reopened.remove(current_candidate_id=prior.name)
+
+    assert receipt.removed_candidate_id == prior.name
+    assert not prior.exists()
+    assert not failed.exists()
+    assert unregistered.is_dir()
+    assert owner_note.read_text(encoding="utf-8") == "preserve"
+
+
 def test_native_adapter_binds_to_upgrade_and_uninstall_with_clean_scoped_residue(
     tmp_path: Path,
 ) -> None:
@@ -364,7 +409,7 @@ def test_native_adapter_binds_to_upgrade_and_uninstall_with_clean_scoped_residue
     assert upgraded.active_candidate_id == target_path.name
     assert uninstalled.status == "uninstalled"
     assert uninstalled.brain_root_state == "preserved"
-    assert supervisor.calls == ["restart", "status", "stop", "remove"]
+    assert supervisor.calls == ["stop", "restart", "status", "stop", "remove"]
     assert recovery.calls == ["backup", "preflight"]
     assert owner_data.read_text(encoding="utf-8") == "preserve"
     assert not (install_root / "current").exists()

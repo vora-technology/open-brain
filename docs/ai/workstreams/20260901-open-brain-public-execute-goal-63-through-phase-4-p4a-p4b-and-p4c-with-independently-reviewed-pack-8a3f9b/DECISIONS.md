@@ -542,6 +542,9 @@
 
 ## D-047: bind the onedir artifact to a manifest and one managed activation link
 
+D-050 clarifies the cleanup rule below for an enrolled candidate whose manifest
+has become corrupt.
+
 - Chosen: build one PyInstaller onedir tree whose directory name matches its
   lifecycle candidate ID. Bind its version, platform, Portable range, complete
   tree digest, and executable in `open-brain-native.json`. Activate it through
@@ -580,3 +583,25 @@
 - Why: the reported value is a schema-validated opaque receipt, not a
   credential. An exact commit/path/rule/line exception keeps every other
   secret finding fatal while preserving the one-shot snapshot byte for byte.
+
+## D-050: quiesce native upgrades and bind cleanup to trusted enrollment
+
+- Chosen: after compatibility succeeds, journal and stop the active supervisor
+  before offline backup, restore, and migrations. A failure after quiescence
+  rolls back the candidate when required, restarts the prior daemon, and
+  records rollback and daemon-restoration states separately. The native
+  adapter keeps a canonical inventory of candidates enrolled while their
+  manifests are valid. Uninstall validates healthy enrolled trees, quarantines
+  every enrolled tree, and uses the platform's non-symlink-following removal;
+  a corrupt enrolled tree remains removable while unregistered state is left
+  alone. Native Portable proof uses the public daemon recovery protocol, and
+  corrupt-candidate rollback runs through an owner-confirmed upgrade request.
+- Rejected: acquire offline recovery authority while the daemon is active,
+  ship mutation-capable hidden smoke commands, invoke rollback directly from
+  the build harness, manually delete a failed candidate, trust every directory
+  found under `candidates/`, or follow symlinks during cleanup.
+- Why: the daemon owns mutation authority until it is stopped, while cleanup
+  still has to work after the exact corruption that triggered rollback. The
+  inventory supplies the pre-corruption ownership fact without granting
+  deletion authority over unrelated paths. This clarification cannot satisfy
+  P4-W5 until the independent reviewer accepts its exact source candidate.

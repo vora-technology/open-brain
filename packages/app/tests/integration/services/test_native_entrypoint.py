@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import sys
 from pathlib import Path
@@ -57,6 +58,13 @@ def test_native_entrypoint_routes_cli_daemon_and_connector_worker(
         ("daemon", (("--root", "/tmp/brain"), environment)),
         ("worker", None),
     ]
+
+
+def test_native_entrypoint_ships_no_mutation_capable_smoke_commands() -> None:
+    source = inspect.getsource(native_entrypoint)
+
+    assert "__native-portable-self-check" not in source
+    assert "__native-rollback-self-check" not in source
 
 
 def test_native_self_check_exercises_packaged_resources_and_direct_commands(

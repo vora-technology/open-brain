@@ -27,8 +27,12 @@ NATIVE_MANIFEST_NAME: Final[str] = "open-brain-native.json"
 NATIVE_EXECUTABLE_NAME: Final[str] = "open-brain"
 _CANDIDATES_DIRECTORY: Final[str] = "candidates"
 _CURRENT_LINK: Final[str] = "current"
+_MANAGED_CANDIDATES: Final[str] = ".open-brain-managed-candidates.json"
+_REMOVAL_DIRECTORY_PREFIX: Final[str] = ".open-brain-removal-"
 _FAILURE: Final[str] = "native artifact operation failed"
 _MAXIMUM_MANIFEST_BYTES: Final[int] = 8 * 1024
+_MAXIMUM_INVENTORY_BYTES: Final[int] = 64 * 1024
+_MAXIMUM_MANAGED_CANDIDATES: Final[int] = 128
 _PLATFORMS: Final[frozenset[str]] = frozenset({"linux-x86_64", "macos-arm64"})
 _HEX = frozenset("0123456789abcdef")
 
@@ -211,6 +215,7 @@ class NativeArtifactLifecycleAdapter:
             self._install_root = install_root
             self._candidates = candidates
             self._current_version = current_version
+            self._managed_candidates = self._load_or_create_inventory()
             self.active_candidate_id = self._read_active_candidate_id()
         except NativeArtifactError:
             raise
@@ -222,6 +227,7 @@ class NativeArtifactLifecycleAdapter:
         candidate: ArtifactCandidate,
     ) -> ArtifactCompatibilityReceipt:
         manifest = self._manifest(candidate)
+        self._register_manifest(manifest)
         return ArtifactCompatibilityReceipt(
             candidate_id=candidate.candidate_id,
             artifact_kind=candidate.artifact_kind,
@@ -231,7 +237,8 @@ class NativeArtifactLifecycleAdapter:
         )
 
     def activate(self, candidate: ArtifactCandidate) -> ArtifactSwitchReceipt:
-        self._manifest(candidate)
+        manifest = self._manifest(candidate)
+        self._register_manifest(manifest)
         self._replace_current(candidate.candidate_id)
         self.active_candidate_id = candidate.candidate_id
         return ArtifactSwitchReceipt(
@@ -279,19 +286,21 @@ class NativeArtifactLifecycleAdapter:
             if current_candidate_id != self._read_active_candidate_id():
                 raise NativeArtifactError(_FAILURE)
             managed_candidates: list[Path] = []
-            for candidate_path in sorted(self._candidates.iterdir()):
+            for candidate_id, expected_manifest in sorted(self._managed_candidates.items()):
+                candidate_path = self._candidate_path(candidate_id)
                 metadata = candidate_path.lstat()
                 if not stat.S_ISDIR(metadata.st_mode):
-                    raise NativeArtifactError(_FAILURE)
-                manifest = NativeArtifactManifest.load(candidate_path)
-                if manifest.candidate_id != candidate_path.name:
+                    raise NativeArtifactError(_FAILURE) from None
+                try:
+                    manifest = NativeArtifactManifest.load(candidate_path)
+                except NativeArtifactError:
+                    manifest = None
+                if manifest is not None and manifest != expected_manifest:
                     raise NativeArtifactError(_FAILURE)
                 managed_candidates.append(candidate_path)
+            self._quarantine_and_remove(managed_candidates)
             self._remove_current_link()
-            for candidate_path in managed_candidates:
-                shutil.rmtree(candidate_path)
-            if managed_candidates:
-                _fsync_directory(self._candidates)
+            self._remove_inventory()
             self.active_candidate_id = None
             return ArtifactRemovalReceipt(
                 artifact_kind=NATIVE_ARTIFACT_KIND,
@@ -302,6 +311,95 @@ class NativeArtifactLifecycleAdapter:
             raise
         except OSError as error:
             raise NativeArtifactError(_FAILURE) from error
+
+    def _load_or_create_inventory(self) -> dict[str, NativeArtifactManifest]:
+        try:
+            return self._load_inventory()
+        except FileNotFoundError:
+            manifests: dict[str, NativeArtifactManifest] = {}
+            for candidate_path in sorted(self._candidates.iterdir()):
+                metadata = candidate_path.lstat()
+                if not stat.S_ISDIR(metadata.st_mode):
+                    raise NativeArtifactError(_FAILURE) from None
+                manifest = NativeArtifactManifest.load(candidate_path)
+                manifests[manifest.candidate_id] = manifest
+            try:
+                _write_exclusive(
+                    self._install_root / _MANAGED_CANDIDATES,
+                    _inventory_bytes(manifests),
+                )
+                _fsync_directory(self._install_root)
+            except FileExistsError:
+                return self._load_inventory()
+            return manifests
+
+    def _load_inventory(self) -> dict[str, NativeArtifactManifest]:
+        path = self._install_root / _MANAGED_CANDIDATES
+        metadata = path.lstat()
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_size > _MAXIMUM_INVENTORY_BYTES
+        ):
+            raise NativeArtifactError(_FAILURE)
+        payload = path.read_bytes()
+        manifests = _inventory_from_bytes(payload)
+        if payload != _inventory_bytes(manifests):
+            raise NativeArtifactError(_FAILURE)
+        return manifests
+
+    def _register_manifest(self, manifest: NativeArtifactManifest) -> None:
+        existing = self._managed_candidates.get(manifest.candidate_id)
+        if existing is not None:
+            if existing != manifest:
+                raise NativeArtifactError(_FAILURE)
+            return
+        if len(self._managed_candidates) >= _MAXIMUM_MANAGED_CANDIDATES:
+            raise NativeArtifactError(_FAILURE)
+        updated = {**self._managed_candidates, manifest.candidate_id: manifest}
+        _atomic_replace_file(
+            self._install_root / _MANAGED_CANDIDATES,
+            _inventory_bytes(updated),
+        )
+        _fsync_directory(self._install_root)
+        self._managed_candidates = updated
+
+    def _quarantine_and_remove(self, candidates: list[Path]) -> None:
+        if not candidates:
+            return
+        if not shutil.rmtree.avoids_symlink_attacks:
+            raise NativeArtifactError(_FAILURE)
+        quarantine = self._install_root / (
+            _REMOVAL_DIRECTORY_PREFIX + secrets.token_hex(16)
+        )
+        quarantine.mkdir(mode=0o700)
+        moved: list[tuple[Path, Path]] = []
+        try:
+            for candidate_path in candidates:
+                quarantined = quarantine / candidate_path.name
+                os.replace(candidate_path, quarantined)
+                moved.append((candidate_path, quarantined))
+            _fsync_directory(self._candidates)
+            for _, quarantined in moved:
+                shutil.rmtree(quarantined)
+            quarantine.rmdir()
+            _fsync_directory(self._install_root)
+        except Exception:
+            for candidate_path, quarantined in reversed(moved):
+                if quarantined.exists() and not candidate_path.exists():
+                    with suppress(OSError):
+                        os.replace(quarantined, candidate_path)
+            with suppress(OSError):
+                quarantine.rmdir()
+            raise
+
+    def _remove_inventory(self) -> None:
+        path = self._install_root / _MANAGED_CANDIDATES
+        metadata = path.lstat()
+        if not stat.S_ISREG(metadata.st_mode):
+            raise NativeArtifactError(_FAILURE)
+        path.unlink()
+        _fsync_directory(self._install_root)
+        self._managed_candidates = {}
 
     def _manifest(self, candidate: ArtifactCandidate) -> NativeArtifactManifest:
         if (
@@ -348,6 +446,8 @@ class NativeArtifactLifecycleAdapter:
             raise NativeArtifactError(_FAILURE)
         candidate_id = target.parts[1]
         self._candidate_path(candidate_id)
+        if candidate_id not in self._managed_candidates:
+            raise NativeArtifactError(_FAILURE)
         return candidate_id
 
     def _replace_current(self, candidate_id: str) -> None:
@@ -388,6 +488,79 @@ class NativeArtifactLifecycleAdapter:
             raise NativeArtifactError(_FAILURE)
         current.unlink()
         _fsync_directory(self._install_root)
+
+
+def _inventory_bytes(manifests: dict[str, NativeArtifactManifest]) -> bytes:
+    if len(manifests) > _MAXIMUM_MANAGED_CANDIDATES:
+        raise NativeArtifactError(_FAILURE)
+    payload = json.dumps(
+        {
+            "candidates": [
+                manifests[candidate_id].to_dict()
+                for candidate_id in sorted(manifests)
+            ],
+            "schema_version": 1,
+        },
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("ascii")
+    if len(payload) > _MAXIMUM_INVENTORY_BYTES:
+        raise NativeArtifactError(_FAILURE)
+    return payload
+
+
+def _inventory_from_bytes(payload: bytes) -> dict[str, NativeArtifactManifest]:
+    try:
+        value = json.loads(payload.decode("ascii"))
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise NativeArtifactError(_FAILURE) from error
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"candidates", "schema_version"}
+        or value.get("schema_version") != 1
+        or not isinstance(value.get("candidates"), list)
+        or len(value["candidates"]) > _MAXIMUM_MANAGED_CANDIDATES
+    ):
+        raise NativeArtifactError(_FAILURE)
+    manifests: dict[str, NativeArtifactManifest] = {}
+    for item in value["candidates"]:
+        manifest = NativeArtifactManifest.from_dict(item)
+        if (
+            manifest.candidate_id in manifests
+        ):
+            raise NativeArtifactError(_FAILURE)
+        manifests[manifest.candidate_id] = manifest
+    return manifests
+
+
+def _write_exclusive(path: Path, payload: bytes) -> None:
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(descriptor, "wb", closefd=True) as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except BaseException:
+        with suppress(OSError):
+            os.close(descriptor)
+        with suppress(OSError):
+            path.unlink()
+        raise
+
+
+def _atomic_replace_file(path: Path, payload: bytes) -> None:
+    metadata = path.lstat()
+    if not stat.S_ISREG(metadata.st_mode):
+        raise NativeArtifactError(_FAILURE)
+    temporary = path.parent / f".{path.name}-{secrets.token_hex(16)}.tmp"
+    _write_exclusive(temporary, payload)
+    try:
+        os.replace(temporary, path)
+    except OSError:
+        with suppress(OSError):
+            temporary.unlink()
+        raise
 
 
 def native_platform_tag() -> str:

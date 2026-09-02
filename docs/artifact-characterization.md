@@ -55,8 +55,11 @@ Native build subjects are present for PyInstaller 6.22.2 onedir with
 `pyinstaller-hooks-contrib` 2026.7 and Python 3.12. The same checked-in spec runs on native macOS
 ARM64 and Ubuntu 24.04 x86_64 CI. Its bounded audit records exact source identity, member and tree
 digests, policy-confined runtime and resource membership, confined symlinks, frozen child routing,
-daemon restart, Portable round trip, verified backup and disposable restore, corrupt-active
-rollback, native lifecycle upgrade, application uninstall, and clean managed residue.
+daemon restart, Portable requests through the public daemon control contract, verified backup and
+disposable restore, owner-confirmed corrupt-candidate rollback, native lifecycle upgrade,
+application uninstall, and clean managed residue. A canonical adapter-owned inventory distinguishes
+enrolled candidate trees from unrelated install-root state. Uninstall quarantines enrolled trees
+before non-symlink-following removal, including a tree whose manifest no longer validates.
 
 These are P4-W5 spike inputs and checks, not published release artifacts. Nuitka standalone 4.2
 remains the accepted fallback only if the documented PyInstaller failure gate is exhausted. The

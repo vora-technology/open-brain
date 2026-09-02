@@ -60,6 +60,8 @@ def test_review_binding_separates_source_candidate_from_evidence_closure() -> No
     assert "reviewer binds the source SHA, artifact digests, manifest, host evidence" in plan
     assert "## D-031: bind review to source and reset dispatch budgets by milestone" in decisions
     assert "A docs-only\n  evidence successor does not invalidate that verdict" in decisions
+    assert "## D-050: quiesce native upgrades and bind cleanup to trusted enrollment" in decisions
+    assert "independent reviewer accepts its exact source candidate" in decisions
 
 
 def test_p4w5_native_toolchain_and_runner_images_are_exact() -> None:

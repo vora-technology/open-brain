@@ -368,10 +368,16 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 raise NativeBuildError(_FAILURE)
             executable = install_root / "current" / NATIVE_EXECUTABLE_NAME
             brain_root = smoke_root / "brain"
+            corruption_marker = smoke_root / "corrupt-next-stop"
             environment = _runtime_environment(
                 smoke_root,
                 executable=executable,
                 brain_root=brain_root,
+                corruption_marker=corruption_marker,
+                corruption_target=(
+                    failed_artifact
+                    / "_internal/open_brain/resources/supervisors/launchd.json"
+                ),
             )
             stage = "version"
             version = _run_checked(
@@ -435,43 +441,84 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
             if _json_object(installed.stdout).get("status") != "ok":
                 raise NativeBuildError(_FAILURE)
             stage = "daemon-start"
-            _run_daemon_cycle(executable, brain_root, smoke_root, appliance_environment)
-            stage = "daemon-restart"
-            _run_daemon_cycle(executable, brain_root, smoke_root, appliance_environment)
-            stage = "portable-round-trip"
-            portable = _run_checked(
-                (
-                    str(executable),
-                    "__native-portable-self-check",
-                    str(smoke_root / "portable-export"),
-                    str(smoke_root / "portable-import"),
-                ),
-                cwd=smoke_root,
-                environment=appliance_environment,
-                timeout=60,
+            _run_supervisor_action(
+                executable,
+                "start",
+                brain_root,
+                smoke_root,
+                appliance_environment,
             )
-            portable_value = _json_object(portable.stdout)
+            stage = "daemon-restart"
+            _run_supervisor_action(
+                executable,
+                "restart",
+                brain_root,
+                smoke_root,
+                appliance_environment,
+            )
+            stage = "portable-round-trip"
+            portable_export = smoke_root / "portable-export"
+            portable_import = smoke_root / "portable-import"
+            exported = _request_recovery_control(
+                brain_root,
+                operation="portable-export",
+                request_id="export_123e4567-e89b-42d3-a456-4266141745a1",
+                destination=portable_export,
+            )
             if (
-                portable_value.get("status") != "passed"
-                or portable_value.get("portable_export") != "exported"
-                or portable_value.get("portable_import") != "imported"
+                exported.get("operation") != "portable-export"
+                or exported.get("status") not in {"scheduled", "completed"}
             ):
                 raise NativeBuildError(_FAILURE)
+            _wait_for_path(portable_export / "portable-manifest.json")
+            imported = _request_recovery_control(
+                brain_root,
+                operation="portable-import",
+                request_id="import_123e4567-e89b-42d3-a456-4266141745a2",
+                source=portable_export,
+                destination=portable_import,
+            )
+            if (
+                imported.get("operation") != "portable-import"
+                or imported.get("status") not in {"scheduled", "completed"}
+            ):
+                raise NativeBuildError(_FAILURE)
+            _wait_for_path(
+                portable_import / ".open-brain/state/appliance-owner-credential"
+            )
             stage = "artifact-rollback"
-            rollback = _run_checked(
+            corruption_marker.write_text("corrupt once\n", encoding="utf-8")
+            failed_disposable_root = smoke_root / "failed-upgrade-preflight"
+            failed_disposable_root.mkdir(mode=0o700)
+            rollback = _run_bounded(
                 (
                     str(executable),
-                    "__native-rollback-self-check",
-                    failed_id,
-                    prior_id,
+                    "upgrade",
+                    f"--candidate-id={failed_id}",
+                    f"--version={audit.version}",
+                    "--artifact-kind=native-onedir",
+                    f"--backup-destination={smoke_root / 'failed-upgrade-backup'}",
+                    f"--disposable-root={failed_disposable_root}",
+                    "--request-id=upgrade_123e4567-e89b-42d3-a456-4266141745a3",
+                    "--requested-at=2026-09-02T12:00:00Z",
+                    "--confirm-owner",
+                    "--json",
                 ),
                 cwd=smoke_root,
                 environment=appliance_environment,
-                timeout=30,
+                timeout=90,
             )
-            if _json_object(rollback.stdout).get("status") != "rolled_back":
+            rollback_value = _json_object(rollback.stdout)
+            if (
+                rollback.returncode == 0
+                or rollback_value.get("failure_stage") != "activate"
+                or rollback_value.get("rollback_state") != "rolled_back"
+                or rollback_value.get("daemon_restore_state") != "restored"
+                or (install_root / "current").readlink()
+                != Path("candidates") / prior_id
+            ):
                 raise NativeBuildError(_FAILURE)
-            shutil.rmtree(failed_artifact)
+            _wait_for_daemon(executable, brain_root, smoke_root, appliance_environment)
             stage = "artifact-upgrade"
             disposable_root = smoke_root / "upgrade-preflight"
             disposable_root.mkdir(mode=0o700)
@@ -484,8 +531,8 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                     "--artifact-kind=native-onedir",
                     f"--backup-destination={smoke_root / 'upgrade-backup'}",
                     f"--disposable-root={disposable_root}",
-                    "--request-id=upgrade_123e4567-e89b-42d3-a456-4266141745a3",
-                    "--requested-at=2026-09-02T12:00:00Z",
+                    "--request-id=upgrade_123e4567-e89b-42d3-a456-4266141745a4",
+                    "--requested-at=2026-09-02T12:01:00Z",
                     "--confirm-owner",
                     "--json",
                 ),
@@ -500,8 +547,8 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 (
                     str(executable),
                     "uninstall",
-                    "--request-id=uninstall_123e4567-e89b-42d3-a456-4266141745a4",
-                    "--requested-at=2026-09-02T12:01:00Z",
+                    "--request-id=uninstall_123e4567-e89b-42d3-a456-4266141745a5",
+                    "--requested-at=2026-09-02T12:02:00Z",
                     "--confirm-owner",
                     "--json",
                 ),
@@ -607,7 +654,10 @@ def _native_member_allowed(member: NativeArtifactMember) -> bool:
             component.casefold()
             for component in _policy_strings(policy, "forbidden_components")
         )
-        forbidden_suffixes = _policy_strings(policy, "forbidden_suffixes")
+        forbidden_suffixes = tuple(
+            suffix.casefold()
+            for suffix in _policy_strings(policy, "forbidden_suffixes")
+        )
         library_pattern = policy.get("allowed_internal_library_pattern")
         if not isinstance(library_pattern, str):
             raise NativeBuildError(_FAILURE)
@@ -625,7 +675,7 @@ def _native_member_allowed(member: NativeArtifactMember) -> bool:
             or PurePosixPath(component).stem in forbidden_components
             for component in components
         )
-        or member.path.endswith(forbidden_suffixes)
+        or member.path.casefold().endswith(forbidden_suffixes)
     ):
         return False
     if member.path in allowed_exact:
@@ -651,54 +701,133 @@ def _policy_strings(policy: Mapping[str, object], key: str) -> tuple[str, ...]:
     return tuple(cast(list[str], value))
 
 
-def _run_daemon_cycle(
+def _run_supervisor_action(
+    executable: Path,
+    action: str,
+    brain_root: Path,
+    cwd: Path,
+    environment: Mapping[str, str],
+) -> None:
+    result = _run_checked(
+        (str(executable), "supervisor", action, "--json"),
+        cwd=cwd,
+        environment=environment,
+        timeout=30,
+    )
+    if _json_object(result.stdout).get("status") != "ok":
+        raise NativeBuildError(_FAILURE)
+    _wait_for_daemon(executable, brain_root, cwd, environment)
+
+
+def _wait_for_daemon(
     executable: Path,
     brain_root: Path,
     cwd: Path,
     environment: Mapping[str, str],
 ) -> None:
-    process = subprocess.Popen(
-        (str(executable), "__appliance-daemon", "--root", str(brain_root)),
-        cwd=cwd,
-        env=dict(environment),
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        close_fds=True,
-        start_new_session=True,
-    )
-    try:
-        socket_path = brain_root / ".open-brain/run/control.sock"
-        deadline = time.monotonic() + 15
-        status_receipt: subprocess.CompletedProcess[str] | None = None
-        while status_receipt is None:
-            if process.poll() is not None or time.monotonic() >= deadline:
-                raise NativeBuildError(_FAILURE)
-            if socket_path.exists():
-                try:
-                    candidate = _run_checked(
-                        (str(executable), "status", "--json"),
-                        cwd=cwd,
-                        environment=environment,
-                        timeout=5,
-                    )
-                except NativeBuildError:
-                    pass
-                else:
-                    if _json_object(candidate.stdout).get("status") == "ok":
-                        status_receipt = candidate
-            time.sleep(0.05)
-    finally:
-        if process.poll() is None:
-            process.terminate()
+    socket_path = brain_root / ".open-brain/run/control.sock"
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        if socket_path.exists():
             try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=5)
+                status = _run_checked(
+                    (str(executable), "status", "--json"),
+                    cwd=cwd,
+                    environment=environment,
+                    timeout=5,
+                )
+            except NativeBuildError:
+                pass
+            else:
+                if _json_object(status.stdout).get("status") == "ok":
+                    return
+        time.sleep(0.05)
+    raise NativeBuildError(_FAILURE)
+
+
+def _request_recovery_control(
+    root: Path,
+    *,
+    operation: str,
+    request_id: str,
+    destination: Path,
+    source: Path | None = None,
+) -> dict[str, object]:
+    payload = json.dumps(
+        {
+            "action": "recovery.request",
+            "destination": str(destination),
+            "operation": operation,
+            "request_id": request_id,
+            "schema_version": 1,
+            "source": None if source is None else str(source),
+        },
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("ascii")
+    client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client.settimeout(5)
+    try:
+        client.connect(str(root / ".open-brain/run/control.sock"))
+        client.sendall(payload)
+        client.shutdown(socket.SHUT_WR)
+        chunks = bytearray()
+        while len(chunks) <= 4_096:
+            chunk = client.recv(4_097 - len(chunks))
+            if not chunk:
+                break
+            chunks.extend(chunk)
+    except OSError as error:
+        raise NativeBuildError(_FAILURE) from error
+    finally:
+        client.close()
+    if len(chunks) > 4_096:
+        raise NativeBuildError(_FAILURE)
+    try:
+        value = json.loads(bytes(chunks).decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise NativeBuildError(_FAILURE) from error
+    if (
+        not isinstance(value, dict)
+        or value.get("action") != "recovery.request"
+        or value.get("request_id") != request_id
+        or value.get("schema_version") != 1
+    ):
+        raise NativeBuildError(_FAILURE)
+    return cast(dict[str, object], value)
+
+
+def _wait_for_path(path: Path) -> None:
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if path.is_file():
+            return
+        time.sleep(0.05)
+    raise NativeBuildError(_FAILURE)
 
 
 def _run_checked(
+    command: Sequence[str],
+    *,
+    cwd: Path,
+    environment: Mapping[str, str],
+    timeout: int,
+    input_text: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    result = _run_bounded(
+        command,
+        cwd=cwd,
+        environment=environment,
+        timeout=timeout,
+        input_text=input_text,
+    )
+    if result.returncode != 0:
+        raise NativeBuildError(_FAILURE)
+    return result
+
+
+def _run_bounded(
     command: Sequence[str],
     *,
     cwd: Path,
@@ -720,8 +849,7 @@ def _run_checked(
     except (OSError, subprocess.SubprocessError) as error:
         raise NativeBuildError(_FAILURE) from error
     if (
-        result.returncode != 0
-        or len(result.stdout.encode("utf-8")) > _MAXIMUM_PROCESS_OUTPUT
+        len(result.stdout.encode("utf-8")) > _MAXIMUM_PROCESS_OUTPUT
         or len(result.stderr.encode("utf-8")) > _MAXIMUM_PROCESS_OUTPUT
     ):
         raise NativeBuildError(_FAILURE)
@@ -742,6 +870,8 @@ def _runtime_environment(
     *,
     executable: Path,
     brain_root: Path,
+    corruption_marker: Path,
+    corruption_target: Path,
 ) -> dict[str, str]:
     home = root / "home"
     temporary = root / "tmp"
@@ -757,6 +887,8 @@ def _runtime_environment(
             executable=executable,
             brain_root=brain_root,
             pidfile=pidfile,
+            corruption_marker=corruption_marker,
+            corruption_target=corruption_target,
         ),
         encoding="utf-8",
     )
@@ -770,11 +902,20 @@ def _runtime_environment(
     }
 
 
-def _supervisor_shim(*, executable: Path, brain_root: Path, pidfile: Path) -> str:
+def _supervisor_shim(
+    *,
+    executable: Path,
+    brain_root: Path,
+    pidfile: Path,
+    corruption_marker: Path,
+    corruption_target: Path,
+) -> str:
     return f"""#!/bin/sh
 pidfile={shlex.quote(str(pidfile))}
 executable={shlex.quote(str(executable))}
 brain_root={shlex.quote(str(brain_root))}
+corruption_marker={shlex.quote(str(corruption_marker))}
+corruption_target={shlex.quote(str(corruption_target))}
 
 stop_daemon() {{
     if [ -f "$pidfile" ]; then
@@ -791,6 +932,10 @@ stop_daemon() {{
             fi
         fi
         /bin/rm -f "$pidfile"
+    fi
+    if [ -f "$corruption_marker" ]; then
+        /bin/rm -f "$corruption_marker"
+        printf '\n' >> "$corruption_target"
     fi
 }}
 

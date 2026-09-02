@@ -64,6 +64,7 @@ _UPGRADE_STAGES = frozenset(
     {
         "requested",
         "compatibility",
+        "quiesce",
         "backup",
         "preflight",
         "migrations",
@@ -80,6 +81,19 @@ _UNINSTALL_STAGES = frozenset(
 )
 _ROLLBACK_REQUIRED_STAGES = frozenset(
     {"migrations", "engine", "app", "activate", "restart", "doctor"}
+)
+_DAEMON_RESTORE_REQUIRED_STAGES = frozenset(
+    {
+        "quiesce",
+        "backup",
+        "preflight",
+        "migrations",
+        "engine",
+        "app",
+        "activate",
+        "restart",
+        "doctor",
+    }
 )
 
 
@@ -311,6 +325,7 @@ class ApplianceLifecycleFailureReceipt:
     prior_candidate_id: str | None
     active_candidate_id: str | None
     rollback_state: str
+    daemon_restore_state: str = "not_needed"
 
     def __post_init__(self) -> None:
         if self.operation not in {"upgrade", "uninstall"}:
@@ -329,6 +344,8 @@ class ApplianceLifecycleFailureReceipt:
             or self.failure_stage not in stages
             or self.rollback_state
             not in {"not_needed", "rolled_back", "rollback_failed"}
+            or self.daemon_restore_state
+            not in {"not_needed", "restored", "restore_failed"}
         ):
             raise ValueError("invalid appliance lifecycle failure receipt")
 
@@ -336,6 +353,7 @@ class ApplianceLifecycleFailureReceipt:
         return {
             "active_candidate_id": self.active_candidate_id,
             "candidate_id": self.candidate_id,
+            "daemon_restore_state": self.daemon_restore_state,
             "failure_stage": self.failure_stage,
             "operation": self.operation,
             "prior_candidate_id": self.prior_candidate_id,
@@ -505,6 +523,16 @@ class ApplianceLifecycleService:
                     rollback_state="not_needed",
                 ),
             )
+        self._run_stage(
+            fingerprint,
+            "upgrade",
+            request.request_id,
+            "quiesce",
+            candidate,
+            prior_candidate_id,
+            self._supervisor.stop,
+            rollback_candidate=None,
+        )
         backup_id = "backup_" + request.request_id.removeprefix("upgrade_")
         backup = self._run_stage(
             fingerprint,
@@ -525,18 +553,14 @@ class ApplianceLifecycleService:
             or backup.created.manifest_digest_sha256
             != backup.verified.manifest_digest_sha256
         ):
-            self._store_failure(
-                fingerprint,
-                ApplianceLifecycleFailureReceipt(
-                    operation="upgrade",
-                    request_id=request.request_id,
-                    status="failed",
-                    failure_stage="backup",
-                    candidate_id=candidate.candidate_id,
-                    prior_candidate_id=prior_candidate_id,
-                    active_candidate_id=prior_candidate_id,
-                    rollback_state="not_needed",
-                ),
+            self._fail(
+                fingerprint=fingerprint,
+                operation="upgrade",
+                request_id=request.request_id,
+                failure_stage="backup",
+                candidate=candidate,
+                prior_candidate_id=prior_candidate_id,
+                rollback_candidate=None,
             )
         preflight = self._run_stage(
             fingerprint,
@@ -559,18 +583,14 @@ class ApplianceLifecycleService:
             or type(preflight.index_generation) is not int
             or preflight.index_generation < 1
         ):
-            self._store_failure(
-                fingerprint,
-                ApplianceLifecycleFailureReceipt(
-                    operation="upgrade",
-                    request_id=request.request_id,
-                    status="failed",
-                    failure_stage="preflight",
-                    candidate_id=candidate.candidate_id,
-                    prior_candidate_id=prior_candidate_id,
-                    active_candidate_id=prior_candidate_id,
-                    rollback_state="not_needed",
-                ),
+            self._fail(
+                fingerprint=fingerprint,
+                operation="upgrade",
+                request_id=request.request_id,
+                failure_stage="preflight",
+                candidate=candidate,
+                prior_candidate_id=prior_candidate_id,
+                rollback_candidate=None,
             )
 
         migration_components = tuple(
@@ -846,6 +866,12 @@ class ApplianceLifecycleService:
             rollback_candidate,
             prior_candidate_id=prior_candidate_id,
         )
+        daemon_restore_state = self._restore_daemon(
+            required=(
+                record["operation"] == "upgrade"
+                and record["stage"] in _DAEMON_RESTORE_REQUIRED_STAGES
+            )
+        )
         receipt = ApplianceLifecycleFailureReceipt(
             operation=cast(str, record["operation"]),
             request_id=cast(str, record["request_id"]),
@@ -855,6 +881,7 @@ class ApplianceLifecycleService:
             prior_candidate_id=prior_candidate_id,
             active_candidate_id=active_candidate_id,
             rollback_state=rollback_state,
+            daemon_restore_state=daemon_restore_state,
         )
         self._persist_terminal(fingerprint, receipt)
         raise ApplianceLifecycleError(receipt)
@@ -1016,6 +1043,12 @@ class ApplianceLifecycleService:
             rollback_candidate,
             prior_candidate_id=prior_candidate_id,
         )
+        daemon_restore_state = self._restore_daemon(
+            required=(
+                operation == "upgrade"
+                and failure_stage in _DAEMON_RESTORE_REQUIRED_STAGES
+            )
+        )
         receipt = ApplianceLifecycleFailureReceipt(
             operation=operation,
             request_id=request_id,
@@ -1025,6 +1058,7 @@ class ApplianceLifecycleService:
             prior_candidate_id=prior_candidate_id,
             active_candidate_id=active_candidate_id,
             rollback_state=rollback_state,
+            daemon_restore_state=daemon_restore_state,
         )
         self._persist_terminal(fingerprint, receipt)
         raise ApplianceLifecycleError(receipt)
@@ -1057,6 +1091,15 @@ class ApplianceLifecycleService:
                 active_candidate_id = None
             return "rollback_failed", active_candidate_id
         return "rolled_back", active_candidate_id
+
+    def _restore_daemon(self, *, required: bool) -> str:
+        if not required:
+            return "not_needed"
+        try:
+            self._restart_and_check()
+        except Exception:
+            return "restore_failed"
+        return "restored"
 
     def _store_failure(self, fingerprint: str, receipt: ApplianceLifecycleFailureReceipt) -> None:
         self._persist_terminal(fingerprint, receipt)
@@ -1312,6 +1355,7 @@ def _failure_receipt_from_record(record: dict[str, object]) -> ApplianceLifecycl
     if type(value) is not dict or set(value) != {
         "active_candidate_id",
         "candidate_id",
+        "daemon_restore_state",
         "failure_stage",
         "operation",
         "prior_candidate_id",
@@ -1324,6 +1368,7 @@ def _failure_receipt_from_record(record: dict[str, object]) -> ApplianceLifecycl
     return ApplianceLifecycleFailureReceipt(
         active_candidate_id=_record_optional_string(receipt, "active_candidate_id"),
         candidate_id=_record_optional_string(receipt, "candidate_id"),
+        daemon_restore_state=_record_string(receipt, "daemon_restore_state"),
         failure_stage=_record_string(receipt, "failure_stage"),
         operation=_record_string(receipt, "operation"),
         prior_candidate_id=_record_optional_string(receipt, "prior_candidate_id"),
