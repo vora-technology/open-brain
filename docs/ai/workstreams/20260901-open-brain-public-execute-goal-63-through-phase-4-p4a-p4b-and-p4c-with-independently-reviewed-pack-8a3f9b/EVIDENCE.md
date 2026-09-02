@@ -339,6 +339,37 @@
   `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
   and engine sdist
   `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
+- Evidence checkpoint `ce909a525dbc66ec5d893892984f2814f7bb9e71`
+  passed CI run `33609157287`, public-artifacts run `33609157406`, and CodeQL
+  run `33609152877`. Child 12 started a final review and was stopped without a
+  verdict after the candidate architecture was superseded.
+- Repair checkpoint `9ca31ba36c44e4e4a269e5c932fae27fa174831e`
+  removes the generic string-based loader and its sole P4H009 exception. A
+  closed `OptionalProvider` enum selects an immutable lazy-loader registry
+  containing only the declared `openai` extra. Typed construction makes
+  internal roots unrepresentable, while the runtime loader rejects non-enum
+  internal identifiers. P4H009 remains a finite adversarial architecture
+  corpus rather than a malicious-code sandbox.
+- Latest local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,157 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (84 tests, Ruff, MyPy, manifest); exact collection
+  of 404 app tests; all 16 analyzer and app-wheel tests on Python 3.12, 3.13,
+  and 3.14; source+artifact release audit; reachable-history audit; Gitleaks
+  8.30.1 over 79 commits; `uv lock --check`; and `git diff --check`.
+- Exact-head CI run `33611279850`, public-artifacts run `33611279794`, and
+  CodeQL run `33611274401` passed at `9ca31ba`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
+- Rebuilt SHA-256 digests are app wheel
+  `cfee79bfe16adc1dc09ffd930db3a49763028b44bd0eb8c85d3403ea6e17b43e`,
+  app sdist
+  `fc6b43252d5842fdd470236c07a4bbd9a96d1c55450e81c77e922d0d4e20f68d`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
+- Independent review is source-SHA-bound. A docs-only evidence successor does
+  not invalidate unchanged source review, and the child budget resets at each
+  milestone boundary.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
   successor, exact-head CI, and a fresh read-only review remain required before

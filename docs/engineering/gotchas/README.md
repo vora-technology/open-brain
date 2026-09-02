@@ -652,3 +652,16 @@ values through control-flow joins, and reject internal package roots again at th
 loader boundary.
 
 Discovered: 2026-09-02.
+
+### AUDIT-009: Architecture gates should close authority, not simulate a sandbox
+
+Symptom: Each review finds another Python spelling that reaches the same generic loader, and the
+acceptance analyzer grows without producing a finite security boundary.
+
+Cause: P4H009 is treated as malicious-code containment even though its contract is to catch app
+architecture regressions. The generic string loader keeps the unwanted authority open.
+
+Fix: Replace arbitrary module strings with a closed typed provider registry, reject internal
+identifiers at runtime, and review the gate against a named finite adversarial corpus.
+
+Discovered: 2026-09-02.

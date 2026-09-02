@@ -11,10 +11,10 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: equivalent-import and argument-provenance review repair
-  `559690e14b9a1dd935566b54e97ec8f2b73f8d06` is pushed and exact-head CI
-  is green. The sixth P4-W2 review returned `NOT_READY` with P0/P1/P2
-  `0/2/0`; both findings are repaired. This evidence successor, exact-head
+- Status: closed optional-provider registry review candidate
+  `9ca31ba36c44e4e4a269e5c932fae27fa174831e` is pushed and exact-head CI
+  is green. The generic string loader and its dynamic-import exception are
+  removed. This evidence successor, exact-head
   CI, and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
@@ -336,10 +336,32 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - Exact-head CI run `33608085686`, public-artifacts run `33608085774`, and
   CodeQL run `33608082590` passed at `559690e`. PR head, remote branch, and
   local head matched; the draft PR was mergeable.
+- Evidence checkpoint `ce909a525dbc66ec5d893892984f2814f7bb9e71`
+  passed CI run `33609157287`, public-artifacts run `33609157406`, and CodeQL
+  run `33609152877`. Child 12 began reviewing that candidate, then stopped
+  without a verdict when the source architecture was superseded.
+- Source repair `9ca31ba36c44e4e4a269e5c932fae27fa174831e`
+  replaces arbitrary module strings with a closed `OptionalProvider` enum and
+  immutable lazy-loader registry containing the one declared `openai` extra.
+  Internal roots are unrepresentable through the typed API and rejected again
+  at runtime. P4H009 now has no dynamic-import exception and is explicitly a
+  finite architecture regression corpus rather than a Python sandbox.
+- Latest local gates passed: `make verify` with strict MyPy on 488 files,
+  3,157 tests, and four artifact builds; uncached Ruff;
+  `make phase4-contracts` with 84 tests; exact collection of 404 app tests;
+  all 16 analyzer and app-wheel tests on each of Python 3.12, 3.13, and 3.14;
+  source/artifact and reachable-history audits; Gitleaks over 79 commits;
+  lockfile and diff integrity.
+- Exact-head CI run `33611279850`, public-artifacts run `33611279794`, and
+  CodeQL run `33611274401` passed at `9ca31ba`. PR head, remote branch, and
+  local head matched; the draft PR was mergeable.
+- Independent review is bound to the source SHA. A docs-only evidence
+  successor does not invalidate an unchanged source review. Child budgets are
+  scoped to and reset at each milestone.
 - Rebuilt SHA-256 digests are app wheel
-  `812b0a64bbecb2f19b1713411f31bab69a5d52027dc7c3c871bc493ffc65f272`,
+  `cfee79bfe16adc1dc09ffd930db3a49763028b44bd0eb8c85d3403ea6e17b43e`,
   app sdist
-  `48a7c763b9b46c5832d11ddd20a3f6975bfd57f0f5db6a96e870aaea3543d080`,
+  `fc6b43252d5842fdd470236c07a4bbd9a96d1c55450e81c77e922d0d4e20f68d`,
   engine wheel
   `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
   and engine sdist

@@ -317,3 +317,27 @@
   spellings, while a stable identifier says nothing about the value it holds.
   Semantic provenance closes both classes without rejecting the app's safe
   `importlib.metadata` and `importlib.resources` APIs.
+
+## D-030: close optional loading instead of sandboxing Python
+
+- Chosen: replace arbitrary module strings with a closed `OptionalProvider`
+  enum and immutable lazy-loader registry. The only current provider is the
+  declared `openai` extra. Remove every app dynamic-import exception and keep
+  P4H009 bounded to its finite adversarial architecture corpus.
+- Rejected: continue expanding a general-purpose Python capability analyzer or
+  approve a generic loader through increasingly detailed data-flow rules.
+- Why: package isolation is an architecture property, not hostile-code
+  containment. Closing the authority removes the escape hatch directly and is
+  smaller, reviewable, and enforceable at runtime. This supersedes D-029's
+  temporary generic-loader provenance repair.
+
+## D-031: bind review to source and reset dispatch budgets by milestone
+
+- Chosen: an independent verdict names the reviewed source SHA. A docs-only
+  evidence successor does not invalidate that verdict when source and tests
+  are unchanged. Child lineage budgets reset after each verified milestone.
+- Rejected: force another source review after every evidence-only commit or
+  carry an exhausted lineage budget into the next milestone.
+- Why: source review and evidence history have different identities. Keeping
+  those identities explicit prevents an infinite evidence-review loop while
+  preserving an auditable gate for each milestone.

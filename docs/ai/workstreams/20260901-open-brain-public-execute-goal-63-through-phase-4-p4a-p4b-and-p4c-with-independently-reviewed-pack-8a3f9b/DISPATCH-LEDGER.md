@@ -4,11 +4,14 @@
 
 - Coordinator: resumed runtime goal thread `01a05fc4-2219-7251-8798-a74a1a200911`
 - Maximum active children: 6
-- Maximum total children: 12
+- Maximum total children per milestone: 12
 - Current active children: 0
-- Total child lineages used: 11
+- Total child lineages used in P4-W2: 12
 - Implementation writers: 0
-- Independent reviewers: 10
+- Independent reviewers: 11
+
+The lineage budget resets when the coordinator crosses a verified milestone
+boundary. A resumed child retains its existing lineage number.
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -192,3 +195,18 @@ coordinator-owned.
   `559690e14b9a1dd935566b54e97ec8f2b73f8d06` adds semantic capability and
   pristine-parameter provenance, rejects internal optional-loader roots, and
   adds focused positive, negative, and installed-wheel regressions.
+
+## Child 12: P4-W2 closed-provider-registry final review
+
+- Status: paused for superseded candidate
+- Agent ID: `01a06141-8911-7f61-a7d6-159e04063ef5`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- First source scope: public repository through
+  `ce909a525dbc66ec5d893892984f2814f7bb9e71`
+- Result: no verdict. The coordinator stopped the in-progress review when the
+  generic loader architecture was superseded. This same lineage will resume
+  against source `9ca31ba36c44e4e4a269e5c932fae27fa174831e` and its docs-only
+  evidence successor.
