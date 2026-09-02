@@ -581,3 +581,17 @@ metadata, reject forbidden workspace roots, and allow-list each variable dynamic
 artifact path and signature.
 
 Discovered: 2026-09-01.
+
+### AUDIT-004: Callable spelling does not establish dynamic-import provenance
+
+Symptom: An artifact scan misses imports reached through `builtins`, assignment aliases, or
+reflective lookup, while rejecting an unrelated local object whose name happens to be `importlib`.
+
+Cause: The scanner trusts global names instead of following bindings from actual importer
+capabilities. An allow-listed call signature also leaves untracked capability escapes in the same
+file.
+
+Fix: Track importer bindings and calls through lexical provenance. Treat every capability use as a
+review event, and bind the sole exception to its exact artifact path and function signature.
+
+Discovered: 2026-09-02.

@@ -11,11 +11,11 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: repaired source checkpoint
-  `7d87c3968e15de5d98f7e509c8c8a31c4c5b500c` is pushed and exact-head
-  CI is green. The first P4-W2 review returned `NOT_READY` with P0/P1/P2
-  `0/3/1`; all three P1 findings are repaired. This evidence successor,
-  exact-head CI, and a fresh read-only review remain before P4-W2 closes
+- Status: dynamic-import review repair
+  `e27ac3c3ad7daa4748b094490fdadab6e66a3773` is pushed and exact-head CI
+  is green. The second P4-W2 review returned `NOT_READY` with P0/P1/P2
+  `0/1/0`; its sole P1 is repaired. This evidence successor, exact-head CI,
+  and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
   multi-distribution Python artifact policy, CI wiring, and bounded evidence
@@ -209,7 +209,7 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - The phased root suite uses a test-only namespace overlay for unmoved
   `cli`, `integrations`, and `services` modules. Installed-wheel acceptance
   proves the overlay is absent from the app product; P4-W4 removes it.
-- Local gates passed: `make verify` with strict MyPy on 488 files, 3,148
+- First-repair local gates passed: `make verify` with strict MyPy on 488 files, 3,148
   tests, and four artifact builds; uncached Ruff; `make phase4-contracts`
   with 79 tests;
   isolated app-wheel journeys on Python 3.12, 3.13, and 3.14; source/artifact
@@ -227,6 +227,27 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - Exact-head CI run `33591952670`, public-artifacts run `33591952648`,
   and CodeQL run `33591951436` passed at `7d87c39`. PR head, remote branch,
   and local head matched; the draft PR was mergeable.
+- Evidence checkpoint `579b45bc12247d34ed612798fc2a6021ccc1d30a`
+  recorded the first review and repair. Child 7 reviewed that exact candidate
+  and returned `NOT_READY`, P0/P1/P2 `0/1/0`. The sole P1 found that dynamic
+  import checks could be bypassed through `builtins`, assignment aliases, and
+  reflective access, while a shadowed local `importlib` object was falsely
+  flagged.
+- Focused regressions reproduced those bypasses and the false positive. A
+  self-review added the related unresolved-capability escape inside the one
+  reviewed dynamic-import file before the final repair.
+- Source repair `e27ac3c3ad7daa4748b094490fdadab6e66a3773`
+  tracks lexical import provenance, binds the one reviewed variable import to
+  its exact artifact path and function, rejects all other capability uses,
+  and leaves unrelated local objects clean.
+- Final local gates passed: `make verify` with strict MyPy on 488 files, 3,149
+  tests, and four artifact builds; uncached Ruff; `make phase4-contracts`
+  with 80 tests; isolated app-wheel journeys on Python 3.12, 3.13, and 3.14;
+  source/artifact and reachable-history audits; Gitleaks over 69 commits;
+  lockfile and diff integrity.
+- Exact-head CI run `33594652359`, public-artifacts run `33594652371`, and
+  CodeQL run `33594650509` passed at `e27ac3c`. PR head, remote branch, and
+  local head matched; the draft PR was mergeable.
 - Rebuilt SHA-256 digests are app wheel
   `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`,
   app sdist

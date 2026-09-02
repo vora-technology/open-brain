@@ -207,6 +207,30 @@
   app sdist `d6afc82e2cc3ec4d9bf53215129c39a64542a60cbe7831b95505b2660208917a`;
   engine wheel `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`;
   engine sdist `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
+- Evidence checkpoint `579b45bc12247d34ed612798fc2a6021ccc1d30a`
+  passed all exact-head checks before the second P4-W2 review.
+- Child 7 reviewed `579b45b` and returned `NOT_READY`, P0/P1/P2 `0/1/0`.
+  The sole P1 found dynamic-import bypasses through `builtins`, assignment
+  aliases, and reflective access, plus a false positive for a local object
+  named `importlib`.
+- A focused artifact regression failed before repair on every reported case.
+  Self-review extended it with an importer-capability escape inside the sole
+  reviewed dynamic-import file.
+- Repair checkpoint `e27ac3c3ad7daa4748b094490fdadab6e66a3773`
+  follows lexical provenance for dynamic importer capabilities, records
+  constant targets for private and undeclared dependency checks, rejects
+  unresolved uses, and binds the only exception to its exact artifact path
+  and function signature.
+- Final local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,149 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (80 tests, Ruff, MyPy, manifest); isolated
+  app-wheel journeys on Python 3.12, 3.13, and 3.14; source+artifact release
+  audit; reachable-history audit; Gitleaks 8.30.1 over 69 commits; `uv lock
+  --check`; and `git diff --check`.
+- Exact-head CI run `33594652359`, public-artifacts run `33594652371`, and
+  CodeQL run `33594650509` passed at `e27ac3c`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
+- Rebuilt artifact SHA-256 digests were unchanged from the preceding repair.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
   successor, exact-head CI, and a fresh read-only review remain required before

@@ -6,9 +6,9 @@
 - Maximum active children: 6
 - Maximum total children: 12
 - Current active children: 0
-- Total child lineages used: 6
+- Total child lineages used: 7
 - Implementation writers: 0
-- Independent reviewers: 5
+- Independent reviewers: 6
 
 Shared package metadata, the move manifest, imports, root lockfile, shared
 tests, Git state, external actions, and final verification remain
@@ -99,3 +99,21 @@ coordinator-owned.
   All three P1 findings are repaired at
   `7d87c3968e15de5d98f7e509c8c8a31c4c5b500c`; exact-head CI, release audit,
   and CodeQL passed before this bounded evidence repair.
+
+## Child 7: P4-W2 dynamic-import rereview
+
+- Status: complete
+- Agent ID: `01a06077-219b-7cf3-a2e1-b5245ae2297f`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only reviewer
+- Write scope: none
+- Source scope: public repository through
+  `579b45bc12247d34ed612798fc2a6021ccc1d30a`
+- Result: `NOT_READY`; P0/P1/P2 `0/1/0`. Prior supervisor, interpreter-matrix,
+  and evidence findings were closed. The sole P1 found dynamic-import
+  bypasses through `builtins`, assignment aliases, and reflective access,
+  plus a false positive for a shadowed local `importlib` object. The repair at
+  `e27ac3c3ad7daa4748b094490fdadab6e66a3773` adds lexical provenance,
+  exact callsite binding, unresolved-capability rejection, and focused
+  positive and negative regressions.

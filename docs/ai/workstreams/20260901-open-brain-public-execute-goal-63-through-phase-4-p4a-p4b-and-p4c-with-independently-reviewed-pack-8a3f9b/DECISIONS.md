@@ -259,3 +259,15 @@
 - Why: the first exact-head Python 3.12 run failed transiently inside the
   installed-app harness. A bounded stage distinguishes setup, install, tests,
   CLI, and product-contract failures without leaking local details.
+
+## D-025: treat dynamic importer capabilities as reviewed artifact events
+
+- Chosen: track `importlib`, `builtins`, their importer functions, assignment
+  aliases, and reflective lookups by lexical provenance. Record both capability
+  bindings and calls, then allow only the exact path and function signature of
+  the existing optional-provider seam.
+- Rejected: match callable spellings globally, allow unresolved aliases, or
+  classify every local object named `importlib` as the standard-library module.
+- Why: name-only scanning both missed real import paths and rejected unrelated
+  code. Capability events fail closed when an importer escapes while preserving
+  one narrow, reviewable exception.
