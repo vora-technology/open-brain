@@ -1,6 +1,6 @@
 {
-  "policy_version": 2,
-  "phase": "4-app-isolation",
+  "policy_version": 3,
+  "phase": "4-connector-isolation",
   "canonical_manifest": {
     "path": "docs/v0-package-classification.json"
   },
@@ -123,6 +123,96 @@
         }
       },
       "project_root": "packages/app"
+    },
+    "connector": {
+      "artifact_name_patterns": {
+        "wheel": "open_brain_connectors-*.whl",
+        "sdist": "open_brain_connectors-*.tar.gz"
+      },
+      "artifacts": {
+        "wheel": {
+          "configured_package_roots": [
+            "src/open_brain_connectors"
+          ],
+          "configured_exclusions": [],
+          "force_includes": {},
+          "required_members": [
+            "open_brain_connectors/__init__.py",
+            "open_brain_connectors/conformance.py",
+            "open_brain_connectors/production/youtube_poll.py",
+            "open_brain_connectors-0.1.0.dist-info/entry_points.txt"
+          ],
+          "required_trees": [],
+          "forbidden_member_patterns": [
+            "docs/ai/**",
+            "open_brain/**",
+            "open_brain_engine/**",
+            "open_brain_legacy/**",
+            "tests/**",
+            "tools/**",
+            "**/.open-brain/**",
+            "**/credentials/**",
+            "**/*.db",
+            "**/*.sqlite",
+            "**/*.sqlite3"
+          ],
+          "generated_member_patterns": [
+            "open_brain_connectors-*.dist-info/METADATA",
+            "open_brain_connectors-*.dist-info/RECORD",
+            "open_brain_connectors-*.dist-info/WHEEL"
+          ],
+          "status": "connector-isolated-unpublished"
+        },
+        "sdist": {
+          "configured_includes": [
+            "/pyproject.toml",
+            "/src/open_brain_connectors"
+          ],
+          "configured_exclusions": [
+            "/.gitignore"
+          ],
+          "force_includes": {
+            "../../release/phase4-compatibility.json": "release/phase4-compatibility.json",
+            "../../release/phase4-toolchain.json": "release/phase4-toolchain.json",
+            "../../release/public-history-allowlist.json": "release/public-history-allowlist.json",
+            "../../release/v0-artifact-policy.json": "release/v0-artifact-policy.json"
+          },
+          "required_members": [
+            "pyproject.toml",
+            "src/open_brain_connectors/__init__.py",
+            "src/open_brain_connectors/conformance.py",
+            "src/open_brain_connectors/production/youtube_poll.py"
+          ],
+          "required_trees": [],
+          "forbidden_member_patterns": [
+            "docs/ai/**",
+            "src/open_brain/**",
+            "src/open_brain_engine/**",
+            "src/open_brain_legacy/**",
+            "tests/**",
+            "tools/**",
+            "**/.open-brain/**",
+            "**/credentials/**",
+            "**/*.db",
+            "**/*.sqlite",
+            "**/*.sqlite3"
+          ],
+          "generated_member_patterns": [
+            "PKG-INFO"
+          ],
+          "status": "connector-isolated-unpublished"
+        }
+      },
+      "build_hook": "packages/connectors/hatch_build.py",
+      "member_rewrites": {
+        "sdist": {},
+        "wheel": {
+          "LICENSE": "open_brain_connectors-0.1.0.dist-info/licenses/LICENSE",
+          "NOTICE": "open_brain_connectors-0.1.0.dist-info/licenses/NOTICE",
+          "pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube": "open_brain_connectors-0.1.0.dist-info/entry_points.txt"
+        }
+      },
+      "project_root": "packages/connectors"
     },
     "engine": {
       "artifact_name_patterns": {

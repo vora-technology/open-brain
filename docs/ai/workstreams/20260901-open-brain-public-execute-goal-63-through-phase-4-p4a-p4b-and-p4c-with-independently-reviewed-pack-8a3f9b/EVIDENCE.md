@@ -404,3 +404,49 @@
   milestone boundary.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, cutover action, or P4-W3 work occurred.
+
+## P4-W3 local source candidate
+
+- Starting from verified P4-W2 closure
+  `c3480be28fa36b9dae2256ff6aee610044b86847`, all five canonical
+  connector-owned runtime files and three connector-owned tests moved to the
+  buildable `open-brain-connectors` distribution. The canonical inventory now
+  contains 232 runtime files and 355 Phase 4 subjects, including 260 tests; all
+  nine connector runtime records are moved.
+- The connector wheel depends on exact app and engine versions and imports app
+  values only from the published provisional extension modules. The app wheel
+  has no connector dependency, its default profile discovers none, and an
+  installed connector remains unloaded in the parent before and after child
+  execution.
+- The worker request binds protocol version, invocation, entry-point metadata,
+  manifest, budget, and network mode. The child runs with an empty environment,
+  direct socket APIs disabled, bounded process/time/memory/output resources,
+  metadata-only responses, and process-group termination. Parent validation
+  binds receipts to identity, manifest, budget, capture count, and replay.
+- Actual reference conformance runs the YouTube connector twice against
+  synthetic host-mediated media and a durable temporary checkpoint. The first
+  run creates one capture; replay creates none.
+- Local verification passed: `make phase4-contracts` with 87 tests, Ruff,
+  strict MyPy on 500 files, and manifest validation; `make verify` with 3,170
+  tests and all six artifact builds/policy; connector wheel-only acceptance on
+  Python 3.12, 3.13, and 3.14 with 3 tests per version; and `actionlint`.
+- Source plus built-artifact release audit, reachable-history audit, Gitleaks
+  8.30.1 over 83 commits, `uv lock --check`, and `git diff --check` passed.
+- Rebuilt SHA-256 digests are app wheel
+  `e2ecef1d7a283f6af485fbb9a5a8f666a69935c68c96466a5a644807b2d256a1`,
+  app sdist
+  `1e10a663dabfde9015a6ffedeb319465213fc19d052f8b6b9d455c0eabbcd9f9`,
+  connector wheel
+  `0a43a8b80423a5b03168f9ae2e9d13ff037f683503f9ba716280bf911c0ad31b`,
+  connector sdist
+  `5fc3c220849544ac35d24d7caefb678d3da313bd57d2a62a3bbc79f1bc3d0473`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `199e0fc2adb264b0a0f9db50fd291e906b4d0a61cdb90e4eb55784716d000eca`.
+- The branch-finish gotcha audit added canonical module-identity,
+  artifact-coordinate, and parent-budget receipt entries. No other
+  non-duplicate finding survived the evidence and registry checks.
+- Exact-head CI and the independent source-SHA-bound review are still pending.
+  No publication, tag, release, native build, deployment, production/private
+  access, cutover action, or P4-W4 work occurred.

@@ -2,11 +2,20 @@
 
 Every capture receives an immutable privacy decision before persistence. The decision includes a tier, deterministic reason, and cloud/egress authority.
 
-The Phase 2 profile is one owner and one private Brain root. Its provider mode is `none`, and its
-connector allow-list is empty with egress disabled by default. An explicit internal `JOB-029`
-configuration can enable the bounded YouTube reference proof, but it receives only a
+The single-user profile is one owner and one private Brain root. Its provider mode is `none`, and
+its connector allow-list is empty with egress disabled by default. The app wheel has no connector
+dependency and passes its installed contract with the connector distribution absent. An explicit
+`JOB-029` configuration can enable the bounded YouTube reference proof, but it receives only a
 capture-accept capability. It cannot route to a space, approve a review, publish owner output, or
 perform an action.
+
+Connector discovery reads installed entry-point metadata and returns only explicitly enabled
+names. It does not load connector code in the app process. The provisional v1 worker request binds
+the exact manifest, count budgets, and `host_mediated` network mode. The child starts with an empty
+environment, direct socket APIs disabled, CPU/process/memory/time/output limits, and metadata-only
+responses. The current reference conformance uses synthetic host-mediated media, commits a bounded
+checkpoint receipt, and proves replay without a second submission. Secret values never cross the
+worker protocol.
 
 Missing, invalid, or ambiguous classification is local-only `hold` with no cloud or external egress authority. Later components may narrow authority but cannot broaden it.
 

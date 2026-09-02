@@ -25,13 +25,13 @@ from open_brain_engine.providers.base import ProviderService
 
 from open_brain.capture.distillation_worker import DistillationProcessStatus
 from open_brain.capture.extractors.social import SocialMediaResult
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import MediaCommand, MediaTool
 from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.capture.service import ProcessStatus
 from open_brain.config import AppConfig, RetainedRoots
 from open_brain.production.capture import compose_production_capture_runtime
 from open_brain.production.personal_capture import PersonalCaptureStatus
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
+from open_brain_connectors.capture.media import MediaCommand, MediaTool
 
 FIXED_TIME = datetime(2026, 8, 25, 12, 0, tzinfo=UTC)
 

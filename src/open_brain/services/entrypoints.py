@@ -236,9 +236,9 @@ def _configure_youtube_connector(
     ):
         return application, {}
 
-    from open_brain.capture.poll import FilesystemYouTubePollState
     from open_brain.production.media import compose_production_capture_media_adapter
-    from open_brain.production.youtube_poll import (
+    from open_brain_connectors.capture.poll import FilesystemYouTubePollState
+    from open_brain_connectors.production.youtube_poll import (
         YouTubePollCheckpoint,
         YouTubeReferenceConnector,
         YouTubeReferenceTransport,
@@ -256,7 +256,7 @@ def _configure_youtube_connector(
     )
     entry = _StaticConnectorEntryPoint(
         name="youtube",
-        value="open_brain.production.youtube_poll:YouTubeReferenceConnector",
+        value="open_brain_connectors.production.youtube_poll:YouTubeReferenceConnector",
         load=YouTubeReferenceConnector,
     )
     configured_application = replace(

@@ -21,18 +21,7 @@ from open_brain_engine.engine import (
     ReferencePayload,
 )
 
-from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import (
-    FilesystemYouTubePollState,
-    PollItemState,
-    PollRecord,
-    PollRequestDisposition,
-    PollRequestOrigin,
-    PollRequestResult,
-    YouTubePoller,
-)
-from open_brain.services.connectors import (
+from open_brain.extensions.connectors import (
     ConnectorBudget,
     ConnectorBudgetLimits,
     ConnectorCaptureIdentity,
@@ -44,6 +33,17 @@ from open_brain.services.connectors import (
     ConnectorRunContext,
     ConnectorRunEvidence,
     ConnectorRunReceipt,
+)
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
+from open_brain_connectors.capture.media import MediaCommand
+from open_brain_connectors.capture.poll import (
+    FilesystemYouTubePollState,
+    PollItemState,
+    PollRecord,
+    PollRequestDisposition,
+    PollRequestOrigin,
+    PollRequestResult,
+    YouTubePoller,
 )
 
 _MAX_CONFIG_BYTES = 64 * 1024

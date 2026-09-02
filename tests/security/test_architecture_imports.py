@@ -497,7 +497,11 @@ def test_every_immediate_package_has_one_explicit_classification() -> None:
     packages = classification["packages"]
     files = _classified_files(classification)
     assert isinstance(packages, dict)
-    origin_packages = {Path(path).parts[0] for path in files if len(Path(path).parts) > 1}
+    origin_packages = {
+        Path(path).parts[0]
+        for path in files
+        if len(Path(path).parts) > 1 and not path.startswith(("packages/", "tools/"))
+    }
     assert set(packages) == origin_packages
     assert all(
         isinstance(package, dict)

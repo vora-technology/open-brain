@@ -353,3 +353,50 @@
 - Why: filtering hid the removed generic-loader exception after its source
   moved into the app distribution. Review evidence must become stale when the
   reviewed source site disappears, regardless of package movement.
+
+## D-033: publish only the demonstrated provisional connector seam
+
+- Chosen: move the five connector-owned runtime files into the independent
+  `open-brain-connectors` distribution. Publish only the app extension values
+  named by `open_brain.extensions.connectors.__all__` and the versioned worker
+  protocol. Keep the app free of a connector dependency and mark compatibility
+  provisional v1.
+- Rejected: expose app composition or local-store objects, retain the connector
+  inside the app wheel, or claim a stable SDK before all proof categories pass.
+- Why: the reference connector already demonstrates a narrow capture-only
+  contract. Packaging that exact seam preserves dependency direction without
+  inventing a broader public surface.
+
+## D-034: run reference conformance in a bounded child
+
+- Chosen: discover entry-point metadata in the parent, load connector code only
+  in a fixed isolated child, disable direct socket APIs, apply process and
+  output limits, and execute the real YouTube reference connector twice with a
+  synthetic host-mediated media capability and durable temporary checkpoint.
+- Rejected: import connector code in the app process, grant direct network or
+  secret access, or substitute a stub that does not exercise the reference
+  connector and replay path.
+- Why: P4-W3 needs actual reference and replay evidence without adding a vendor
+  integration or exposing production/private state.
+
+## D-035: bind worker output to canonical types, budgets, and replay
+
+- Chosen: use a separate child bootstrap so protocol classes retain their
+  canonical module identity. Reconstruct every frozen request and receipt at
+  trust boundaries, compare both run counts with the parent-issued budget,
+  require replay to create no capture, and accept only metadata-only output.
+- Rejected: execute the protocol module directly with `python -m`, trust a
+  frozen instance because its type matches, or treat schema-valid child counts
+  as host budget evidence.
+- Why: direct module execution creates duplicate class identities, while schema
+  validation alone does not prove request-bound resource compliance.
+
+## D-036: key connector artifacts and stability evidence separately
+
+- Chosen: use the singular artifact-policy coordinate `connector` so it maps
+  exactly to `connector-wheel` and `connector-sdist`. Record reference, event,
+  and measurement conformance as three separate stability prerequisites.
+- Rejected: use the distribution directory's plural spelling as the manifest
+  label or add event/measurement integrations solely to label v1 stable.
+- Why: artifact membership is keyed by canonical disposition labels, and a
+  passing reference connector does not establish the two deferred proof classes.

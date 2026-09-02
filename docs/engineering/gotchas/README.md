@@ -678,3 +678,42 @@ Fix: Validate the canonical review inventory against current source locations, i
 records. Keep legacy source projections limited to the code or debt they were created to select.
 
 Discovered: 2026-09-02.
+
+### CONNECTOR-002: A `python -m` protocol module creates a second type identity
+
+Symptom: A valid worker request reaches the child, but the connector rejects it because exact type
+checks see a different `ConnectorWorkerRequest` class.
+
+Cause: Running the protocol module with `python -m` defines its classes under `__main__`. The
+connector imports the canonical module name and receives a second set of class objects.
+
+Fix: Execute a small child bootstrap module that imports and invokes the canonical protocol module.
+Keep all request, receipt, and error types defined only under the canonical module name.
+
+Discovered: 2026-09-02.
+
+### CONNECTOR-003: A valid child receipt does not prove host-budget compliance
+
+Symptom: A connector worker returns schema-valid metadata with counts above the parent-issued
+budget, or claims that replay created another capture.
+
+Cause: Receipt validation checked field types and local count relationships without binding both
+runs to the request limits or the replay contract.
+
+Fix: Revalidate each run against the exact parent budget. Require replay to submit no captures and
+bind the reported capture count to the created receipts before accepting worker output.
+
+Discovered: 2026-09-02.
+
+### RELEASE-002: Artifact coordinates and manifest labels must use the same number
+
+Symptom: Connector wheels and sdists build, but artifact policy reports a stale rewrite or empty
+canonical membership.
+
+Cause: The policy coordinate `connectors` generated `connectors-wheel` and `connectors-sdist`, while
+the canonical manifest uses singular `connector-wheel` and `connector-sdist` dispositions.
+
+Fix: Name the policy coordinate `connector`. Keep the distribution directory and Python package
+names independently plural where their published identities require it.
+
+Discovered: 2026-09-02.

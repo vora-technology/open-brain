@@ -45,9 +45,9 @@ def test_canonical_move_manifest_is_complete_and_valid() -> None:
     manifest = _manifest()
 
     assert validate_manifest(ROOT, manifest) == []
-    assert len(_runtime(manifest)) == 224
+    assert len(_runtime(manifest)) == 232
     subjects = _subjects(manifest)
-    assert sum(record["kind"] == "test" for record in subjects.values()) == 257
+    assert sum(record["kind"] == "test" for record in subjects.values()) == 260
     assert sum(record["kind"] in {"schema", "fixture"} for record in subjects.values()) == 36
 
 
@@ -85,15 +85,25 @@ def test_validator_requires_explicit_consistent_movement_state() -> None:
     assert "P4M011" in _codes(validate_manifest(ROOT, inconsistent))
 
 
-def test_w2_moves_all_app_entry_points_to_the_app_distribution() -> None:
+def test_p4a_entry_points_are_moved_to_their_owning_distributions() -> None:
     entry_points = {
         path: record
         for path, record in _subjects(_manifest()).items()
         if record["kind"] == "entry-point"
     }
 
-    assert entry_points
-    assert all(record["target_distribution"] == "app" for record in entry_points.values())
+    connector_key = (
+        "packages/connectors/pyproject.toml#project.entry-points."
+        "open_brain.connectors.v1.youtube"
+    )
+
+    assert connector_key in entry_points
+    assert entry_points[connector_key]["target_distribution"] == "connectors"
+    assert all(
+        record["target_distribution"] == "app"
+        for path, record in entry_points.items()
+        if path != connector_key
+    )
     assert all(record["movement_state"] == "moved" for record in entry_points.values())
     assert all(record["current_path"] == record["target_path"] for record in entry_points.values())
 

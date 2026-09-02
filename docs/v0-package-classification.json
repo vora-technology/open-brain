@@ -191,12 +191,12 @@
         "connector-sdist",
         "connector-wheel"
       ],
-      "current_path": "src/open_brain/capture/extractors/__init__.py",
+      "current_path": "packages/connectors/src/open_brain_connectors/capture/extractors/__init__.py",
       "import_rewrite": {
         "from": "open_brain.capture.extractors",
         "to": "open_brain_connectors.capture.extractors"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "connector",
       "resource_requirements": [],
@@ -276,12 +276,12 @@
         "connector-sdist",
         "connector-wheel"
       ],
-      "current_path": "src/open_brain/capture/extractors/youtube.py",
+      "current_path": "packages/connectors/src/open_brain_connectors/capture/extractors/youtube.py",
       "import_rewrite": {
         "from": "open_brain.capture.extractors.youtube",
         "to": "open_brain_connectors.capture.extractors.youtube"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "connector",
       "resource_requirements": [],
@@ -321,12 +321,12 @@
         "connector-sdist",
         "connector-wheel"
       ],
-      "current_path": "src/open_brain/capture/media.py",
+      "current_path": "packages/connectors/src/open_brain_connectors/capture/media.py",
       "import_rewrite": {
         "from": "open_brain.capture.media",
         "to": "open_brain_connectors.capture.media"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "connector",
       "resource_requirements": [],
@@ -365,12 +365,12 @@
         "connector-sdist",
         "connector-wheel"
       ],
-      "current_path": "src/open_brain/capture/poll.py",
+      "current_path": "packages/connectors/src/open_brain_connectors/capture/poll.py",
       "import_rewrite": {
         "from": "open_brain.capture.poll",
         "to": "open_brain_connectors.capture.poll"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "connector",
       "resource_requirements": [],
@@ -1571,6 +1571,108 @@
       "target_distribution": "engine",
       "target_path": "packages/engine/src/open_brain_engine/events/store.py",
       "test_owner": "engine"
+    },
+    "extensions/__init__.py": {
+      "api": "public",
+      "api_status": "public",
+      "artifact_disposition": [
+        "app-native",
+        "app-sdist",
+        "app-wheel"
+      ],
+      "current_path": "packages/app/src/open_brain/extensions/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain.extensions",
+        "to": "open_brain.extensions"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "app",
+      "resource_requirements": [],
+      "roles": [
+        "extension_contract"
+      ],
+      "runtime_namespace": "open_brain",
+      "target_distribution": "app",
+      "target_path": "packages/app/src/open_brain/extensions/__init__.py",
+      "test_owner": "app"
+    },
+    "extensions/connector_worker_child.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "app-native",
+        "app-sdist",
+        "app-wheel"
+      ],
+      "current_path": "packages/app/src/open_brain/extensions/connector_worker_child.py",
+      "import_rewrite": {
+        "from": "open_brain.extensions.connector_worker_child",
+        "to": "open_brain.extensions.connector_worker_child"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "app",
+      "resource_requirements": [],
+      "roles": [
+        "isolated_worker_child"
+      ],
+      "runtime_namespace": "open_brain",
+      "target_distribution": "app",
+      "target_path": "packages/app/src/open_brain/extensions/connector_worker_child.py",
+      "test_owner": "app"
+    },
+    "extensions/connector_worker_v1.py": {
+      "api": "public",
+      "api_status": "public",
+      "artifact_disposition": [
+        "app-native",
+        "app-sdist",
+        "app-wheel"
+      ],
+      "current_path": "packages/app/src/open_brain/extensions/connector_worker_v1.py",
+      "import_rewrite": {
+        "from": "open_brain.extensions.connector_worker_v1",
+        "to": "open_brain.extensions.connector_worker_v1"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "app",
+      "resource_requirements": [],
+      "roles": [
+        "isolated_worker_host",
+        "worker_protocol"
+      ],
+      "runtime_namespace": "open_brain",
+      "target_distribution": "app",
+      "target_path": "packages/app/src/open_brain/extensions/connector_worker_v1.py",
+      "test_owner": "app"
+    },
+    "extensions/connectors.py": {
+      "api": "public",
+      "api_status": "public",
+      "artifact_disposition": [
+        "app-native",
+        "app-sdist",
+        "app-wheel"
+      ],
+      "current_path": "packages/app/src/open_brain/extensions/connectors.py",
+      "import_rewrite": {
+        "from": "open_brain.extensions.connectors",
+        "to": "open_brain.extensions.connectors"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "app",
+      "resource_requirements": [],
+      "roles": [
+        "extension_contract",
+        "extension_host"
+      ],
+      "runtime_namespace": "open_brain",
+      "target_distribution": "app",
+      "target_path": "packages/app/src/open_brain/extensions/connectors.py",
+      "test_owner": "app"
     },
     "integrations/__init__.py": {
       "api": "internal",
@@ -3161,6 +3263,97 @@
       "target_path": "packages/legacy/src/open_brain_legacy/operations/writer_jobs.py",
       "test_owner": "legacy"
     },
+    "packages/connectors/src/open_brain_connectors/__init__.py": {
+      "api": "public",
+      "api_status": "public",
+      "artifact_disposition": [
+        "connector-sdist",
+        "connector-wheel"
+      ],
+      "current_path": "packages/connectors/src/open_brain_connectors/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_connectors",
+        "to": "open_brain_connectors"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "connector",
+      "resource_requirements": [],
+      "roles": [],
+      "runtime_namespace": "open_brain_connectors",
+      "target_distribution": "connectors",
+      "target_path": "packages/connectors/src/open_brain_connectors/__init__.py",
+      "test_owner": "connector"
+    },
+    "packages/connectors/src/open_brain_connectors/capture/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "connector-sdist",
+        "connector-wheel"
+      ],
+      "current_path": "packages/connectors/src/open_brain_connectors/capture/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_connectors.capture",
+        "to": "open_brain_connectors.capture"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "connector",
+      "resource_requirements": [],
+      "roles": [],
+      "runtime_namespace": "open_brain_connectors",
+      "target_distribution": "connectors",
+      "target_path": "packages/connectors/src/open_brain_connectors/capture/__init__.py",
+      "test_owner": "connector"
+    },
+    "packages/connectors/src/open_brain_connectors/conformance.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "connector-sdist",
+        "connector-wheel"
+      ],
+      "current_path": "packages/connectors/src/open_brain_connectors/conformance.py",
+      "import_rewrite": {
+        "from": "open_brain_connectors.conformance",
+        "to": "open_brain_connectors.conformance"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "connector",
+      "resource_requirements": [],
+      "roles": [
+        "conformance_kit",
+        "reference_connector"
+      ],
+      "runtime_namespace": "open_brain_connectors",
+      "target_distribution": "connectors",
+      "target_path": "packages/connectors/src/open_brain_connectors/conformance.py",
+      "test_owner": "connector"
+    },
+    "packages/connectors/src/open_brain_connectors/production/__init__.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "connector-sdist",
+        "connector-wheel"
+      ],
+      "current_path": "packages/connectors/src/open_brain_connectors/production/__init__.py",
+      "import_rewrite": {
+        "from": "open_brain_connectors.production",
+        "to": "open_brain_connectors.production"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "connector",
+      "resource_requirements": [],
+      "roles": [],
+      "runtime_namespace": "open_brain_connectors",
+      "target_distribution": "connectors",
+      "target_path": "packages/connectors/src/open_brain_connectors/production/__init__.py",
+      "test_owner": "connector"
+    },
     "parity/__init__.py": {
       "api": "internal",
       "api_status": "distribution-private",
@@ -3716,12 +3909,12 @@
         "connector-sdist",
         "connector-wheel"
       ],
-      "current_path": "src/open_brain/production/youtube_poll.py",
+      "current_path": "packages/connectors/src/open_brain_connectors/production/youtube_poll.py",
       "import_rewrite": {
         "from": "open_brain.production.youtube_poll",
         "to": "open_brain_connectors.production.youtube_poll"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "connector",
       "resource_requirements": [],
@@ -4880,6 +5073,12 @@
       "phase_1_action": "Retain only files classified outside legacy.",
       "target_owner": "engine"
     },
+    "extensions": {
+      "classification": "app",
+      "current_scope": "Versioned provisional connector values and isolated-worker protocol.",
+      "phase_1_action": "Retain in the app distribution as an explicit extension boundary.",
+      "target_owner": "app"
+    },
     "integrations": {
       "classification": "mixed",
       "current_scope": "Generated from authoritative file ownership.",
@@ -5566,6 +5765,22 @@
         "target_path": "packages/app/pyproject.toml",
         "test_owner": "app"
       },
+      "packages/app/tests/contract/test_connector_worker_protocol.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "packages/app/tests/contract/test_connector_worker_protocol.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/tests/contract/test_connector_worker_protocol.py",
+        "test_owner": "app"
+      },
       "packages/app/tests/contract/test_v0_wheel_gates.py": {
         "api_status": "test-only",
         "artifact_disposition": [
@@ -5582,6 +5797,60 @@
         "target_path": "packages/app/tests/contract/test_v0_wheel_gates.py",
         "test_owner": "app"
       },
+      "packages/connectors/LICENSE": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "connector-sdist",
+          "connector-wheel"
+        ],
+        "current_path": "packages/connectors/LICENSE",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "connectors",
+        "target_path": "packages/connectors/LICENSE",
+        "test_owner": "connector"
+      },
+      "packages/connectors/NOTICE": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "connector-sdist",
+          "connector-wheel"
+        ],
+        "current_path": "packages/connectors/NOTICE",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "connectors",
+        "target_path": "packages/connectors/NOTICE",
+        "test_owner": "connector"
+      },
+      "packages/connectors/hatch_build.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "connector-sdist"
+        ],
+        "current_path": "packages/connectors/hatch_build.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "connectors",
+        "target_path": "packages/connectors/hatch_build.py",
+        "test_owner": "connector"
+      },
       "packages/connectors/pyproject.toml": {
         "api_status": "workspace-only",
         "artifact_disposition": [
@@ -5596,6 +5865,44 @@
         "runtime_namespace": null,
         "target_distribution": "connectors",
         "target_path": "packages/connectors/pyproject.toml",
+        "test_owner": "connector"
+      },
+      "packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube": {
+        "api_status": "public",
+        "artifact_disposition": [
+          "connector-sdist",
+          "connector-wheel"
+        ],
+        "current_path": "packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube",
+        "import_rewrite": {
+          "from": "open_brain_connectors.conformance:connector",
+          "to": "open_brain_connectors.conformance:connector"
+        },
+        "kind": "entry-point",
+        "movement_state": "moved",
+        "old_import_disposition": "retain",
+        "resource_requirements": [
+          "entry-point-metadata"
+        ],
+        "runtime_namespace": "open_brain_connectors",
+        "target_distribution": "connectors",
+        "target_path": "packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube",
+        "test_owner": "connector"
+      },
+      "packages/connectors/tests/contract/test_reference_conformance.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "packages/connectors/tests/contract/test_reference_conformance.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "connectors",
+        "target_path": "packages/connectors/tests/contract/test_reference_conformance.py",
         "test_owner": "connector"
       },
       "packages/engine/LICENSE": {
@@ -6758,10 +7065,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_youtube_poll.py",
+        "current_path": "packages/connectors/tests/integration/capture/test_youtube_poll.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9505,6 +9812,22 @@
         "target_path": "tests/phase4/test_app_distribution.py",
         "test_owner": "workspace"
       },
+      "tests/phase4/test_connector_distribution.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tests/phase4/test_connector_distribution.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tests/phase4/test_connector_distribution.py",
+        "test_owner": "workspace"
+      },
       "tests/phase4/test_engine_distribution.py": {
         "api_status": "test-only",
         "artifact_disposition": [
@@ -9910,10 +10233,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/capture/extractors/test_media.py",
+        "current_path": "packages/connectors/tests/unit/capture/extractors/test_media.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9958,10 +10281,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/capture/extractors/test_youtube.py",
+        "current_path": "packages/connectors/tests/unit/capture/extractors/test_youtube.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,

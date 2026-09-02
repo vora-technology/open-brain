@@ -204,6 +204,11 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
         scripts = metadata.get("scripts", {}) if isinstance(metadata, dict) else {}
         if not isinstance(scripts, dict):
             raise ManifestError("project scripts must be an object")
+        entry_point_groups = (
+            metadata.get("entry-points", {}) if isinstance(metadata, dict) else {}
+        )
+        if not isinstance(entry_point_groups, dict):
+            raise ManifestError("project entry-point groups must be an object")
         relative = path.relative_to(root).as_posix()
         add(
             {
@@ -213,6 +218,17 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
             },
             "entry-point",
         )
+        for group, registrations in entry_point_groups.items():
+            if not isinstance(group, str) or not isinstance(registrations, dict):
+                raise ManifestError("project entry-point group must be an object")
+            add(
+                {
+                    f"{relative}#project.entry-points.{group}.{name}"
+                    for name in registrations
+                    if isinstance(name, str)
+                },
+                "entry-point",
+            )
     return dict(sorted(subjects.items()))
 
 

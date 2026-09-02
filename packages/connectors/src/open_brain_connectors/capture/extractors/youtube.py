@@ -17,7 +17,7 @@ from open_brain_engine.engine import (
     TranscriptState,
 )
 
-from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
+from open_brain_connectors.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 _YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com"}

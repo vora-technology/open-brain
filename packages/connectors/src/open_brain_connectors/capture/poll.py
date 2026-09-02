@@ -28,7 +28,7 @@ from open_brain_engine.engine import (
     validate_identifier,
 )
 
-from open_brain.capture.extractors.youtube import (
+from open_brain_connectors.capture.extractors.youtube import (
     YouTubeExtractionRequest,
     YouTubeExtractor,
     YouTubeMediaAdapter,

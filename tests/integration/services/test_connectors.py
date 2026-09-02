@@ -200,13 +200,9 @@ def test_discovery_enumerates_metadata_without_loading() -> None:
             ),
             ConnectorProfile(allow_list=("youtube",), egress_enabled=True),
         ),
-        (
-            (_EntryPoint("youtube", "synthetic.youtube:connector", object()),),
-            ConnectorProfile(),
-        ),
     ],
 )
-def test_malformed_duplicate_and_unlisted_discovery_fails_before_load(
+def test_malformed_and_duplicate_discovery_fails_before_load(
     entries: tuple[_EntryPoint, ...], profile: ConnectorProfile
 ) -> None:
     registry = ConnectorRegistry(_Source(*entries))
@@ -215,6 +211,14 @@ def test_malformed_duplicate_and_unlisted_discovery_fails_before_load(
         registry.discover(profile)
 
     assert [entry.load_count for entry in entries] == [0] * len(entries)
+
+
+def test_installed_but_unlisted_connector_is_hidden_without_loading() -> None:
+    entry = _EntryPoint("youtube", "synthetic.youtube:connector", object())
+    registry = ConnectorRegistry(_Source(entry))
+
+    assert registry.discover(ConnectorProfile()) == ()
+    assert entry.load_count == 0
 
 
 @pytest.mark.parametrize(

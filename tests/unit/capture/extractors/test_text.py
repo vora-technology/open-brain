@@ -10,8 +10,8 @@ from open_brain_engine.core.models import (
     SourceType,
 )
 
-from open_brain.capture.extractors import ExtractionRequest
 from open_brain.capture.extractors.text import TextExtractor
+from open_brain_connectors.capture.extractors import ExtractionRequest
 
 
 def _privacy(*, external_egress: bool = True) -> PrivacyDecision:

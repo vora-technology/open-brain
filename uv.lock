@@ -499,7 +499,7 @@ provides-extras = ["cloud", "integrations", "mcp"]
 [[package]]
 name = "open-brain-connectors"
 version = "0.1.0"
-source = { virtual = "packages/connectors" }
+source = { editable = "packages/connectors" }
 dependencies = [
     { name = "open-brain" },
     { name = "open-brain-engine" },

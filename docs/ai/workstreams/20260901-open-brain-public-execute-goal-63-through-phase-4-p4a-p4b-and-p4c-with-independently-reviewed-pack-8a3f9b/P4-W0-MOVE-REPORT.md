@@ -2,12 +2,12 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `572`
-- app: `72`
-- connectors: `9`
+- Total subjects: `587`
+- app: `77`
+- connectors: `18`
 - engine: `104`
 - legacy: `299`
-- workspace: `88`
+- workspace: `89`
 
 | Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |
 |---|---|---|---|---|---|---|
@@ -44,8 +44,14 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `packages/app/NOTICE` | `packages/app/NOTICE` | `moved` | `package-resource` | `app` | `packages/app/NOTICE` | `app-native, app-sdist, app-wheel` |
 | `packages/app/hatch_build.py` | `packages/app/hatch_build.py` | `moved` | `release-tool` | `app` | `packages/app/hatch_build.py` | `app-sdist` |
 | `packages/app/pyproject.toml` | `packages/app/pyproject.toml` | `moved` | `release-tool` | `app` | `packages/app/pyproject.toml` | `app-sdist` |
+| `packages/app/tests/contract/test_connector_worker_protocol.py` | `packages/app/tests/contract/test_connector_worker_protocol.py` | `moved` | `test` | `app` | `packages/app/tests/contract/test_connector_worker_protocol.py` | `excluded` |
 | `packages/app/tests/contract/test_v0_wheel_gates.py` | `packages/app/tests/contract/test_v0_wheel_gates.py` | `moved` | `test` | `app` | `packages/app/tests/contract/test_v0_wheel_gates.py` | `excluded` |
+| `packages/connectors/LICENSE` | `packages/connectors/LICENSE` | `moved` | `package-resource` | `connectors` | `packages/connectors/LICENSE` | `connector-sdist, connector-wheel` |
+| `packages/connectors/NOTICE` | `packages/connectors/NOTICE` | `moved` | `package-resource` | `connectors` | `packages/connectors/NOTICE` | `connector-sdist, connector-wheel` |
+| `packages/connectors/hatch_build.py` | `packages/connectors/hatch_build.py` | `moved` | `release-tool` | `connectors` | `packages/connectors/hatch_build.py` | `connector-sdist` |
 | `packages/connectors/pyproject.toml` | `packages/connectors/pyproject.toml` | `moved` | `release-tool` | `connectors` | `packages/connectors/pyproject.toml` | `connector-sdist` |
+| `packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube` | `packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube` | `moved` | `entry-point` | `connectors` | `packages/connectors/pyproject.toml#project.entry-points.open_brain.connectors.v1.youtube` | `connector-sdist, connector-wheel` |
+| `packages/connectors/tests/contract/test_reference_conformance.py` | `packages/connectors/tests/contract/test_reference_conformance.py` | `moved` | `test` | `connectors` | `packages/connectors/tests/contract/test_reference_conformance.py` | `excluded` |
 | `packages/engine/LICENSE` | `packages/engine/LICENSE` | `moved` | `package-resource` | `engine` | `packages/engine/LICENSE` | `engine-sdist, engine-wheel` |
 | `packages/engine/NOTICE` | `packages/engine/NOTICE` | `moved` | `package-resource` | `engine` | `packages/engine/NOTICE` | `engine-sdist, engine-wheel` |
 | `packages/engine/hatch_build.py` | `packages/engine/hatch_build.py` | `moved` | `release-tool` | `engine` | `packages/engine/hatch_build.py` | `engine-sdist` |
@@ -81,15 +87,15 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/capture/distillation_worker.py` | `src/open_brain/capture/distillation_worker.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/distillation_worker.py` | `legacy-only` |
 | `src/open_brain/capture/drain.py` | `src/open_brain/capture/drain.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/drain.py` | `legacy-only` |
 | `src/open_brain/capture/egress.py` | `src/open_brain/capture/egress.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/egress.py` | `legacy-only` |
-| `src/open_brain/capture/extractors/__init__.py` | `src/open_brain/capture/extractors/__init__.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/extractors/__init__.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/capture/extractors/__init__.py` | `packages/connectors/src/open_brain_connectors/capture/extractors/__init__.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/extractors/__init__.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/capture/extractors/article.py` | `src/open_brain/capture/extractors/article.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/extractors/article.py` | `legacy-only` |
 | `src/open_brain/capture/extractors/social.py` | `src/open_brain/capture/extractors/social.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/extractors/social.py` | `legacy-only` |
 | `src/open_brain/capture/extractors/text.py` | `src/open_brain/capture/extractors/text.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/extractors/text.py` | `legacy-only` |
-| `src/open_brain/capture/extractors/youtube.py` | `src/open_brain/capture/extractors/youtube.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/extractors/youtube.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/capture/extractors/youtube.py` | `packages/connectors/src/open_brain_connectors/capture/extractors/youtube.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/extractors/youtube.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/capture/http.py` | `packages/app/src/open_brain/capture/http.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/capture/http.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/capture/media.py` | `src/open_brain/capture/media.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/media.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/capture/media.py` | `packages/connectors/src/open_brain_connectors/capture/media.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/media.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/capture/models.py` | `packages/engine/src/open_brain_engine/capture/models.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/capture/models.py` | `engine-sdist, engine-wheel` |
-| `src/open_brain/capture/poll.py` | `src/open_brain/capture/poll.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/poll.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/capture/poll.py` | `packages/connectors/src/open_brain_connectors/capture/poll.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/poll.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/capture/queue.py` | `src/open_brain/capture/queue.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/queue.py` | `legacy-only` |
 | `src/open_brain/capture/redaction.py` | `packages/engine/src/open_brain_engine/capture/redaction.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/capture/redaction.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/capture/service.py` | `src/open_brain/capture/service.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/service.py` | `legacy-only` |
@@ -145,6 +151,10 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/engine/spaces.py` | `packages/engine/src/open_brain_engine/engine/spaces.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/engine/spaces.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/events/__init__.py` | `packages/engine/src/open_brain_engine/events/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/events/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/events/store.py` | `packages/engine/src/open_brain_engine/events/store.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/events/store.py` | `engine-sdist, engine-wheel` |
+| `src/open_brain/extensions/__init__.py` | `packages/app/src/open_brain/extensions/__init__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/extensions/__init__.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/extensions/connector_worker_child.py` | `packages/app/src/open_brain/extensions/connector_worker_child.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/extensions/connector_worker_child.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/extensions/connector_worker_v1.py` | `packages/app/src/open_brain/extensions/connector_worker_v1.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/extensions/connector_worker_v1.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/extensions/connectors.py` | `packages/app/src/open_brain/extensions/connectors.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/extensions/connectors.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/integrations/__init__.py` | `packages/app/src/open_brain/integrations/__init__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/__init__.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/integrations/config.py` | `packages/app/src/open_brain/integrations/config.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/config.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/integrations/context.py` | `src/open_brain/integrations/context.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/context.py` | `legacy-only` |
@@ -220,6 +230,10 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/operations/shadow.py` | `src/open_brain/operations/shadow.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/operations/shadow.py` | `legacy-only` |
 | `src/open_brain/operations/status.py` | `src/open_brain/operations/status.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/operations/status.py` | `legacy-only` |
 | `src/open_brain/operations/writer_jobs.py` | `src/open_brain/operations/writer_jobs.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/operations/writer_jobs.py` | `legacy-only` |
+| `src/open_brain/packages/connectors/src/open_brain_connectors/__init__.py` | `packages/connectors/src/open_brain_connectors/__init__.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/__init__.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/packages/connectors/src/open_brain_connectors/capture/__init__.py` | `packages/connectors/src/open_brain_connectors/capture/__init__.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/__init__.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/packages/connectors/src/open_brain_connectors/conformance.py` | `packages/connectors/src/open_brain_connectors/conformance.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/conformance.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/packages/connectors/src/open_brain_connectors/production/__init__.py` | `packages/connectors/src/open_brain_connectors/production/__init__.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/production/__init__.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/parity/__init__.py` | `src/open_brain/parity/__init__.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/parity/__init__.py` | `legacy-only` |
 | `src/open_brain/parity/harness.py` | `src/open_brain/parity/harness.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/parity/harness.py` | `legacy-only` |
 | `src/open_brain/parity/observation.py` | `src/open_brain/parity/observation.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/parity/observation.py` | `legacy-only` |
@@ -246,7 +260,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/production/sqlite_backup.py` | `src/open_brain/production/sqlite_backup.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/production/sqlite_backup.py` | `legacy-only` |
 | `src/open_brain/production/transport.py` | `src/open_brain/production/transport.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/production/transport.py` | `legacy-only` |
 | `src/open_brain/production/youtube_bridge.py` | `src/open_brain/production/youtube_bridge.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/production/youtube_bridge.py` | `legacy-only` |
-| `src/open_brain/production/youtube_poll.py` | `src/open_brain/production/youtube_poll.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/production/youtube_poll.py` | `connector-sdist, connector-wheel` |
+| `src/open_brain/production/youtube_poll.py` | `packages/connectors/src/open_brain_connectors/production/youtube_poll.py` | `moved` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/production/youtube_poll.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/profile.py` | `packages/app/src/open_brain/profile.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/profile.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/providers/__init__.py` | `packages/engine/src/open_brain_engine/providers/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/providers/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/providers/base.py` | `packages/engine/src/open_brain_engine/providers/base.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/providers/base.py` | `engine-sdist, engine-wheel` |
@@ -333,7 +347,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/integration/capture/test_share_http.py` | `packages/app/tests/integration/capture/test_share_http.py` | `moved` | `test` | `app` | `packages/app/tests/integration/capture/test_share_http.py` | `excluded` |
 | `tests/integration/capture/test_social_drain.py` | `tests/integration/capture/test_social_drain.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_social_drain.py` | `excluded` |
 | `tests/integration/capture/test_social_transcription.py` | `tests/integration/capture/test_social_transcription.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_social_transcription.py` | `excluded` |
-| `tests/integration/capture/test_youtube_poll.py` | `tests/integration/capture/test_youtube_poll.py` | `planned` | `test` | `connectors` | `packages/connectors/tests/integration/capture/test_youtube_poll.py` | `excluded` |
+| `tests/integration/capture/test_youtube_poll.py` | `packages/connectors/tests/integration/capture/test_youtube_poll.py` | `moved` | `test` | `connectors` | `packages/connectors/tests/integration/capture/test_youtube_poll.py` | `excluded` |
 | `tests/integration/cli/test_capture.py` | `tests/integration/cli/test_capture.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/cli/test_capture.py` | `excluded` |
 | `tests/integration/cli/test_composition.py` | `tests/integration/cli/test_composition.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/cli/test_composition.py` | `excluded` |
 | `tests/integration/cli/test_config.py` | `tests/integration/cli/test_config.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/cli/test_config.py` | `excluded` |
@@ -505,6 +519,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/phase4/__init__.py` | `tests/phase4/__init__.py` | `planned` | `test` | `workspace` | `tests/phase4/__init__.py` | `excluded` |
 | `tests/phase4/test_acceptance_harness.py` | `tests/phase4/test_acceptance_harness.py` | `planned` | `test` | `workspace` | `tests/phase4/test_acceptance_harness.py` | `excluded` |
 | `tests/phase4/test_app_distribution.py` | `tests/phase4/test_app_distribution.py` | `planned` | `test` | `workspace` | `tests/phase4/test_app_distribution.py` | `excluded` |
+| `tests/phase4/test_connector_distribution.py` | `tests/phase4/test_connector_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_connector_distribution.py` | `excluded` |
 | `tests/phase4/test_engine_distribution.py` | `tests/phase4/test_engine_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_engine_distribution.py` | `excluded` |
 | `tests/phase4/test_move_manifest.py` | `tests/phase4/test_move_manifest.py` | `planned` | `test` | `workspace` | `tests/phase4/test_move_manifest.py` | `excluded` |
 | `tests/phase4/test_rewrite_imports.py` | `tests/phase4/test_rewrite_imports.py` | `moved` | `test` | `workspace` | `tests/phase4/test_rewrite_imports.py` | `excluded` |
@@ -530,10 +545,10 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/unit/capture/__init__.py` | `tests/unit/capture/__init__.py` | `planned` | `test` | `workspace` | `tests/unit/capture/__init__.py` | `excluded` |
 | `tests/unit/capture/extractors/__init__.py` | `tests/unit/capture/extractors/__init__.py` | `planned` | `test` | `workspace` | `tests/unit/capture/extractors/__init__.py` | `excluded` |
 | `tests/unit/capture/extractors/test_article.py` | `tests/unit/capture/extractors/test_article.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/capture/extractors/test_article.py` | `excluded` |
-| `tests/unit/capture/extractors/test_media.py` | `tests/unit/capture/extractors/test_media.py` | `planned` | `test` | `connectors` | `packages/connectors/tests/unit/capture/extractors/test_media.py` | `excluded` |
+| `tests/unit/capture/extractors/test_media.py` | `packages/connectors/tests/unit/capture/extractors/test_media.py` | `moved` | `test` | `connectors` | `packages/connectors/tests/unit/capture/extractors/test_media.py` | `excluded` |
 | `tests/unit/capture/extractors/test_social.py` | `tests/unit/capture/extractors/test_social.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/capture/extractors/test_social.py` | `excluded` |
 | `tests/unit/capture/extractors/test_text.py` | `tests/unit/capture/extractors/test_text.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/capture/extractors/test_text.py` | `excluded` |
-| `tests/unit/capture/extractors/test_youtube.py` | `tests/unit/capture/extractors/test_youtube.py` | `planned` | `test` | `connectors` | `packages/connectors/tests/unit/capture/extractors/test_youtube.py` | `excluded` |
+| `tests/unit/capture/extractors/test_youtube.py` | `packages/connectors/tests/unit/capture/extractors/test_youtube.py` | `moved` | `test` | `connectors` | `packages/connectors/tests/unit/capture/extractors/test_youtube.py` | `excluded` |
 | `tests/unit/capture/test_models.py` | `packages/engine/tests/unit/capture/test_models.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/capture/test_models.py` | `excluded` |
 | `tests/unit/capture/test_queue.py` | `tests/unit/capture/test_queue.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/capture/test_queue.py` | `excluded` |
 | `tests/unit/capture/test_redaction.py` | `packages/engine/tests/unit/capture/test_redaction.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/capture/test_redaction.py` | `excluded` |

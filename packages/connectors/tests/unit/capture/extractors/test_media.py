@@ -10,8 +10,8 @@ import pytest
 from open_brain_engine.capture.models import ExtractionFailure
 from open_brain_engine.core.models import RawAssetRef
 
-from open_brain.capture import media as media_module
-from open_brain.capture.media import (
+from open_brain_connectors.capture import media as media_module
+from open_brain_connectors.capture.media import (
     DEFAULT_MEDIA_LIMITS,
     BoundedMediaRunner,
     MediaCommand,

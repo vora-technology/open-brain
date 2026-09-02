@@ -17,7 +17,7 @@ from open_brain_engine.core.ids import canonicalize_source_url
 from open_brain_engine.core.models import ContentKind, PrivacyDecision, SourceType
 from open_brain_engine.core.ports import FetchRequest, OutboundFetcher
 
-from open_brain.capture.extractors import ExtractionRequest
+from open_brain_connectors.capture.extractors import ExtractionRequest
 
 ArticleExtractionRequest = ExtractionRequest
 

@@ -15,3 +15,17 @@ Deployments that run untrusted code must use a separate operating-system account
 Multi-document ledger writes become visible only through an applied durable manifest that binds the complete document set and sink digests. IDs, dispositions, deterministic rendered-byte digests, and exact read-back through a separate approved root-confined reader must all verify first. Slimming uses the same split writer/reader rule for its transcript-free successor, derives authority from the durable ledger row, and records archive and successor digests before `slimmed`. Model synthesis requires three persisted citation IDs with deterministic destinations, the approved SQLite store with typed durable confirmation, an authoritative lock probe, and no held transaction or writer lock. Valid output persists its evaluating row, page, and link-backs in one SQLite transaction.
 
 Review creation and delivery treat receipts as untrusted. Creation binds the canonical initial aggregate digest. Delivery binds the expected output ID, canonical digest, and created/duplicate disposition before the outbox can be marked delivered.
+
+## Connector worker boundary
+
+The optional connector distribution is trusted shipped code, but it does not load in the app
+process. The app validates entry-point metadata, explicit enablement, manifest identity, and
+declared capabilities before starting a fixed worker bootstrap. The child receives no inherited
+environment or secret values. Direct sockets are disabled, process groups are reaped on timeout or
+output overflow, and the response schema contains bounded metadata only.
+
+The connector wheel scanner rejects app composition, unpublished app extension values, private
+engine modules, undeclared dependencies, and dynamic import authority. This boundary limits the
+shipped provisional connector. It is not containment for hostile code running as the Brain owner.
+Untrusted third-party connectors require a separate operating-system account, container, or virtual
+machine gate.

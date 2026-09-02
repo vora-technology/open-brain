@@ -17,12 +17,12 @@ from open_brain.capture.extractors.social import (
     SocialExtractor,
     SocialMediaResult,
 )
-from open_brain.capture.media import MediaCommand, MediaTool
 from open_brain.providers.transcription import (
     TranscriptionRequest,
     TranscriptionResult,
     TranscriptionService,
 )
+from open_brain_connectors.capture.media import MediaCommand, MediaTool
 
 
 def _privacy() -> PrivacyDecision:

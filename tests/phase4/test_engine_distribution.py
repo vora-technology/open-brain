@@ -15,8 +15,8 @@ def test_engine_builds_and_runs_without_workspace_sources(tmp_path: Path) -> Non
     assert engine_isolation_findings(ROOT, tmp_path) == []
 
 
-@pytest.mark.parametrize("distribution", ("connectors", "legacy"))
-def test_future_distribution_skeletons_cannot_build_wheels(
+@pytest.mark.parametrize("distribution", ("legacy",))
+def test_future_legacy_distribution_skeleton_cannot_build_wheels(
     tmp_path: Path,
     distribution: str,
 ) -> None:

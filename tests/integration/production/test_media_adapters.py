@@ -10,18 +10,18 @@ import pytest
 from open_brain_engine.core.models import RawAssetRef
 
 from open_brain.capture.extractors.social import SocialMediaResult
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import (
-    DEFAULT_MEDIA_LIMITS,
-    MediaCommand,
-    MediaRunResult,
-    MediaTool,
-)
 from open_brain.config import AppConfig, RetainedRoots
 from open_brain.production.errors import ProductionRuntimeError, RuntimeFailureCode
 from open_brain.production.media import (
     BoundedCaptureMediaAdapter,
     compose_production_capture_media_adapter,
+)
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
+from open_brain_connectors.capture.media import (
+    DEFAULT_MEDIA_LIMITS,
+    MediaCommand,
+    MediaRunResult,
+    MediaTool,
 )
 
 

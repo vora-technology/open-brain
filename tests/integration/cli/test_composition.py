@@ -43,9 +43,6 @@ from open_brain_engine.storage.locks import LockBusyError
 from open_brain_engine.storage.sqlite import connect_database, migrate
 from open_brain_engine.storage.writer_record import write_canonical_writer_record
 
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import FilesystemYouTubePollState
 from open_brain.capture.queue import FilesystemCaptureQueue
 from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import SCHEDULED_ROUTES, command_names
@@ -84,12 +81,6 @@ from open_brain.operations.index import IndexRoots, check_index
 from open_brain.operations.scheduler import EXPECTED_JOB_IDS
 from open_brain.operations.writer_jobs import WriterLease, get_writer_job_spec
 from open_brain.production.imessage import ImessageHistoryClient
-from open_brain.production.youtube_poll import (
-    YouTubePollCheckpoint,
-    YouTubeReferenceConnector,
-    YouTubeReferenceTransport,
-    load_private_youtube_config,
-)
 from open_brain.review.maintenance import (
     CurationClass,
     CurationTarget,
@@ -115,6 +106,15 @@ from open_brain.services.connectors import (
 )
 from open_brain.services.entrypoints import run_legacy_cli as run
 from open_brain.services.http_server import HttpServerFactory
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
+from open_brain_connectors.capture.media import MediaCommand
+from open_brain_connectors.capture.poll import FilesystemYouTubePollState
+from open_brain_connectors.production.youtube_poll import (
+    YouTubePollCheckpoint,
+    YouTubeReferenceConnector,
+    YouTubeReferenceTransport,
+    load_private_youtube_config,
+)
 
 _VALID_ENVIRONMENT = {
     "OPEN_BRAIN_STATE_ROOT": "/synthetic/state",

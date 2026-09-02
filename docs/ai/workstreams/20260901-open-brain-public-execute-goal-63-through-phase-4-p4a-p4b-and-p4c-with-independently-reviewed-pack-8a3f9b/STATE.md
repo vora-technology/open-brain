@@ -10,19 +10,22 @@
 
 ## Current milestone
 
-- Milestone: P4-W2 app distribution and installed entry points
-- Status: complete at source
-  `30d49d31d35f86e26be3c0ac99b884a47d76b5f6` and evidence
-  `e20be9debc6cd68cd443a3df00f6c2cd76041cb3`. Exact-head checks are green.
-  Child 12's same-lineage rereview returned `READY`, P0/P1/P2 `0/0/0`, and
-  confirmed the prior stale-review P2 is closed. P4-W3 has not started
-- Allowed scope: manifest-driven app runtime/test/resource movement, exact
-  engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
-  multi-distribution Python artifact policy, CI wiring, and bounded evidence
-- Stop condition: any move not authorized by the manifest, behavior repair
-  without a red regression and separate commit, P4-W3 before P4-W2 is green,
-  any acceptance review before applicable CI is green, or any production access
-  before P4A, P4B, P4-W8, recovery, and receipt review all pass unchanged
+- Milestone: P4-W3 connector distribution, provisional interface, and isolated
+  worker
+- Status: locally verified source candidate from clean checkpoint
+  `c3480be28fa36b9dae2256ff6aee610044b86847`. Source checkpoint, exact-head CI,
+  and independent review remain pending; the P4-W3 reviewer ledger is still
+  zero
+- Allowed scope: the five manifest-owned connector runtime files and authorized
+  tests/resources; `open-brain-connectors` build metadata and artifacts;
+  already-demonstrated provisional extension values and conformance rules;
+  isolated host/worker protocol and closed explicit discovery; applicable app,
+  acceptance, artifact-policy, CI, manifest, release, and bounded evidence work
+- Stop condition: any unmanifested move, behavior repair without a red
+  regression and separate verified commit, stable-SDK claim, implicit connector
+  enablement, default app dependency on connectors, unbounded capability,
+  P4-W4 work, acceptance review before applicable CI is green, or any
+  publication, deployment, production, or private-state access
 - Base: freshly fetched `origin/main` at
   `3b89a4ba4787a378e6040ff042bd117da881918d`
 - Launch commit: reviewed planning commit cherry-picked as
@@ -83,9 +86,9 @@
 
 ## Next action
 
-Stop and hand off before P4-W3. In a fresh continuation, reset the milestone
-reviewer budget, reground the repository and Goal #63 state, then begin P4-W3
-connector distribution, provisional interface, and isolated worker work.
+Create the bounded P4-W3 source checkpoint, push the explicit plan-authorized
+branch update, and require exact-head CI to pass. Only then dispatch one fresh
+source-SHA-bound read-only reviewer before milestone closure.
 
 ## P4-W0 complete
 
@@ -396,3 +399,28 @@ connector distribution, provisional interface, and isolated worker work.
   `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
 - No publication, tag, release, native build, deployment, private-state access,
   production access, or cutover action occurred.
+
+## P4-W3 local source candidate
+
+- All five connector-owned runtime files and their three owned tests are in the
+  buildable `open-brain-connectors` package. Nine connector runtime records are
+  moved; the workspace inventory is 232 runtime files and 355 Phase 4 subjects,
+  including 260 tests.
+- Published app extension values remain provisional v1. The connector package
+  depends on exact app and engine versions; the app has no connector dependency
+  and defaults to an empty connector profile.
+- The bounded worker loads the explicitly enabled entry point only in its child,
+  applies capability, budget, process, memory, time, output, network, receipt,
+  and replay checks, and runs real YouTube reference conformance without
+  production/private state.
+- Latest local gates passed: `make phase4-contracts` with 87 tests; `make
+  verify` with Ruff, strict MyPy on 500 files, 3,170 tests, and six artifact
+  builds/policy; connector wheel acceptance with 3 tests on each of Python
+  3.12, 3.13, and 3.14; source/artifact and reachable-history audits; Gitleaks
+  8.30.1 over 83 commits; actionlint; lockfile and diff integrity.
+- Three new durable gotchas record canonical child bootstrap identity, singular
+  artifact coordinates, and parent-bound receipt budgets. No package
+  publication, tag, release, native build, deployment, private-state access,
+  production access, cutover, or P4-W4 work occurred.
+- Exact-head CI and a fresh independent READY P0/P1/P2 `0/0/0` verdict remain
+  required. Reviewer budget remains 0 active and 0 total until CI is green.

@@ -31,8 +31,8 @@ from open_brain.capture.distillation import (
     DistillationService,
     DistilledCapture,
 )
-from open_brain.capture.extractors import ExtractionRequest
 from open_brain.capture.extractors.text import TextExtractor
+from open_brain_connectors.capture.extractors import ExtractionRequest
 
 _PERSONAL_REASONS = {
     PrivacyReason.PERSONAL_LOCAL_ONLY,

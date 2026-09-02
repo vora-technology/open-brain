@@ -14,7 +14,7 @@ from open_brain_engine.capture.models import (
 )
 from open_brain_engine.core.models import ContentKind, PrivacyDecision, SourceType
 
-from open_brain.capture.extractors import ExtractionRequest
+from open_brain_connectors.capture.extractors import ExtractionRequest
 
 _TITLE_MAX_CHARACTERS = 80
 TextExtractionRequest = ExtractionRequest

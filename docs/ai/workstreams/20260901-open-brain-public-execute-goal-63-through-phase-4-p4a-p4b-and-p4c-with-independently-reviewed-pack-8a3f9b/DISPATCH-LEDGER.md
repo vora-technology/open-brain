@@ -225,3 +225,15 @@ coordinator-owned.
 - Final result: `READY`; P0/P1/P2 `0/0/0`. The reviewer confirmed the prior
   P2 is closed and declared P4-W2 ready for milestone closure. The lineage was
   then closed. The reviewer budget resets for P4-W3.
+
+## P4-W3 milestone budget
+
+- Status: active
+- Active children: 0 of 6
+- Total children: 0 of 12
+- Identical failures: 0 of 2
+- Consecutive timeouts: 0 of 2
+- Implementation writer: coordinator only; no child write scope is reserved
+- Review lineage: unallocated until all applicable exact-head CI is green
+- Reset authority: D-031 closes the P4-W2 lineage and starts this milestone
+  with a fresh child budget

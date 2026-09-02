@@ -6,12 +6,12 @@ import pytest
 from open_brain_engine.capture.models import ExtractionFailure, ExtractionState, TranscriptState
 from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 
-from open_brain.capture.extractors.youtube import (
+from open_brain_connectors.capture.extractors.youtube import (
     YouTubeExtractionRequest,
     YouTubeExtractor,
     YouTubeMediaResult,
 )
-from open_brain.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
+from open_brain_connectors.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand
 
 
 def _privacy(*, egress: bool = True) -> PrivacyDecision:

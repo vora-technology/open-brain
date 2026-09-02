@@ -17,6 +17,8 @@ DOCUMENTATION_PATH = ROOT / "docs" / "artifact-characterization.md"
 ARTIFACT_NAMES = {
     ("app", "wheel"): "open_brain-0.1.0-py3-none-any.whl",
     ("app", "sdist"): "open_brain-0.1.0.tar.gz",
+    ("connector", "wheel"): "open_brain_connectors-0.1.0-py3-none-any.whl",
+    ("connector", "sdist"): "open_brain_connectors-0.1.0.tar.gz",
     ("engine", "wheel"): "open_brain_engine-0.1.0-py3-none-any.whl",
     ("engine", "sdist"): "open_brain_engine-0.1.0.tar.gz",
 }
@@ -96,15 +98,15 @@ def _manifest_members(distribution: str, kind: str) -> set[str]:
     return {rewrites.get(member, member.partition("#")[0]) for member in members}
 
 
-def test_phase_four_policy_declares_engine_and_app_artifact_coordinates() -> None:
+def test_phase_four_policy_declares_all_python_artifact_coordinates() -> None:
     policy = _policy()
     distributions = policy["python_distributions"]
 
-    assert policy["policy_version"] == 2
-    assert policy["phase"] == "4-app-isolation"
+    assert policy["policy_version"] == 3
+    assert policy["phase"] == "4-connector-isolation"
     assert isinstance(distributions, dict)
-    assert set(distributions) == {"app", "engine"}
-    for name in ("app", "engine"):
+    assert set(distributions) == {"app", "connector", "engine"}
+    for name in ("app", "connector", "engine"):
         distribution = distributions[name]
         assert isinstance(distribution, dict)
         assert set(distribution["artifacts"]) == {"sdist", "wheel"}
@@ -117,6 +119,7 @@ def test_phase_four_policy_matches_each_explicit_hatch_configuration() -> None:
     }
     for distribution, project_root, status in (
         ("app", "packages/app", "app-isolated-unpublished"),
+        ("connector", "packages/connectors", "connector-isolated-unpublished"),
         ("engine", "packages/engine", "engine-isolated-unpublished"),
     ):
         pyproject = tomllib.loads(
@@ -142,7 +145,7 @@ def test_phase_four_policy_matches_each_explicit_hatch_configuration() -> None:
         assert (ROOT / project_root / "NOTICE").read_bytes() == (ROOT / "NOTICE").read_bytes()
 
 
-def test_phase_four_policy_verifies_both_distributions_and_rejects_leaks(
+def test_phase_four_policy_verifies_all_distributions_and_rejects_leaks(
     tmp_path: Path,
 ) -> None:
     artifacts = _write_policy_artifacts(tmp_path)
@@ -189,12 +192,13 @@ def test_phase_four_policy_keys_duplicates_and_missing_artifacts_by_distribution
     ]
 
 
-def test_phase_four_build_and_ci_verify_engine_and_app_artifacts() -> None:
+def test_phase_four_build_and_ci_verify_all_python_artifacts() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert "uv build --no-sources --project packages/engine --out-dir dist" in makefile
     assert "uv build --no-sources --project packages/app --out-dir dist" in makefile
+    assert "uv build --no-sources --project packages/connectors --out-dir dist" in makefile
     assert "rm -rf dist" not in makefile
     assert "- run: make verify-artifacts" in workflow
     assert "packages/app/tests/integration/services/test_appliance_upgrade.py" in workflow
@@ -203,7 +207,7 @@ def test_phase_four_build_and_ci_verify_engine_and_app_artifacts() -> None:
 
 
 def test_phase_four_policy_derives_exact_membership_from_canonical_manifest() -> None:
-    for distribution in ("app", "engine"):
+    for distribution in ("app", "connector", "engine"):
         for kind in ("wheel", "sdist"):
             assert set(
                 required_members_for_policy(POLICY_PATH, distribution, kind)

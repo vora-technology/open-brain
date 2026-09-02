@@ -23,6 +23,12 @@ _DISTRIBUTION_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 _FORBIDDEN_APP_IMPORT_ROOTS: Final = frozenset(
     {"open_brain_connectors", "open_brain_legacy"}
 )
+_PUBLIC_CONNECTOR_APP_MODULES: Final = frozenset(
+    {
+        "open_brain.extensions.connector_worker_v1",
+        "open_brain.extensions.connectors",
+    }
+)
 _IMPORTLIB_MODULE: Final = "importlib"
 _IMPORTLIB_NAMESPACE: Final = "importlib.__dict__"
 _IMPORTLIB_UTIL_MODULE: Final = "importlib.util"
@@ -1814,6 +1820,309 @@ def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
         return [Finding("P4H007", "app-isolation", "module origin evidence is malformed")]
     if not isinstance(sys_path, list) or not all(isinstance(item, str) for item in sys_path):
         return [Finding("P4H007", "app-isolation", "interpreter path evidence is malformed")]
+    return import_probe_findings(
+        ImportProbe(tuple(cast(list[str], module_paths)), tuple(cast(list[str], sys_path))),
+        root,
+    )
+
+
+def _connector_contract_source() -> str:
+    return """from __future__ import annotations
+
+import importlib.metadata
+import importlib.util
+import json
+import sys
+
+import open_brain.extensions.connector_worker_v1 as worker
+import open_brain.extensions.connectors as extension
+import open_brain_connectors
+import open_brain_engine
+
+
+def main() -> None:
+    distribution = importlib.metadata.distribution("open-brain-connectors")
+    assert distribution.version == "0.1.0"
+    assert set(distribution.requires or ()) == {
+        "open-brain==0.1.0",
+        "open-brain-engine==0.1.0",
+    }
+    registrations = tuple(
+        item
+        for item in distribution.entry_points
+        if item.group == extension.CONNECTOR_ENTRY_POINT_GROUP
+    )
+    assert tuple((item.name, item.value) for item in registrations) == (
+        ("youtube", "open_brain_connectors.conformance:connector"),
+    )
+    manifest = extension.ConnectorManifest(
+        schema_version=1,
+        name="youtube",
+        version="1",
+        payloads=(extension.ConnectorPayload.REFERENCE_OR_FILE,),
+        schedules=("JOB-029",),
+        secrets=(),
+        action_authorities=(),
+        external_egress=True,
+    )
+    limits = extension.ConnectorBudgetLimits(
+        max_discoveries=2,
+        max_fetches=2,
+        max_extractions=2,
+        max_submissions=2,
+    )
+    host = worker.ConnectorWorkerHost()
+    assert host.discover(extension.ConnectorProfile()) == ()
+    profile = extension.ConnectorProfile(
+        allow_list=("youtube",),
+        egress_enabled=True,
+        budget_limits=limits,
+    )
+    assert tuple((item.name, item.value) for item in host.discover(profile)) == (
+        ("youtube", "open_brain_connectors.conformance:connector"),
+    )
+    assert "open_brain_connectors.conformance" not in sys.modules
+    receipt = host.run_conformance(
+        "youtube",
+        profile=profile,
+        expected_manifest=manifest,
+    )
+    assert "open_brain_connectors.conformance" not in sys.modules
+    assert receipt.first_run.submitted_count == receipt.first_run.created_count == 1
+    assert receipt.first_run.checkpoint_committed is True
+    assert receipt.replay_run.submitted_count == receipt.replay_run.created_count == 0
+    assert receipt.capture_count == 1
+    assert receipt.direct_network_attempts == 0
+    assert len(receipt.checkpoint_receipt_sha256) == 64
+    assert importlib.util.find_spec("open_brain_legacy") is None
+    request_fields = set(worker.ConnectorWorkerRequest.__dataclass_fields__)
+    receipt_fields = set(worker.ConnectorWorkerReceipt.__dataclass_fields__)
+    forbidden_fields = {"action", "brain_root", "database", "secret_value", "store"}
+    assert not forbidden_fields & request_fields
+    assert not forbidden_fields & receipt_fields
+    print(json.dumps({
+        "module_paths": [
+            open_brain_connectors.__file__,
+            open_brain_engine.__file__,
+            extension.__file__,
+            worker.__file__,
+        ],
+        "sys_path": sys.path,
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+def _literal_module_exports(payload: bytes, *, filename: str) -> frozenset[str]:
+    tree = ast.parse(payload, filename=filename)
+    for node in tree.body:
+        if not isinstance(node, ast.Assign) or not any(
+            isinstance(target, ast.Name) and target.id == "__all__" for target in node.targets
+        ):
+            continue
+        value = ast.literal_eval(node.value)
+        if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+            break
+        return frozenset(cast(list[str], value))
+    raise ValueError("public extension exports are missing")
+
+
+def _connector_import_boundary_findings(
+    connector_wheel: Path,
+    app_wheel: Path,
+    engine_modules: frozenset[str],
+    public_engine_modules: frozenset[str],
+) -> list[Finding]:
+    findings: list[Finding] = []
+    try:
+        with zipfile.ZipFile(connector_wheel) as archive:
+            sources = {
+                name: archive.read(name)
+                for name in archive.namelist()
+                if name.startswith("open_brain_connectors/") and name.endswith(".py")
+            }
+            metadata = {
+                name: archive.read(name)
+                for name in archive.namelist()
+                if name.endswith(".dist-info/METADATA")
+            }
+        with zipfile.ZipFile(app_wheel) as archive:
+            app_exports = {
+                module: _literal_module_exports(archive.read(path), filename=path)
+                for module, path in {
+                    "open_brain.extensions.connectors": (
+                        "open_brain/extensions/connectors.py"
+                    ),
+                    "open_brain.extensions.connector_worker_v1": (
+                        "open_brain/extensions/connector_worker_v1.py"
+                    ),
+                }.items()
+            }
+        declared_roots = _declared_import_roots(metadata)
+    except (OSError, SyntaxError, ValueError, zipfile.BadZipFile, KeyError):
+        return [Finding("P4H007", "connector-wheel", "connector source inspection failed")]
+    for name, payload in sorted(sources.items()):
+        try:
+            tree = ast.parse(payload, filename=name)
+        except (SyntaxError, UnicodeError):
+            findings.append(Finding("P4H007", name, "connector source inspection failed"))
+            continue
+        imported: set[str] = set()
+        dynamic_imported, dynamic_signatures = _dynamic_imports(tree)
+        imported.update(dynamic_imported)
+        if dynamic_signatures:
+            findings.append(
+                Finding("P4H009", name, "connector artifact has an undeclared import")
+            )
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module is not None:
+                imported.add(node.module)
+                if node.module in _PUBLIC_CONNECTOR_APP_MODULES and any(
+                    alias.name == "*" or alias.name not in app_exports[node.module]
+                    for alias in node.names
+                ):
+                    findings.append(
+                        Finding("P4H009", name, "connector imports an unpublished app value")
+                    )
+                if node.module == "open_brain_engine" or node.module.startswith(
+                    "open_brain_engine."
+                ):
+                    imported.update(
+                        candidate
+                        for alias in node.names
+                        if alias.name != "*"
+                        and (candidate := f"{node.module}.{alias.name}") in engine_modules
+                    )
+            elif isinstance(node, ast.Import):
+                imported.update(alias.name for alias in node.names)
+        if any(
+            (module == "open_brain" or module.startswith("open_brain."))
+            and module not in _PUBLIC_CONNECTOR_APP_MODULES
+            for module in imported
+        ):
+            findings.append(
+                Finding("P4H009", name, "connector imports app composition or private values")
+            )
+        if any(
+            (module == "open_brain_engine" or module.startswith("open_brain_engine."))
+            and module not in public_engine_modules
+            for module in imported
+        ):
+            findings.append(
+                Finding("P4H008", name, "connector artifact imports a private engine module")
+            )
+        if any(
+            (root := module.partition(".")[0]) not in declared_roots
+            and root not in sys.stdlib_module_names
+            and root not in {"__future__", "open_brain_connectors"}
+            for module in imported
+        ):
+            findings.append(
+                Finding("P4H009", name, "connector artifact has an undeclared import")
+            )
+    return sorted(set(findings))
+
+
+def connector_isolation_findings(root: Path, work: Path) -> list[Finding]:
+    """Build and run connector conformance from only engine, app, and connector wheels."""
+
+    engine_project = root / "packages/engine"
+    app_project = root / "packages/app"
+    connector_project = root / "packages/connectors"
+    if not (connector_project / "src/open_brain_connectors").is_dir():
+        return [Finding("P4H007", "connector-isolation", "connector project is absent")]
+    engine_dist = work / "engine-dist"
+    app_dist = work / "app-dist"
+    connector_dist = work / "connector-dist"
+    environment = work / "venv"
+    run_root = work / "run"
+    for path in (engine_dist, app_dist, connector_dist, run_root):
+        path.mkdir(parents=True, exist_ok=True)
+    try:
+        run_checked(build_command(engine_project, engine_dist), cwd=run_root)
+        run_checked(build_command(app_project, app_dist), cwd=run_root)
+        run_checked(build_command(connector_project, connector_dist), cwd=run_root)
+    except (OSError, subprocess.SubprocessError):
+        return [Finding("P4H007", "connector-isolation", "connector build failed")]
+    engine_wheels = sorted(engine_dist.glob("open_brain_engine-*.whl"))
+    app_wheels = sorted(app_dist.glob("open_brain-*.whl"))
+    connector_wheels = sorted(connector_dist.glob("open_brain_connectors-*.whl"))
+    connector_sdists = sorted(connector_dist.glob("open_brain_connectors-*.tar.gz"))
+    if any(
+        len(items) != 1
+        for items in (engine_wheels, app_wheels, connector_wheels, connector_sdists)
+    ):
+        return [Finding("P4H001", "connector-isolation", "connector artifacts are incomplete")]
+    connector_wheel = connector_wheels[0]
+    app_wheel = app_wheels[0]
+    findings = artifact_findings(
+        connector_wheel,
+        ArtifactContract(
+            subject="connector-wheel",
+            required_members=(
+                "open_brain_connectors/__init__.py",
+                "open_brain_connectors/conformance.py",
+                "open_brain_connectors/production/youtube_poll.py",
+                "open_brain_connectors-0.1.0.dist-info/entry_points.txt",
+            ),
+            forbidden_patterns=(
+                "open_brain/**",
+                "open_brain_engine/**",
+                "open_brain_legacy/**",
+                "tests/**",
+                "tools/**",
+            ),
+            expected_name="open-brain-connectors",
+            expected_version="0.1.0",
+        ),
+    )
+    try:
+        engine_modules, public_engine_modules = _engine_module_sets(root)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return [Finding("P4H007", "connector-isolation", "public engine API is unreadable")]
+    findings.extend(
+        _connector_import_boundary_findings(
+            connector_wheel,
+            app_wheel,
+            engine_modules,
+            public_engine_modules,
+        )
+    )
+    if findings:
+        return sorted(set(findings))
+    stage = "create product environment"
+    try:
+        run_checked(create_environment_command(environment), cwd=run_root)
+        python = environment / "bin/python"
+        stage = "install product wheels"
+        run_checked(
+            install_command(python, [engine_wheels[0], app_wheel, connector_wheel]),
+            cwd=run_root,
+        )
+        contract = run_root / "connector_contract.py"
+        contract.write_text(_connector_contract_source(), encoding="utf-8")
+        stage = "run installed connector contract"
+        completed = run_checked((os.fspath(python), "-I", os.fspath(contract)), cwd=run_root)
+        payload = json.loads(completed.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError):
+        return [
+            Finding(
+                "P4H007",
+                "connector-isolation",
+                f"installed connector contract failed at {stage}",
+            )
+        ]
+    module_paths = payload.get("module_paths") if isinstance(payload, dict) else None
+    sys_path = payload.get("sys_path") if isinstance(payload, dict) else None
+    if not isinstance(module_paths, list) or not all(
+        isinstance(item, str) for item in module_paths
+    ):
+        return [Finding("P4H007", "connector-isolation", "module origin evidence is malformed")]
+    if not isinstance(sys_path, list) or not all(isinstance(item, str) for item in sys_path):
+        return [Finding("P4H007", "connector-isolation", "interpreter path evidence is malformed")]
     return import_probe_findings(
         ImportProbe(tuple(cast(list[str], module_paths)), tuple(cast(list[str], sys_path))),
         root,

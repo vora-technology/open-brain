@@ -36,7 +36,6 @@ from open_brain.capture.distillation_worker import (
 from open_brain.capture.extractors.article import ArticleExtractor
 from open_brain.capture.extractors.social import SocialExtractor, SocialMediaAdapter
 from open_brain.capture.extractors.text import TextExtractor
-from open_brain.capture.extractors.youtube import YouTubeExtractor, YouTubeMediaAdapter
 from open_brain.capture.queue import (
     FilesystemCaptureQueue,
     FilesystemDistillationQueue,
@@ -48,6 +47,7 @@ from open_brain.production.personal_capture import (
     PersonalCaptureStatus,
     PersonalCaptureWorker,
 )
+from open_brain_connectors.capture.extractors.youtube import YouTubeExtractor, YouTubeMediaAdapter
 
 
 class CaptureMediaAdapter(SocialMediaAdapter, YouTubeMediaAdapter, Protocol):

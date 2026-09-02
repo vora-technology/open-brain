@@ -23,9 +23,16 @@
     },
     "connectors": {
       "compatibility": "provisional-v1",
+      "interface_status": "provisional",
       "name": "open-brain-connectors",
       "namespace": "open_brain_connectors",
-      "version": "0.1.0"
+      "stability_prerequisites": [
+        "event-conformance",
+        "measurement-conformance",
+        "reference-conformance"
+      ],
+      "version": "0.1.0",
+      "worker_protocol": 1
     },
     "engine": {
       "compatibility": "public-v1",

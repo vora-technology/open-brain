@@ -11,8 +11,8 @@
 | Local CLI | `OPEN_BRAIN_ROOT=$HOME/open-brain-data uv run open-brain inbox list --json` |
 | Full verification | `make verify` |
 | Phase 4 contracts | `make phase4-contracts` |
-| Python artifacts | `make verify-artifacts` builds and audits engine+app wheels/sdists |
-| Release state | Engine/app artifacts are isolated and unpublished; native artifacts and deployment are pending |
+| Python artifacts | `make verify-artifacts` builds and audits engine+app+connector wheels/sdists |
+| Release state | Engine/app/connector artifacts are isolated and unpublished; native artifacts and deployment are pending |
 
 ## Architecture
 
@@ -20,9 +20,9 @@
 |---|---|
 | `packages/engine/src/open_brain_engine` | App-independent domain engine, public task contracts, persistence, Portable schemas, and conformance data |
 | `packages/app/src/open_brain` | Installed CLI/MCP entry points, appliance daemon, HTTP/UI, app configuration, and engine composition |
-| `packages/connectors` | Connector distribution skeleton; not a default app dependency |
+| `packages/connectors` | Provisional connector distribution, YouTube reference implementation, conformance kit, and tests; not a default app dependency |
 | `packages/legacy` | Legacy distribution skeleton; not a default app or engine dependency |
-| `src/open_brain` | Classified connector, legacy, and workspace remainder awaiting later Phase 4 waves |
+| `src/open_brain` | Classified legacy and workspace remainder awaiting P4-W4 quarantine |
 | `tools/phase4` | Canonical move-manifest validation and isolated built-artifact acceptance harnesses |
 | `docs/v0-package-classification.json` | Source of truth for ownership, API status, movement, imports, tests, resources, and artifact membership |
 | `release/v0-artifact-policy.json` | One unpublished release contract keyed by Python distribution and artifact kind |
@@ -30,7 +30,9 @@
 The engine cannot import app, connector, legacy, or workspace modules. The app depends on exactly
 `open-brain-engine==0.1.0` and may import only engine modules marked public in the canonical
 manifest. Mutating installed CLI/UI requests go through the appliance daemon; MCP receives only
-space-scoped read capabilities and metadata feedback.
+space-scoped read capabilities and metadata feedback. The connector distribution depends on exact
+app and engine versions. It may import app code only through the published provisional extension
+modules under `open_brain.extensions`.
 
 ## Key files
 
@@ -39,8 +41,12 @@ space-scoped read capabilities and metadata feedback.
 | `pyproject.toml` | Workspace membership and root test/lint/typecheck configuration |
 | `packages/engine/pyproject.toml` | Isolated `open-brain-engine` package and artifact configuration |
 | `packages/app/pyproject.toml` | Isolated `open-brain` package, exact engine dependency, and installed scripts |
+| `packages/connectors/pyproject.toml` | Isolated `open-brain-connectors` package, exact app/engine dependencies, and provisional v1 entry point |
 | `packages/engine/src/open_brain_engine/engine/__init__.py` | Explicit public engine facade |
 | `packages/engine/src/open_brain_engine/portable/` | Portable schemas, validator, and conformance resources |
+| `packages/app/src/open_brain/extensions/connectors.py` | Published provisional connector values and app-owned host contracts |
+| `packages/app/src/open_brain/extensions/connector_worker_v1.py` | Bounded worker request, receipt, process, capability, and replay protocol |
+| `packages/connectors/src/open_brain_connectors/conformance.py` | Real YouTube reference conformance run and entry-point object |
 | `packages/app/src/open_brain/profile.py` | Single-user local Brain-root compiler and stable owner identity |
 | `packages/app/src/open_brain/services/appliance_entrypoints.py` | Installed `open-brain` and `open-brain-mcp` callables |
 | `packages/app/src/open_brain/services/appliance_daemon.py` | Sole installed mutation authority and control transport |
@@ -48,6 +54,7 @@ space-scoped read capabilities and metadata feedback.
 | `packages/app/src/open_brain/resources/supervisors/` | Packaged launchd/systemd templates loaded with `importlib.resources` |
 | `packages/app/src/open_brain/integrations/phase1_ui.py` | Authenticated local UI/API handler over app task capabilities |
 | `packages/app/tests/contract/test_v0_wheel_gates.py` | Explicit wheel-only `V0-GATE-07` and `V0-GATE-13` journeys |
+| `tests/phase4/test_connector_distribution.py` | Wheel-only connector build, import-boundary, entry-point, worker, replay, and CI contracts |
 | `tools/phase4/acceptance_harness.py` | Wheel build/install isolation, membership, import, and installed-test contracts |
 | `src/open_brain/dev/artifact_policy.py` | Multi-distribution wheel/sdist membership verifier |
 | `docs/architecture.md` | Package and dependency boundaries |
@@ -72,6 +79,12 @@ Run isolated app acceptance directly with:
 uv run pytest -q tests/phase4/test_app_distribution.py
 ```
 
+Run isolated connector acceptance directly with:
+
+```bash
+uv run pytest -q tests/phase4/test_connector_distribution.py
+```
+
 ## Environment variables
 
 | Variable | Purpose |
@@ -93,8 +106,9 @@ an explicit environment mapping.
 ## Deployment
 
 No public deployment or package publication exists. The app wheel contains generic launchd/systemd
-templates for installed-mode rendering without a checkout `PYTHONPATH`. Phase 4 native bundling,
-signing, clean-host lifecycle proof, and production cutover remain separate gated work.
+templates for installed-mode rendering without a checkout `PYTHONPATH`. The connector wheel is
+optional, provisional, and absent from default app acceptance. Native bundling, signing, clean-host
+lifecycle proof, and production cutover remain separate gated work.
 
 ## Gotchas
 
@@ -134,14 +148,20 @@ signing, clean-host lifecycle proof, and production cutover remain separate gate
 
 **Space slugs are stable storage keys.** Renaming a space changes its display name but does not move the directory or change its ID; routing and references remain stable.
 
-**Artifact isolation requires `uv build --no-sources`.** Workspace source substitution can make an invalid package appear healthy; installed acceptance must use only the built app and engine wheels.
+**Artifact isolation requires `uv build --no-sources`.** Workspace source substitution can make an invalid package appear healthy; installed acceptance must use only the built wheels required by that product journey.
 
 **App tests cannot read checkout-relative engine fixtures or source.** Load packaged schemas, conformance data, and module source through installed package resources/paths so wheel-only tests remain real.
 
-**Artifact uniqueness is per distribution and kind.** Two wheels are expected in P4-W2; reject duplicates by `(app|engine, wheel|sdist)`, not by kind alone.
+**Artifact uniqueness is per distribution and kind.** Three wheels are expected after P4-W3; reject duplicates by `(app|connector|engine, wheel|sdist)`, not by kind alone.
 
 **Supervisor rendering has two explicit modes.** Pass a checkout root only for source execution. Installed mode loads packaged templates and must not emit `PYTHONPATH` or a checkout working directory.
 
 **The app cannot reach engine internals by convenience import.** Add an engine module to the canonical public API deliberately before importing it from app code; the wheel scanner rejects private imports.
+
+**Run worker code through a separate bootstrap module.** Executing the protocol module with `python -m` defines its classes under `__main__`; connector imports then create different exact-type identities. `connector_worker_child.py` must import and invoke the canonical protocol module.
+
+**A valid child receipt can still violate the issued budget.** Revalidate both run counts against the parent request, require replay to create no captures, and bind the reported capture count to created receipts before accepting worker metadata.
+
+**Artifact-policy coordinates match manifest disposition labels exactly.** Use singular `connector` so the policy selects `connector-wheel` and `connector-sdist`; plural `connectors` silently selects no canonical members.
 
 > Full registry: `docs/engineering/gotchas/README.md`.

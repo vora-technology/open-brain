@@ -19,9 +19,9 @@ from open_brain_engine.core.models import (
     SourceType,
 )
 
-from open_brain.capture.extractors.youtube import YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import (
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
+from open_brain_connectors.capture.media import MediaCommand
+from open_brain_connectors.capture.poll import (
     FilesystemYouTubePollState,
     PollItemState,
     PollRecord,

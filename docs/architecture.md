@@ -2,9 +2,10 @@
 
 > This page describes the current implementation. The proposed self-hosted and hosted product-family target is documented in [`architecture/proposed-v0-system-architecture.md`](architecture/proposed-v0-system-architecture.md).
 
-Open Brain is one retained monolith in one canonical repository. Phase 2 makes the runtime
-boundary explicit without creating distributions: one `single-user-local` profile opens one
-engine task set for one owner and one Brain root.
+Open Brain is one uv workspace in one canonical repository. Engine, app, and connector code live
+in separate buildable distributions. The retained `src/open_brain` tree contains legacy and
+workspace code awaiting P4-W4 quarantine. One `single-user-local` profile opens one engine task set
+for one owner and one Brain root.
 
 The package map uses these ownership boundaries:
 
@@ -15,9 +16,9 @@ The package map uses these ownership boundaries:
 - `app`: profile and application composition. It owns the five representations and supplies only
   the capability each one needs: CLI, authenticated HTTP/share, local UI, scoped stdio MCP, and
   public-job sinks.
-- `connector`: the internal allow-listed connector implementation boundary. `services/connectors.py`
-  owns host meters, metadata receipts, and checkpoint evidence; connector code has capture-only
-  authority.
+- `connector`: the optional `open-brain-connectors` distribution. Published provisional values live
+  under `open_brain.extensions`; the app owns discovery, meters, worker limits, metadata receipts,
+  and checkpoint evidence. Connector code receives capture-only authority.
 - `storage`, `providers`, and `integrations`: retained adapters selected by composition. Adapters
   do not import CLI/HTTP handlers or one another.
 - `operations`: doctor, scheduling, retention, backup, and recovery behavior.
@@ -27,10 +28,9 @@ The package map uses these ownership boundaries:
 
 Private deployment configuration contains values and rendered manifests, never patched or copied application source.
 
-The file-level classification is authoritative for this retained monolith: every runtime file has
-one owner, such as `engine`, `app`, `connector`, `legacy`, or `workspace`. A mixed top-level
-package may remain in place during Phase 2, but no file is unclassified or assigned to multiple
-owners.
+The file-level classification is authoritative across the workspace: every runtime file has one
+owner, such as `engine`, `app`, `connector`, `legacy`, or `workspace`. Mixed legacy packages may
+remain until P4-W4, but no file is unclassified or assigned to multiple owners.
 
 The app-owned `profile` module compiles one `single-user-local` Brain root into an
 engine-owned context. The engine does not import profile, CLI, UI, service, migration,
@@ -135,11 +135,11 @@ reversible source-reference digests. This projection affects results only; Porta
 remain exact.
 
 Phase 3 owns the appliance lifecycle: initialization, one supervised daemon, internal scheduling,
-launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. Phase 4 owns
-the physical distributions and `packages/` split, a versioned provisional connector interface and
-conformance kit, isolated connector workers, connector signing, and native artifact/bundler work.
-A stable public Connector SDK compatibility promise remains blocked until the reference, event,
-and measurement proofs all pass. Phase 4 is also the first place allowed to add the real
-native-artifact adapter, prior-schema artifact upgrade evidence, clean-host install-time claims,
-signed package residue scans, and an owner-gated private deployment. Public package publication,
-tags, and releases remain Phase 5. The retained monolith is the Phase 2 boundary.
+launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. The current
+Phase 4 split produces isolated, unpublished engine, app, and connector wheels and sdists. The
+connector interface is provisional v1. Parent discovery reads entry-point metadata without loading
+connector code; explicit allow-list and capability checks precede a bounded child process. The
+reference conformance run proves capture-only execution and replay through synthetic host-mediated
+transport. A stable Connector SDK promise remains blocked until reference, event, and measurement
+proofs all pass. Native artifacts, signing, clean-host lifecycle proof, and owner-gated deployment
+remain later Phase 4 gates. Public package publication, tags, and releases remain Phase 5.

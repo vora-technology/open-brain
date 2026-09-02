@@ -9,20 +9,6 @@ import pytest
 from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain_engine.engine import CaptureReceipt, PublicJobCaptureSink
 
-from open_brain.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
-from open_brain.capture.media import MediaCommand
-from open_brain.capture.poll import (
-    FilesystemYouTubePollState,
-    PollItemState,
-    PollRecord,
-    PollRequestOrigin,
-)
-from open_brain.production.youtube_poll import (
-    YouTubePollCheckpoint,
-    YouTubeReferenceConnector,
-    YouTubeReferenceTransport,
-    YouTubeSubscription,
-)
 from open_brain.services.application import SingleUserLocalApplication
 from open_brain.services.connectors import (
     ConnectorBudget,
@@ -32,6 +18,20 @@ from open_brain.services.connectors import (
     ConnectorMetadataLogger,
     ConnectorRunContext,
     ConnectorRunEvidence,
+)
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaAdapter, YouTubeMediaResult
+from open_brain_connectors.capture.media import MediaCommand
+from open_brain_connectors.capture.poll import (
+    FilesystemYouTubePollState,
+    PollItemState,
+    PollRecord,
+    PollRequestOrigin,
+)
+from open_brain_connectors.production.youtube_poll import (
+    YouTubePollCheckpoint,
+    YouTubeReferenceConnector,
+    YouTubeReferenceTransport,
+    YouTubeSubscription,
 )
 
 FIXED_TIME = datetime(2026, 8, 31, 12, 0, tzinfo=UTC)
