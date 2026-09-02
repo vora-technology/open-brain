@@ -89,9 +89,9 @@
 
 ## Next action
 
-Complete the P4-W4 repair checkpoint verification, commit the source candidate,
-then run the exact full, matrix, artifact, and audit gates before pushing it for
-CI.
+Commit the exact P4-W4 evidence checkpoint, push the P4A candidate, and require
+all exact-head CI, Release audit, and CodeQL jobs green before dispatching the
+fresh read-only review.
 
 ## P4-W0 complete
 
@@ -489,6 +489,11 @@ CI.
   edge set. Exact package metadata and the canonical graph now agree with that
   source-derived set while all shipping dependencies continue to point away
   from legacy.
-- Current focused verification: 233 manifest, package-build, architecture,
-  legacy, app, and engine tests pass. Full repair-candidate verification is
-  next. Reviewer budget remains zero active and zero total.
+- Repair checkpoint `678c61cab75f8b90ac64aa04ac8d06bac8ee220f`
+  passes 233 focused tests, all 3,173 repository tests, `make
+  phase4-contracts`, `make verify`, all source-free builds and artifact policy,
+  and the 76-test isolation matrix on Python 3.12, 3.13, and 3.14.
+- Source/artifact and reachable-history audits, Gitleaks 8.30.1 over 90
+  commits, actionlint, lockfile integrity, and diff integrity pass. Exact-head
+  CI and independent review remain. Reviewer budget is zero active and zero
+  total.

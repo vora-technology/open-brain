@@ -540,6 +540,13 @@
   and engine sdist
   `199e0fc2adb264b0a0f9db50fd291e906b4d0a61cdb90e4eb55784716d000eca`.
 - Uncached Ruff, strict MyPy, canonical manifest and import-rewrite checks,
-  `uv lock --check`, and `git diff --check` pass. The supported-Python matrix,
-  release/history/security audits, exact-head CI, and independent review remain
-  pending after the source checkpoint.
+  `uv lock --check`, and `git diff --check` pass.
+- Repair checkpoint `678c61cab75f8b90ac64aa04ac8d06bac8ee220f`
+  passed the focused source-free isolation matrix with 76 tests on each of
+  Python 3.12, 3.13, and 3.14. Source plus all six shipping artifacts passed
+  the release audit with an untracked synthetic denylist; reachable history
+  passed with the same public-only fixture. Gitleaks 8.30.1 found no leaks
+  across 90 commits, and actionlint passed.
+- All local P4-W4 source, package, matrix, artifact, and audit gates are green.
+  Exact-head CI and the independent review remain pending. Reviewer budget is
+  zero active and zero total.
