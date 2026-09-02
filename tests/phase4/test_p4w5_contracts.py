@@ -96,10 +96,17 @@ def test_p4w5_native_toolchain_and_runner_images_are_exact() -> None:
 
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     exact_source = "${{ github.event.pull_request.head.sha || github.sha }}"
+    macos_job = workflow.split("\n  native-build-macos:\n", maxsplit=1)[1].split(
+        "\n  native-build-linux:\n", maxsplit=1
+    )[0]
+    linux_job = workflow.split("\n  native-build-linux:\n", maxsplit=1)[1].split(
+        "\n  connector-isolation:\n", maxsplit=1
+    )[0]
     assert "\n  native-build-macos:\n    runs-on: macos-14\n" in workflow
     assert "\n  native-build-linux:\n    runs-on: ubuntu-24.04\n" in workflow
-    assert workflow.count(f"ref: {exact_source}") == 2
-    assert workflow.count(f"P4W5_SOURCE_SHA={exact_source}") == 2
+    for job in (macos_job, linux_job):
+        assert f"ref: {exact_source}" in job
+        assert f"P4W5_SOURCE_SHA={exact_source}" in job
     assert "native-build-linux:\n    runs-on: ubuntu-latest" not in workflow
 
 
