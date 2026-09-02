@@ -12,6 +12,10 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Protocol
 
+from open_brain_engine import __version__
+from open_brain_engine.engine import ReadViewUnavailableError
+from open_brain_engine.storage.operational import StorageError
+
 from open_brain.cli._common import (
     ExitCode,
     adapter_failed_envelope,
@@ -41,9 +45,6 @@ from open_brain.services.appliance_lifecycle import (
 from open_brain.services.appliance_status import read_appliance_status
 from open_brain.services.appliance_supervisors import SupervisorCommandError
 from open_brain.services.mcp_stdio import serve_stdio_mcp
-from open_brain_engine import __version__
-from open_brain_engine.engine import ReadViewUnavailableError
-from open_brain_engine.storage.operational import StorageError
 
 _PHASE1_COMMANDS = frozenset({"capture", "inbox", "proposals", "query", "review", "spaces"})
 _MCP_SPACE_ID = re.compile(r"space_[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")

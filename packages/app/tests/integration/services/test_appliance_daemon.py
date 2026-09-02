@@ -16,6 +16,19 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
+from open_brain_engine.engine import (
+    DaemonAuthorityError,
+    DaemonAuthorityRootMismatchError,
+    DaemonAuthorityStaleError,
+    LocalEngineContext,
+    ProposalDraft,
+    TextPayload,
+    acquire_daemon_authority,
+    open_local_engine,
+)
+from open_brain_engine.engine.authority import DaemonAuthorityCapability
+from open_brain_engine.storage.locks import LockBusyError
+
 from open_brain.cli._common import ExitCode
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain.services.appliance_application import ApplianceApplication
@@ -41,18 +54,6 @@ from open_brain.services.appliance_scheduler import (
 )
 from open_brain.services.http_server import HttpServerFactory, HttpServerProtocol
 from open_brain.services.runtime import appliance_http_configuration_from_environment
-from open_brain_engine.engine import (
-    DaemonAuthorityError,
-    DaemonAuthorityRootMismatchError,
-    DaemonAuthorityStaleError,
-    LocalEngineContext,
-    ProposalDraft,
-    TextPayload,
-    acquire_daemon_authority,
-    open_local_engine,
-)
-from open_brain_engine.engine.authority import DaemonAuthorityCapability
-from open_brain_engine.storage.locks import LockBusyError
 
 _ORIGINAL_SOCKET_BIND = socket.socket.bind
 _ORIGINAL_SOCKET_CONNECT = socket.socket.connect

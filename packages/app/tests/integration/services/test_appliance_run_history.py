@@ -5,6 +5,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
+
 from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain.services.appliance_history import (
     last_successful_run,
@@ -17,7 +19,6 @@ from open_brain.services.appliance_scheduler import (
     ApplianceRunReceipt,
     ApplianceScheduler,
 )
-from open_brain_engine.core.ids import canonical_json_bytes
 
 _NOW = datetime(2026, 9, 1, 12, 0, tzinfo=UTC)
 

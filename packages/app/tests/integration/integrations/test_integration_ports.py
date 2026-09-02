@@ -6,9 +6,9 @@ from dataclasses import FrozenInstanceError
 from hashlib import sha256
 from pathlib import Path
 
-import open_brain.integrations.ports as ports_module
 import pytest
 
+import open_brain.integrations.ports as ports_module
 from open_brain.integrations import (
     AuditDisposition,
     AuditFinding,

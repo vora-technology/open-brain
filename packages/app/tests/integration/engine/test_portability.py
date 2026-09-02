@@ -13,7 +13,6 @@ from typing import cast
 
 import open_brain_engine.engine.portability as portability_module
 import pytest
-from open_brain.profile import compile_single_user_local
 from open_brain_engine.core.ids import portable_canonical_json_bytes
 from open_brain_engine.engine import (
     BrainEngine,
@@ -33,6 +32,8 @@ from open_brain_engine.storage.filesystem import RootConfinementError
 from open_brain_engine.storage.locks import FileLease
 from open_brain_engine.storage.markdown import parse_markdown, render_markdown
 from open_brain_engine.storage.staging import SiblingStage
+
+from open_brain.profile import compile_single_user_local
 
 FIXTURE_ROOT = Path(
     str(files("open_brain_engine.portable").joinpath("conformance/v1/brain-root"))

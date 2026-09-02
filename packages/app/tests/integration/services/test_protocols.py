@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import CaptureReceipt, open_local_engine
+
 from open_brain.capture.http import BodyReader, RequestReadTimeout, ShareHttpHandler
 from open_brain.integrations.mcp import LocalStdioMcpAdapter
 from open_brain.integrations.phase1_ui import BrowserSessionStore, Phase1UiHandler
@@ -37,8 +40,6 @@ from open_brain.services.http_server import (
     create_http_server,
 )
 from open_brain.services.mcp_stdio import serve_stdio_mcp
-from open_brain_engine.core.ids import canonical_json_bytes
-from open_brain_engine.engine import CaptureReceipt, open_local_engine
 
 
 class _Retriever:

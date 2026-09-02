@@ -12,11 +12,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from open_brain.profile import (
-    SingleUserLocalProfile,
-    compile_single_user_local,
-    open_existing_single_user_local,
-)
 from open_brain_engine.engine import (
     PHASE1_STATE_SCHEMA_VERSION,
     StateSchemaUnavailableError,
@@ -24,6 +19,12 @@ from open_brain_engine.engine import (
     inspect_phase1_state,
     open_local_engine,
     read_maintenance_snapshot,
+)
+
+from open_brain.profile import (
+    SingleUserLocalProfile,
+    compile_single_user_local,
+    open_existing_single_user_local,
 )
 
 APPLIANCE_OWNER_CREDENTIAL = Path(".open-brain/state/appliance-owner-credential")

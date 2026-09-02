@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import pytest
+
 from open_brain.integrations.ports import PageDocument, PageReadRequest
 from open_brain.integrations.ui import UiBindConfig, UiHandler, UiRequest
 

@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
+from open_brain_engine.engine import CaptureAction, ReferencePayload, TextPayload
+
 from open_brain.capture.http import HttpRequest
 from open_brain.cli.phase1 import Phase1CommandAdapter
 from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain.services.phase1_application import SingleUserLocalApplication
-from open_brain_engine.core.ids import canonical_json_bytes
-from open_brain_engine.engine import CaptureAction, ReferencePayload, TextPayload
 
 
 def test_single_user_local_application_owns_one_engine_task_set(tmp_path: Path) -> None:

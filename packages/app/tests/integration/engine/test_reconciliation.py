@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 from open_brain_engine.engine import (
     CaptureAction,
     TextPayload,
@@ -11,6 +10,8 @@ from open_brain_engine.engine import (
     open_local_engine,
 )
 from open_brain_engine.storage.markdown import parse_markdown, render_markdown
+
+from open_brain.profile import compile_single_user_local, open_existing_single_user_local
 
 
 def test_reconciliation_updates_retrieval_and_space_name_without_rewriting_owner_markdown(

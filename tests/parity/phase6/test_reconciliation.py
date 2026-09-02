@@ -10,9 +10,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from open_brain.cli._common import ExitCode
-from open_brain.config import RetainedRootIdentities, RetainedRoots, SecretRef
 
+from open_brain.cli._common import ExitCode
 from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.main import main
 from open_brain.cli.phase6_adapters import (
@@ -20,6 +19,7 @@ from open_brain.cli.phase6_adapters import (
     CutoverDoctorCommandAdapter,
     StateAdoptionCommandAdapter,
 )
+from open_brain.config import RetainedRootIdentities, RetainedRoots, SecretRef
 from open_brain.migrate._models import (
     StateAdoptionReceiptEvidence,
     StateAuthorityReceiptEvidence,

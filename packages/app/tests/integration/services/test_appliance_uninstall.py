@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 
 import pytest
+from open_brain_engine.engine import CaptureAction, TextPayload, open_local_engine
+
 from open_brain.profile import open_existing_single_user_local
 from open_brain.services.appliance_init import initialize_appliance
 from open_brain.services.appliance_lifecycle import (
@@ -22,7 +24,6 @@ from open_brain.services.appliance_recovery import (
     ApplianceBackupResult,
     ApplianceReplacementPreflight,
 )
-from open_brain_engine.engine import CaptureAction, TextPayload, open_local_engine
 
 
 def test_uninstall_requires_explicit_owner_request_orders_stop_remove_and_preserves_root(

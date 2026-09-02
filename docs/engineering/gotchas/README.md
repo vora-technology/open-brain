@@ -528,3 +528,16 @@ Never add workspace path extension to the shipping app. The wheel-only harness m
 and P4-W4 removes the test overlay with the old monolith tree.
 
 Discovered: 2026-09-01.
+
+### TOOLING-001: Ruff cache can hide import reclassification after package moves
+
+Symptom: Local Ruff verification passes after moving modules between source roots, but a clean CI
+checkout reports many `I001` import-order failures.
+
+Cause: Cached lint results predate the relocation even though isort's first-party classification
+depends on the module's source root and distribution boundary.
+
+Fix: Configure `open_brain` as first-party and `open_brain_engine` as its third-party dependency.
+Run Ruff once with `--no-cache` after package moves and treat that result as the migration gate.
+
+Discovered: 2026-09-01.

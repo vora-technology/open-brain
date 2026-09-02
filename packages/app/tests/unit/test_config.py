@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine.core.models import PrivacyTier
+
 from open_brain.config import (
     AppConfig,
     ConfigError,
@@ -16,7 +18,6 @@ from open_brain.config import (
     SecretResolutionError,
     resolve_secret,
 )
-from open_brain_engine.core.models import PrivacyTier
 
 
 def _retained_roots(base: Path) -> RetainedRoots:

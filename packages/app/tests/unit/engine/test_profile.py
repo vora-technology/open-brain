@@ -5,14 +5,15 @@ import os
 import stat
 from pathlib import Path
 
-import open_brain.profile as profile_module
 import pytest
+from open_brain_engine.engine import ProviderMode
+
+import open_brain.profile as profile_module
 from open_brain.profile import (
     ProfileError,
     compile_single_user_local,
     open_existing_single_user_local,
 )
-from open_brain_engine.engine import ProviderMode
 
 TENANT = "tenant_123e4567-e89b-42d3-a456-426614174000"
 ACTOR = "actor_123e4567-e89b-42d3-a456-426614174001"

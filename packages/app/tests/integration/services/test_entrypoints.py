@@ -10,9 +10,11 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
-import open_brain.services.phase1_entrypoints as entrypoints_module
 import open_brain_engine.core.ids as engine_ids_module
 import pytest
+from open_brain_engine.core.ids import canonical_json_bytes
+
+import open_brain.services.phase1_entrypoints as entrypoints_module
 from open_brain.config import AppConfig, NamedSecretRef, RetainedRoots, SecretRef
 from open_brain.integrations.ui import UiBindConfig
 from open_brain.services.http_server import HttpRouteMode
@@ -31,7 +33,6 @@ from open_brain.services.runtime import (
     compose_mcp_from_config,
     load_private_http_bind_config,
 )
-from open_brain_engine.core.ids import canonical_json_bytes
 
 PACKAGE_IMPORT_PATHS = [
     str(Path(inspect.getfile(entrypoints_module)).resolve().parents[2]),

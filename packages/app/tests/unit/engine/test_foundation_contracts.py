@@ -7,7 +7,6 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from open_brain.profile import compile_single_user_local
 from open_brain_engine.core.ids import portable_canonical_json_bytes
 from open_brain_engine.core.models import (
     Authority,
@@ -36,6 +35,8 @@ from open_brain_engine.engine.local import (
     RetrievalTasks,
     ReviewTasks,
 )
+
+from open_brain.profile import compile_single_user_local
 
 
 def _portable_id(prefix: str) -> str:

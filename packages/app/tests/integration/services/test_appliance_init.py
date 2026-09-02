@@ -6,6 +6,8 @@ import stat
 from pathlib import Path
 
 import pytest
+from open_brain_engine.engine import TextPayload, open_local_engine
+
 from open_brain.profile import compile_single_user_local
 from open_brain.services.appliance_init import (
     APPLIANCE_INIT_RECEIPT,
@@ -13,7 +15,6 @@ from open_brain.services.appliance_init import (
     ApplianceInitError,
     initialize_appliance,
 )
-from open_brain_engine.engine import TextPayload, open_local_engine
 
 
 def test_initialize_appliance_is_idempotent_and_preserves_generated_credential_and_content(

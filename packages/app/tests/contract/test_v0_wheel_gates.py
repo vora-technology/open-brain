@@ -11,13 +11,14 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from open_brain_engine.engine import ProposalDraft, TextPayload, open_local_engine
+
 from open_brain.profile import open_existing_single_user_local
 from open_brain.services.appliance_auth import derive_appliance_credential
 from open_brain.services.appliance_daemon import ApplianceDaemon
 from open_brain.services.appliance_entrypoints import run_cli
 from open_brain.services.appliance_init import APPLIANCE_OWNER_CREDENTIAL, initialize_appliance
 from open_brain.services.runtime import appliance_http_configuration_from_environment
-from open_brain_engine.engine import ProposalDraft, TextPayload, open_local_engine
 
 _ORIGINAL_SOCKET_BIND = socket.socket.bind
 _ORIGINAL_SOCKET_CONNECT = socket.socket.connect

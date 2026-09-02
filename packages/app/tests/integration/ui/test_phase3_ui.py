@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+
 from open_brain.integrations.ui import UiBindConfig
 from open_brain.services.appliance_auth import derive_appliance_credential
 from open_brain.services.appliance_daemon import (

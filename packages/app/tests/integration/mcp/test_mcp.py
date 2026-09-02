@@ -4,6 +4,7 @@ from dataclasses import fields
 from typing import cast
 
 import pytest
+
 from open_brain.integrations.mcp import LocalStdioMcpAdapter, McpCallError
 from open_brain.integrations.ports import (
     FeedbackOutcome,

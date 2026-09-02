@@ -7,6 +7,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+from open_brain_engine.engine import (
+    EngineTaskSet,
+    PublicJobCaptureContext,
+    PublicJobCaptureSink,
+    open_local_engine,
+)
+
 from open_brain.capture.http import BodyReader, ShareHttpHandler
 from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
@@ -15,12 +22,6 @@ from open_brain.integrations.phase1_ui import Phase1UiHandler
 from open_brain.integrations.ports import RetrievalFeedbackReceipt, RetrievalFeedbackRequest
 from open_brain.profile import compile_single_user_local
 from open_brain.services.runtime import ApplianceControlPlane, reserved_appliance_control_plane
-from open_brain_engine.engine import (
-    EngineTaskSet,
-    PublicJobCaptureContext,
-    PublicJobCaptureSink,
-    open_local_engine,
-)
 
 
 class Phase1RetrievalFeedback:

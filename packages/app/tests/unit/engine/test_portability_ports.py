@@ -7,7 +7,6 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
-from open_brain.profile import compile_single_user_local
 from open_brain_engine.core.ids import portable_canonical_json_bytes
 from open_brain_engine.engine import portability_ports
 from open_brain_engine.engine.portability_ports import (
@@ -17,6 +16,8 @@ from open_brain_engine.engine.portability_ports import (
 )
 from open_brain_engine.storage.filesystem import RootConfinementError, WriteState
 from open_brain_engine.storage.markdown import parse_markdown, render_markdown
+
+from open_brain.profile import compile_single_user_local
 
 FIXTURE_ROOT = Path(
     str(files("open_brain_engine.portable").joinpath("conformance/v1/brain-root"))

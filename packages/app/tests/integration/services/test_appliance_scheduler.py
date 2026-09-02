@@ -7,8 +7,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import cast
 
-import open_brain.services.appliance_scheduler as scheduler_module
 import pytest
+from open_brain_engine.engine import LocalEngineContext, canonical_json_bytes
+
+import open_brain.services.appliance_scheduler as scheduler_module
 from open_brain.profile import compile_single_user_local
 from open_brain.services.appliance_scheduler import (
     APPLIANCE_SCHEDULER_DIRECTORY,
@@ -19,7 +21,6 @@ from open_brain.services.appliance_scheduler import (
     ApplianceSchedulerInterruptedError,
     ApplianceSchedulerRetryableError,
 )
-from open_brain_engine.engine import LocalEngineContext, canonical_json_bytes
 
 _NOW = datetime(2026, 9, 1, 12, 0, tzinfo=UTC)
 

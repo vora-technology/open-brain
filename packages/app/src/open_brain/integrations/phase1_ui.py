@@ -10,8 +10,6 @@ from dataclasses import dataclass
 from typing import Protocol, cast
 from urllib.parse import parse_qs, urlsplit
 
-from open_brain.capture.auth import BearerAuthenticator
-from open_brain.integrations.ui import page_response
 from open_brain_engine.engine import (
     CaptureAction,
     DecisionOutcome,
@@ -23,6 +21,9 @@ from open_brain_engine.engine import (
     TextPayload,
     project_public_space,
 )
+
+from open_brain.capture.auth import BearerAuthenticator
+from open_brain.integrations.ui import page_response
 
 from .ports import PageReader
 

@@ -8,7 +8,6 @@ from typing import cast
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker  # type: ignore[import-untyped]
-from open_brain.profile import compile_single_user_local
 from open_brain_engine.engine import (
     BrainEngine,
     CaptureAction,
@@ -29,6 +28,8 @@ from open_brain_engine.storage.filesystem import RootConfinementError
 from open_brain_engine.storage.locks import FileLease, LockBusyError
 from open_brain_engine.storage.markdown import parse_markdown
 from referencing import Registry, Resource
+
+from open_brain.profile import compile_single_user_local
 
 SCHEMA_ROOT = files("open_brain_engine.portable").joinpath("schemas/v1")
 _FORMAT_CHECKER = FormatChecker()

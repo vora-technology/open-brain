@@ -5,6 +5,8 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from open_brain_engine.engine import CaptureReceipt
+
 from open_brain.integrations.ports import (
     FeedbackOutcome,
     PageDocument,
@@ -22,7 +24,6 @@ from open_brain.services.composition import (
     compose_production_services,
 )
 from open_brain.services.http_server import HttpRouteMode
-from open_brain_engine.engine import CaptureReceipt
 
 
 class _Retriever:

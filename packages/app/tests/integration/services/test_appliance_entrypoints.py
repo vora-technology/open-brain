@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+
 from open_brain.profile import compile_single_user_local
 from open_brain.services.appliance_daemon import (
     ApplianceControlUnavailableError,

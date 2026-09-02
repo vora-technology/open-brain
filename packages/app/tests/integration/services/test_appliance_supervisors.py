@@ -5,6 +5,7 @@ from importlib.resources import files
 from pathlib import Path
 
 import pytest
+
 from open_brain.services.appliance_lifecycle import run_supervisor_action
 from open_brain.services.appliance_supervisors import (
     LaunchdSupervisor,
