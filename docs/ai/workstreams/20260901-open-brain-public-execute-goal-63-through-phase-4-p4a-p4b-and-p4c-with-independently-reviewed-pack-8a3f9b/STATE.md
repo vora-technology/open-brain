@@ -11,12 +11,11 @@
 ## Current milestone
 
 - Milestone: P4-W5 bundler spike and native lifecycle adapter
-- Status: independent-review repair candidate active from rejected source
-  `e55d7488a60a98f2bf5f06cebc18f8fe485e169f`. P4A is complete. Child 15
-  accepted D-050/D-051 and returned `NOT_READY`, P0/P1/P2 `0/2/0`, closing
-  every finding except complete `.env*` denial and hermetic Git-tree
-  materialization. Their red-first repairs and all 115 focused P4-W5 tests are
-  green. Candidate preflight and a new source freeze remain pending.
+- Status: complete at accepted source
+  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. P4A remains complete. All
+  local and target-native gates passed, and child 15 returned `READY`,
+  P0/P1/P2 `0/0/0`, against the exact source plus local macOS, CI macOS, and
+  literal Ubuntu 24.04 artifact/member digests. P4-W6 has not started.
 - Allowed scope: app-owned native lifecycle and frozen entrypoint behavior;
   PyInstaller configuration and pinned dependencies; native build, membership,
   smoke, lifecycle, recovery, Portable, supervisor, and residue tests; exact
@@ -87,10 +86,10 @@
 
 ## Next action
 
-Run `make p4w5-preflight` once for the repaired candidate. If it passes, commit
-the new source SHA, then run the one-time frozen-candidate Phase 4 contracts,
-full verification, local macOS ARM64 native proof, and artifact audits before
-pushing for exact-head Linux x86_64 native CI and same-lineage rereview.
+P4-W5 is complete. Do not start P4-W6 while notarization readiness remains
+false. Resolve the authorized private readiness blocker without changing or
+rerunning the immutable six-probe snapshot. Recovery readiness remains a
+separate blocker for the later recovery/rehearsal gates.
 
 ## P4-W0 complete
 
@@ -589,3 +588,24 @@ pushing for exact-head Linux x86_64 native CI and same-lineage rereview.
   IDs and executable modes. The complete eight-case set and 115 focused tests
   pass. Candidate preflight is the next gate; no broad or native rerun occurred
   in this edit loop.
+
+## P4-W5 complete
+
+- Exact source `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db` passed one
+  115-test candidate preflight, 119 Phase 4/security tests, all 3,221
+  repository tests, source-free distribution policy, source/artifact/history
+  audits, Gitleaks over 104 commits, and the local macOS ARM64 native matrix.
+- Exact-head CI `33684763227`, Release audit `33684763223`, and CodeQL
+  `33684759266` passed on attempt one. Literal Ubuntu 24.04 and macOS 14 ARM64
+  native jobs passed with the artifact/member digests recorded in
+  `EVIDENCE.md`; PR #6 had 14 of 14 green checks.
+- Child 15's final same-lineage review returned `READY`, P0/P1/P2 `0/0/0`.
+  D-050 and D-051 are accepted, `P4W5-001` through `P4W5-008` are closed,
+  and no finding remains. The lineage is closed.
+- The readiness snapshot still hashes to
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`;
+  no probe reran. P4-W6 remains unstarted and blocked by false notarization
+  readiness. False recovery readiness remains a later gate blocker.
+- This D-031/D-048 closure changes evidence documents only. Accepted source,
+  tests, policy, workflows, and native artifacts remain those reviewed at
+  `c7c4fad`.

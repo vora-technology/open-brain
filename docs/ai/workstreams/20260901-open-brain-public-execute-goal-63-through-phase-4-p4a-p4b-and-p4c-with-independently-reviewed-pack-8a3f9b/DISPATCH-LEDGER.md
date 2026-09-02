@@ -317,21 +317,20 @@ coordinator-owned.
 
 ## P4-W5 milestone budget
 
-- Status: active
+- Status: complete
 - Active children: 0 of 6
 - Total children: 1 of 12
 - Identical failures: 0 of 2
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; no child write scope is reserved
-- Review lineage: child 15 is closed during source repair and reserved for
-  same-lineage rereview after a new exact candidate passes every local and
-  remote gate
+- Review lineage: child 15 returned final `READY` at
+  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`; lineage closed
 - Reset authority: P4-W4 child 14 is closed; D-031 and D-048 start P4-W5 with
   a fresh milestone budget and separate source/evidence identities
 
 ## Child 15: P4-W5 native artifact and lifecycle review
 
-- Status: repair active; lineage closed and retained for rereview
+- Status: complete; lineage closed
 - Agent ID: `01a0636c-3ef9-7823-ad08-d8dcdb5a48d9`
 - Nickname: Kierkegaard
 - Role: read-only independent reviewer
@@ -364,6 +363,14 @@ coordinator-owned.
 - Third rereview result: `NOT_READY`; P0/P1/P2 `0/2/0`. D-050 and D-051 were
   accepted. `P4W5-001`, `P4W5-002`, `P4W5-003`, `P4W5-005`, `P4W5-006`,
   and `P4W5-007` are closed. `P4W5-004` and `P4W5-008` remain open.
-- Next review scope: the next frozen source SHA, its fresh local and
-  target-native artifact digests, exact-head checks, all prior finding
-  dispositions, and D-051
+- Final source scope:
+  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`
+- Final evidence: 115-test preflight, 119 Phase 4/security tests, all 3,221
+  repository tests, local macOS ARM64 native proof, exact-head CI
+  `33684763227`, Release audit `33684763223`, and CodeQL `33684759266`
+  passed. Linux job `100429455057` used literal `ubuntu-24.04`; macOS job
+  `100429455034` used `macos-14-arm64`. Exact artifact and membership digests
+  are recorded in `EVIDENCE.md`.
+- Final result: `READY`; P0/P1/P2 `0/0/0`. D-050 and D-051 are accepted,
+  `P4W5-001` through `P4W5-008` are closed, and no finding remains. P4-W5 is
+  complete; the reviewer lineage is closed.

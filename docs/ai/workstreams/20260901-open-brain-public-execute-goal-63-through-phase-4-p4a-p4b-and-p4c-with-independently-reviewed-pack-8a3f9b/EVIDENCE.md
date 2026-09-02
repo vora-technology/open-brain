@@ -775,3 +775,52 @@
   `export-ignore`. The complete eight-case set and all 115 focused P4-W5 tests
   now pass. A new preflight, source freeze, frozen-candidate gates, native
   artifacts, exact-head checks, and same-lineage verdict remain pending.
+
+## P4-W5 accepted source and artifact closure
+
+- The accepted source candidate is
+  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. Its one candidate preflight
+  passed 115 focused tests, pinned Python 3.12 validation, actionlint, manifest
+  validation, Ruff, MyPy on 21 touched files, and diff integrity.
+- The frozen local ladder passed 119 Phase 4/security tests, Ruff, MyPy on 543
+  files, all 3,221 repository tests, six source-free distributions, artifact
+  policy, source/artifact and reachable-history audits, Gitleaks 8.30.1 over
+  104 commits, lock/workflow/diff checks, and a clean worktree.
+- The separate local macOS ARM64 build materialized and verified source-tree
+  digest `2befe27e25b7feaf67e3efea8dea95d15c888f194c087903eb43488bc25e1c7f`.
+  Its 142-member, four-symlink artifact has membership
+  `064cebd3dbc51a27f80c63a047eea73e54e6b581075308533f7e59d98ae17265`
+  and tree `f08140c6b12c8ea0a96309880eb30a49547cd300ec2615fcf6183839f87ece76`.
+- Exact-head CI `33684763227`, Release audit `33684763223`, and CodeQL
+  `33684759266` passed on their first attempt. PR #6 reported 14 of 14 checks
+  green. Linux job `100429455057` ran on literal `ubuntu-24.04`; its 111-member,
+  zero-symlink artifact has membership
+  `121db9cdd0622785771b77456327499a82661b4fa9689d0f8e2e4e924647649a`
+  and tree `79defd2c7cea266d050036b6467b02bc348f795b3370aa3dbed4acfeec85768b`.
+  macOS job `100429455034` ran on `macos-14-arm64`; its 139-member,
+  four-symlink artifact has membership
+  `6e5118ad6a106df150abac5834b13bef5805be0bb956dc2339e88b30ee86bafb`
+  and tree `7f1ec77566f76119419d9d5177026a3879f7c0f34a6da5b78ff91cbfe0bd9e90`.
+- Every local and CI native runtime result passed: activation, KeepAlive-aware
+  quiescence, owner-confirmed corrupt rollback and daemon restoration, a second
+  active-daemon upgrade, public-control Portable export/import, backup/restore,
+  connector isolation, uninstall, clean residue, and no source checkout or
+  system Python.
+- Child 15's final same-lineage review returned `READY`, P0/P1/P2 `0/0/0`,
+  against the exact source and all three artifact subjects. It accepted D-050
+  and D-051, explicitly closed `P4W5-001` through `P4W5-008`, and opened no
+  finding. The lineage is closed.
+- The immutable readiness snapshot remains byte-for-byte unchanged at SHA-256
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`.
+  No readiness probe reran. Its Linux false result remains the recorded
+  `ubuntu-latest` versus required `ubuntu-24.04` mismatch; the exact target job
+  above supplies P4-W5 acceptance without rewriting that one-shot evidence.
+- P4-W5 is complete. D-031 and D-048 bind acceptance to source `c7c4fad` and
+  the artifact/member digests above. This evidence closure changes only the
+  workstream evidence documents and does not alter accepted source, tests,
+  policy, workflows, or artifacts.
+- P4-W6 has not started. Notarization readiness remains false and blocks its
+  signed/notarized candidate gate. Recovery readiness also remains false and
+  blocks the later recovery/rehearsal gates. No signing, notarization,
+  publication, tag, release, deployment, production/private-state mutation,
+  recovery action, or cutover occurred.
