@@ -5392,58 +5392,6 @@
       "target_path": "packages/app/src/open_brain/services/appliance_supervisors.py",
       "test_owner": "app"
     },
-    "services/native_artifacts.py": {
-      "api": "internal",
-      "api_status": "distribution-private",
-      "artifact_disposition": [
-        "app-native",
-        "app-sdist",
-        "app-wheel"
-      ],
-      "current_path": "packages/app/src/open_brain/services/native_artifacts.py",
-      "import_rewrite": {
-        "from": "open_brain.services.native_artifacts",
-        "to": "open_brain.services.native_artifacts"
-      },
-      "movement_state": "moved",
-      "old_import_disposition": "retain",
-      "owner": "app",
-      "resource_requirements": [],
-      "roles": [
-        "lifecycle"
-      ],
-      "runtime_namespace": "open_brain",
-      "target_distribution": "app",
-      "target_path": "packages/app/src/open_brain/services/native_artifacts.py",
-      "test_owner": "app"
-    },
-    "services/native_entrypoint.py": {
-      "api": "internal",
-      "api_status": "distribution-private",
-      "artifact_disposition": [
-        "app-native",
-        "app-sdist",
-        "app-wheel"
-      ],
-      "current_path": "packages/app/src/open_brain/services/native_entrypoint.py",
-      "import_rewrite": {
-        "from": "open_brain.services.native_entrypoint",
-        "to": "open_brain.services.native_entrypoint"
-      },
-      "movement_state": "moved",
-      "old_import_disposition": "retain",
-      "owner": "app",
-      "resource_requirements": [
-        "importlib.resources"
-      ],
-      "roles": [
-        "entry-point"
-      ],
-      "runtime_namespace": "open_brain",
-      "target_distribution": "app",
-      "target_path": "packages/app/src/open_brain/services/native_entrypoint.py",
-      "test_owner": "app"
-    },
     "services/application.py": {
       "api": "internal",
       "api_status": "distribution-private",
@@ -5600,6 +5548,58 @@
       "runtime_namespace": "open_brain",
       "target_distribution": "app",
       "target_path": "packages/app/src/open_brain/services/mcp_stdio.py",
+      "test_owner": "app"
+    },
+    "services/native_artifacts.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "app-native",
+        "app-sdist",
+        "app-wheel"
+      ],
+      "current_path": "packages/app/src/open_brain/services/native_artifacts.py",
+      "import_rewrite": {
+        "from": "open_brain.services.native_artifacts",
+        "to": "open_brain.services.native_artifacts"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "app",
+      "resource_requirements": [],
+      "roles": [
+        "lifecycle"
+      ],
+      "runtime_namespace": "open_brain",
+      "target_distribution": "app",
+      "target_path": "packages/app/src/open_brain/services/native_artifacts.py",
+      "test_owner": "app"
+    },
+    "services/native_entrypoint.py": {
+      "api": "internal",
+      "api_status": "distribution-private",
+      "artifact_disposition": [
+        "app-native",
+        "app-sdist",
+        "app-wheel"
+      ],
+      "current_path": "packages/app/src/open_brain/services/native_entrypoint.py",
+      "import_rewrite": {
+        "from": "open_brain.services.native_entrypoint",
+        "to": "open_brain.services.native_entrypoint"
+      },
+      "movement_state": "moved",
+      "old_import_disposition": "retain",
+      "owner": "app",
+      "resource_requirements": [
+        "importlib.resources"
+      ],
+      "roles": [
+        "entry-point"
+      ],
+      "runtime_namespace": "open_brain",
+      "target_distribution": "app",
+      "target_path": "packages/app/src/open_brain/services/native_entrypoint.py",
       "test_owner": "app"
     },
     "services/phase1_application.py": {
@@ -6889,6 +6889,24 @@
         "target_path": "packages/app/pyproject.toml#project.scripts.open-brain-mcp",
         "test_owner": "app"
       },
+      "release/native/open-brain.spec": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "release/native/open-brain.spec",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "native-build-input"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "release/native/open-brain.spec",
+        "test_owner": "workspace"
+      },
       "release/phase4-compatibility.json": {
         "api_status": "workspace-only",
         "artifact_disposition": [
@@ -6927,24 +6945,6 @@
         "runtime_namespace": null,
         "target_distribution": "workspace",
         "target_path": "release/phase4-toolchain.json",
-        "test_owner": "workspace"
-      },
-      "release/native/open-brain.spec": {
-        "api_status": "workspace-only",
-        "artifact_disposition": [
-          "excluded"
-        ],
-        "current_path": "release/native/open-brain.spec",
-        "import_rewrite": null,
-        "kind": "release-tool",
-        "movement_state": "moved",
-        "old_import_disposition": "not-applicable",
-        "resource_requirements": [
-          "native-build-input"
-        ],
-        "runtime_namespace": null,
-        "target_distribution": "workspace",
-        "target_path": "release/native/open-brain.spec",
         "test_owner": "workspace"
       },
       "release/public-history-allowlist.json": {
@@ -9630,38 +9630,6 @@
         "target_path": "packages/app/tests/integration/services/test_appliance_supervisors.py",
         "test_owner": "app"
       },
-      "tests/integration/services/test_native_artifacts.py": {
-        "api_status": "test-only",
-        "artifact_disposition": [
-          "excluded"
-        ],
-        "current_path": "packages/app/tests/integration/services/test_native_artifacts.py",
-        "import_rewrite": null,
-        "kind": "test",
-        "movement_state": "moved",
-        "old_import_disposition": "not-applicable",
-        "resource_requirements": [],
-        "runtime_namespace": null,
-        "target_distribution": "app",
-        "target_path": "packages/app/tests/integration/services/test_native_artifacts.py",
-        "test_owner": "app"
-      },
-      "tests/integration/services/test_native_entrypoint.py": {
-        "api_status": "test-only",
-        "artifact_disposition": [
-          "excluded"
-        ],
-        "current_path": "packages/app/tests/integration/services/test_native_entrypoint.py",
-        "import_rewrite": null,
-        "kind": "test",
-        "movement_state": "moved",
-        "old_import_disposition": "not-applicable",
-        "resource_requirements": [],
-        "runtime_namespace": null,
-        "target_distribution": "app",
-        "target_path": "packages/app/tests/integration/services/test_native_entrypoint.py",
-        "test_owner": "app"
-      },
       "tests/integration/services/test_appliance_uninstall.py": {
         "api_status": "test-only",
         "artifact_disposition": [
@@ -9724,6 +9692,38 @@
         "runtime_namespace": null,
         "target_distribution": "app",
         "target_path": "packages/app/tests/integration/services/test_entrypoints.py",
+        "test_owner": "app"
+      },
+      "tests/integration/services/test_native_artifacts.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "packages/app/tests/integration/services/test_native_artifacts.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/tests/integration/services/test_native_artifacts.py",
+        "test_owner": "app"
+      },
+      "tests/integration/services/test_native_entrypoint.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "packages/app/tests/integration/services/test_native_entrypoint.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/tests/integration/services/test_native_entrypoint.py",
         "test_owner": "app"
       },
       "tests/integration/services/test_phase1_surfaces.py": {

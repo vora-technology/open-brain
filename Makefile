@@ -13,6 +13,10 @@ P4W5_FOCUSED_TESTS = \
 	packages/app/tests/integration/services/test_appliance_uninstall.py \
 	packages/app/tests/integration/services/test_appliance_upgrade.py \
 	tests/integration/release/test_v0_artifact_policy.py \
+	tests/phase4/test_connector_distribution.py::test_connector_isolation_runs_on_every_supported_python_in_ci \
+	tests/phase4/test_move_manifest.py::test_canonical_move_manifest_is_complete_and_valid \
+	tests/phase4/test_move_manifest.py::test_generated_move_and_import_reports_are_exact \
+	tests/phase4/test_move_manifest.py::test_manifest_json_is_deterministically_formatted \
 	tests/phase4/test_native_build.py \
 	tests/phase4/test_p4w5_contracts.py \
 	tests/phase4/test_readiness_preflight.py
@@ -40,6 +44,8 @@ P4W5_TOUCHED_PYTHON = \
 	packages/app/tests/integration/services/test_native_entrypoint.py \
 	packages/app/tests/integration/services/test_native_artifacts.py \
 	tests/integration/release/test_v0_artifact_policy.py \
+	tests/phase4/test_connector_distribution.py \
+	tests/phase4/test_move_manifest.py \
 	tests/phase4/test_native_build.py \
 	tests/phase4/test_p4w5_contracts.py \
 	tools/phase4/native_build.py \
