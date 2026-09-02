@@ -12,10 +12,10 @@
 
 - Milestone: P4-W3 connector distribution, provisional interface, and isolated
   worker
-- Status: child 13 returned `NOT_READY`, P0/P1/P2 `0/1/0`, for source
-  `2c05dead068ef517ed365d100f3b6273c29eeba9`. The installed parent-load P1 is
-  repaired with full local gates green; a repair checkpoint, exact-head CI,
-  and same-lineage rereview remain pending
+- Status: complete at source
+  `27344c6cf83b8b74c11d6ec0c1c3075cbfa98e09`. All exact-head gates passed;
+  child 13 returned `READY`, P0/P1/P2 `0/0/0`, and explicitly closed its prior
+  P1. P4-W4 is intentionally unstarted
 - Allowed scope: the five manifest-owned connector runtime files and authorized
   tests/resources; `open-brain-connectors` build metadata and artifacts;
   already-demonstrated provisional extension values and conformance rules;
@@ -86,9 +86,9 @@
 
 ## Next action
 
-Create a bounded source checkpoint for the child-13 P1 repair and repeat
-exact-head CI. Then resume child 13 for same-lineage rereview; close P4-W3 only
-on `READY` with P0/P1/P2 `0/0/0`.
+Persist the P4-W3 evidence-only closure checkpoint and validated handoff. Start
+P4-W4 only in a fresh continuation after resetting its reviewer budget and
+regrounding the canonical legacy/workspace inventory.
 
 ## P4-W0 complete
 
@@ -443,5 +443,10 @@ on `READY` with P0/P1/P2 `0/0/0`.
   non-load regression. All 72 focused tests, 87 Phase 4 tests, and 3,171 full
   tests pass with Ruff, strict MyPy, six artifact builds/policy, the supported
   Python wheel matrix, release/history/Gitleaks audits, actionlint, lockfile,
-  and diff integrity. Reviewer budget is 0 active and 1 total until repair CI
-  is green.
+  and diff integrity. Repair checkpoint `27344c6` passed exact-head CI
+  `33629757827`, Release audit `33629757695`, and CodeQL `33629754431`.
+- Child 13's same-lineage rereview returned `READY`, P0/P1/P2 `0/0/0`,
+  reproduced the parent non-load proof, and explicitly closed `P4W3-001`.
+  Reviewer budget is 0 active and 1 total; the P4-W3 lineage is closed.
+- P4-W3 is complete. P4-W4 did not start. No package publication, tag, release,
+  native build, deployment, production/private access, or cutover occurred.

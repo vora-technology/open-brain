@@ -241,7 +241,7 @@ coordinator-owned.
 
 ## Child 13: P4-W3 connector-isolation final review
 
-- Status: complete; same-lineage rereview pending repair and exact-head CI
+- Status: complete; lineage closed
 - Agent ID: `01a06202-4d7a-7331-a038-239a6e93a630`
 - Model: `gpt-5.6-sol`
 - Reasoning effort: `xhigh`
@@ -256,3 +256,10 @@ coordinator-owned.
   `open_brain.connectors.v1` entry point outside the bounded worker. Repair must
   make installed connector resolution child-only and add a wheel-only parent
   non-load regression.
+- Rereview source scope:
+  `27344c6cf83b8b74c11d6ec0c1c3075cbfa98e09`
+- Rereview evidence: exact-head CI `33629757827`, Release audit `33629757695`,
+  and CodeQL `33629754431` passed before resuming the same lineage
+- Final result: `READY`; P0/P1/P2 `0/0/0`. The reviewer reproduced the
+  installed parent non-load boundary, confirmed `P4W3-001` closed, found no new
+  issues, and declared P4-W3 ready for milestone closure

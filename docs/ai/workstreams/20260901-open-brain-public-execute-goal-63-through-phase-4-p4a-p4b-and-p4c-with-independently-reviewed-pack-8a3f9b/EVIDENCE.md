@@ -489,6 +489,16 @@
   `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
   and engine sdist
   `199e0fc2adb264b0a0f9db50fd291e906b4d0a61cdb90e4eb55784716d000eca`.
-  A repair checkpoint and exact-head CI remain pending.
+  Repair checkpoint `27344c6cf83b8b74c11d6ec0c1c3075cbfa98e09`
+  passed exact-head CI `33629757827`, Release audit `33629757695`, and CodeQL
+  `33629754431`. All connector, full verify, Phase 4, macOS, artifact, and
+  security jobs are green; PR #6, remote, and local source match.
+- Child 13's same-lineage rereview returned `READY`, P0/P1/P2 `0/0/0`, at
+  source `27344c6`. It reproduced the fresh-wheel parent non-load behavior,
+  explicitly closed `P4W3-001`, found no new issues, and declared P4-W3 ready
+  for milestone closure.
+- P4-W3 is complete. P4-W4 has not started, and its reviewer budget resets at
+  the next milestone boundary. No publication, tag, release, native build,
+  deployment, production/private access, cutover action, or P4-W4 work occurred.
 - No publication, tag, release, native build, deployment, production/private
   access, cutover action, or P4-W4 work occurred.
