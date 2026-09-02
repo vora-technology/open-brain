@@ -106,10 +106,13 @@ MCP gets an already scoped retrieval capability plus app feedback, and public jo
 it and applying scope only during calls.
 All of them share the underlying task identities created for the same root.
 
-Retained optional integration metadata is an app-owned extension host. It imports only the module
-named by composition metadata and only after that capability is explicitly enabled. Disabled
-integrations perform no import, while enabled installed modules do not depend on unrelated preload
-state. The nonliteral import site and its host role are recorded exactly in the package
+Retained optional integration metadata is an app-owned extension host. Composition selects a
+closed `OptionalProvider` identity whose immutable registry owns the corresponding lazy loader.
+The registry currently contains only the declared `openai` extra; arbitrary module strings and
+internal package roots are rejected at runtime. Disabled integrations perform no import, while
+enabled installed providers do not depend on unrelated preload state. P4H009 checks a finite
+adversarial corpus for architecture regressions and is not a malicious-code sandbox. The registry
+and its host role are recorded exactly in the package
 classification.
 
 The implemented application layers are:

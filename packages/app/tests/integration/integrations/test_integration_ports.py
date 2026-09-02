@@ -27,6 +27,7 @@ from open_brain.integrations import (
     IntegrationOutcome,
     IntegrationScope,
     OptionalIntegrationMetadata,
+    OptionalProvider,
     PageDocument,
     PageReader,
     PageReadRequest,
@@ -663,16 +664,16 @@ def test_typed_records_reject_invalid_enum_and_container_types() -> None:
 
 
 def test_disabled_optional_provider_is_never_imported(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls: list[str] = []
+    calls: list[OptionalProvider] = []
 
-    def import_canary(module_name: str) -> object:
-        calls.append(module_name)
+    def import_canary(provider: OptionalProvider) -> object:
+        calls.append(provider)
         raise AssertionError("disabled provider import attempted")
 
-    monkeypatch.setattr(ports_module, "_loaded_optional_module", import_canary)
+    monkeypatch.setattr(ports_module, "_loaded_optional_provider", import_canary)
     metadata = OptionalIntegrationMetadata(
         capability=Capability.FINANCE,
-        import_path="synthetic_optional_provider",
+        provider=OptionalProvider.OPENAI,
     )
 
     outcome = metadata.load(config=IntegrationConfig())
@@ -701,13 +702,13 @@ def test_missing_and_crashing_provider_loads_are_stable_and_redacted(
     failure: Exception,
     expected_reason: UnavailableReason,
 ) -> None:
-    def failing_import(_: str) -> object:
+    def failing_import(_: OptionalProvider) -> object:
         raise failure
 
-    monkeypatch.setattr(ports_module, "_loaded_optional_module", failing_import)
+    monkeypatch.setattr(ports_module, "_loaded_optional_provider", failing_import)
     metadata = OptionalIntegrationMetadata(
         capability=Capability.FINANCE,
-        import_path="synthetic_optional_provider",
+        provider=OptionalProvider.OPENAI,
     )
     config = IntegrationConfig(live_adapters=frozenset({Capability.FINANCE}))
 
@@ -725,12 +726,12 @@ def test_missing_and_crashing_provider_loads_are_stable_and_redacted(
 
 
 def test_optional_package_imports_remain_lazy() -> None:
-    module_name = "open_brain_test_optional_provider"
+    module_name = "openai"
 
     assert module_name not in sys.modules
     metadata = OptionalIntegrationMetadata(
         capability=Capability.FINANCE,
-        import_path=module_name,
+        provider=OptionalProvider.OPENAI,
     )
 
     assert module_name not in sys.modules
@@ -747,25 +748,27 @@ def test_optional_package_imports_remain_lazy() -> None:
     ),
 )
 def test_internal_packages_cannot_be_optional_providers(module_name: str) -> None:
+    with pytest.raises(ValueError):
+        OptionalProvider(module_name)
     with pytest.raises(ValueError, match="invalid optional integration metadata"):
         OptionalIntegrationMetadata(
             capability=Capability.FINANCE,
-            import_path=module_name,
+            provider=module_name,  # type: ignore[arg-type]
         )
-    with pytest.raises(ValueError, match="invalid optional integration import path"):
-        ports_module._loaded_optional_module(module_name)
+    with pytest.raises(ValueError, match="invalid optional integration provider"):
+        ports_module._loaded_optional_provider(module_name)  # type: ignore[arg-type]
 
 
 def test_enabled_installed_optional_provider_loads_without_preload(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    module_name = "synthetic_installed_optional_provider"
+    module_name = "openai"
     (tmp_path / f"{module_name}.py").write_text("AVAILABLE = True\n", encoding="utf-8")
     monkeypatch.syspath_prepend(str(tmp_path))
     monkeypatch.delitem(sys.modules, module_name, raising=False)
     metadata = OptionalIntegrationMetadata(
         capability=Capability.FINANCE,
-        import_path=module_name,
+        provider=OptionalProvider.OPENAI,
     )
 
     outcome = metadata.load(

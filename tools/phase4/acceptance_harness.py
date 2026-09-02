@@ -23,12 +23,6 @@ _DISTRIBUTION_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 _FORBIDDEN_APP_IMPORT_ROOTS: Final = frozenset(
     {"open_brain_connectors", "open_brain_legacy"}
 )
-_REVIEWED_APP_DYNAMIC_IMPORTS: Final[Mapping[str, tuple[str, ...]]] = {
-    "open_brain/integrations/ports.py": (
-        "<module>:bind:import_module=import_module",
-        "_loaded_optional_module:call:import_module(import_path)",
-    ),
-}
 _IMPORTLIB_MODULE: Final = "importlib"
 _IMPORTLIB_NAMESPACE: Final = "importlib.__dict__"
 _IMPORTLIB_UTIL_MODULE: Final = "importlib.util"
@@ -44,8 +38,6 @@ _FUNCTION_OBJECT: Final = "function"
 _OBJECT_TYPE: Final = "object"
 _TYPE_CALLABLE: Final = "type"
 _TYPE_OBJECT: Final = "type-object"
-_UNKNOWN_VALUE: Final = "unknown-value"
-_PARAMETER_VALUE_PREFIX: Final = "parameter:"
 _IMPORT_MODULE_CALLABLE: Final = "import_module"
 _BUILTIN_IMPORT_CALLABLE: Final = "__import__"
 _RESOLVE_NAME_CALLABLE: Final = "resolve_name"
@@ -108,7 +100,6 @@ _BUILTINS_MEMBERS: Final[Mapping[str, str]] = {
     "object": _OBJECT_TYPE,
     "type": _TYPE_CALLABLE,
 }
-_UNKNOWN_BINDING: Final = frozenset({_UNKNOWN_VALUE})
 
 
 @dataclass(frozen=True, order=True, slots=True)
@@ -878,6 +869,8 @@ def _constant_string(node: ast.AST) -> str | None:
 
 
 class _DynamicImportAnalyzer(ast.NodeVisitor):
+    """Detect the finite reviewed P4H009 corpus; this is not a Python sandbox."""
+
     def __init__(self) -> None:
         self.imported: set[str] = set()
         self.events: list[str] = []
@@ -989,10 +982,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         return frozenset()
 
     @staticmethod
-    def _parameter_binding(name: str) -> frozenset[str]:
-        return frozenset({f"{_PARAMETER_VALUE_PREFIX}{name}"})
-
-    @staticmethod
     def _member_binding(owner: frozenset[str], member: str) -> frozenset[str]:
         provenance: set[str] = set()
         if _IMPORTLIB_MODULE in owner and member == "import_module":
@@ -1003,9 +992,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             provenance.add(_IMPORTLIB_GETATTRIBUTE_CALLABLE)
         elif _IMPORTLIB_MODULE in owner and member == "util":
             provenance.add(_IMPORTLIB_UTIL_MODULE)
-        elif _IMPORTLIB_MODULE in owner and member in {"metadata", "resources"}:
-            provenance.add(_UNKNOWN_VALUE)
-        elif _IMPORTLIB_MODULE in owner:
+        elif _IMPORTLIB_MODULE in owner and member not in {"metadata", "resources"}:
             provenance.add(_IMPORTLIB_MODULE)
         if _PKGUTIL_MODULE in owner and member == "resolve_name":
             provenance.add(_RESOLVE_NAME_CALLABLE)
@@ -1216,7 +1203,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             return
         if isinstance(target, (ast.Tuple, ast.List)):
             for element in target.elts:
-                self._bind_target(element, _UNKNOWN_BINDING)
+                self._bind_target(element, frozenset())
             if provenance & _DYNAMIC_IMPORT_CAPABILITIES:
                 self._record("escape:dynamic-importer")
             return
@@ -1232,7 +1219,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             for child_target, child_value in zip(target.elts, value.elts, strict=True):
                 self._bind_assignment(child_target, child_value)
             return
-        self._bind_target(target, self._binding(value) or _UNKNOWN_BINDING)
+        self._bind_target(target, self._binding(value))
 
     def _function_scope(
         self,
@@ -1272,7 +1259,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         self._bind(node.name, frozenset({_FUNCTION_OBJECT}), review=False)
         outer = self._snapshot()
         local_names, global_names, nonlocal_names = self._function_scope(node)
-        argument_names = _argument_names(node.args)
         self._push_scope(
             kind="function",
             parent=self._function_parent(),
@@ -1281,8 +1267,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             nonlocal_names=nonlocal_names,
             label=node.name,
         )
-        for name in argument_names:
-            self._bind(name, self._parameter_binding(name), review=False)
         for statement in node.body:
             self.visit(statement)
         self._pop_scope()
@@ -1328,8 +1312,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             nonlocal_names=set(),
             label=f"<lambda>@{node.lineno}",
         )
-        for name in _argument_names(node.args):
-            self._bind(name, self._parameter_binding(name), review=False)
         self.visit(node.body)
         self._pop_scope()
         self._restore(outer)
@@ -1341,7 +1323,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             if binding:
                 self._bind(name, binding, review=binding != frozenset({_SYS_MODULE}))
             else:
-                self._bind(name, _UNKNOWN_BINDING, review=False)
+                self._bind(name, frozenset(), review=False)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:  # noqa: N802
         for alias in node.names:
@@ -1363,7 +1345,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             if owner:
                 self._bind(name, self._member_binding(owner, alias.name))
             else:
-                self._bind(name, _UNKNOWN_BINDING, review=False)
+                self._bind(name, frozenset(), review=False)
 
     def visit_Assign(self, node: ast.Assign) -> None:  # noqa: N802
         self.visit(node.value)
@@ -1377,6 +1359,8 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         if node.value is not None:
             self.visit(node.value)
             self._bind_assignment(node.target, node.value)
+        else:
+            self._bind_target(node.target, frozenset())
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> None:  # noqa: N802
         self.visit(node.value)
@@ -1389,8 +1373,6 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                     break
                 target_scope = parent
             provenance = self._binding(node.value)
-            if not provenance:
-                provenance = _UNKNOWN_BINDING
             if target_scope != original_scope:
                 provenance |= self._resolve_from(target_scope, node.target.id)
             self._bind(node.target.id, provenance, scope_index=target_scope)
@@ -1400,11 +1382,11 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def visit_AugAssign(self, node: ast.AugAssign) -> None:  # noqa: N802
         self.visit(node.target)
         self.visit(node.value)
-        self._bind_target(node.target, _UNKNOWN_BINDING)
+        self._bind_target(node.target, frozenset())
 
     def visit_Delete(self, node: ast.Delete) -> None:  # noqa: N802
         for target in node.targets:
-            self._bind_target(target, _UNKNOWN_BINDING)
+            self._bind_target(target, frozenset())
 
     def visit_If(self, node: ast.If) -> None:  # noqa: N802
         self.visit(node.test)
@@ -1422,7 +1404,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         start = self._snapshot()
         self._restore(start)
         if target is not None:
-            self._bind_target(target, _UNKNOWN_BINDING)
+            self._bind_target(target, frozenset())
         for statement in body:
             self.visit(statement)
         body_state = self._snapshot()
@@ -1450,7 +1432,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         for item in items:
             self.visit(item.context_expr)
             if item.optional_vars is not None:
-                self._bind_target(item.optional_vars, _UNKNOWN_BINDING)
+                self._bind_target(item.optional_vars, frozenset())
         for statement in body:
             self.visit(statement)
 
@@ -1477,11 +1459,11 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             if handler.type is not None:
                 self.visit(handler.type)
             if handler.name is not None:
-                self._bind(handler.name, _UNKNOWN_BINDING, review=False)
+                self._bind(handler.name, frozenset(), review=False)
             for statement in handler.body:
                 self.visit(statement)
             if handler.name is not None:
-                self._bind(handler.name, _UNKNOWN_BINDING, review=False)
+                self._bind(handler.name, frozenset(), review=False)
             outcomes.append(self._snapshot())
         self._restore(self._joined(outcomes))
         for statement in finalbody:
@@ -1502,7 +1484,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             collector = _ScopeNameCollector()
             collector.visit(case.pattern)
             for name in collector.names:
-                self._bind(name, _UNKNOWN_BINDING, review=False)
+                self._bind(name, frozenset(), review=False)
             if case.guard is not None:
                 self.visit(case.guard)
             for statement in case.body:
@@ -1531,7 +1513,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         for index, generator in enumerate(generators):
             if index:
                 self.visit(generator.iter)
-            self._bind_target(generator.target, _UNKNOWN_BINDING)
+            self._bind_target(generator.target, frozenset())
             for condition in generator.ifs:
                 self.visit(condition)
         for value in values:
@@ -1592,13 +1574,7 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                     else target
                 )
         for importer in importers:
-            if (
-                len(node.args) == 1
-                and not node.keywords
-                and isinstance(node.args[0], ast.Name)
-                and self._binding(node.args[0])
-                == self._parameter_binding(node.args[0].id)
-            ):
+            if len(node.args) == 1 and not node.keywords and isinstance(node.args[0], ast.Name):
                 argument = node.args[0].id
             elif target is not None:
                 argument = "<literal>"
@@ -1690,7 +1666,7 @@ def _app_import_boundary_findings(
                     )
             elif isinstance(node, ast.Import):
                 imported.update(alias.name for alias in node.names)
-        if dynamic_signatures != _REVIEWED_APP_DYNAMIC_IMPORTS.get(name, ()):
+        if dynamic_signatures:
             findings.append(
                 Finding("P4H009", name, "app artifact has an undeclared or unreviewed import")
             )

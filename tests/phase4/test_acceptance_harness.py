@@ -204,11 +204,6 @@ def test_app_artifact_rejects_private_engine_and_undeclared_imports(tmp_path: Pa
             "open_brain/private_child_use.py": b"from open_brain_engine.engine import local\n",
             "open_brain/undeclared_use.py": b"import open_brain_connectors\n",
             "open_brain/allowed_optional_use.py": b"import openai\n",
-            "open_brain/integrations/ports.py": (
-                b"from importlib import import_module\n"
-                b"def _loaded_optional_module(import_path: str) -> object:\n"
-                b"    return import_module(import_path)\n"
-            ),
             "open_brain/dynamic_use.py": (
                 b"from importlib import import_module\n"
                 b"def load(target: str) -> object:\n"
@@ -636,7 +631,7 @@ def test_app_artifact_rejects_equivalent_import_and_reflection_spellings(
     }
 
 
-def test_reviewed_dynamic_import_requires_original_parameter_binding(tmp_path: Path) -> None:
+def test_app_artifact_rejects_nonliteral_dynamic_imports(tmp_path: Path) -> None:
     sources = (
         (
             b"from importlib import import_module\n"

@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from hashlib import sha256
-from importlib import import_module
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Protocol
 from unicodedata import category
@@ -17,9 +16,6 @@ if TYPE_CHECKING:
     from .config import IntegrationConfig
 
 _OPAQUE_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
-_MODULE_PATH_PATTERN = re.compile(
-    r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*"
-)
 _FORBIDDEN_OPTIONAL_IMPORT_ROOTS = frozenset(
     {"open_brain", "open_brain_connectors", "open_brain_engine", "open_brain_legacy"}
 )
@@ -78,6 +74,12 @@ class Capability(StrEnum):
     @property
     def scope(self) -> IntegrationScope:
         return _CAPABILITY_SCOPES[self]
+
+
+class OptionalProvider(StrEnum):
+    """Closed provider identities backed by declared package extras."""
+
+    OPENAI = "openai"
 
 
 _CAPABILITY_SCOPES: Mapping[Capability, IntegrationScope] = MappingProxyType(
@@ -865,16 +867,27 @@ class ExternalRuntimeAudit(Protocol):
     def inspect(self, request: RuntimeAuditRequest) -> RuntimeAuditResult: ...
 
 
+def _load_openai_provider() -> object:
+    import openai  # type: ignore[import-not-found]  # noqa: PLC0415
+
+    return openai
+
+
+_OPTIONAL_PROVIDER_LOADERS: Mapping[OptionalProvider, Callable[[], object]] = MappingProxyType(
+    {OptionalProvider.OPENAI: _load_openai_provider}
+)
+
+
 @dataclass(frozen=True, slots=True)
 class OptionalIntegrationMetadata:
     """Optional-provider metadata with fail-closed lazy loading."""
 
     capability: Capability
-    import_path: str
+    provider: OptionalProvider
 
     def __post_init__(self) -> None:
-        if not isinstance(self.capability, Capability) or not _is_optional_import_path(
-            self.import_path
+        if not isinstance(self.capability, Capability) or not isinstance(
+            self.provider, OptionalProvider
         ):
             raise ValueError("invalid optional integration metadata")
 
@@ -901,7 +914,7 @@ class OptionalIntegrationMetadata:
             )
 
         try:
-            _loaded_optional_module(self.import_path)
+            _loaded_optional_provider(self.provider)
         except ModuleNotFoundError:
             return IntegrationOutcome.unavailable(
                 capability=self.capability,
@@ -915,18 +928,14 @@ class OptionalIntegrationMetadata:
         return IntegrationOutcome.available_for(capability=self.capability)
 
 
-def _loaded_optional_module(import_path: str) -> object:
-    if not _is_optional_import_path(import_path):
-        raise ValueError("invalid optional integration import path")
-    return import_module(import_path)
-
-
-def _is_optional_import_path(value: object) -> bool:
-    return (
-        isinstance(value, str)
-        and _MODULE_PATH_PATTERN.fullmatch(value) is not None
-        and value.partition(".")[0] not in _FORBIDDEN_OPTIONAL_IMPORT_ROOTS
-    )
+def _loaded_optional_provider(provider: OptionalProvider) -> object:
+    if (
+        not isinstance(provider, OptionalProvider)
+        or provider.value.partition(".")[0] in _FORBIDDEN_OPTIONAL_IMPORT_ROOTS
+        or (loader := _OPTIONAL_PROVIDER_LOADERS.get(provider)) is None
+    ):
+        raise ValueError("invalid optional integration provider")
+    return loader()
 
 
 @dataclass(frozen=True, slots=True)
