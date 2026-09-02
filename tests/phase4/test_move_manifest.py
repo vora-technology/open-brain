@@ -51,6 +51,14 @@ def test_canonical_move_manifest_is_complete_and_valid() -> None:
     assert sum(record["kind"] in {"schema", "fixture"} for record in subjects.values()) == 36
 
 
+def test_p4a_has_no_unresolved_movement_or_monolith_tree() -> None:
+    manifest = _manifest()
+
+    assert not (ROOT / "src/open_brain").exists()
+    assert all(record["movement_state"] == "moved" for record in _runtime(manifest).values())
+    assert all(record["movement_state"] == "moved" for record in _subjects(manifest).values())
+
+
 def test_generated_move_and_import_reports_are_exact() -> None:
     manifest = _manifest()
 

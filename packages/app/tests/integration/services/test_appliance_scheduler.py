@@ -50,6 +50,7 @@ def test_scheduler_inventory_is_exact_without_legacy_job_catalog_dependency(
     ]
     source = inspect.getsource(scheduler_module)
     assert "open_brain.operations.scheduler" not in source
+    assert "open_brain_legacy.operations.scheduler" not in source
     assert "JOB_CATALOG" not in source
     assert "JOB-001" not in source
 

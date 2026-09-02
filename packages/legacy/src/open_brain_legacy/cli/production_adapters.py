@@ -15,8 +15,14 @@ from open_brain.cli._common import (
     redacted_error,
     validate_adapter_envelope,
 )
+from open_brain.integrations.ports import WorkRetriever
 from open_brain_legacy.cli._registry import CommandAdapterRegistry
-from open_brain_legacy.cli.capture import CaptureEnqueuer, ShareSubmitter, capture_text, share_capture
+from open_brain_legacy.cli.capture import (
+    CaptureEnqueuer,
+    ShareSubmitter,
+    capture_text,
+    share_capture,
+)
 from open_brain_legacy.cli.config import show_registry
 from open_brain_legacy.cli.explain import explain_policy
 from open_brain_legacy.cli.operations import (
@@ -34,7 +40,6 @@ from open_brain_legacy.cli.proposals import list_proposals
 from open_brain_legacy.cli.query import query_work
 from open_brain_legacy.cli.social import SocialCompatibilityAction, compatibility
 from open_brain_legacy.cli.status import show_status
-from open_brain.integrations.ports import WorkRetriever
 from open_brain_legacy.operations.status import StatusResult
 
 _FAMILIES = frozenset(

@@ -34,9 +34,9 @@ from open_brain_engine.core.ports import (
     RawStore,
 )
 
-from open_brain_legacy.capture.extractors.social import SocialExtractionRequest
 from open_brain_connectors.capture.extractors import ExtractionRequest
 from open_brain_connectors.capture.extractors.youtube import YouTubeExtractionRequest
+from open_brain_legacy.capture.extractors.social import SocialExtractionRequest
 
 _PRIVATE_HOLD_REASONS = frozenset(
     {

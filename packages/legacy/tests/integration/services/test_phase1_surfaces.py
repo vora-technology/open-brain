@@ -20,7 +20,6 @@ from open_brain_engine.engine.contracts import (
 )
 
 from open_brain.cli._common import CommandAdapterLookup, ExitCode
-from open_brain_legacy.cli.main import main
 from open_brain.cli.phase1 import build_phase1_command_adapters
 from open_brain.integrations.phase1_ui import (
     Phase1UiHandler,
@@ -34,6 +33,7 @@ from open_brain.services.runtime import (
     RESERVED_APPLIANCE_APPLICATION_MODULE,
     RESERVED_APPLIANCE_ENTRYPOINT_MODULE,
 )
+from open_brain_legacy.cli.main import main
 
 TOKEN = "synthetic-ui-token"
 AUTHORIZATION = (("Authorization", f"Bearer {TOKEN}"),)

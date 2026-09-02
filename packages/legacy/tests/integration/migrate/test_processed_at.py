@@ -6,7 +6,12 @@ import pytest
 from open_brain_engine.storage.markdown import parse_markdown
 
 from open_brain_legacy.cli.migrate import apply_migration, plan_migration
-from open_brain_legacy.migrate import IssueCode, MigrationBlockedError, MigrationState, restore_backup
+from open_brain_legacy.migrate import (
+    IssueCode,
+    MigrationBlockedError,
+    MigrationState,
+    restore_backup,
+)
 from open_brain_legacy.migrate.content import (
     apply_processed_at_backfill,
     plan_processed_at_backfill,

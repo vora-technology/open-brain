@@ -42,6 +42,8 @@ def test_lock_scope_is_core_owned_and_storage_has_no_operations_dependency() -> 
     assert not any(
         module == "open_brain.operations"
         or module.startswith("open_brain.operations.")
+        or module == "open_brain_legacy.operations"
+        or module.startswith("open_brain_legacy.operations.")
         for module in imports
     )
 

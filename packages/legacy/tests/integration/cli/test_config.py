@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from open_brain.cli._common import ExitCode
-from open_brain_legacy.cli.config import show_config
 from open_brain.config import AppConfig, RetainedRoots
+from open_brain_legacy.cli.config import show_config
 
 
 def test_config_serializes_deterministic_secret_free_metadata_without_roots() -> None:

@@ -52,7 +52,7 @@ class DnsPinnedHttpTransport:
     """Concrete HTTP transport that connects only to ``PinnedRequest.pinned_address``.
 
     Redirect, DNS-answer, cookie-domain, and media validation remain owned by
-    :class:`open_brain.capture.egress.OutboundFetcher`. This adapter deliberately
+    :class:`open_brain_legacy.capture.egress.OutboundFetcher`. This adapter deliberately
     performs no DNS lookup and never follows redirects itself.
     """
 

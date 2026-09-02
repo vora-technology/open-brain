@@ -14,10 +14,7 @@ from open_brain_engine.capture.models import ExtractionFailure
 from open_brain_engine.core.ids import canonicalize_source_url
 from open_brain_engine.core.models import RawAssetRef
 
-from open_brain_legacy.capture.extractors.social import SocialMediaResult
 from open_brain.config import AppConfig
-from open_brain_legacy.production.assets import ContentAddressedRawAssetStore
-from open_brain_legacy.production.errors import ProductionRuntimeError, RuntimeFailureCode
 from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
 from open_brain_connectors.capture.media import (
     BoundedMediaRunner,
@@ -25,6 +22,9 @@ from open_brain_connectors.capture.media import (
     MediaRunResult,
     MediaTool,
 )
+from open_brain_legacy.capture.extractors.social import SocialMediaResult
+from open_brain_legacy.production.assets import ContentAddressedRawAssetStore
+from open_brain_legacy.production.errors import ProductionRuntimeError, RuntimeFailureCode
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 _YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com"}

@@ -11,7 +11,10 @@ from open_brain_legacy.cli._registry import ScheduledRouteSpec
 from open_brain_legacy.operations.capture_jobs import CaptureJobApplication, get_capture_job
 from open_brain_legacy.operations.catalog import get_job
 from open_brain_legacy.operations.models import ExitClass, JobSpec
-from open_brain_legacy.operations.scheduled_results import ScheduledDispatchResult, ScheduledDispatchStatus
+from open_brain_legacy.operations.scheduled_results import (
+    ScheduledDispatchResult,
+    ScheduledDispatchStatus,
+)
 from open_brain_legacy.operations.writer_jobs import WriterJobSpec, get_writer_job_spec
 
 __all__ = [

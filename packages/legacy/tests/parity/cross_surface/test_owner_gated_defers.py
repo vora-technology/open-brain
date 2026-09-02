@@ -12,7 +12,7 @@ from open_brain_legacy.integrations.hooks import (
     HookCompatibilityDisposition,
     TemporaryHookPlanner,
 )
-from tests.parity.cross_surface._preflight import (
+from packages.legacy.tests.parity.cross_surface._preflight import (
     AUTHORITATIVE_ROW_CLASSIFICATIONS,
     OWNER_GATED_DEFER_ROW_IDS,
     RowDisposition,

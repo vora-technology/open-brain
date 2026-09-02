@@ -180,10 +180,11 @@ def rewrite_relative_imports(
 ) -> str:
     """Make only cross-distribution relative imports absolute during a wave."""
 
-    if source_moved:
-        return source
     package = source_module if source_is_package else source_module.rpartition(".")[0]
     package_parts = package.split(".")
+    active_source = _active_module(source_module, rewrites) if source_moved else source_module
+    active_package = active_source if source_is_package else active_source.rpartition(".")[0]
+    active_package_parts = active_package.split(".")
     lines = source.splitlines(keepends=True)
     tree = ast.parse(source)
     for node in ast.walk(tree):
@@ -197,7 +198,13 @@ def rewrite_relative_imports(
             parts.extend(node.module.split("."))
         absolute = ".".join(parts)
         active = _active_module(absolute, rewrites)
-        if active == absolute:
+        active_keep = len(active_package_parts) - node.level + 1
+        if active_keep < 1:
+            continue
+        relative_parts = active_package_parts[:active_keep]
+        if node.module:
+            relative_parts.extend(node.module.split("."))
+        if active == ".".join(relative_parts):
             continue
         line_index = node.lineno - 1
         lines[line_index] = re.sub(

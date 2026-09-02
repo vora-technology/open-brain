@@ -18,7 +18,11 @@ from open_brain_legacy.operations.now_runtime import (
     SharedWriterAuthority,
 )
 from open_brain_legacy.operations.replay_journal import SqliteReplayJournal
-from open_brain_legacy.operations.writer_jobs import JobRunDisposition, WriterJobError, run_writer_job
+from open_brain_legacy.operations.writer_jobs import (
+    JobRunDisposition,
+    WriterJobError,
+    run_writer_job,
+)
 from tests.unit.storage._factories import FixedClock
 
 

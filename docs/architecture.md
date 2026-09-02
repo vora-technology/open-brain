@@ -2,9 +2,10 @@
 
 > This page describes the current implementation. The proposed self-hosted and hosted product-family target is documented in [`architecture/proposed-v0-system-architecture.md`](architecture/proposed-v0-system-architecture.md).
 
-Open Brain is one uv workspace in one canonical repository. Engine, app, and connector code live
-in separate buildable distributions. Private compatibility source is physically quarantined under
-`packages/legacy`; workspace-only release tooling lives under `tools/open_brain_dev`. The old
+Open Brain is one uv workspace in one canonical repository. Engine, app, connector, and private
+legacy code live in separate buildable distributions. Private compatibility source is physically
+quarantined under `packages/legacy`; workspace-only release tooling lives under
+`tools/open_brain_dev`. The old
 `src/open_brain` monolith no longer exists. One `single-user-local` profile opens one engine task
 set for one owner and one Brain root.
 
@@ -25,7 +26,8 @@ The package map uses these ownership boundaries:
 - `operations`: doctor, scheduling, retention, backup, and recovery behavior.
 - `dev`: workspace-only development and release-safety tools under `tools/open_brain_dev`.
 - `legacy`: retained predecessor and operational compatibility files under the private
-  `open_brain_legacy` namespace. No default or shipping artifact depends on or packages them.
+  `open_brain_legacy` namespace. This outer compatibility package declares exact app, connector,
+  and engine dependencies. No default or shipping artifact depends on or packages legacy code.
 
 Private deployment configuration contains values and rendered manifests, never patched or copied application source.
 

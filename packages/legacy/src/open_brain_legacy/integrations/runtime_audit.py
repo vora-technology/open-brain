@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from urllib.parse import unquote
 
-from .ports import (
+from open_brain.integrations.ports import (
     AuditDisposition,
     AuditFinding,
     AuditFindingCode,

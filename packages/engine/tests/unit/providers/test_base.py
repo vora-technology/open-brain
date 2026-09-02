@@ -73,6 +73,7 @@ def test_none_provider_service_constructs_no_adapter_or_credential(
 ) -> None:
     calls: list[str] = []
     monkeypatch.delitem(sys.modules, "open_brain.providers.optional_cloud", raising=False)
+    monkeypatch.delitem(sys.modules, "open_brain_legacy.providers.optional_cloud", raising=False)
 
     def local_factory() -> _ProviderFake:
         calls.append("local")
@@ -101,6 +102,7 @@ def test_none_provider_service_constructs_no_adapter_or_credential(
     assert result.error_code is BoundaryErrorCode.LOCAL_UNAVAILABLE
     assert calls == []
     assert "open_brain.providers.optional_cloud" not in sys.modules
+    assert "open_brain_legacy.providers.optional_cloud" not in sys.modules
 
 
 def test_text_model_values_are_bounded_canonical_and_immutable() -> None:

@@ -52,10 +52,10 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/core/models.py` | `packages/engine/src/open_brain_engine/core/models.py` | `moved` | `open_brain.core.models` | `open_brain_engine.core.models` | `remove` |
 | `src/open_brain/core/policy.py` | `packages/engine/src/open_brain_engine/core/policy.py` | `moved` | `open_brain.core.policy` | `open_brain_engine.core.policy` | `remove` |
 | `src/open_brain/core/ports.py` | `packages/engine/src/open_brain_engine/core/ports.py` | `moved` | `open_brain.core.ports` | `open_brain_engine.core.ports` | `remove` |
-| `src/open_brain/dev/__init__.py` | `tools/open_brain_dev/__init__.py` | `moved` | `open_brain.dev` | `open_brain_dev` | `remove` |
-| `src/open_brain/dev/artifact_policy.py` | `tools/open_brain_dev/artifact_policy.py` | `moved` | `open_brain.dev.artifact_policy` | `open_brain_dev.artifact_policy` | `remove` |
-| `src/open_brain/dev/public_history_audit.py` | `tools/open_brain_dev/public_history_audit.py` | `moved` | `open_brain.dev.public_history_audit` | `open_brain_dev.public_history_audit` | `remove` |
-| `src/open_brain/dev/release_audit.py` | `tools/open_brain_dev/release_audit.py` | `moved` | `open_brain.dev.release_audit` | `open_brain_dev.release_audit` | `remove` |
+| `src/open_brain/dev/__init__.py` | `tools/open_brain_dev/__init__.py` | `moved` | `open_brain.dev` | `tools.open_brain_dev` | `remove` |
+| `src/open_brain/dev/artifact_policy.py` | `tools/open_brain_dev/artifact_policy.py` | `moved` | `open_brain.dev.artifact_policy` | `tools.open_brain_dev.artifact_policy` | `remove` |
+| `src/open_brain/dev/public_history_audit.py` | `tools/open_brain_dev/public_history_audit.py` | `moved` | `open_brain.dev.public_history_audit` | `tools.open_brain_dev.public_history_audit` | `remove` |
+| `src/open_brain/dev/release_audit.py` | `tools/open_brain_dev/release_audit.py` | `moved` | `open_brain.dev.release_audit` | `tools.open_brain_dev.release_audit` | `remove` |
 | `src/open_brain/engine/__init__.py` | `packages/engine/src/open_brain_engine/engine/__init__.py` | `moved` | `open_brain.engine` | `open_brain_engine.engine` | `remove` |
 | `src/open_brain/engine/authority.py` | `packages/engine/src/open_brain_engine/engine/authority.py` | `moved` | `open_brain.engine.authority` | `open_brain_engine.engine.authority` | `remove` |
 | `src/open_brain/engine/backup.py` | `packages/engine/src/open_brain_engine/engine/backup.py` | `moved` | `open_brain.engine.backup` | `open_brain_engine.engine.backup` | `remove` |

@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from open_brain.integrations.ports import (
+    ReviewBoundWriter,
+    ReviewDisposition,
+    ReviewWriteKind,
+    ReviewWriteRequest,
+    ReviewWriteResult,
+)
 from open_brain_legacy.integrations.dev_workflows import (
     DevWorkflowFixtureJournal,
     DevWorkflowIntegration,
@@ -11,13 +18,6 @@ from open_brain_legacy.integrations.dev_workflows import (
     SessionSignalDisposition,
     TimeoutClass,
     WorkWriteRequest,
-)
-from open_brain.integrations.ports import (
-    ReviewBoundWriter,
-    ReviewDisposition,
-    ReviewWriteKind,
-    ReviewWriteRequest,
-    ReviewWriteResult,
 )
 
 

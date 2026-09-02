@@ -12,6 +12,7 @@ from open_brain_engine.core.models import (
 )
 from open_brain_engine.core.ports import FetchRequest, FetchResponse
 
+from open_brain_connectors.capture.media import MediaCommand, MediaTool
 from open_brain_legacy.capture.extractors.social import (
     SocialExtractionRequest,
     SocialExtractor,
@@ -22,7 +23,6 @@ from open_brain_legacy.providers.transcription import (
     TranscriptionResult,
     TranscriptionService,
 )
-from open_brain_connectors.capture.media import MediaCommand, MediaTool
 
 
 def _privacy() -> PrivacyDecision:

@@ -12,8 +12,9 @@ from tools.phase4.move_manifest import validate_manifest
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 CLASSIFICATION_PATH = REPOSITORY_ROOT / "docs" / "v0-package-classification.json"
-SOURCE_ROOT = REPOSITORY_ROOT / "src" / "open_brain"
+MONOLITH_SOURCE_ROOT = REPOSITORY_ROOT / "src" / "open_brain"
 APP_SOURCE_ROOT = REPOSITORY_ROOT / "packages" / "app" / "src" / "open_brain"
+LEGACY_SOURCE_ROOT = REPOSITORY_ROOT / "packages" / "legacy" / "src" / "open_brain_legacy"
 OWNERS = {"engine", "app", "connector", "hosted", "legacy", "workspace"}
 
 
@@ -71,7 +72,7 @@ def _current_open_brain_source(
     if not isinstance(current_path, str):
         raise TypeError("classification current path must be a string")
     path = REPOSITORY_ROOT / current_path
-    for source_root in (SOURCE_ROOT, APP_SOURCE_ROOT):
+    for source_root in (APP_SOURCE_ROOT, LEGACY_SOURCE_ROOT):
         if path.is_relative_to(source_root):
             return path, source_root
     raise ValueError(f"classified path is outside the open_brain namespace: {current_path}")
@@ -80,7 +81,7 @@ def _current_open_brain_source(
 def _current_open_brain_sources(
     classification: dict[str, object],
     *,
-    source_roots: tuple[Path, ...] = (SOURCE_ROOT, APP_SOURCE_ROOT),
+    source_roots: tuple[Path, ...] = (APP_SOURCE_ROOT, LEGACY_SOURCE_ROOT),
 ) -> list[tuple[str, Path, Path]]:
     sources: list[tuple[str, Path, Path]] = []
     for relative_path, raw_record in _classified_files(classification).items():
@@ -153,11 +154,19 @@ def _absolute_from_module(node: ast.ImportFrom, path: Path, source_root: Path) -
 
 
 def _module_target(module: str, classified_paths: set[str]) -> str | None:
-    if module == "open_brain":
+    if module in {"open_brain", "open_brain_legacy"}:
         return "__init__.py" if "__init__.py" in classified_paths else None
-    if not module.startswith("open_brain."):
+    root = next(
+        (
+            candidate
+            for candidate in ("open_brain", "open_brain_legacy")
+            if module.startswith(f"{candidate}.")
+        ),
+        None,
+    )
+    if root is None:
         return None
-    relative = module.removeprefix("open_brain.").replace(".", "/")
+    relative = module.removeprefix(f"{root}.").replace(".", "/")
     module_path = f"{relative}.py"
     package_path = f"{relative}/__init__.py"
     if module_path in classified_paths:
@@ -187,11 +196,14 @@ def _import_references(
             references.extend(
                 ImportReference(node.lineno, alias.name)
                 for alias in node.names
-                if alias.name == "open_brain" or alias.name.startswith("open_brain.")
+                if alias.name in {"open_brain", "open_brain_legacy"}
+                or alias.name.startswith(("open_brain.", "open_brain_legacy."))
             )
         elif isinstance(node, ast.ImportFrom):
             module = _absolute_from_module(node, path, source_root)
-            if module != "open_brain" and not module.startswith("open_brain."):
+            if module not in {"open_brain", "open_brain_legacy"} and not module.startswith(
+                ("open_brain.", "open_brain_legacy.")
+            ):
                 continue
             for alias in node.names:
                 candidate = module if alias.name == "*" else f"{module}.{alias.name}"
@@ -207,8 +219,8 @@ def _import_references(
                 isinstance(argument, ast.Constant)
                 and isinstance(argument.value, str)
                 and (
-                    argument.value == "open_brain"
-                    or argument.value.startswith("open_brain.")
+                    argument.value in {"open_brain", "open_brain_legacy"}
+                    or argument.value.startswith(("open_brain.", "open_brain_legacy."))
                 )
             ):
                 references.append(ImportReference(node.lineno, argument.value))
@@ -434,7 +446,7 @@ def _dynamic_import_review_errors_for_sites(
 def _current_dynamic_import_review_errors(
     classification: dict[str, object],
     *,
-    source_roots: tuple[Path, ...] = (SOURCE_ROOT, APP_SOURCE_ROOT),
+    source_roots: tuple[Path, ...] = (APP_SOURCE_ROOT, LEGACY_SOURCE_ROOT),
 ) -> list[str]:
     sites = {
         (relative_path, line)
@@ -557,8 +569,9 @@ def test_nonliteral_dynamic_import_sites_are_explicitly_reviewed() -> None:
 
 
 def test_current_import_violations_exactly_match_temporary_live_debt() -> None:
-    classification = _planned_source_classification(_load_classification())
-    assert _live_debt_errors(SOURCE_ROOT, classification) == []
+    classification = _load_classification()
+    assert not MONOLITH_SOURCE_ROOT.exists()
+    assert _live_debt_errors(LEGACY_SOURCE_ROOT, classification) == []
 
 
 def test_engine_distribution_imports_no_other_runtime_distribution() -> None:
@@ -600,21 +613,21 @@ def test_p2_w1_owner_edges_are_closed() -> None:
         }
 
     production_cli = {
-        (path.relative_to(SOURCE_ROOT).as_posix(), target)
-        for path in sorted((SOURCE_ROOT / "production").glob("*.py"))
-        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        (path.relative_to(LEGACY_SOURCE_ROOT).as_posix(), target)
+        for path in sorted((LEGACY_SOURCE_ROOT / "production").glob("*.py"))
+        for target in targets(path.relative_to(LEGACY_SOURCE_ROOT).as_posix())
         if target.startswith("cli/")
     }
     operations_cli = {
-        (path.relative_to(SOURCE_ROOT).as_posix(), target)
-        for path in sorted((SOURCE_ROOT / "operations").glob("*.py"))
-        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        (path.relative_to(LEGACY_SOURCE_ROOT).as_posix(), target)
+        for path in sorted((LEGACY_SOURCE_ROOT / "operations").glob("*.py"))
+        for target in targets(path.relative_to(LEGACY_SOURCE_ROOT).as_posix())
         if target.startswith("cli/")
     }
     storage_operations = {
-        (path.relative_to(SOURCE_ROOT).as_posix(), target)
-        for path in sorted((SOURCE_ROOT / "storage").glob("*.py"))
-        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        (path.relative_to(LEGACY_SOURCE_ROOT).as_posix(), target)
+        for path in sorted((LEGACY_SOURCE_ROOT / "storage").glob("*.py"))
+        for target in targets(path.relative_to(LEGACY_SOURCE_ROOT).as_posix())
         if target.startswith("operations/")
     }
 
@@ -700,6 +713,8 @@ def test_p4_w2_installed_entrypoints_are_legacy_writer_free() -> None:
     assert "compose_mcp_from_config" not in phase1_entrypoints
     assert "open_brain.production" not in phase1_entrypoints
     assert "open_brain.operations" not in phase1_entrypoints
+    assert "open_brain_legacy.production" not in phase1_entrypoints
+    assert "open_brain_legacy.operations" not in phase1_entrypoints
     assert "open-brain-http" not in appliance_entrypoints
     assert "JOB-00" not in appliance_entrypoints
     assert "open_brain.storage.filesystem" not in scheduler

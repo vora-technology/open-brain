@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from open_brain.cli._common import ExitCode
-from open_brain_legacy.cli.query import query_work
 from open_brain.integrations.ports import (
     RedactedText,
     RetrievalBatch,
@@ -9,6 +8,7 @@ from open_brain.integrations.ports import (
     RetrievalRequest,
     TrustLabel,
 )
+from open_brain_legacy.cli.query import query_work
 
 
 class WorkRetrieverFake:

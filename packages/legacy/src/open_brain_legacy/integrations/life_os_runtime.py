@@ -18,7 +18,9 @@ from open_brain_engine.storage.filesystem import (
     read_confined,
 )
 
-from .config import IntegrationConfig
+from open_brain.integrations.config import IntegrationConfig
+from open_brain.integrations.ports import Capability
+
 from .life_os import (
     CalendarBlockPort,
     CalendarBlockRequest,
@@ -37,7 +39,6 @@ from .life_os import (
     LifeResetResult,
     ReviewGatedActionCandidate,
 )
-from .ports import Capability
 
 _STATE_RELATIVE = PurePosixPath("runtime/life_os/planning-runtime.json")
 _OPAQUE_STATE_PREFIX = "lifeos_runtime_"

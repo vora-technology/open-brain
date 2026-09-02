@@ -13,8 +13,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from .config import IntegrationConfig
-from .ports import Capability, ProviderSyncRequest, ProviderSyncResult, RedactedText, SyncStatus
+from open_brain.integrations.config import IntegrationConfig
+from open_brain.integrations.ports import (
+    Capability,
+    ProviderSyncRequest,
+    ProviderSyncResult,
+    RedactedText,
+    SyncStatus,
+)
 
 _OPAQUE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _MAX_AGENDA_ITEMS = 8

@@ -135,12 +135,15 @@ def discover_subject_kinds(root: Path, manifest: Mapping[str, object]) -> dict[s
     )
     add(
         _files(root, "tests/fixtures/**/*")
+        | _files(root, "packages/*/tests/fixtures/**/*")
         | _files(root, "packages/*/src/*/portable/conformance/**/*"),
         "fixture",
     )
+    parity_resources = _files(root, "packages/*/tests/parity/phase7/capture_scenarios.json")
     parity_resource = root / "tests/parity/phase7/capture_scenarios.json"
     if parity_resource.is_file():
-        add({parity_resource.relative_to(root).as_posix()}, "test-resource")
+        parity_resources.add(parity_resource.relative_to(root).as_posix())
+    add(parity_resources, "test-resource")
 
     package_resources = {
         path
@@ -240,6 +243,7 @@ def discover_runtime_paths(root: Path) -> set[str]:
         for pattern in (
             "src/open_brain/**/*.py",
             "packages/*/src/**/*.py",
+            "tools/open_brain_dev/**/*.py",
             "tools/open_brain_phase4/**/*.py",
         )
         for path in _files(root, pattern)
@@ -250,8 +254,10 @@ def _target_module(target_path: str, namespace: str) -> str | None:
     marker = f"/src/{namespace}/"
     if marker in target_path:
         relative = target_path.split(marker, 1)[1]
-    elif target_path.startswith(f"tools/{namespace}/"):
-        relative = target_path.removeprefix(f"tools/{namespace}/")
+        prefix = (namespace,)
+    elif target_path.startswith("tools/"):
+        relative = target_path.removeprefix("tools/")
+        prefix = ("tools",)
     else:
         return None
     if not relative.endswith(".py"):
@@ -259,7 +265,7 @@ def _target_module(target_path: str, namespace: str) -> str | None:
     parts = PurePosixPath(relative).with_suffix("").parts
     if parts and parts[-1] == "__init__":
         parts = parts[:-1]
-    return ".".join((namespace, *parts))
+    return ".".join((*prefix, *parts))
 
 
 def _path_is_safe(value: str) -> bool:
@@ -412,7 +418,7 @@ def _graph_findings(phase4: Mapping[str, object]) -> list[Finding]:
         "app": ["engine"],
         "connectors": ["app", "engine"],
         "engine": [],
-        "legacy": ["engine"],
+        "legacy": ["app", "connectors", "engine"],
     }
     if graph != expected:
         return [Finding("P4M007", "phase4.runtime_dependency_graph", "forbidden edge or cycle")]

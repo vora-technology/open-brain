@@ -12,14 +12,6 @@ from open_brain_engine.storage.filesystem import RootConfinementError
 from open_brain_engine.storage.sqlite import connect_database
 
 from open_brain.integrations.config import IntegrationConfig
-from open_brain_legacy.integrations.messaging import MessageBatch, MessageCandidate, MessageConfidence
-from open_brain_legacy.integrations.messaging_runtime import (
-    MessagingFailureStage,
-    PersistentMessagingCursorStore,
-    PersistentMessagingRuntime,
-    SqliteMessageInbox,
-    SqliteReviewProposalWriter,
-)
 from open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
@@ -28,6 +20,18 @@ from open_brain.integrations.ports import (
     ReviewWriteRequest,
     ReviewWriteResult,
     SyncStatus,
+)
+from open_brain_legacy.integrations.messaging import (
+    MessageBatch,
+    MessageCandidate,
+    MessageConfidence,
+)
+from open_brain_legacy.integrations.messaging_runtime import (
+    MessagingFailureStage,
+    PersistentMessagingCursorStore,
+    PersistentMessagingRuntime,
+    SqliteMessageInbox,
+    SqliteReviewProposalWriter,
 )
 from open_brain_legacy.review.store import SqliteReviewStore
 from tests.unit.storage._factories import FixedClock

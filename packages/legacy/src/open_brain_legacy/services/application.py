@@ -24,36 +24,50 @@ from open_brain_engine.storage.locks import FileLease, LockBusyError, inspect_fi
 from open_brain_engine.storage.sqlite import SCHEMA_VERSION, inspect_event_schema
 from open_brain_engine.storage.writer_record import WriterRecordError, read_canonical_writer_record
 
-from open_brain_legacy.capture.distillation_worker import DistillationProcessStatus
-from open_brain_legacy.capture.egress import OutboundFetcher
 from open_brain.capture.http import BodyReader, ShareHttpHandler
-from open_brain_legacy.capture.queue import read_pending_queue_snapshot
-from open_brain_legacy.capture.service import ProcessStatus
 from open_brain.cli._common import (
     CommandDispatchResult,
     ExitCode,
     redacted_error,
     unavailable_envelope,
 )
+from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
+from open_brain.config import AppConfig, ConfigError, SecretRefKind
+from open_brain.integrations.config import IntegrationConfig
+from open_brain.integrations.mcp import EngineMcpAdapter
+from open_brain.integrations.phase1_ui import Phase1UiHandler
+from open_brain.integrations.ports import Capability, ProviderSyncRequest, SyncStatus
+from open_brain.profile import compile_single_user_local
+from open_brain.services.connectors import (
+    ConnectorHost,
+    ConnectorOutcome,
+    ConnectorProfile,
+    RunContextFactory,
+)
+from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
+from open_brain.services.runtime import (
+    ServiceConfigurationError,
+    compose_http_from_config,
+    load_private_http_bind_config,
+    read_private_service_secret,
+)
+from open_brain_legacy.capture.distillation_worker import DistillationProcessStatus
+from open_brain_legacy.capture.egress import OutboundFetcher
+from open_brain_legacy.capture.queue import read_pending_queue_snapshot
+from open_brain_legacy.capture.service import ProcessStatus
 from open_brain_legacy.cli._registry import CommandAdapterRegistry
 from open_brain_legacy.cli.config import ConfigCliResult, show_config
 from open_brain_legacy.cli.doctor import DoctorCommandAdapter
-from open_brain.cli.phase1_registry import Phase1CommandAdapterRegistry
 from open_brain_legacy.cli.production_adapters import build_production_command_adapters
 from open_brain_legacy.cli.review import ReviewCommandAdapter
-from open_brain.config import AppConfig, ConfigError, SecretRefKind
-from open_brain.integrations.config import IntegrationConfig
 from open_brain_legacy.integrations.life_os import LifePlanRequest, LifeResetRequest
 from open_brain_legacy.integrations.life_os_runtime import LifeOSPlanningRuntime
-from open_brain.integrations.mcp import EngineMcpAdapter
 from open_brain_legacy.integrations.messaging_runtime import (
     PersistentMessagingCursorStore,
     PersistentMessagingRuntime,
     SqliteMessageInbox,
     SqliteReviewProposalWriter,
 )
-from open_brain.integrations.phase1_ui import Phase1UiHandler
-from open_brain.integrations.ports import Capability, ProviderSyncRequest, SyncStatus
 from open_brain_legacy.integrations.retrieval import MetadataOnlyRetrievalFeedback
 from open_brain_legacy.ledger.embed import embed_text
 from open_brain_legacy.ledger.models import LedgerRoute, LedgerTaxonomy
@@ -167,7 +181,6 @@ from open_brain_legacy.production.sqlite_backup import (
     probe_local_sqlite_backups,
 )
 from open_brain_legacy.production.transport import DnsPinnedHttpTransport, SystemResolver
-from open_brain.profile import compile_single_user_local
 from open_brain_legacy.review.maintenance import predecessor_curation_taxonomy
 from open_brain_legacy.review.store import (
     REVIEW_SCHEMA_VERSION,
@@ -177,19 +190,6 @@ from open_brain_legacy.review.store import (
 from open_brain_legacy.services.capabilities import (
     ProductionApplication,
     compose_production_application,
-)
-from open_brain.services.connectors import (
-    ConnectorHost,
-    ConnectorOutcome,
-    ConnectorProfile,
-    RunContextFactory,
-)
-from open_brain.services.http_server import HttpRouteMode, HttpServerFactory
-from open_brain.services.runtime import (
-    ServiceConfigurationError,
-    compose_http_from_config,
-    load_private_http_bind_config,
-    read_private_service_secret,
 )
 
 _LOCK_STALE_AFTER_SECONDS = {

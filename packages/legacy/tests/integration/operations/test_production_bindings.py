@@ -64,8 +64,8 @@ def _capabilities() -> dict[str, RecordingCapability]:
 
 
 def test_scheduled_result_records_are_owned_by_operations() -> None:
-    assert ScheduledDispatchResult.__module__ == "open_brain.operations.scheduled_results"
-    assert ScheduledDispatchStatus.__module__ == "open_brain.operations.scheduled_results"
+    assert ScheduledDispatchResult.__module__ == "open_brain_legacy.operations.scheduled_results"
+    assert ScheduledDispatchStatus.__module__ == "open_brain_legacy.operations.scheduled_results"
 
 
 def test_complete_synthetic_inventory_binds_and_dispatches_all_catalog_rows() -> None:

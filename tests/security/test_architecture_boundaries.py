@@ -71,6 +71,7 @@ def test_phase3_appliance_seams_are_reserved_without_shipping_legacy_control_pat
     for path in services:
         source = path.read_text(encoding="utf-8")
         assert "open_brain.operations" not in source
+        assert "open_brain_legacy.operations" not in source
         assert "open_brain.release" not in source
 
 

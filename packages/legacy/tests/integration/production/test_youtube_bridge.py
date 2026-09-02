@@ -11,7 +11,10 @@ from open_brain_engine.capture.models import (
     ShareStatus,
 )
 
-from open_brain_legacy.production.youtube_bridge import PublicJobShareSubmitter, consume_youtube_spool
+from open_brain_legacy.production.youtube_bridge import (
+    PublicJobShareSubmitter,
+    consume_youtube_spool,
+)
 from open_brain_legacy.services.application import SingleUserLocalApplication
 
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from open_brain_legacy.integrations.life_os import LifePlanRequest, LifeResetRequest
 from open_brain.integrations.ports import Capability, ProviderSyncRequest
 from open_brain.integrations.ui import UiBindConfig
+from open_brain_legacy.integrations.life_os import LifePlanRequest, LifeResetRequest
 
 from .catalog import get_job
 from .models import JobSpec

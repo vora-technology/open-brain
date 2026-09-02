@@ -1,12 +1,6 @@
 from dataclasses import dataclass, field
 
 from open_brain.integrations import Capability, IntegrationConfig
-from open_brain_legacy.integrations.messaging import (
-    MessageBatch,
-    MessageCandidate,
-    MessageConfidence,
-    MessagingIntegration,
-)
 from open_brain.integrations.ports import (
     ProviderSyncRequest,
     ReviewDisposition,
@@ -14,6 +8,12 @@ from open_brain.integrations.ports import (
     ReviewWriteRequest,
     ReviewWriteResult,
     SyncStatus,
+)
+from open_brain_legacy.integrations.messaging import (
+    MessageBatch,
+    MessageCandidate,
+    MessageConfidence,
+    MessagingIntegration,
 )
 from open_brain_legacy.operations.models import JobState
 from open_brain_legacy.operations.optional_jobs import compose_message_extract_job

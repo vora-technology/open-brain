@@ -51,23 +51,20 @@ jobs:
       - run: make build
       - name: Verify artifact member policy
         run: >-
-          PYTHONPATH=tools
-          uv run python -m open_brain_dev.artifact_policy
+          uv run python -m tools.open_brain_dev.artifact_policy
           --policy release/v0-artifact-policy.json
           --artifacts dist/*
       - name: Create synthetic CI denylist
         run: printf '%s\n' "ci-private-canary-${GITHUB_RUN_ID}" > "$RUNNER_TEMP/private-denylist.txt"
       - name: Audit source tree and built artifacts
         run: >-
-          PYTHONPATH=tools
-          uv run python -m open_brain_dev.release_audit
+          uv run python -m tools.open_brain_dev.release_audit
           --root .
           --private-denylist "$RUNNER_TEMP/private-denylist.txt"
           --artifacts dist/*
       - name: Audit reachable Git history
         run: >-
-          PYTHONPATH=tools
-          uv run python -m open_brain_dev.public_history_audit
+          uv run python -m tools.open_brain_dev.public_history_audit
           --repository .
           --private-denylist "$RUNNER_TEMP/private-denylist.txt"
       - name: Scan Git history with Gitleaks

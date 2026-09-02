@@ -427,3 +427,31 @@
   surfaces. The canonical inventory prevents ownership drift, while one writer
   preserves atomic integration and the fresh budget keeps P4-W4 review lineage
   independent from P4-W3.
+
+## D-039: give workspace tooling one canonical module identity
+
+- Chosen: import moved release tooling as `tools.open_brain_dev` with only the
+  repository root on the import path. Keep `tools/open_brain_dev` outside every
+  built distribution.
+- Rejected: add both the repository root and `tools` to `PYTHONPATH` or MyPy's
+  search path, or retain the checkout-only bare `open_brain_dev` identity.
+- Why: the dual search path loaded each tool as both `phase4.*` and
+  `tools.phase4.*`; strict MyPy rejected the duplicate module identities. One
+  root and one qualified namespace work from checkout without creating a
+  second import identity or a packaged workspace dependency.
+
+## D-040: make the private legacy package the truthful outer compatibility layer
+
+- Chosen: declare exact app, connector, and engine dependencies from
+  `open-brain-legacy`, and record the same one-way edges in the canonical
+  runtime graph. Add a regression that derives cross-distribution imports from
+  the legacy source and requires exact agreement with both the graph and wheel
+  metadata.
+- Rejected: preserve an engine-only metadata claim while the root workspace
+  masks app and connector imports, or duplicate current app and source-specific
+  connector implementations inside the private package.
+- Why: the physical move exposed 42 legacy files that import the current app
+  and eight that import connector code. Legacy is the outermost private
+  compatibility package, so these declared inward edges cannot make a shipping
+  artifact depend on legacy. Truthful metadata removes the hidden source-path
+  dependency while retaining predecessor behavior for private compatibility.

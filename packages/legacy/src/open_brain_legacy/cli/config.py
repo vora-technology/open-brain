@@ -6,8 +6,8 @@ import json
 from dataclasses import dataclass
 
 from open_brain.cli._common import ExitCode, redacted_error
-from open_brain_legacy.cli._registry import COMMANDS, CommandSpec
 from open_brain.config import AppConfig
+from open_brain_legacy.cli._registry import COMMANDS, CommandSpec
 
 
 @dataclass(frozen=True, slots=True)

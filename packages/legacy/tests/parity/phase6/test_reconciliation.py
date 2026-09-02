@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from open_brain.cli._common import ExitCode
+from open_brain.config import RetainedRootIdentities, RetainedRoots, SecretRef
 from open_brain_legacy.cli._registry import CommandAdapterRegistry
 from open_brain_legacy.cli.main import main
 from open_brain_legacy.cli.phase6_adapters import (
@@ -19,7 +20,6 @@ from open_brain_legacy.cli.phase6_adapters import (
     CutoverDoctorCommandAdapter,
     StateAdoptionCommandAdapter,
 )
-from open_brain.config import RetainedRootIdentities, RetainedRoots, SecretRef
 from open_brain_legacy.migrate._models import (
     StateAdoptionReceiptEvidence,
     StateAuthorityReceiptEvidence,
@@ -93,110 +93,110 @@ ROW_EVIDENCE: dict[str, tuple[str, ...]] = {
         "test_retained_roots_are_absolute_distinct_and_preserved",
     ),
     "CFG-002": (
-        "tests/integration/migrate/test_config.py::"
+        "packages/legacy/tests/integration/migrate/test_config.py::"
         "test_plan_is_deterministic_redacted_and_reads_only_explicit_source",
     ),
     "CFG-003": (
-        "tests/integration/migrate/test_config.py::"
+        "packages/legacy/tests/integration/migrate/test_config.py::"
         "test_plan_is_deterministic_redacted_and_reads_only_explicit_source",
     ),
     "CFG-004": (
-        "tests/integration/migrate/test_config.py::"
+        "packages/legacy/tests/integration/migrate/test_config.py::"
         "test_apply_publishes_typed_public_refs_and_owner_only_private_values",
     ),
     "CFG-005": (
-        "tests/integration/migrate/test_config.py::"
+        "packages/legacy/tests/integration/migrate/test_config.py::"
         "test_apply_publishes_typed_public_refs_and_owner_only_private_values",
     ),
     "CFG-006": (
-        "tests/integration/migrate/test_config.py::"
+        "packages/legacy/tests/integration/migrate/test_config.py::"
         "test_existing_outputs_require_issuer_bound_backup_and_overwrite_receipts",
     ),
     "CFG-007": (
-        "tests/integration/migrate/test_config.py::"
+        "packages/legacy/tests/integration/migrate/test_config.py::"
         "test_forged_expired_and_wrong_scope_prerequisite_receipts_fail_before_noop",
     ),
     "CFG-008": (
-        "tests/integration/migrate/test_config.py::test_idempotent_replay_is_verified_noop",
+        "packages/legacy/tests/integration/migrate/test_config.py::test_idempotent_replay_is_verified_noop",
     ),
     "STATE-001": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_manifest_is_versioned_and_covers_all_seven_families",
     ),
     "STATE-002": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_plan_is_read_only_identity_bound_and_classifies_empty_or_exact_replay",
     ),
     "STATE-003": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_plan_rejects_unsafe_or_unlisted_artifacts_and_root_aliases",
     ),
     "STATE-004": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_plan_blocks_idempotency_conflicts_and_partial_targets",
     ),
     "STATE-005": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_sqlite_snapshot_includes_wal_rows_without_copying_sidecars",
     ),
     "STATE-006": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_apply_is_backup_first_restorable_and_second_apply_is_noop",
     ),
     "STATE-007": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_generation_recovery_after_process_termination",
     ),
     "STATE-008": (
-        "tests/integration/migrate/test_state.py::"
+        "packages/legacy/tests/integration/migrate/test_state.py::"
         "test_state_apply_is_backup_first_restorable_and_second_apply_is_noop",
     ),
     "DOC-001": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_doc_001_through_008_negative_evidence_prevents_readiness",
     ),
     "DOC-002": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_doc_001_through_008_negative_evidence_prevents_readiness",
     ),
     "DOC-003": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_missing_timeout_failure_and_wrong_evidence_fail_closed_and_redacted",
     ),
     "DOC-004": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_doc_001_through_008_negative_evidence_prevents_readiness",
     ),
     "DOC-005": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_p1_004_recovery_requires_successful_bound_receipt_pair",
     ),
     "DOC-006": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_doc_001_through_008_negative_evidence_prevents_readiness",
     ),
     "DOC-007": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_p1_005_writer_inventory_identity_role_and_lease_are_required",
     ),
     "DOC-008": (
-        "tests/integration/operations/test_cutover_doctor.py::"
+        "packages/legacy/tests/integration/operations/test_cutover_doctor.py::"
         "test_p1_001_public_synthetic_preflight_has_no_authority_claim",
     ),
     "CLI6-001": (
-        "tests/integration/cli/test_phase6_adapters.py::"
+        "packages/legacy/tests/integration/cli/test_phase6_adapters.py::"
         "test_dry_run_apply_routes_make_zero_service_calls",
     ),
     "CLI6-002": (
-        "tests/integration/cli/test_phase6_adapters.py::"
+        "packages/legacy/tests/integration/cli/test_phase6_adapters.py::"
         "test_state_adoption_routes_call_only_the_selected_capability_service",
     ),
     "CLI6-003": (
-        "tests/integration/cli/test_phase6_adapters.py::"
+        "packages/legacy/tests/integration/cli/test_phase6_adapters.py::"
         "test_doctor_cutover_is_strict_non_live_and_maps_unready_to_nonzero",
     ),
     "CLI6-004": (
-        "tests/integration/cli/test_phase6_adapters.py::"
+        "packages/legacy/tests/integration/cli/test_phase6_adapters.py::"
         "test_default_composition_does_not_register_phase6_adapters",
     ),
 }

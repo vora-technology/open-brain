@@ -419,8 +419,11 @@ def _capability_violations(source: str) -> set[str]:
                 root = alias.name.split(".", 1)[0]
                 if root in _FORBIDDEN_IMPORT_ROOTS:
                     violations.add(f"forbidden-import:{root}")
-                if alias.name == "open_brain.parity" or alias.name.startswith(
-                    "open_brain.parity."
+                if (
+                    alias.name in {"open_brain.parity", "open_brain_legacy.parity"}
+                    or alias.name.startswith(
+                        ("open_brain.parity.", "open_brain_legacy.parity.")
+                    )
                 ):
                     violations.add("parity-comparison-import")
         elif isinstance(node, ast.ImportFrom):
@@ -428,7 +431,9 @@ def _capability_violations(source: str) -> set[str]:
             root = module.split(".", 1)[0]
             if root in _FORBIDDEN_IMPORT_ROOTS:
                 violations.add(f"forbidden-import:{root}")
-            if module == "open_brain.parity" or module.startswith("open_brain.parity."):
+            if module in {"open_brain.parity", "open_brain_legacy.parity"} or module.startswith(
+                ("open_brain.parity.", "open_brain_legacy.parity.")
+            ):
                 violations.add("parity-comparison-import")
             if any("compare" in alias.name.lower() for alias in node.names):
                 violations.add("parity-comparison-import")
@@ -475,7 +480,7 @@ def test_closed_gate_defaults_are_exact() -> None:
         ("from subprocess import run", "forbidden-import:subprocess"),
         ("from pathlib import Path", "forbidden-import:pathlib"),
         (
-            "from open_brain.parity.harness import compare_synthetic_parity as reconcile",
+            "from open_brain_legacy.parity.harness import compare_synthetic_parity as reconcile",
             "parity-comparison-import",
         ),
         (

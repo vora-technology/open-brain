@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
 
-from open_brain_dev.release_audit import (
+from tools.open_brain_dev.release_audit import (
     _load_denylist,
     _safe_location,
     content_rule_ids,

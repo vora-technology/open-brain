@@ -307,7 +307,9 @@ def test_failed_atomic_replace_leaves_previous_runtime_state_unchanged(
         del root, relative, data, require_existing
         raise DurabilityError("durable storage write failed")
 
-    monkeypatch.setattr('open_brain_legacy.integrations.life_os_runtime.atomic_replace', fail_replace)
+    monkeypatch.setattr(
+        "open_brain_legacy.integrations.life_os_runtime.atomic_replace", fail_replace
+    )
 
     with pytest.raises(DurabilityError, match="durable storage write failed"):
         runtime.plan(_request(day=19, suffix="new"))

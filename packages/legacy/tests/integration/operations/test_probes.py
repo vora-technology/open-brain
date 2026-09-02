@@ -7,8 +7,8 @@ from open_brain_engine.engine import LockScope
 from open_brain_engine.storage.locks import HeldLeaseSnapshot, LockStateSnapshot
 from open_brain_engine.storage.writer_record import CanonicalWriterRecord
 
-from open_brain_legacy.capture.queue import PendingQueueSnapshot
 from open_brain.config import AppConfig, ConfigError, RetainedRoots
+from open_brain_legacy.capture.queue import PendingQueueSnapshot
 from open_brain_legacy.operations.doctor import (
     DoctorRole,
     ProbeName,

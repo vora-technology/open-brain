@@ -5,14 +5,6 @@ import subprocess
 from hashlib import sha256
 from pathlib import Path
 
-from open_brain_legacy.integrations.hooks import (
-    HookCompatibilityAction,
-    HookCompatibilityDisposition,
-    RepositoryHookCapability,
-    TemporaryHookPlanner,
-    deliver_post_commit_signal,
-    run_post_commit_hook,
-)
 from open_brain.integrations.ports import (
     HookEmitResult,
     HookInstallRequest,
@@ -20,6 +12,14 @@ from open_brain.integrations.ports import (
     HookKind,
     HookSignalStatus,
     PostCommitSignal,
+)
+from open_brain_legacy.integrations.hooks import (
+    HookCompatibilityAction,
+    HookCompatibilityDisposition,
+    RepositoryHookCapability,
+    TemporaryHookPlanner,
+    deliver_post_commit_signal,
+    run_post_commit_hook,
 )
 
 
@@ -295,7 +295,7 @@ def test_temporary_hook_plan_is_bounded_deterministic_and_fail_zero(
     assert first.template == (
         "#!/bin/sh\n"
         'revision="$(git rev-parse --verify HEAD 2>/dev/null)" || exit 0\n'
-        "python -m open_brain.integrations.hooks post-commit repository_fixture "
+        "python -m open_brain_legacy.integrations.hooks post-commit repository_fixture "
         '"$revision" </dev/null >/dev/null 2>&1 &\n'
         "exit 0\n"
     )

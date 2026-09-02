@@ -10,7 +10,7 @@ from open_brain_legacy.cli.ledger import synthesis
 from open_brain_legacy.ledger.render import RenderResult, SynthesisRenderer
 from open_brain_legacy.ledger.synthesis import SynthesisError, SynthesisOutcome, SynthesisRequest
 from open_brain_legacy.ledger.synthesis_store import DurableSynthesisRecord, SqliteSynthesisStore
-from tests.unit.ledger.test_synthesis import _Provider, _request, _service
+from packages.legacy.tests.unit.ledger.test_synthesis import _Provider, _request, _service
 
 
 class _RecordingSynthesisService:

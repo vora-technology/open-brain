@@ -6,8 +6,8 @@ from pathlib import Path
 from open_brain_engine.capture.models import ExtractionFailure
 from open_brain_engine.core.models import RawAssetRef
 
-from open_brain_legacy.production.assets import ContentAddressedRawAssetStore
 from open_brain_connectors.capture.media import collect_staged_media
+from open_brain_legacy.production.assets import ContentAddressedRawAssetStore
 
 
 def test_staged_media_is_persisted_before_ephemeral_stage_is_removed(tmp_path: Path) -> None:

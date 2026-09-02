@@ -1057,14 +1057,14 @@
       "current_path": "tools/open_brain_dev/__init__.py",
       "import_rewrite": {
         "from": "open_brain.dev",
-        "to": "open_brain_dev"
+        "to": "tools.open_brain_dev"
       },
       "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
       "roles": [],
-      "runtime_namespace": "open_brain_dev",
+      "runtime_namespace": "tools.open_brain_dev",
       "target_distribution": "workspace",
       "target_path": "tools/open_brain_dev/__init__.py",
       "test_owner": "workspace"
@@ -1078,14 +1078,14 @@
       "current_path": "tools/open_brain_dev/artifact_policy.py",
       "import_rewrite": {
         "from": "open_brain.dev.artifact_policy",
-        "to": "open_brain_dev.artifact_policy"
+        "to": "tools.open_brain_dev.artifact_policy"
       },
       "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
       "roles": [],
-      "runtime_namespace": "open_brain_dev",
+      "runtime_namespace": "tools.open_brain_dev",
       "target_distribution": "workspace",
       "target_path": "tools/open_brain_dev/artifact_policy.py",
       "test_owner": "workspace"
@@ -1099,14 +1099,14 @@
       "current_path": "tools/open_brain_dev/public_history_audit.py",
       "import_rewrite": {
         "from": "open_brain.dev.public_history_audit",
-        "to": "open_brain_dev.public_history_audit"
+        "to": "tools.open_brain_dev.public_history_audit"
       },
       "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
       "roles": [],
-      "runtime_namespace": "open_brain_dev",
+      "runtime_namespace": "tools.open_brain_dev",
       "target_distribution": "workspace",
       "target_path": "tools/open_brain_dev/public_history_audit.py",
       "test_owner": "workspace"
@@ -1120,14 +1120,14 @@
       "current_path": "tools/open_brain_dev/release_audit.py",
       "import_rewrite": {
         "from": "open_brain.dev.release_audit",
-        "to": "open_brain_dev.release_audit"
+        "to": "tools.open_brain_dev.release_audit"
       },
       "movement_state": "moved",
       "old_import_disposition": "remove",
       "owner": "workspace",
       "resource_requirements": [],
       "roles": [],
-      "runtime_namespace": "open_brain_dev",
+      "runtime_namespace": "tools.open_brain_dev",
       "target_distribution": "workspace",
       "target_path": "tools/open_brain_dev/release_audit.py",
       "test_owner": "workspace"
@@ -5180,6 +5180,8 @@
       ],
       "engine": [],
       "legacy": [
+        "app",
+        "connectors",
         "engine"
       ]
     },

@@ -502,3 +502,44 @@
   deployment, production/private access, cutover action, or P4-W4 work occurred.
 - No publication, tag, release, native build, deployment, production/private
   access, cutover action, or P4-W4 work occurred.
+
+## P4-W4 local repair candidate
+
+- Governance launch commit `a94fed1` and behavior-neutral movement commit
+  `818caf6` remain separate from this repair candidate. The canonical move put
+  all 302 planned legacy and workspace paths at their final locations and
+  removed the old `src/open_brain` tree.
+- Initial post-move collection exposed 35 cross-namespace import errors. The
+  deterministic rewriter now converts relative imports that cross a moved
+  package boundary. The full root suite subsequently exposed and closed 11
+  stale path, module-identity, and dynamic-module assertions.
+- A source-derived dependency regression failed with an undeclared connector
+  edge: legacy imported `{app, connectors, engine}` while the manifest and
+  metadata declared only app and engine. The canonical graph, exact package
+  metadata, lockfile, and wheel metadata now agree on all three inward edges.
+- Focused architecture, manifest, package-build, app, engine, and legacy
+  verification passed 233 tests. The complete repository suite passed 3,173
+  tests in 69.89 seconds. `make phase4-contracts` passed 89 tests, Ruff,
+  strict MyPy on 500 files, and manifest validation. `make verify` passed
+  Ruff, strict MyPy, the same 3,173 tests, all six shipping artifact builds,
+  and artifact policy.
+- Source-free private legacy build hashes are wheel
+  `09ec2124ef01cd1730b2918d6c2bc0a9d33315068c022b2312dbed8fa73feac4`
+  and sdist
+  `ff9d17a1d090ad72815d59adbc371fd87db02872881a8586660647e03079b44a`.
+  Shipping artifact hashes are app wheel
+  `19a4e217385abc42b38266f7ef8b27206c93995cfef3e036f762b68d0a1a4c49`,
+  app sdist
+  `ea47d9afea6829c12ced114a46f6778738f57a0d037dcecb08d806d4b2b2d782`,
+  connector wheel
+  `2018c931cd372287a2828197ee937ce5a0de4c39f944a204040c8e84e4fb09eb`,
+  connector sdist
+  `0b27910054ff1f12c877728dcf6868b7de65ed11ba04e369db64d67c86a7d33a`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `199e0fc2adb264b0a0f9db50fd291e906b4d0a61cdb90e4eb55784716d000eca`.
+- Uncached Ruff, strict MyPy, canonical manifest and import-rewrite checks,
+  `uv lock --check`, and `git diff --check` pass. The supported-Python matrix,
+  release/history/security audits, exact-head CI, and independent review remain
+  pending after the source checkpoint.

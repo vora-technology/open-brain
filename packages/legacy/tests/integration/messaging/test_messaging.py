@@ -1,12 +1,6 @@
 from dataclasses import dataclass, field
 
 from open_brain.integrations.config import IntegrationConfig
-from open_brain_legacy.integrations.messaging import (
-    MessageBatch,
-    MessageCandidate,
-    MessageConfidence,
-    MessagingIntegration,
-)
 from open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
@@ -14,6 +8,12 @@ from open_brain.integrations.ports import (
     ReviewWriteKind,
     ReviewWriteRequest,
     ReviewWriteResult,
+)
+from open_brain_legacy.integrations.messaging import (
+    MessageBatch,
+    MessageCandidate,
+    MessageConfidence,
+    MessagingIntegration,
 )
 
 

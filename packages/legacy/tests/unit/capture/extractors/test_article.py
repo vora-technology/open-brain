@@ -18,8 +18,8 @@ from open_brain_engine.core.models import (
 )
 from open_brain_engine.core.ports import FetchRequest, FetchResponse
 
-from open_brain_legacy.capture.extractors.article import ArticleExtractor
 from open_brain_connectors.capture.extractors import ExtractionRequest
+from open_brain_legacy.capture.extractors.article import ArticleExtractor
 
 
 def _privacy(*, external_egress: bool = True) -> PrivacyDecision:

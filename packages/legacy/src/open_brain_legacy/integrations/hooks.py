@@ -12,7 +12,7 @@ from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path
 
-from .ports import (
+from open_brain.integrations.ports import (
     HookEmitResult,
     HookInstallRequest,
     HookInstallResult,
@@ -26,7 +26,7 @@ from .ports import (
 _POST_COMMIT_TEMPLATE = (
     "#!/bin/sh\n"
     'revision="$(git rev-parse --verify HEAD 2>/dev/null)" || exit 0\n'
-    "python -m open_brain.integrations.hooks post-commit {repository_id} "
+    "python -m open_brain_legacy.integrations.hooks post-commit {repository_id} "
     '"$revision" </dev/null >/dev/null 2>&1 &\n'
     "exit 0\n"
 )

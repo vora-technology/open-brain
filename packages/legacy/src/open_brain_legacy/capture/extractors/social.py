@@ -20,8 +20,8 @@ from open_brain_engine.core.models import ContentKind, PrivacyDecision, RawAsset
 from open_brain_engine.core.policy import BoundaryErrorCode
 from open_brain_engine.core.ports import FetchRequest, OutboundFetcher
 
-from open_brain_legacy.providers.transcription import TranscriptionRequest, TranscriptionService
 from open_brain_connectors.capture.media import DEFAULT_MEDIA_LIMITS, MediaCommand, MediaTool
+from open_brain_legacy.providers.transcription import TranscriptionRequest, TranscriptionService
 
 _PLATFORMS = {
     "instagram.com": "instagram",

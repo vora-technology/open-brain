@@ -42,7 +42,7 @@ def test_retention_defaults_to_dry_run_and_serializes_only_metadata() -> None:
 
 
 def test_retention_report_is_owned_by_the_production_service() -> None:
-    assert RetentionReport.__module__ == "open_brain.production.retention"
+    assert RetentionReport.__module__ == "open_brain_legacy.production.retention"
 
 
 def test_retention_redacts_service_failures() -> None:

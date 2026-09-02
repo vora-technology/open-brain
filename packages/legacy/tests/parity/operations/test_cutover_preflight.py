@@ -13,7 +13,7 @@ from open_brain_legacy.operations.doctor import (
     run_doctor,
 )
 from open_brain_legacy.operations.models import DeploymentTarget
-from tests.parity.cross_surface._preflight import (
+from packages.legacy.tests.parity.cross_surface._preflight import (
     AUTHORITATIVE_ROW_CLASSIFICATIONS,
     PreflightEvidence,
     RowClassification,

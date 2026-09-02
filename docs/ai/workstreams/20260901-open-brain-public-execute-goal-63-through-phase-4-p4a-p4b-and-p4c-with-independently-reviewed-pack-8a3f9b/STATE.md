@@ -89,9 +89,9 @@
 
 ## Next action
 
-Execute the behavior-neutral canonical move and deterministic import rewrite,
-then run focused manifest, architecture, and legacy-isolation checks before the
-first P4-W4 source checkpoint.
+Complete the P4-W4 repair checkpoint verification, commit the source candidate,
+then run the exact full, matrix, artifact, and audit gates before pushing it for
+CI.
 
 ## P4-W0 complete
 
@@ -473,3 +473,22 @@ first P4-W4 source checkpoint.
 - Reviewer budget reset to zero active and zero total for this milestone. One
   coordinator retains exclusive write ownership; review remains read-only and
   starts only after exact-candidate CI is green.
+
+## P4-W4 local movement and repair
+
+- Governance launch is committed at `a94fed1`; the behavior-neutral canonical
+  move is committed separately at `818caf6`.
+- All 302 planned legacy and workspace paths are at their final locations. The
+  old `src/open_brain` tree is absent, and all runtime and non-runtime movement
+  states are `moved`.
+- The deterministic rewrite now converts relative imports that cross a moved
+  namespace. The workspace tools use the single `tools.open_brain_dev`
+  identity, and strict MyPy no longer sees duplicate module names.
+- The move exposed undeclared app and connector imports in the private legacy
+  package. A red regression derived the actual `{app, connectors, engine}`
+  edge set. Exact package metadata and the canonical graph now agree with that
+  source-derived set while all shipping dependencies continue to point away
+  from legacy.
+- Current focused verification: 233 manifest, package-build, architecture,
+  legacy, app, and engine tests pass. Full repair-candidate verification is
+  next. Reviewer budget remains zero active and zero total.

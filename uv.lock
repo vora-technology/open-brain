@@ -521,11 +521,17 @@ name = "open-brain-legacy"
 version = "0.1.0"
 source = { virtual = "packages/legacy" }
 dependencies = [
+    { name = "open-brain" },
+    { name = "open-brain-connectors" },
     { name = "open-brain-engine" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "open-brain-engine", editable = "packages/engine" }]
+requires-dist = [
+    { name = "open-brain", editable = "packages/app" },
+    { name = "open-brain-connectors", editable = "packages/connectors" },
+    { name = "open-brain-engine", editable = "packages/engine" },
+]
 
 [[package]]
 name = "openai"

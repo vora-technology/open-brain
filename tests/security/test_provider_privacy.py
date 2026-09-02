@@ -166,4 +166,4 @@ def test_transcription_disabled_or_unauthorized_never_constructs_provider() -> N
     assert disabled.error_code is BoundaryErrorCode.OPTIONAL_EXTRA_UNAVAILABLE
     assert unauthorized.error_code is BoundaryErrorCode.CLOUD_AUTHORITY_REQUIRED
     assert factory_calls == 0
-    assert TranscriptionResult.__module__ == "open_brain.providers.transcription"
+    assert TranscriptionResult.__module__ == "open_brain_legacy.providers.transcription"

@@ -9,7 +9,6 @@ import pytest
 from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain_engine.engine import CaptureReceipt, PublicJobCaptureSink
 
-from open_brain_legacy.services.application import SingleUserLocalApplication
 from open_brain.services.connectors import (
     ConnectorBudget,
     ConnectorBudgetLimits,
@@ -33,6 +32,7 @@ from open_brain_connectors.production.youtube_poll import (
     YouTubeReferenceTransport,
     YouTubeSubscription,
 )
+from open_brain_legacy.services.application import SingleUserLocalApplication
 
 FIXED_TIME = datetime(2026, 8, 31, 12, 0, tzinfo=UTC)
 

@@ -29,7 +29,6 @@ from open_brain_engine.review.models import (
 )
 from open_brain_engine.storage.writer_record import write_canonical_writer_record
 
-from open_brain_legacy.cli.scheduled import ScheduledDispatchStatus
 from open_brain.config import (
     AppConfig,
     LedgerConfig,
@@ -37,6 +36,7 @@ from open_brain.config import (
     LedgerTaxonomyConfig,
     RetainedRoots,
 )
+from open_brain_legacy.cli.scheduled import ScheduledDispatchStatus
 from open_brain_legacy.operations.writer_jobs import get_writer_job_spec
 from open_brain_legacy.review.maintenance import (
     CurationClass,

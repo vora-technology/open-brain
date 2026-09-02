@@ -63,7 +63,7 @@
       "portable_v1_status": "legacy-characterized-not-portable-v1"
     },
     {
-      "symbol": "open_brain.ledger.models.LedgerScanRecord",
+      "symbol": "open_brain_legacy.ledger.models.LedgerScanRecord",
       "fields": ["record_id", "capture_id", "event_id", "event_digest_sha256", "event_type", "source_locator", "content_digest_sha256", "taxonomy_version", "route", "event_privacy_decision", "privacy_decision", "upstream_redaction_receipt", "redacted_text", "capture_why", "captured_at", "capture_source", "source_type", "content_kind", "provenance", "topic_id", "topic_label"],
       "representation": "frozen_runtime_record",
       "portable_v1_status": "legacy-characterized-not-portable-v1"

@@ -11,15 +11,6 @@ from dataclasses import replace
 from pathlib import Path
 
 from open_brain.config import AppConfig, ConfigError
-from open_brain_legacy.services.application import (
-    ConfigurationFailedScheduledAdapters,
-    ConfiguredScheduledAdapters,
-    SingleUserLocalApplication,
-    _degraded_doctor_adapters,
-    _SystemClock,
-    build_command_adapters,
-    compose_production_application,
-)
 from open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
     ConnectorBudget,
@@ -41,6 +32,15 @@ from open_brain.services.runtime import (
     compose_mcp_from_config,
     load_private_http_bind_config,
     read_private_service_secret,
+)
+from open_brain_legacy.services.application import (
+    ConfigurationFailedScheduledAdapters,
+    ConfiguredScheduledAdapters,
+    SingleUserLocalApplication,
+    _degraded_doctor_adapters,
+    _SystemClock,
+    build_command_adapters,
+    compose_production_application,
 )
 
 
@@ -236,7 +236,6 @@ def _configure_youtube_connector(
     ):
         return application, {}
 
-    from open_brain_legacy.production.media import compose_production_capture_media_adapter
     from open_brain_connectors.capture.poll import FilesystemYouTubePollState
     from open_brain_connectors.production.youtube_poll import (
         YouTubePollCheckpoint,
@@ -244,6 +243,7 @@ def _configure_youtube_connector(
         YouTubeReferenceTransport,
         load_private_youtube_config,
     )
+    from open_brain_legacy.production.media import compose_production_capture_media_adapter
 
     profile = ConnectorProfile(
         allow_list=("youtube",),

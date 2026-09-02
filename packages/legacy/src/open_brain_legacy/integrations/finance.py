@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
-from .ports import Capability, ProviderSyncResult, RedactedText, SyncStatus
+from open_brain.integrations.ports import Capability, ProviderSyncResult, RedactedText, SyncStatus
 
 _ITEM_REF_PATTERN = re.compile(r"finance_item_[A-Za-z0-9_-]{1,120}")
 _TRANSACTION_REF_PATTERN = re.compile(r"transaction_[A-Za-z0-9_-]{1,116}")

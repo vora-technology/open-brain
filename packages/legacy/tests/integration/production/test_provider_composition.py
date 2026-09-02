@@ -123,7 +123,7 @@ def _private_provider_config(tmp_path: Path, *, endpoint: str) -> Path:
                 "schema_version": 1,
                 "local_endpoint": endpoint,
                 "local_model": "synthetic-model",
-                "cloud_module": "open_brain.providers.optional_cloud",
+                "cloud_module": "open_brain_legacy.providers.optional_cloud",
                 "cloud_model": "synthetic-cloud-model",
                 "credential_name": "provider_token",
             }
@@ -143,7 +143,7 @@ from types import SimpleNamespace
 sys.path.insert(0, {str(source)!r})
 from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
 from open_brain_engine.core.ports import TextModelRequest
-from open_brain.production.providers import LocalProviderRuntimeConfig, ProviderComposition
+from open_brain_legacy.production.providers import LocalProviderRuntimeConfig, ProviderComposition
 
 class LocalTransport:
     def complete(self, **kwargs):
@@ -155,20 +155,20 @@ class OpenAI:
             create=lambda **_kwargs: SimpleNamespace(output_text="fresh cloud result")
         )
 
-assert "open_brain.providers.optional_cloud" not in sys.modules
+assert "open_brain_legacy.providers.optional_cloud" not in sys.modules
 service = ProviderComposition(
     config=LocalProviderRuntimeConfig(
         provider_name="cloud",
         cloud_enabled=True,
         local_endpoint="http://127.0.0.1:11434/api",
         local_model="synthetic-local",
-        cloud_module="open_brain.providers.optional_cloud",
+        cloud_module="open_brain_legacy.providers.optional_cloud",
         cloud_model="synthetic-cloud",
     ),
     local_transport=LocalTransport(),
     resolve_cloud_secret=lambda: "synthetic-credential",
 ).build()
-assert "open_brain.providers.optional_cloud" in sys.modules
+assert "open_brain_legacy.providers.optional_cloud" in sys.modules
 sys.modules["openai"] = SimpleNamespace(OpenAI=OpenAI)
 request = TextModelRequest.create(
     request_id="request.fresh-cloud",
@@ -275,7 +275,7 @@ def test_provider_composition_selects_local_without_cloud_or_secret_access() -> 
             cloud_enabled=False,
             local_endpoint="http://127.0.0.1:11434/api/generate",
             local_model="synthetic-model",
-            cloud_module="open_brain.providers.optional_cloud",
+            cloud_module="open_brain_legacy.providers.optional_cloud",
             cloud_model="synthetic-cloud-model",
         ),
         local_transport=StdlibLocalModelTransport(connection_factory=factory),
@@ -416,6 +416,6 @@ def test_provider_runtime_config_rejects_ambient_or_unsafe_endpoints(endpoint: s
             cloud_enabled=False,
             local_endpoint=endpoint,
             local_model="synthetic-model",
-            cloud_module="open_brain.providers.optional_cloud",
+            cloud_module="open_brain_legacy.providers.optional_cloud",
             cloud_model="synthetic-cloud-model",
         )

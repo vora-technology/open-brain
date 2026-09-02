@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from open_brain.integrations.ports import SyncStatus
 from open_brain_legacy.integrations.finance import (
     FakeFinanceProvider,
     FinanceIntegration,
@@ -8,7 +9,6 @@ from open_brain_legacy.integrations.finance import (
     InMemoryFinanceStore,
     SyntheticFinanceTransaction,
 )
-from open_brain.integrations.ports import SyncStatus
 
 
 def test_fake_finance_link_and_unlink_contract_stays_opaque_and_idempotent() -> None:

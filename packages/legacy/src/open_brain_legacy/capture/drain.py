@@ -24,8 +24,8 @@ from open_brain_engine.core.ids import canonical_json_bytes, validate_identifier
 from open_brain_engine.core.models import SourceType
 from open_brain_engine.core.ports import CaptureQueue, PutDisposition, PutResult
 
-from open_brain_legacy.capture.extractors.social import SocialExtractionRequest
 from open_brain_connectors.capture.extractors import ExtractionRequest
+from open_brain_legacy.capture.extractors.social import SocialExtractionRequest
 
 
 class DrainItemState(StrEnum):

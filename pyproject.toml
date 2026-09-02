@@ -28,7 +28,6 @@ pythonpath = [
   "packages/connectors/src",
   "packages/engine/src",
   "packages/legacy/src",
-  "tools",
 ]
 testpaths = [
   "tests",
@@ -46,7 +45,7 @@ line-length = 100
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["open_brain", "open_brain_connectors", "open_brain_dev", "open_brain_legacy"]
+known-first-party = ["open_brain", "open_brain_connectors", "open_brain_legacy", "tools"]
 known-third-party = ["open_brain_engine"]
 
 [tool.mypy]
@@ -58,6 +57,5 @@ mypy_path = [
   "packages/connectors/src",
   "packages/engine/src",
   "packages/legacy/src",
-  "tools",
 ]
 files = ["packages", "tests", "tools"]

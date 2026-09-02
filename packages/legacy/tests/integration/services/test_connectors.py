@@ -18,7 +18,6 @@ from open_brain_engine.engine import (
 )
 
 from open_brain.extensions.connectors import CONNECTOR_ENTRY_POINT_GROUP
-from open_brain_legacy.services.application import SingleUserLocalApplication
 from open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
     ConnectorBudget,
@@ -40,6 +39,7 @@ from open_brain.services.connectors import (
     ConnectorRunReceipt,
     InstalledConnectorEntryPointSource,
 )
+from open_brain_legacy.services.application import SingleUserLocalApplication
 
 
 class _EntryPoint:
@@ -354,11 +354,12 @@ def test_default_profile_discovers_nothing_and_context_has_capture_only_authorit
 def test_app_composition_uses_only_the_internal_extension_contract() -> None:
     source = (
         Path(__file__).resolve().parents[3]
-        / "src/open_brain/services/application.py"
+        / "src/open_brain_legacy/services/application.py"
     ).read_text(encoding="utf-8")
 
     assert "open_brain.production.youtube_poll" not in source
     assert "open_brain.capture.poll" not in source
+    assert "open_brain_connectors" not in source
     assert "YouTubeReferenceConnector" not in source
 
 

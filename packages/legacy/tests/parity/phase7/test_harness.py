@@ -39,7 +39,9 @@ from open_brain_legacy.operations.doctor import DoctorCheck as AuthoritativeDoct
 from open_brain_legacy.operations.doctor import DoctorOutcome as AuthoritativeDoctorOutcome
 from open_brain_legacy.operations.doctor import DoctorResult as AuthoritativeDoctorResult
 from open_brain_legacy.operations.doctor import FindingClass as AuthoritativeFindingClass
-from open_brain_legacy.operations.doctor import HistoricalDiagnosis as AuthoritativeHistoricalDiagnosis
+from open_brain_legacy.operations.doctor import (
+    HistoricalDiagnosis as AuthoritativeHistoricalDiagnosis,
+)
 from open_brain_legacy.operations.doctor import ProbeName as AuthoritativeProbeName
 from open_brain_legacy.operations.doctor import ProbeReading as AuthoritativeProbeReading
 from open_brain_legacy.operations.doctor import ProbeState as AuthoritativeProbeState

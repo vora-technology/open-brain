@@ -58,3 +58,15 @@ def test_manifest_rewriter_changes_only_owned_module_endpoints() -> None:
         source_moved=True,
         rewrites={},
     ) == relative
+    assert rewrite_relative_imports(
+        relative,
+        source_module=f"{old_root}.review.routing",
+        source_is_package=False,
+        source_moved=True,
+        rewrites={
+            f"{old_root}.review.routing": f"{legacy_root}.review.routing",
+            f"{legacy_root}.review.routing": f"{legacy_root}.review.routing",
+            f"{old_root}.review.models": f"{engine_root}.review.models",
+            f"{engine_root}.review.models": f"{engine_root}.review.models",
+        },
+    ) == f"from {engine_root}.review.models import ReviewAggregate\n"

@@ -30,8 +30,8 @@ from open_brain_legacy.ledger.synthesis import (
     prepare_synthesis_batch,
 )
 from open_brain_legacy.ledger.synthesis_store import SqliteSynthesisStore
-from tests.unit.ledger.test_scan import _taxonomy
-from tests.unit.ledger.test_stage import _record
+from packages.legacy.tests.unit.ledger.test_scan import _taxonomy
+from packages.legacy.tests.unit.ledger.test_stage import _record
 
 _SOURCE_IDS = ("cite-one", "cite-three", "cite-two")
 

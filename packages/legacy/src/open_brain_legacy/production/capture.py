@@ -28,6 +28,8 @@ from open_brain_engine.events.store import SqliteEventStore
 from open_brain_engine.providers.base import ProviderService
 from open_brain_engine.storage.filesystem import AtomicFilesystemRawStore
 
+from open_brain.config import AppConfig
+from open_brain_connectors.capture.extractors.youtube import YouTubeExtractor, YouTubeMediaAdapter
 from open_brain_legacy.capture.distillation import DistillationService, FilesystemDistillationStore
 from open_brain_legacy.capture.distillation_worker import (
     DistillationProcessStatus,
@@ -41,13 +43,11 @@ from open_brain_legacy.capture.queue import (
     FilesystemDistillationQueue,
 )
 from open_brain_legacy.capture.service import CaptureService, ProcessStatus
-from open_brain.config import AppConfig
 from open_brain_legacy.production.capture_publication import CaptureDestinationPublisher
 from open_brain_legacy.production.personal_capture import (
     PersonalCaptureStatus,
     PersonalCaptureWorker,
 )
-from open_brain_connectors.capture.extractors.youtube import YouTubeExtractor, YouTubeMediaAdapter
 
 
 class CaptureMediaAdapter(SocialMediaAdapter, YouTubeMediaAdapter, Protocol):

@@ -34,7 +34,7 @@ from open_brain.config import (
 from open_brain_legacy.providers.local import LocalProvider, LocalTransport
 
 _MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}")
-_MODULE = re.compile(r"open_brain\.providers(?:\.[A-Za-z_][A-Za-z0-9_]*)+")
+_MODULE = re.compile(r"open_brain_legacy\.providers(?:\.[A-Za-z_][A-Za-z0-9_]*)+")
 _MAXIMUM_WIRE_OVERHEAD_BYTES = 16_384
 _MAXIMUM_REQUEST_BYTES = 2 * 1024 * 1024
 _MAXIMUM_CONFIG_BYTES = 64 * 1024
@@ -221,7 +221,7 @@ class ProviderComposition:
         if (
             config.provider_name == "cloud"
             and config.cloud_enabled
-            and config.cloud_module == "open_brain.providers.optional_cloud"
+            and config.cloud_module == "open_brain_legacy.providers.optional_cloud"
         ):
             from open_brain_legacy.providers.optional_cloud import create_provider
 

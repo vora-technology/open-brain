@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import cast
 
 ROOT = Path(__file__).resolve().parents[2]
-FIXTURE = ROOT / "tests" / "fixtures" / "phase0" / "current_records.json"
+FIXTURE = ROOT / "packages" / "legacy" / "tests" / "fixtures" / "phase0" / "current_records.json"
 
 
 def _fixture() -> dict[str, object]:

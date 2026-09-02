@@ -11,7 +11,12 @@ from open_brain_legacy.cli.migrate import (
     plan_migration,
     restore_migration,
 )
-from open_brain_legacy.migrate import IssueCode, MigrationBlockedError, MigrationState, restore_backup
+from open_brain_legacy.migrate import (
+    IssueCode,
+    MigrationBlockedError,
+    MigrationState,
+    restore_backup,
+)
 from open_brain_legacy.migrate.state import apply_state_backfill, plan_state_backfill
 
 from ._synthetic import note_fields, write_note

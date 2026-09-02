@@ -12,8 +12,8 @@ from open_brain_legacy.cli._registry import SCHEDULED_ROUTES
 from open_brain_legacy.cli.main import build_parser, main
 from open_brain_legacy.operations.models import ExitClass
 
-ROOT = Path(__file__).resolve().parents[3]
-FIXTURE = ROOT / "tests" / "fixtures" / "phase0" / "public_cli.json"
+ROOT = Path(__file__).resolve().parents[5]
+FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "phase0" / "public_cli.json"
 
 
 def _fixture() -> dict[str, object]:

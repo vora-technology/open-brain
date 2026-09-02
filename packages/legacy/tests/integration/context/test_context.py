@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
+from open_brain.integrations.ports import RetrievalBatch, RetrievalRequest, TrustLabel
 from open_brain_legacy.integrations.context import (
     ContextRequest,
     ContextStatus,
     WorkContextService,
 )
-from open_brain.integrations.ports import RetrievalBatch, RetrievalRequest, TrustLabel
 from open_brain_legacy.integrations.repository_identity import (
     RepositoryIdentitySource,
     StableRepoIdentity,
@@ -149,7 +149,7 @@ def test_fail_zero_context_mode_never_raises_or_returns_content() -> None:
 
 
 def test_retrieval_and_context_modules_add_no_task_session_personal_or_network_surface() -> None:
-    integrations = Path(__file__).parents[3] / "src" / "open_brain" / "integrations"
+    integrations = Path(__file__).parents[3] / "src" / "open_brain_legacy" / "integrations"
     source = "\n".join(
         (integrations / name).read_text(encoding="utf-8")
         for name in ("retrieval.py", "repository_identity.py", "context.py")

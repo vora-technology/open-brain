@@ -43,11 +43,7 @@ from open_brain_engine.storage.locks import LockBusyError
 from open_brain_engine.storage.sqlite import connect_database, migrate
 from open_brain_engine.storage.writer_record import write_canonical_writer_record
 
-from open_brain_legacy.capture.queue import FilesystemCaptureQueue
 from open_brain.cli._common import ExitCode
-from open_brain_legacy.cli._registry import SCHEDULED_ROUTES, command_names
-from open_brain_legacy.cli.main import main
-from open_brain_legacy.cli.scheduled import ScheduledDispatchStatus, dispatch_scheduled_route
 from open_brain.config import (
     AppConfig,
     NamedSecretRef,
@@ -55,6 +51,32 @@ from open_brain.config import (
     SecretRef,
     SecretRefKind,
 )
+from open_brain.services.connectors import (
+    INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
+    ConnectorBudget,
+    ConnectorBudgetLimits,
+    ConnectorCaptureIdentity,
+    ConnectorHost,
+    ConnectorManifest,
+    ConnectorMetadataLogger,
+    ConnectorProfile,
+    ConnectorRegistry,
+    ConnectorRunContext,
+)
+from open_brain.services.http_server import HttpServerFactory
+from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
+from open_brain_connectors.capture.media import MediaCommand
+from open_brain_connectors.capture.poll import FilesystemYouTubePollState
+from open_brain_connectors.production.youtube_poll import (
+    YouTubePollCheckpoint,
+    YouTubeReferenceConnector,
+    YouTubeReferenceTransport,
+    load_private_youtube_config,
+)
+from open_brain_legacy.capture.queue import FilesystemCaptureQueue
+from open_brain_legacy.cli._registry import SCHEDULED_ROUTES, command_names
+from open_brain_legacy.cli.main import main
+from open_brain_legacy.cli.scheduled import ScheduledDispatchStatus, dispatch_scheduled_route
 from open_brain_legacy.integrations.life_os import LifePlanRequest
 from open_brain_legacy.integrations.life_os_runtime import (
     LifeOSPlanningRuntime,
@@ -92,29 +114,7 @@ from open_brain_legacy.services.application import (
     SingleUserLocalApplication,
     build_command_adapters,
 )
-from open_brain.services.connectors import (
-    INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
-    ConnectorBudget,
-    ConnectorBudgetLimits,
-    ConnectorCaptureIdentity,
-    ConnectorHost,
-    ConnectorManifest,
-    ConnectorMetadataLogger,
-    ConnectorProfile,
-    ConnectorRegistry,
-    ConnectorRunContext,
-)
 from open_brain_legacy.services.entrypoints import run_legacy_cli as run
-from open_brain.services.http_server import HttpServerFactory
-from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
-from open_brain_connectors.capture.media import MediaCommand
-from open_brain_connectors.capture.poll import FilesystemYouTubePollState
-from open_brain_connectors.production.youtube_poll import (
-    YouTubePollCheckpoint,
-    YouTubeReferenceConnector,
-    YouTubeReferenceTransport,
-    load_private_youtube_config,
-)
 
 _VALID_ENVIRONMENT = {
     "OPEN_BRAIN_STATE_ROOT": "/synthetic/state",
@@ -357,7 +357,7 @@ def _provider_environment(tmp_path: Path) -> dict[str, str]:
                 "schema_version": 1,
                 "local_endpoint": "http://127.0.0.1:11434/api/generate",
                 "local_model": "synthetic-model",
-                "cloud_module": "open_brain.providers.optional_cloud",
+                "cloud_module": "open_brain_legacy.providers.optional_cloud",
                 "cloud_model": "synthetic-cloud-model",
                 "credential_name": "provider_token",
             }

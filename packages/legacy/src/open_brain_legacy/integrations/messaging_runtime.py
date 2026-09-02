@@ -34,13 +34,6 @@ from open_brain_engine.storage.sqlite import (
 )
 
 from open_brain.integrations.config import IntegrationConfig
-from open_brain_legacy.integrations.messaging import (
-    MessageBatch,
-    MessageCandidate,
-    MessageConfidence,
-    MessageSource,
-    MessagingIntegration,
-)
 from open_brain.integrations.ports import (
     Capability,
     ProviderSyncRequest,
@@ -53,6 +46,13 @@ from open_brain.integrations.ports import (
     ReviewWriteKind,
     ReviewWriteRequest,
     ReviewWriteResult,
+)
+from open_brain_legacy.integrations.messaging import (
+    MessageBatch,
+    MessageCandidate,
+    MessageConfidence,
+    MessageSource,
+    MessagingIntegration,
 )
 from open_brain_legacy.review.store import SqliteReviewStore
 

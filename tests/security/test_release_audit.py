@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from open_brain_dev.release_audit import audit, main
+from tools.open_brain_dev.release_audit import audit, main
 
 
 def write_safe_tree(root: Path) -> Path:

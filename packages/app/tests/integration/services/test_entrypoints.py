@@ -74,6 +74,7 @@ print(json.dumps({{
     "forbidden": sorted(
         name for name in sys.modules
         if name.startswith((
+            "open_brain_legacy",
             "open_brain.legacy",
             "open_brain.operations",
             "open_brain.production",
