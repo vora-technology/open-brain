@@ -319,6 +319,7 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
                 "_internal/Python.framework",
                 "_internal/open_brain/resources/supervisors",
                 "_internal/open_brain_engine/portable/conformance",
+                "_internal/open_brain_engine/portable/schemas",
                 "_internal/python3.12",
             ],
             "forbidden_components": [

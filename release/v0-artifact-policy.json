@@ -389,6 +389,7 @@
         "_internal/Python.framework",
         "_internal/open_brain/resources/supervisors",
         "_internal/open_brain_engine/portable/conformance",
+        "_internal/open_brain_engine/portable/schemas",
         "_internal/python3.12"
       ],
       "forbidden_components": [
