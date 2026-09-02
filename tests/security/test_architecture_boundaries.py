@@ -1,5 +1,8 @@
 from pathlib import Path
 
+REPOSITORY_ROOT = Path(__file__).parents[2]
+APP_SOURCE_ROOT = REPOSITORY_ROOT / "packages/app/src/open_brain"
+
 
 def test_core_has_no_concrete_adapter_imports() -> None:
     core = (
@@ -33,10 +36,9 @@ def test_core_ports_expose_no_task_capability_or_raw_redaction() -> None:
 
 
 def test_phase1_cli_and_ui_use_engine_public_surface_not_local_stores() -> None:
-    source_root = Path(__file__).parents[2] / "src" / "open_brain"
     representations = (
-        source_root / "cli" / "phase1.py",
-        source_root / "integrations" / "phase1_ui.py",
+        APP_SOURCE_ROOT / "cli" / "phase1.py",
+        APP_SOURCE_ROOT / "integrations" / "phase1_ui.py",
     )
     prohibited = (
         "open_brain_engine.engine.local",
@@ -52,14 +54,13 @@ def test_phase1_cli_and_ui_use_engine_public_surface_not_local_stores() -> None:
 
 
 def test_phase3_appliance_seams_are_reserved_without_shipping_legacy_control_paths() -> None:
-    repository_root = Path(__file__).parents[2]
-    architecture = (repository_root / "docs" / "architecture.md").read_text(encoding="utf-8")
+    architecture = (REPOSITORY_ROOT / "docs" / "architecture.md").read_text(encoding="utf-8")
     services = (
-        repository_root / "src" / "open_brain" / "services" / "appliance_daemon.py",
-        repository_root / "src" / "open_brain" / "services" / "appliance_lifecycle.py",
-        repository_root / "src" / "open_brain" / "services" / "phase1_application.py",
-        repository_root / "src" / "open_brain" / "services" / "phase1_entrypoints.py",
-        repository_root / "src" / "open_brain" / "services" / "runtime.py",
+        APP_SOURCE_ROOT / "services" / "appliance_daemon.py",
+        APP_SOURCE_ROOT / "services" / "appliance_lifecycle.py",
+        APP_SOURCE_ROOT / "services" / "phase1_application.py",
+        APP_SOURCE_ROOT / "services" / "phase1_entrypoints.py",
+        APP_SOURCE_ROOT / "services" / "runtime.py",
     )
 
     assert "services/appliance_application.py" in architecture
@@ -74,13 +75,9 @@ def test_phase3_appliance_seams_are_reserved_without_shipping_legacy_control_pat
 
 
 def test_appliance_application_uses_only_public_engine_surfaces_for_mutations() -> None:
-    source = (
-        Path(__file__).parents[2]
-        / "src"
-        / "open_brain"
-        / "services"
-        / "appliance_application.py"
-    ).read_text(encoding="utf-8")
+    source = (APP_SOURCE_ROOT / "services" / "appliance_application.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "from open_brain_engine.engine import" in source
     prohibited = (

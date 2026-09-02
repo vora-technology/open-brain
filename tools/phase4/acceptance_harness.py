@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import fnmatch
 import json
 import os
@@ -480,6 +481,292 @@ def engine_isolation_findings(root: Path, work: Path) -> list[Finding]:
         return [Finding("P4H007", "engine-isolation", "module origin evidence is malformed")]
     if not isinstance(sys_path, list) or not all(isinstance(item, str) for item in sys_path):
         return [Finding("P4H007", "engine-isolation", "interpreter path evidence is malformed")]
+    return import_probe_findings(
+        ImportProbe(tuple(cast(list[str], module_paths)), tuple(cast(list[str], sys_path))),
+        root,
+    )
+
+
+def _app_contract_source() -> str:
+    return """from __future__ import annotations
+
+import importlib.metadata
+import importlib.util
+import json
+import sys
+from importlib.resources import files
+
+import open_brain.services.appliance_entrypoints as entrypoints
+import open_brain_engine
+
+
+def main() -> None:
+    distribution = importlib.metadata.distribution("open-brain")
+    assert distribution.version == "0.1.0"
+    requirements = tuple(distribution.requires or ())
+    assert "open-brain-engine==0.1.0" in requirements
+    assert not any(
+        requirement.casefold().startswith(("open-brain-connectors", "open-brain-legacy"))
+        for requirement in requirements
+    )
+    scripts = {
+        item.name: item.value
+        for item in distribution.entry_points
+        if item.group == "console_scripts"
+    }
+    assert scripts == {
+        "open-brain": "open_brain.services.appliance_entrypoints:run_cli",
+        "open-brain-mcp": "open_brain.services.appliance_entrypoints:run_mcp",
+    }
+    assert callable(entrypoints.run_cli)
+    assert callable(entrypoints.run_http)
+    assert callable(entrypoints.run_mcp)
+    resources = files("open_brain").joinpath("resources/supervisors")
+    assert resources.joinpath("launchd.json").is_file()
+    assert resources.joinpath("systemd.service").is_file()
+    forbidden = ("open_brain_connectors", "open_brain_legacy")
+    assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    print(json.dumps({
+        "module_paths": [entrypoints.__file__, open_brain_engine.__file__],
+        "sys_path": sys.path,
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+def _app_test_runner_source() -> str:
+    return """from __future__ import annotations
+
+import importlib.util
+import os
+import runpy
+import sys
+from pathlib import Path
+
+
+def main() -> None:
+    test_root = Path(sys.argv[1]).resolve()
+    product_site_packages = Path(sys.argv[2]).resolve()
+    sys.path.insert(0, str(product_site_packages))
+    sys.path.insert(0, str(test_root))
+    os.environ["PYTHONPATH"] = str(product_site_packages)
+    assert importlib.util.find_spec("open_brain") is not None
+    assert importlib.util.find_spec("open_brain_engine") is not None
+    forbidden = ("open_brain_connectors", "open_brain_legacy")
+    assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    sys.argv = [
+        "pytest",
+        "-q",
+        "-c",
+        str(test_root / "pytest.ini"),
+        "--rootdir",
+        str(test_root),
+        str(test_root / "packages/app/tests"),
+    ]
+    runpy.run_module("pytest", run_name="__main__")
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+def _copy_app_test_contract(root: Path, destination: Path) -> None:
+    shutil.copytree(
+        root / "packages/app/tests",
+        destination / "packages/app/tests",
+    )
+    shutil.copy2(root / "tests/conftest.py", destination / "conftest.py")
+    (destination / "pytest.ini").write_text(
+        "[pytest]\naddopts = --import-mode=importlib\n",
+        encoding="utf-8",
+    )
+
+
+def _public_engine_modules(root: Path) -> frozenset[str]:
+    value = json.loads(
+        (root / "docs/v0-package-classification.json").read_text(encoding="utf-8")
+    )
+    if not isinstance(value, dict) or not isinstance(value.get("files"), dict):
+        raise ValueError("canonical manifest files are invalid")
+    records = cast(dict[str, object], value["files"])
+    modules: set[str] = set()
+    prefix = PurePosixPath("packages/engine/src")
+    for raw_record in records.values():
+        if not isinstance(raw_record, dict):
+            raise ValueError("canonical manifest record is invalid")
+        record = cast(dict[str, object], raw_record)
+        if record.get("target_distribution") != "engine" or record.get("api_status") != "public":
+            continue
+        target_value = record.get("target_path")
+        if not isinstance(target_value, str):
+            raise ValueError("canonical manifest engine path is invalid")
+        target = PurePosixPath(target_value)
+        if target.is_absolute() or ".." in target.parts or target.as_posix() != target_value:
+            raise ValueError("canonical manifest engine path is invalid")
+        if target.suffix != ".py" or tuple(target.parts[: len(prefix.parts)]) != prefix.parts:
+            continue
+        relative = PurePosixPath(*target.parts[len(prefix.parts) :])
+        parts = (
+            relative.parts[:-1]
+            if relative.name == "__init__.py"
+            else (*relative.parts[:-1], relative.stem)
+        )
+        if parts:
+            modules.add(".".join(parts))
+    if "open_brain_engine" not in modules:
+        raise ValueError("canonical manifest public engine API is empty")
+    return frozenset(modules)
+
+
+def _app_private_engine_import_findings(
+    wheel: Path,
+    public_modules: frozenset[str],
+) -> list[Finding]:
+    findings: list[Finding] = []
+    try:
+        with zipfile.ZipFile(wheel) as archive:
+            sources = {
+                name: archive.read(name)
+                for name in archive.namelist()
+                if name.startswith("open_brain/") and name.endswith(".py")
+            }
+    except (OSError, zipfile.BadZipFile):
+        return [Finding("P4H007", "app-wheel", "app source inspection failed")]
+    for name, payload in sorted(sources.items()):
+        try:
+            tree = ast.parse(payload, filename=name)
+        except (SyntaxError, UnicodeError):
+            findings.append(Finding("P4H007", name, "app source inspection failed"))
+            continue
+        imported: list[str] = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module is not None:
+                imported.append(node.module)
+            elif isinstance(node, ast.Import):
+                imported.extend(alias.name for alias in node.names)
+        if any(
+            (module == "open_brain_engine" or module.startswith("open_brain_engine."))
+            and module not in public_modules
+            for module in imported
+        ):
+            findings.append(
+                Finding("P4H008", name, "app artifact imports a private engine module")
+            )
+    return sorted(set(findings))
+
+
+def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
+    """Build and execute the app contract with only app and engine wheels available."""
+
+    engine_project = root / "packages/engine"
+    app_project = root / "packages/app"
+    if not (app_project / "src/open_brain").is_dir():
+        return [Finding("P4H007", "app-isolation", "app project is absent")]
+    engine_dist = work / "engine-dist"
+    app_dist = work / "app-dist"
+    environment = work / "venv"
+    test_environment = work / "test-venv"
+    run_root = work / "run"
+    for path in (engine_dist, app_dist, run_root):
+        path.mkdir(parents=True, exist_ok=True)
+    try:
+        run_checked(build_command(engine_project, engine_dist), cwd=run_root)
+        run_checked(build_command(app_project, app_dist), cwd=run_root)
+    except (OSError, subprocess.SubprocessError):
+        return [Finding("P4H007", "app-isolation", "app or engine build failed")]
+    engine_wheels = sorted(engine_dist.glob("open_brain_engine-*.whl"))
+    app_wheels = sorted(app_dist.glob("open_brain-*.whl"))
+    app_sdists = sorted(app_dist.glob("open_brain-*.tar.gz"))
+    if len(engine_wheels) != 1 or len(app_wheels) != 1 or len(app_sdists) != 1:
+        return [Finding("P4H001", "app-isolation", "app artifacts are incomplete")]
+    app_wheel = app_wheels[0]
+    findings = artifact_findings(
+        app_wheel,
+        ArtifactContract(
+            subject="app-wheel",
+            required_members=(
+                "open_brain/services/appliance_entrypoints.py",
+                "open_brain/resources/supervisors/launchd.json",
+                "open_brain/resources/supervisors/systemd.service",
+            ),
+            forbidden_patterns=(
+                "open_brain_engine/**",
+                "open_brain_connectors/**",
+                "open_brain_legacy/**",
+                "tests/**",
+                "tools/**",
+            ),
+            expected_name="open-brain",
+            expected_version="0.1.0",
+        ),
+    )
+    try:
+        public_engine_modules = _public_engine_modules(root)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return [Finding("P4H007", "app-isolation", "public engine API is unreadable")]
+    findings.extend(_app_private_engine_import_findings(app_wheel, public_engine_modules))
+    if findings:
+        return sorted(set(findings))
+    try:
+        run_checked(create_environment_command(environment), cwd=run_root)
+        python = environment / "bin/python"
+        run_checked(
+            install_command(python, [engine_wheels[0], app_wheel]),
+            cwd=run_root,
+        )
+        run_checked(create_environment_command(test_environment), cwd=run_root)
+        test_python = test_environment / "bin/python"
+        requirements = run_root / "test-requirements.txt"
+        exported = run_checked(export_test_requirements_command(), cwd=root)
+        requirements.write_text(exported.stdout, encoding="utf-8")
+        run_checked(
+            install_test_requirements_command(test_python, requirements),
+            cwd=run_root,
+        )
+        product_site_packages = Path(
+            run_checked(site_packages_command(python), cwd=run_root).stdout.strip()
+        )
+        if not product_site_packages.is_absolute():
+            raise OSError("product site-packages path is invalid")
+        test_root = run_root / "test-contract"
+        _copy_app_test_contract(root, test_root)
+        test_runner = run_root / "app_test_runner.py"
+        test_runner.write_text(_app_test_runner_source(), encoding="utf-8")
+        run_checked(
+            engine_test_command(
+                test_python,
+                test_runner,
+                test_root,
+                product_site_packages,
+            ),
+            cwd=run_root,
+        )
+        version = run_checked(
+            (os.fspath(environment / "bin/open-brain"), "--version"),
+            cwd=run_root,
+        )
+        if version.stdout.strip() != "open-brain 0.1.0":
+            raise ValueError("installed app version is mismatched")
+        if not (environment / "bin/open-brain-mcp").is_file():
+            raise OSError("installed MCP entry point is absent")
+        contract = run_root / "app_contract.py"
+        contract.write_text(_app_contract_source(), encoding="utf-8")
+        completed = run_checked((os.fspath(python), "-I", os.fspath(contract)), cwd=run_root)
+        payload = json.loads(completed.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError):
+        return [Finding("P4H007", "app-isolation", "installed app contract failed")]
+    module_paths = payload.get("module_paths") if isinstance(payload, dict) else None
+    sys_path = payload.get("sys_path") if isinstance(payload, dict) else None
+    if not isinstance(module_paths, list) or not all(
+        isinstance(item, str) for item in module_paths
+    ):
+        return [Finding("P4H007", "app-isolation", "module origin evidence is malformed")]
+    if not isinstance(sys_path, list) or not all(isinstance(item, str) for item in sys_path):
+        return [Finding("P4H007", "app-isolation", "interpreter path evidence is malformed")]
     return import_probe_findings(
         ImportProbe(tuple(cast(list[str], module_paths)), tuple(cast(list[str], sys_path))),
         root,

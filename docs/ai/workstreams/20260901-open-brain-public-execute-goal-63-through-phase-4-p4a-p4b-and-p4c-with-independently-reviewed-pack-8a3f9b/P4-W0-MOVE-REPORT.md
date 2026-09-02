@@ -2,21 +2,21 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `567`
-- app: `68`
+- Total subjects: `572`
+- app: `72`
 - connectors: `9`
 - engine: `104`
 - legacy: `299`
-- workspace: `87`
+- workspace: `88`
 
 | Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |
 |---|---|---|---|---|---|---|
 | `.github/dependabot.yml` | `.github/dependabot.yml` | `planned` | `release-tool` | `workspace` | `.github/dependabot.yml` | `excluded` |
 | `.github/workflows/ci.yml` | `.github/workflows/ci.yml` | `planned` | `release-tool` | `workspace` | `.github/workflows/ci.yml` | `excluded` |
 | `.github/workflows/release-audit.yml` | `.github/workflows/release-audit.yml` | `planned` | `release-tool` | `workspace` | `.github/workflows/release-audit.yml` | `excluded` |
-| `LICENSE` | `LICENSE` | `planned` | `package-resource` | `workspace` | `LICENSE` | `app-native, app-sdist, app-wheel, connector-sdist, connector-wheel` |
+| `LICENSE` | `LICENSE` | `planned` | `package-resource` | `workspace` | `LICENSE` | `connector-sdist, connector-wheel` |
 | `Makefile` | `Makefile` | `planned` | `release-tool` | `workspace` | `Makefile` | `excluded` |
-| `NOTICE` | `NOTICE` | `planned` | `package-resource` | `workspace` | `NOTICE` | `app-native, app-sdist, app-wheel, connector-sdist, connector-wheel` |
+| `NOTICE` | `NOTICE` | `planned` | `package-resource` | `workspace` | `NOTICE` | `connector-sdist, connector-wheel` |
 | `README.md` | `README.md` | `planned` | `package-resource` | `workspace` | `README.md` | `app-sdist` |
 | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json` | `planned` | `generated-resource` | `workspace` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json` | `excluded` |
 | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md` | `planned` | `generated-resource` | `workspace` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md` | `excluded` |
@@ -40,7 +40,11 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `examples/config.example.toml` | `examples/config.example.toml` | `planned` | `package-resource` | `workspace` | `examples/config.example.toml` | `app-sdist` |
 | `examples/ios-shortcut.md` | `examples/ios-shortcut.md` | `planned` | `package-resource` | `workspace` | `examples/ios-shortcut.md` | `app-sdist` |
 | `examples/synthetic-vault/README.md` | `examples/synthetic-vault/README.md` | `planned` | `package-resource` | `workspace` | `examples/synthetic-vault/README.md` | `app-sdist` |
+| `packages/app/LICENSE` | `packages/app/LICENSE` | `moved` | `package-resource` | `app` | `packages/app/LICENSE` | `app-native, app-sdist, app-wheel` |
+| `packages/app/NOTICE` | `packages/app/NOTICE` | `moved` | `package-resource` | `app` | `packages/app/NOTICE` | `app-native, app-sdist, app-wheel` |
+| `packages/app/hatch_build.py` | `packages/app/hatch_build.py` | `moved` | `release-tool` | `app` | `packages/app/hatch_build.py` | `app-sdist` |
 | `packages/app/pyproject.toml` | `packages/app/pyproject.toml` | `moved` | `release-tool` | `app` | `packages/app/pyproject.toml` | `app-sdist` |
+| `packages/app/tests/contract/test_v0_wheel_gates.py` | `packages/app/tests/contract/test_v0_wheel_gates.py` | `moved` | `test` | `app` | `packages/app/tests/contract/test_v0_wheel_gates.py` | `excluded` |
 | `packages/connectors/pyproject.toml` | `packages/connectors/pyproject.toml` | `moved` | `release-tool` | `connectors` | `packages/connectors/pyproject.toml` | `connector-sdist` |
 | `packages/engine/LICENSE` | `packages/engine/LICENSE` | `moved` | `package-resource` | `engine` | `packages/engine/LICENSE` | `engine-sdist, engine-wheel` |
 | `packages/engine/NOTICE` | `packages/engine/NOTICE` | `moved` | `package-resource` | `engine` | `packages/engine/NOTICE` | `engine-sdist, engine-wheel` |
@@ -48,8 +52,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `packages/engine/pyproject.toml` | `packages/engine/pyproject.toml` | `moved` | `release-tool` | `engine` | `packages/engine/pyproject.toml` | `engine-sdist` |
 | `packages/legacy/pyproject.toml` | `packages/legacy/pyproject.toml` | `moved` | `release-tool` | `legacy` | `packages/legacy/pyproject.toml` | `legacy-only` |
 | `pyproject.toml` | `pyproject.toml` | `planned` | `release-tool` | `workspace` | `pyproject.toml` | `excluded` |
-| `pyproject.toml#project.scripts.open-brain` | `pyproject.toml#project.scripts.open-brain` | `planned` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain` | `app-native, app-sdist, app-wheel` |
-| `pyproject.toml#project.scripts.open-brain-mcp` | `pyproject.toml#project.scripts.open-brain-mcp` | `planned` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `app-native, app-sdist, app-wheel` |
+| `pyproject.toml#project.scripts.open-brain` | `packages/app/pyproject.toml#project.scripts.open-brain` | `moved` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain` | `app-native, app-sdist, app-wheel` |
+| `pyproject.toml#project.scripts.open-brain-mcp` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `moved` | `entry-point` | `app` | `packages/app/pyproject.toml#project.scripts.open-brain-mcp` | `app-native, app-sdist, app-wheel` |
 | `release/phase4-compatibility.json` | `release/phase4-compatibility.json` | `planned` | `release-resource` | `workspace` | `release/phase4-compatibility.json` | `app-sdist, connector-sdist, engine-sdist` |
 | `release/phase4-toolchain.json` | `release/phase4-toolchain.json` | `planned` | `release-resource` | `workspace` | `release/phase4-toolchain.json` | `app-sdist, connector-sdist, engine-sdist` |
 | `release/public-history-allowlist.json` | `release/public-history-allowlist.json` | `planned` | `release-resource` | `workspace` | `release/public-history-allowlist.json` | `app-sdist, connector-sdist, engine-sdist` |
@@ -70,9 +74,9 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `schemas/portable-brain/v1/space-frontmatter.json` | `packages/engine/src/open_brain_engine/portable/schemas/v1/space-frontmatter.json` | `moved` | `schema` | `engine` | `packages/engine/src/open_brain_engine/portable/schemas/v1/space-frontmatter.json` | `engine-sdist, engine-wheel` |
 | `schemas/portable-brain/v1/text.json` | `packages/engine/src/open_brain_engine/portable/schemas/v1/text.json` | `moved` | `schema` | `engine` | `packages/engine/src/open_brain_engine/portable/schemas/v1/text.json` | `engine-sdist, engine-wheel` |
 | `src/open_brain/__init__.py` | `packages/engine/src/open_brain_engine/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/__init__.py` | `engine-sdist, engine-wheel` |
-| `src/open_brain/__main__.py` | `src/open_brain/__main__.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/__main__.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/__main__.py` | `packages/app/src/open_brain/__main__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/__main__.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/capture/__init__.py` | `packages/engine/src/open_brain_engine/capture/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/capture/__init__.py` | `engine-sdist, engine-wheel` |
-| `src/open_brain/capture/auth.py` | `src/open_brain/capture/auth.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/capture/auth.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/capture/auth.py` | `packages/app/src/open_brain/capture/auth.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/capture/auth.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/capture/distillation.py` | `src/open_brain/capture/distillation.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/distillation.py` | `legacy-only` |
 | `src/open_brain/capture/distillation_worker.py` | `src/open_brain/capture/distillation_worker.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/distillation_worker.py` | `legacy-only` |
 | `src/open_brain/capture/drain.py` | `src/open_brain/capture/drain.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/drain.py` | `legacy-only` |
@@ -82,15 +86,15 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/capture/extractors/social.py` | `src/open_brain/capture/extractors/social.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/extractors/social.py` | `legacy-only` |
 | `src/open_brain/capture/extractors/text.py` | `src/open_brain/capture/extractors/text.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/extractors/text.py` | `legacy-only` |
 | `src/open_brain/capture/extractors/youtube.py` | `src/open_brain/capture/extractors/youtube.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/extractors/youtube.py` | `connector-sdist, connector-wheel` |
-| `src/open_brain/capture/http.py` | `src/open_brain/capture/http.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/capture/http.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/capture/http.py` | `packages/app/src/open_brain/capture/http.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/capture/http.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/capture/media.py` | `src/open_brain/capture/media.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/media.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/capture/models.py` | `packages/engine/src/open_brain_engine/capture/models.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/capture/models.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/capture/poll.py` | `src/open_brain/capture/poll.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/capture/poll.py` | `connector-sdist, connector-wheel` |
 | `src/open_brain/capture/queue.py` | `src/open_brain/capture/queue.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/queue.py` | `legacy-only` |
 | `src/open_brain/capture/redaction.py` | `packages/engine/src/open_brain_engine/capture/redaction.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/capture/redaction.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/capture/service.py` | `src/open_brain/capture/service.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/capture/service.py` | `legacy-only` |
-| `src/open_brain/cli/__init__.py` | `src/open_brain/cli/__init__.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/cli/__init__.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/cli/_common.py` | `src/open_brain/cli/_common.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/cli/_common.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/cli/__init__.py` | `packages/app/src/open_brain/cli/__init__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/cli/__init__.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/cli/_common.py` | `packages/app/src/open_brain/cli/_common.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/cli/_common.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/cli/_registry.py` | `src/open_brain/cli/_registry.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/_registry.py` | `legacy-only` |
 | `src/open_brain/cli/capture.py` | `src/open_brain/cli/capture.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/capture.py` | `legacy-only` |
 | `src/open_brain/cli/config.py` | `src/open_brain/cli/config.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/config.py` | `legacy-only` |
@@ -100,8 +104,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/cli/main.py` | `src/open_brain/cli/main.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/main.py` | `legacy-only` |
 | `src/open_brain/cli/migrate.py` | `src/open_brain/cli/migrate.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/migrate.py` | `legacy-only` |
 | `src/open_brain/cli/operations.py` | `src/open_brain/cli/operations.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/operations.py` | `legacy-only` |
-| `src/open_brain/cli/phase1.py` | `src/open_brain/cli/phase1.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/cli/phase1.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/cli/phase1_registry.py` | `src/open_brain/cli/phase1_registry.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/cli/phase1_registry.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/cli/phase1.py` | `packages/app/src/open_brain/cli/phase1.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/cli/phase1.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/cli/phase1_registry.py` | `packages/app/src/open_brain/cli/phase1_registry.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/cli/phase1_registry.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/cli/phase6_adapters.py` | `src/open_brain/cli/phase6_adapters.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/phase6_adapters.py` | `legacy-only` |
 | `src/open_brain/cli/production_adapters.py` | `src/open_brain/cli/production_adapters.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/production_adapters.py` | `legacy-only` |
 | `src/open_brain/cli/proposals.py` | `src/open_brain/cli/proposals.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/proposals.py` | `legacy-only` |
@@ -110,7 +114,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/cli/scheduled.py` | `src/open_brain/cli/scheduled.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/scheduled.py` | `legacy-only` |
 | `src/open_brain/cli/social.py` | `src/open_brain/cli/social.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/social.py` | `legacy-only` |
 | `src/open_brain/cli/status.py` | `src/open_brain/cli/status.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/cli/status.py` | `legacy-only` |
-| `src/open_brain/config.py` | `src/open_brain/config.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/config.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/config.py` | `packages/app/src/open_brain/config.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/config.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/core/__init__.py` | `packages/engine/src/open_brain_engine/core/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/core/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/core/ids.py` | `packages/engine/src/open_brain_engine/core/ids.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/core/ids.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/core/locks.py` | `packages/engine/src/open_brain_engine/core/locks.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/core/locks.py` | `engine-sdist, engine-wheel` |
@@ -141,8 +145,8 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/engine/spaces.py` | `packages/engine/src/open_brain_engine/engine/spaces.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/engine/spaces.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/events/__init__.py` | `packages/engine/src/open_brain_engine/events/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/events/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/events/store.py` | `packages/engine/src/open_brain_engine/events/store.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/events/store.py` | `engine-sdist, engine-wheel` |
-| `src/open_brain/integrations/__init__.py` | `src/open_brain/integrations/__init__.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/integrations/__init__.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/integrations/config.py` | `src/open_brain/integrations/config.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/integrations/config.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/integrations/__init__.py` | `packages/app/src/open_brain/integrations/__init__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/__init__.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/integrations/config.py` | `packages/app/src/open_brain/integrations/config.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/config.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/integrations/context.py` | `src/open_brain/integrations/context.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/context.py` | `legacy-only` |
 | `src/open_brain/integrations/dev_workflows.py` | `src/open_brain/integrations/dev_workflows.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/dev_workflows.py` | `legacy-only` |
 | `src/open_brain/integrations/finance.py` | `src/open_brain/integrations/finance.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/finance.py` | `legacy-only` |
@@ -150,17 +154,17 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/integrations/life_os.py` | `src/open_brain/integrations/life_os.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/life_os.py` | `legacy-only` |
 | `src/open_brain/integrations/life_os_runtime.py` | `src/open_brain/integrations/life_os_runtime.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/life_os_runtime.py` | `legacy-only` |
 | `src/open_brain/integrations/mail_calendar.py` | `src/open_brain/integrations/mail_calendar.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/mail_calendar.py` | `legacy-only` |
-| `src/open_brain/integrations/mcp.py` | `src/open_brain/integrations/mcp.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/integrations/mcp.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/integrations/mcp.py` | `packages/app/src/open_brain/integrations/mcp.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/mcp.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/integrations/messaging.py` | `src/open_brain/integrations/messaging.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/messaging.py` | `legacy-only` |
 | `src/open_brain/integrations/messaging_runtime.py` | `src/open_brain/integrations/messaging_runtime.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/messaging_runtime.py` | `legacy-only` |
 | `src/open_brain/integrations/obsidian.py` | `src/open_brain/integrations/obsidian.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/obsidian.py` | `legacy-only` |
-| `src/open_brain/integrations/phase1_ui.py` | `src/open_brain/integrations/phase1_ui.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/integrations/phase1_ui.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/integrations/ports.py` | `src/open_brain/integrations/ports.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/integrations/ports.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/integrations/phase1_ui.py` | `packages/app/src/open_brain/integrations/phase1_ui.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/phase1_ui.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/integrations/ports.py` | `packages/app/src/open_brain/integrations/ports.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/ports.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/integrations/relationships.py` | `src/open_brain/integrations/relationships.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/relationships.py` | `legacy-only` |
 | `src/open_brain/integrations/repository_identity.py` | `src/open_brain/integrations/repository_identity.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/repository_identity.py` | `legacy-only` |
 | `src/open_brain/integrations/retrieval.py` | `src/open_brain/integrations/retrieval.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/retrieval.py` | `legacy-only` |
 | `src/open_brain/integrations/runtime_audit.py` | `src/open_brain/integrations/runtime_audit.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/integrations/runtime_audit.py` | `legacy-only` |
-| `src/open_brain/integrations/ui.py` | `src/open_brain/integrations/ui.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/integrations/ui.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/integrations/ui.py` | `packages/app/src/open_brain/integrations/ui.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/integrations/ui.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/ledger/__init__.py` | `src/open_brain/ledger/__init__.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/ledger/__init__.py` | `legacy-only` |
 | `src/open_brain/ledger/age.py` | `src/open_brain/ledger/age.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/ledger/age.py` | `legacy-only` |
 | `src/open_brain/ledger/embed.py` | `src/open_brain/ledger/embed.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/ledger/embed.py` | `legacy-only` |
@@ -243,7 +247,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/production/transport.py` | `src/open_brain/production/transport.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/production/transport.py` | `legacy-only` |
 | `src/open_brain/production/youtube_bridge.py` | `src/open_brain/production/youtube_bridge.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/production/youtube_bridge.py` | `legacy-only` |
 | `src/open_brain/production/youtube_poll.py` | `src/open_brain/production/youtube_poll.py` | `planned` | `runtime` | `connectors` | `packages/connectors/src/open_brain_connectors/production/youtube_poll.py` | `connector-sdist, connector-wheel` |
-| `src/open_brain/profile.py` | `src/open_brain/profile.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/profile.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/profile.py` | `packages/app/src/open_brain/profile.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/profile.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/providers/__init__.py` | `packages/engine/src/open_brain_engine/providers/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/providers/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/providers/base.py` | `packages/engine/src/open_brain_engine/providers/base.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/providers/base.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/providers/deterministic.py` | `packages/engine/src/open_brain_engine/providers/deterministic.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/providers/deterministic.py` | `engine-sdist, engine-wheel` |
@@ -256,37 +260,37 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `src/open_brain/release/installation.py` | `src/open_brain/release/installation.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/release/installation.py` | `legacy-only` |
 | `src/open_brain/release/replacement.py` | `src/open_brain/release/replacement.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/release/replacement.py` | `legacy-only` |
 | `src/open_brain/release/stabilization.py` | `src/open_brain/release/stabilization.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/release/stabilization.py` | `legacy-only` |
-| `src/open_brain/resources/supervisors/launchd.json` | `src/open_brain/resources/supervisors/launchd.json` | `planned` | `package-resource` | `app` | `packages/app/src/open_brain/resources/supervisors/launchd.json` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/resources/supervisors/systemd.service` | `src/open_brain/resources/supervisors/systemd.service` | `planned` | `package-resource` | `app` | `packages/app/src/open_brain/resources/supervisors/systemd.service` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/resources/supervisors/launchd.json` | `packages/app/src/open_brain/resources/supervisors/launchd.json` | `moved` | `package-resource` | `app` | `packages/app/src/open_brain/resources/supervisors/launchd.json` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/resources/supervisors/systemd.service` | `packages/app/src/open_brain/resources/supervisors/systemd.service` | `moved` | `package-resource` | `app` | `packages/app/src/open_brain/resources/supervisors/systemd.service` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/review/__init__.py` | `packages/engine/src/open_brain_engine/review/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/review/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/review/maintenance.py` | `src/open_brain/review/maintenance.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/review/maintenance.py` | `legacy-only` |
 | `src/open_brain/review/models.py` | `packages/engine/src/open_brain_engine/review/models.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/review/models.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/review/routing.py` | `src/open_brain/review/routing.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/review/routing.py` | `legacy-only` |
 | `src/open_brain/review/service.py` | `src/open_brain/review/service.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/review/service.py` | `legacy-only` |
 | `src/open_brain/review/store.py` | `src/open_brain/review/store.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/review/store.py` | `legacy-only` |
-| `src/open_brain/services/__init__.py` | `src/open_brain/services/__init__.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/__init__.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_application.py` | `src/open_brain/services/appliance_application.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_application.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_auth.py` | `src/open_brain/services/appliance_auth.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_auth.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_daemon.py` | `src/open_brain/services/appliance_daemon.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_daemon.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_entrypoints.py` | `src/open_brain/services/appliance_entrypoints.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_entrypoints.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_entrypoints.py#run_http` | `src/open_brain/services/appliance_entrypoints.py#run_http` | `planned` | `entry-point` | `app` | `packages/app/src/open_brain/services/appliance_entrypoints.py#run_http` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_history.py` | `src/open_brain/services/appliance_history.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_history.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_init.py` | `src/open_brain/services/appliance_init.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_init.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_lifecycle.py` | `src/open_brain/services/appliance_lifecycle.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_lifecycle.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_recovery.py` | `src/open_brain/services/appliance_recovery.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_recovery.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_scheduler.py` | `src/open_brain/services/appliance_scheduler.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_scheduler.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_status.py` | `src/open_brain/services/appliance_status.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_status.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/appliance_supervisors.py` | `src/open_brain/services/appliance_supervisors.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_supervisors.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/__init__.py` | `packages/app/src/open_brain/services/__init__.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/__init__.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_application.py` | `packages/app/src/open_brain/services/appliance_application.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_application.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_auth.py` | `packages/app/src/open_brain/services/appliance_auth.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_auth.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_daemon.py` | `packages/app/src/open_brain/services/appliance_daemon.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_daemon.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_entrypoints.py` | `packages/app/src/open_brain/services/appliance_entrypoints.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_entrypoints.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_entrypoints.py#run_http` | `packages/app/src/open_brain/services/appliance_entrypoints.py#run_http` | `moved` | `entry-point` | `app` | `packages/app/src/open_brain/services/appliance_entrypoints.py#run_http` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_history.py` | `packages/app/src/open_brain/services/appliance_history.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_history.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_init.py` | `packages/app/src/open_brain/services/appliance_init.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_init.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_lifecycle.py` | `packages/app/src/open_brain/services/appliance_lifecycle.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_lifecycle.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_recovery.py` | `packages/app/src/open_brain/services/appliance_recovery.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_recovery.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_scheduler.py` | `packages/app/src/open_brain/services/appliance_scheduler.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_scheduler.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_status.py` | `packages/app/src/open_brain/services/appliance_status.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_status.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/appliance_supervisors.py` | `packages/app/src/open_brain/services/appliance_supervisors.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/appliance_supervisors.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/services/application.py` | `src/open_brain/services/application.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/services/application.py` | `legacy-only` |
 | `src/open_brain/services/capabilities.py` | `src/open_brain/services/capabilities.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/services/capabilities.py` | `legacy-only` |
-| `src/open_brain/services/composition.py` | `src/open_brain/services/composition.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/composition.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/connectors.py` | `src/open_brain/services/connectors.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/connectors.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/composition.py` | `packages/app/src/open_brain/services/composition.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/composition.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/connectors.py` | `packages/app/src/open_brain/services/connectors.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/connectors.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/services/entrypoints.py` | `src/open_brain/services/entrypoints.py` | `planned` | `runtime` | `legacy` | `packages/legacy/src/open_brain_legacy/services/entrypoints.py` | `legacy-only` |
-| `src/open_brain/services/http_server.py` | `src/open_brain/services/http_server.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/http_server.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/mcp_stdio.py` | `src/open_brain/services/mcp_stdio.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/mcp_stdio.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/phase1_application.py` | `src/open_brain/services/phase1_application.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/phase1_application.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/phase1_entrypoints.py` | `src/open_brain/services/phase1_entrypoints.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/phase1_entrypoints.py` | `app-native, app-sdist, app-wheel` |
-| `src/open_brain/services/runtime.py` | `src/open_brain/services/runtime.py` | `planned` | `runtime` | `app` | `packages/app/src/open_brain/services/runtime.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/http_server.py` | `packages/app/src/open_brain/services/http_server.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/http_server.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/mcp_stdio.py` | `packages/app/src/open_brain/services/mcp_stdio.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/mcp_stdio.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/phase1_application.py` | `packages/app/src/open_brain/services/phase1_application.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/phase1_application.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/phase1_entrypoints.py` | `packages/app/src/open_brain/services/phase1_entrypoints.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/phase1_entrypoints.py` | `app-native, app-sdist, app-wheel` |
+| `src/open_brain/services/runtime.py` | `packages/app/src/open_brain/services/runtime.py` | `moved` | `runtime` | `app` | `packages/app/src/open_brain/services/runtime.py` | `app-native, app-sdist, app-wheel` |
 | `src/open_brain/storage/__init__.py` | `packages/engine/src/open_brain_engine/storage/__init__.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/storage/__init__.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/storage/filesystem.py` | `packages/engine/src/open_brain_engine/storage/filesystem.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/storage/filesystem.py` | `engine-sdist, engine-wheel` |
 | `src/open_brain/storage/frontmatter.py` | `packages/engine/src/open_brain_engine/storage/frontmatter.py` | `moved` | `runtime` | `engine` | `packages/engine/src/open_brain_engine/storage/frontmatter.py` | `engine-sdist, engine-wheel` |
@@ -326,7 +330,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/integration/capture/test_distillation.py` | `tests/integration/capture/test_distillation.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_distillation.py` | `excluded` |
 | `tests/integration/capture/test_distillation_queue.py` | `tests/integration/capture/test_distillation_queue.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_distillation_queue.py` | `excluded` |
 | `tests/integration/capture/test_distillation_worker.py` | `tests/integration/capture/test_distillation_worker.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_distillation_worker.py` | `excluded` |
-| `tests/integration/capture/test_share_http.py` | `tests/integration/capture/test_share_http.py` | `planned` | `test` | `app` | `packages/app/tests/integration/capture/test_share_http.py` | `excluded` |
+| `tests/integration/capture/test_share_http.py` | `packages/app/tests/integration/capture/test_share_http.py` | `moved` | `test` | `app` | `packages/app/tests/integration/capture/test_share_http.py` | `excluded` |
 | `tests/integration/capture/test_social_drain.py` | `tests/integration/capture/test_social_drain.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_social_drain.py` | `excluded` |
 | `tests/integration/capture/test_social_transcription.py` | `tests/integration/capture/test_social_transcription.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/capture/test_social_transcription.py` | `excluded` |
 | `tests/integration/capture/test_youtube_poll.py` | `tests/integration/capture/test_youtube_poll.py` | `planned` | `test` | `connectors` | `packages/connectors/tests/integration/capture/test_youtube_poll.py` | `excluded` |
@@ -355,14 +359,14 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/integration/context/test_context.py` | `tests/integration/context/test_context.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/context/test_context.py` | `excluded` |
 | `tests/integration/dev_workflows/test_dev_workflows.py` | `tests/integration/dev_workflows/test_dev_workflows.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/dev_workflows/test_dev_workflows.py` | `excluded` |
 | `tests/integration/engine/__init__.py` | `tests/integration/engine/__init__.py` | `planned` | `test` | `workspace` | `tests/integration/engine/__init__.py` | `excluded` |
-| `tests/integration/engine/test_backup.py` | `tests/integration/engine/test_backup.py` | `planned` | `test` | `app` | `packages/app/tests/integration/engine/test_backup.py` | `excluded` |
-| `tests/integration/engine/test_maintenance.py` | `tests/integration/engine/test_maintenance.py` | `planned` | `test` | `app` | `packages/app/tests/integration/engine/test_maintenance.py` | `excluded` |
-| `tests/integration/engine/test_portability.py` | `tests/integration/engine/test_portability.py` | `planned` | `test` | `app` | `packages/app/tests/integration/engine/test_portability.py` | `excluded` |
-| `tests/integration/engine/test_reconciliation.py` | `tests/integration/engine/test_reconciliation.py` | `planned` | `test` | `app` | `packages/app/tests/integration/engine/test_reconciliation.py` | `excluded` |
-| `tests/integration/engine/test_vertical_slice.py` | `tests/integration/engine/test_vertical_slice.py` | `planned` | `test` | `app` | `packages/app/tests/integration/engine/test_vertical_slice.py` | `excluded` |
+| `tests/integration/engine/test_backup.py` | `packages/app/tests/integration/engine/test_backup.py` | `moved` | `test` | `app` | `packages/app/tests/integration/engine/test_backup.py` | `excluded` |
+| `tests/integration/engine/test_maintenance.py` | `packages/app/tests/integration/engine/test_maintenance.py` | `moved` | `test` | `app` | `packages/app/tests/integration/engine/test_maintenance.py` | `excluded` |
+| `tests/integration/engine/test_portability.py` | `packages/app/tests/integration/engine/test_portability.py` | `moved` | `test` | `app` | `packages/app/tests/integration/engine/test_portability.py` | `excluded` |
+| `tests/integration/engine/test_reconciliation.py` | `packages/app/tests/integration/engine/test_reconciliation.py` | `moved` | `test` | `app` | `packages/app/tests/integration/engine/test_reconciliation.py` | `excluded` |
+| `tests/integration/engine/test_vertical_slice.py` | `packages/app/tests/integration/engine/test_vertical_slice.py` | `moved` | `test` | `app` | `packages/app/tests/integration/engine/test_vertical_slice.py` | `excluded` |
 | `tests/integration/finance/test_finance.py` | `tests/integration/finance/test_finance.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/finance/test_finance.py` | `excluded` |
 | `tests/integration/hooks/test_hooks.py` | `tests/integration/hooks/test_hooks.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/hooks/test_hooks.py` | `excluded` |
-| `tests/integration/integrations/test_integration_ports.py` | `tests/integration/integrations/test_integration_ports.py` | `planned` | `test` | `app` | `packages/app/tests/integration/integrations/test_integration_ports.py` | `excluded` |
+| `tests/integration/integrations/test_integration_ports.py` | `packages/app/tests/integration/integrations/test_integration_ports.py` | `moved` | `test` | `app` | `packages/app/tests/integration/integrations/test_integration_ports.py` | `excluded` |
 | `tests/integration/integrations/test_life_os_runtime.py` | `tests/integration/integrations/test_life_os_runtime.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/integrations/test_life_os_runtime.py` | `excluded` |
 | `tests/integration/integrations/test_messaging_runtime.py` | `tests/integration/integrations/test_messaging_runtime.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/integrations/test_messaging_runtime.py` | `excluded` |
 | `tests/integration/ledger/test_apply.py` | `tests/integration/ledger/test_apply.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/ledger/test_apply.py` | `excluded` |
@@ -378,7 +382,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/integration/ledger/test_synthesis_persistence.py` | `tests/integration/ledger/test_synthesis_persistence.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/ledger/test_synthesis_persistence.py` | `excluded` |
 | `tests/integration/life_os/test_life_os.py` | `tests/integration/life_os/test_life_os.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/life_os/test_life_os.py` | `excluded` |
 | `tests/integration/mail_calendar/test_mail_calendar.py` | `tests/integration/mail_calendar/test_mail_calendar.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/mail_calendar/test_mail_calendar.py` | `excluded` |
-| `tests/integration/mcp/test_mcp.py` | `tests/integration/mcp/test_mcp.py` | `planned` | `test` | `app` | `packages/app/tests/integration/mcp/test_mcp.py` | `excluded` |
+| `tests/integration/mcp/test_mcp.py` | `packages/app/tests/integration/mcp/test_mcp.py` | `moved` | `test` | `app` | `packages/app/tests/integration/mcp/test_mcp.py` | `excluded` |
 | `tests/integration/messaging/test_messaging.py` | `tests/integration/messaging/test_messaging.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/messaging/test_messaging.py` | `excluded` |
 | `tests/integration/migrate/__init__.py` | `tests/integration/migrate/__init__.py` | `planned` | `test` | `workspace` | `tests/integration/migrate/__init__.py` | `excluded` |
 | `tests/integration/migrate/_synthetic.py` | `tests/integration/migrate/_synthetic.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/migrate/_synthetic.py` | `excluded` |
@@ -428,25 +432,25 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/integration/review/test_phase4_intent_routing.py` | `tests/integration/review/test_phase4_intent_routing.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/review/test_phase4_intent_routing.py` | `excluded` |
 | `tests/integration/review/test_saved_content_intent.py` | `tests/integration/review/test_saved_content_intent.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/review/test_saved_content_intent.py` | `excluded` |
 | `tests/integration/runtime_audit/test_runtime_audit.py` | `tests/integration/runtime_audit/test_runtime_audit.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/runtime_audit/test_runtime_audit.py` | `excluded` |
-| `tests/integration/services/test_appliance_control.py` | `tests/integration/services/test_appliance_control.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_control.py` | `excluded` |
-| `tests/integration/services/test_appliance_daemon.py` | `tests/integration/services/test_appliance_daemon.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_daemon.py` | `excluded` |
-| `tests/integration/services/test_appliance_entrypoints.py` | `tests/integration/services/test_appliance_entrypoints.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_entrypoints.py` | `excluded` |
-| `tests/integration/services/test_appliance_init.py` | `tests/integration/services/test_appliance_init.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_init.py` | `excluded` |
-| `tests/integration/services/test_appliance_recovery.py` | `tests/integration/services/test_appliance_recovery.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_recovery.py` | `excluded` |
-| `tests/integration/services/test_appliance_run_history.py` | `tests/integration/services/test_appliance_run_history.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_run_history.py` | `excluded` |
-| `tests/integration/services/test_appliance_scheduler.py` | `tests/integration/services/test_appliance_scheduler.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_scheduler.py` | `excluded` |
-| `tests/integration/services/test_appliance_supervisors.py` | `tests/integration/services/test_appliance_supervisors.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_supervisors.py` | `excluded` |
-| `tests/integration/services/test_appliance_uninstall.py` | `tests/integration/services/test_appliance_uninstall.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_uninstall.py` | `excluded` |
-| `tests/integration/services/test_appliance_upgrade.py` | `tests/integration/services/test_appliance_upgrade.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_upgrade.py` | `excluded` |
+| `tests/integration/services/test_appliance_control.py` | `packages/app/tests/integration/services/test_appliance_control.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_control.py` | `excluded` |
+| `tests/integration/services/test_appliance_daemon.py` | `packages/app/tests/integration/services/test_appliance_daemon.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_daemon.py` | `excluded` |
+| `tests/integration/services/test_appliance_entrypoints.py` | `packages/app/tests/integration/services/test_appliance_entrypoints.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_entrypoints.py` | `excluded` |
+| `tests/integration/services/test_appliance_init.py` | `packages/app/tests/integration/services/test_appliance_init.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_init.py` | `excluded` |
+| `tests/integration/services/test_appliance_recovery.py` | `packages/app/tests/integration/services/test_appliance_recovery.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_recovery.py` | `excluded` |
+| `tests/integration/services/test_appliance_run_history.py` | `packages/app/tests/integration/services/test_appliance_run_history.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_run_history.py` | `excluded` |
+| `tests/integration/services/test_appliance_scheduler.py` | `packages/app/tests/integration/services/test_appliance_scheduler.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_scheduler.py` | `excluded` |
+| `tests/integration/services/test_appliance_supervisors.py` | `packages/app/tests/integration/services/test_appliance_supervisors.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_supervisors.py` | `excluded` |
+| `tests/integration/services/test_appliance_uninstall.py` | `packages/app/tests/integration/services/test_appliance_uninstall.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_uninstall.py` | `excluded` |
+| `tests/integration/services/test_appliance_upgrade.py` | `packages/app/tests/integration/services/test_appliance_upgrade.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_appliance_upgrade.py` | `excluded` |
 | `tests/integration/services/test_connectors.py` | `tests/integration/services/test_connectors.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/services/test_connectors.py` | `excluded` |
-| `tests/integration/services/test_entrypoints.py` | `tests/integration/services/test_entrypoints.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_entrypoints.py` | `excluded` |
+| `tests/integration/services/test_entrypoints.py` | `packages/app/tests/integration/services/test_entrypoints.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_entrypoints.py` | `excluded` |
 | `tests/integration/services/test_phase1_surfaces.py` | `tests/integration/services/test_phase1_surfaces.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/services/test_phase1_surfaces.py` | `excluded` |
-| `tests/integration/services/test_phase2_surfaces.py` | `tests/integration/services/test_phase2_surfaces.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_phase2_surfaces.py` | `excluded` |
-| `tests/integration/services/test_protocols.py` | `tests/integration/services/test_protocols.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_protocols.py` | `excluded` |
-| `tests/integration/services/test_service_composition.py` | `tests/integration/services/test_service_composition.py` | `planned` | `test` | `app` | `packages/app/tests/integration/services/test_service_composition.py` | `excluded` |
+| `tests/integration/services/test_phase2_surfaces.py` | `packages/app/tests/integration/services/test_phase2_surfaces.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_phase2_surfaces.py` | `excluded` |
+| `tests/integration/services/test_protocols.py` | `packages/app/tests/integration/services/test_protocols.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_protocols.py` | `excluded` |
+| `tests/integration/services/test_service_composition.py` | `packages/app/tests/integration/services/test_service_composition.py` | `moved` | `test` | `app` | `packages/app/tests/integration/services/test_service_composition.py` | `excluded` |
 | `tests/integration/storage/test_obsidian_notes.py` | `tests/integration/storage/test_obsidian_notes.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/integration/storage/test_obsidian_notes.py` | `excluded` |
-| `tests/integration/ui/test_phase3_ui.py` | `tests/integration/ui/test_phase3_ui.py` | `planned` | `test` | `app` | `packages/app/tests/integration/ui/test_phase3_ui.py` | `excluded` |
-| `tests/integration/ui/test_ui.py` | `tests/integration/ui/test_ui.py` | `planned` | `test` | `app` | `packages/app/tests/integration/ui/test_ui.py` | `excluded` |
+| `tests/integration/ui/test_phase3_ui.py` | `packages/app/tests/integration/ui/test_phase3_ui.py` | `moved` | `test` | `app` | `packages/app/tests/integration/ui/test_phase3_ui.py` | `excluded` |
+| `tests/integration/ui/test_ui.py` | `packages/app/tests/integration/ui/test_ui.py` | `moved` | `test` | `app` | `packages/app/tests/integration/ui/test_ui.py` | `excluded` |
 | `tests/parity/cli/__init__.py` | `tests/parity/cli/__init__.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/parity/cli/__init__.py` | `excluded` |
 | `tests/parity/cli/test_command_ownership.py` | `tests/parity/cli/test_command_ownership.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/parity/cli/test_command_ownership.py` | `excluded` |
 | `tests/parity/cross_surface/__init__.py` | `tests/parity/cross_surface/__init__.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/parity/cross_surface/__init__.py` | `excluded` |
@@ -500,6 +504,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/parity/phase7/test_reconciliation.py` | `tests/parity/phase7/test_reconciliation.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/parity/phase7/test_reconciliation.py` | `excluded` |
 | `tests/phase4/__init__.py` | `tests/phase4/__init__.py` | `planned` | `test` | `workspace` | `tests/phase4/__init__.py` | `excluded` |
 | `tests/phase4/test_acceptance_harness.py` | `tests/phase4/test_acceptance_harness.py` | `planned` | `test` | `workspace` | `tests/phase4/test_acceptance_harness.py` | `excluded` |
+| `tests/phase4/test_app_distribution.py` | `tests/phase4/test_app_distribution.py` | `planned` | `test` | `workspace` | `tests/phase4/test_app_distribution.py` | `excluded` |
 | `tests/phase4/test_engine_distribution.py` | `tests/phase4/test_engine_distribution.py` | `moved` | `test` | `workspace` | `tests/phase4/test_engine_distribution.py` | `excluded` |
 | `tests/phase4/test_move_manifest.py` | `tests/phase4/test_move_manifest.py` | `planned` | `test` | `workspace` | `tests/phase4/test_move_manifest.py` | `excluded` |
 | `tests/phase4/test_rewrite_imports.py` | `tests/phase4/test_rewrite_imports.py` | `moved` | `test` | `workspace` | `tests/phase4/test_rewrite_imports.py` | `excluded` |
@@ -537,10 +542,10 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/unit/core/test_models.py` | `packages/engine/tests/unit/core/test_models.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/core/test_models.py` | `excluded` |
 | `tests/unit/core/test_ports.py` | `packages/engine/tests/unit/core/test_ports.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/core/test_ports.py` | `excluded` |
 | `tests/unit/engine/__init__.py` | `tests/unit/engine/__init__.py` | `planned` | `test` | `workspace` | `tests/unit/engine/__init__.py` | `excluded` |
-| `tests/unit/engine/test_foundation_contracts.py` | `tests/unit/engine/test_foundation_contracts.py` | `planned` | `test` | `app` | `packages/app/tests/unit/engine/test_foundation_contracts.py` | `excluded` |
+| `tests/unit/engine/test_foundation_contracts.py` | `packages/app/tests/unit/engine/test_foundation_contracts.py` | `moved` | `test` | `app` | `packages/app/tests/unit/engine/test_foundation_contracts.py` | `excluded` |
 | `tests/unit/engine/test_local_store.py` | `packages/engine/tests/unit/engine/test_local_store.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/engine/test_local_store.py` | `excluded` |
-| `tests/unit/engine/test_portability_ports.py` | `tests/unit/engine/test_portability_ports.py` | `planned` | `test` | `app` | `packages/app/tests/unit/engine/test_portability_ports.py` | `excluded` |
-| `tests/unit/engine/test_profile.py` | `tests/unit/engine/test_profile.py` | `planned` | `test` | `app` | `packages/app/tests/unit/engine/test_profile.py` | `excluded` |
+| `tests/unit/engine/test_portability_ports.py` | `packages/app/tests/unit/engine/test_portability_ports.py` | `moved` | `test` | `app` | `packages/app/tests/unit/engine/test_portability_ports.py` | `excluded` |
+| `tests/unit/engine/test_profile.py` | `packages/app/tests/unit/engine/test_profile.py` | `moved` | `test` | `app` | `packages/app/tests/unit/engine/test_profile.py` | `excluded` |
 | `tests/unit/ledger/__init__.py` | `tests/unit/ledger/__init__.py` | `planned` | `test` | `workspace` | `tests/unit/ledger/__init__.py` | `excluded` |
 | `tests/unit/ledger/test_merge.py` | `tests/unit/ledger/test_merge.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/ledger/test_merge.py` | `excluded` |
 | `tests/unit/ledger/test_sanitize.py` | `tests/unit/ledger/test_sanitize.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/ledger/test_sanitize.py` | `excluded` |
@@ -571,7 +576,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/unit/storage/test_staging.py` | `packages/engine/tests/unit/storage/test_staging.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/storage/test_staging.py` | `excluded` |
 | `tests/unit/storage/test_writer_record.py` | `packages/engine/tests/unit/storage/test_writer_record.py` | `moved` | `test` | `engine` | `packages/engine/tests/unit/storage/test_writer_record.py` | `excluded` |
 | `tests/unit/test_cli.py` | `tests/unit/test_cli.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/test_cli.py` | `excluded` |
-| `tests/unit/test_config.py` | `tests/unit/test_config.py` | `planned` | `test` | `app` | `packages/app/tests/unit/test_config.py` | `excluded` |
+| `tests/unit/test_config.py` | `packages/app/tests/unit/test_config.py` | `moved` | `test` | `app` | `packages/app/tests/unit/test_config.py` | `excluded` |
 | `tests/unit/test_writer_effect_parameters.py` | `tests/unit/test_writer_effect_parameters.py` | `planned` | `test` | `legacy` | `packages/legacy/tests/unit/test_writer_effect_parameters.py` | `excluded` |
 | `tools/phase4/__init__.py` | `tools/phase4/__init__.py` | `planned` | `release-tool` | `workspace` | `tools/phase4/__init__.py` | `excluded` |
 | `tools/phase4/acceptance_harness.py` | `tools/phase4/acceptance_harness.py` | `planned` | `release-tool` | `workspace` | `tools/phase4/acceptance_harness.py` | `excluded` |

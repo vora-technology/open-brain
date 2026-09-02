@@ -11,6 +11,7 @@ from tools.phase4.acceptance_harness import (
     CONTRACTS,
     ArtifactContract,
     ImportProbe,
+    _app_private_engine_import_findings,
     artifact_findings,
     build_command,
     create_environment_command,
@@ -180,6 +181,30 @@ def test_harness_detects_unsafe_duplicate_and_source_path_masked_cases(
     assert {"P4H005", "P4H006"} <= _codes(wheel, contract)
     probe = ImportProbe(module_paths=(str(ROOT / "src/open_brain/__init__.py"),), sys_path=())
     assert [finding.code for finding in import_probe_findings(probe, ROOT)] == ["P4H004"]
+
+
+def test_app_artifact_rejects_only_manifest_private_engine_imports(tmp_path: Path) -> None:
+    wheel = tmp_path / "app.whl"
+    _wheel(
+        wheel,
+        {
+            "open_brain/public_use.py": (
+                b"from open_brain_engine.storage.operational import read_confined\n"
+            ),
+            "open_brain/private_use.py": (
+                b"from open_brain_engine.storage.filesystem import read_confined\n"
+            ),
+        },
+    )
+
+    findings = _app_private_engine_import_findings(
+        wheel,
+        frozenset({"open_brain_engine", "open_brain_engine.storage.operational"}),
+    )
+
+    assert len(findings) == 1
+    assert findings[0].code == "P4H008"
+    assert findings[0].subject == "open_brain/private_use.py"
 
 
 def test_expected_red_report_is_bounded_metadata_only() -> None:

@@ -31,7 +31,7 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy
       - run: uv run pytest -q
-      - run: make build
+      - run: make verify-artifacts
 
   appliance-source-checkout-macos:
     runs-on: macos-14
@@ -46,10 +46,10 @@ jobs:
       - run: uv sync --frozen --group dev
       - run: >
           uv run pytest -q
-          tests/integration/services/test_appliance_upgrade.py
-          tests/integration/services/test_appliance_uninstall.py
-          tests/integration/services/test_appliance_supervisors.py
-          tests/integration/services/test_appliance_entrypoints.py
+          packages/app/tests/integration/services/test_appliance_upgrade.py
+          packages/app/tests/integration/services/test_appliance_uninstall.py
+          packages/app/tests/integration/services/test_appliance_supervisors.py
+          packages/app/tests/integration/services/test_appliance_entrypoints.py
           tests/security/test_appliance_logs.py
           tests/security/test_public_result_residue.py
 

@@ -47,7 +47,7 @@ def test_canonical_move_manifest_is_complete_and_valid() -> None:
     assert validate_manifest(ROOT, manifest) == []
     assert len(_runtime(manifest)) == 224
     subjects = _subjects(manifest)
-    assert sum(record["kind"] == "test" for record in subjects.values()) == 255
+    assert sum(record["kind"] == "test" for record in subjects.values()) == 257
     assert sum(record["kind"] in {"schema", "fixture"} for record in subjects.values()) == 36
 
 
@@ -85,7 +85,7 @@ def test_validator_requires_explicit_consistent_movement_state() -> None:
     assert "P4M011" in _codes(validate_manifest(ROOT, inconsistent))
 
 
-def test_w1_leaves_all_app_entry_points_planned() -> None:
+def test_w2_moves_all_app_entry_points_to_the_app_distribution() -> None:
     entry_points = {
         path: record
         for path, record in _subjects(_manifest()).items()
@@ -94,8 +94,8 @@ def test_w1_leaves_all_app_entry_points_planned() -> None:
 
     assert entry_points
     assert all(record["target_distribution"] == "app" for record in entry_points.values())
-    assert all(record["movement_state"] == "planned" for record in entry_points.values())
-    assert all(record["current_path"] == path for path, record in entry_points.items())
+    assert all(record["movement_state"] == "moved" for record in entry_points.values())
+    assert all(record["current_path"] == record["target_path"] for record in entry_points.values())
 
 
 def test_validator_rejects_duplicate_and_out_of_distribution_destinations() -> None:

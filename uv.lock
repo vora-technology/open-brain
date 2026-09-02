@@ -479,7 +479,7 @@ wheels = [
 [[package]]
 name = "open-brain"
 version = "0.1.0"
-source = { virtual = "packages/app" }
+source = { editable = "packages/app" }
 dependencies = [
     { name = "open-brain-engine" },
 ]
@@ -507,7 +507,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "open-brain", virtual = "packages/app" },
+    { name = "open-brain", editable = "packages/app" },
     { name = "open-brain-engine", editable = "packages/engine" },
 ]
 

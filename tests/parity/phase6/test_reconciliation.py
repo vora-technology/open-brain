@@ -10,8 +10,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
 from open_brain.cli._common import ExitCode
+from open_brain.config import RetainedRootIdentities, RetainedRoots, SecretRef
+
 from open_brain.cli._registry import CommandAdapterRegistry
 from open_brain.cli.main import main
 from open_brain.cli.phase6_adapters import (
@@ -19,7 +20,6 @@ from open_brain.cli.phase6_adapters import (
     CutoverDoctorCommandAdapter,
     StateAdoptionCommandAdapter,
 )
-from open_brain.config import RetainedRootIdentities, RetainedRoots, SecretRef
 from open_brain.migrate._models import (
     StateAdoptionReceiptEvidence,
     StateAuthorityReceiptEvidence,
@@ -89,7 +89,8 @@ EXPECTED_ACCEPTANCE_ROWS = frozenset(
 
 ROW_EVIDENCE: dict[str, tuple[str, ...]] = {
     "CFG-001": (
-        "tests/unit/test_config.py::test_retained_roots_are_absolute_distinct_and_preserved",
+        "packages/app/tests/unit/test_config.py::"
+        "test_retained_roots_are_absolute_distinct_and_preserved",
     ),
     "CFG-002": (
         "tests/integration/migrate/test_config.py::"

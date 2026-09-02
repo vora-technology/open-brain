@@ -59,11 +59,50 @@ def _archive_members(path: Path) -> tuple[str, tuple[str, ...]]:
     raise ValueError(f"unsupported artifact: {path.name}")
 
 
-def _artifact_config(policy: dict[str, object], kind: str) -> dict[str, object]:
-    artifacts = policy.get("default_python_artifacts")
+def _distribution_configs(policy: dict[str, object]) -> dict[str, dict[str, object]]:
+    raw = _mapping(
+        policy.get("python_distributions"),
+        error="artifact policy distributions are missing",
+    )
+    if not raw:
+        raise ValueError("artifact policy distributions are missing")
+    distributions: dict[str, dict[str, object]] = {}
+    for name, value in raw.items():
+        if not name or "/" in name or not isinstance(value, dict):
+            raise ValueError("artifact policy distribution is invalid")
+        distributions[name] = cast(dict[str, object], value)
+    return distributions
+
+
+def _distribution_config(policy: dict[str, object], distribution: str) -> dict[str, object]:
+    distributions = _distribution_configs(policy)
+    if distribution not in distributions:
+        raise ValueError("artifact policy distribution is missing")
+    return distributions[distribution]
+
+
+def _artifact_config(
+    policy: dict[str, object], distribution: str, kind: str
+) -> dict[str, object]:
+    distribution_config = _distribution_config(policy, distribution)
+    artifacts = distribution_config.get("artifacts")
     if not isinstance(artifacts, dict) or not isinstance(artifacts.get(kind), dict):
         raise ValueError("artifact policy is missing a build kind")
     return cast(dict[str, object], artifacts[kind])
+
+
+def _artifact_name_pattern(
+    policy: dict[str, object], distribution: str, kind: str
+) -> str:
+    distribution_config = _distribution_config(policy, distribution)
+    patterns = _mapping(
+        distribution_config.get("artifact_name_patterns"),
+        error="artifact policy artifact name patterns are missing",
+    )
+    pattern = patterns.get(kind)
+    if not isinstance(pattern, str) or not pattern or "/" in pattern or "\\" in pattern:
+        raise ValueError("artifact policy artifact name pattern is invalid")
+    return pattern
 
 
 def _patterns(config: dict[str, object], key: str) -> tuple[str, ...]:
@@ -118,6 +157,7 @@ def _manifest_member(current_path: str, *, project_root: str, kind: str) -> str:
 def _manifest_members(
     policy_path: Path,
     policy: dict[str, object],
+    distribution: str,
     kind: str,
 ) -> tuple[str, ...]:
     config = _mapping(
@@ -128,15 +168,13 @@ def _manifest_members(
         config.get("path"),
         error="artifact policy canonical manifest path is invalid",
     )
+    distribution_config = _distribution_config(policy, distribution)
     project_relative = _relative_manifest_path(
-        config.get("project_root"),
+        distribution_config.get("project_root"),
         error="artifact policy project root is invalid",
     )
-    distribution = config.get("distribution")
-    if not isinstance(distribution, str) or not distribution:
-        raise ValueError("artifact policy distribution is invalid")
     raw_rewrites = _mapping(
-        config.get("member_rewrites"),
+        distribution_config.get("member_rewrites"),
         error="artifact policy member rewrites are invalid",
     )
     rewrites = _mapping(
@@ -178,12 +216,12 @@ def _manifest_members(
         if member in rewrites:
             used_rewrites.add(member)
             member = cast(str, rewrites[member])
+        else:
+            member = member.partition("#")[0]
         normalized = _relative_manifest_path(
             member,
             error="canonical manifest artifact member is invalid",
         ).as_posix()
-        if normalized in members:
-            raise ValueError("canonical manifest artifact member is duplicated")
         members.add(normalized)
     if used_rewrites != set(rewrites):
         raise ValueError("artifact policy member rewrite is stale")
@@ -195,21 +233,24 @@ def _manifest_members(
 def _required_members_for_kind(
     policy_path: Path,
     policy: dict[str, object],
+    distribution: str,
     kind: str,
 ) -> tuple[str, ...]:
-    config = _artifact_config(policy, kind)
+    config = _artifact_config(policy, distribution, kind)
     repository_root = policy_path.resolve().parent.parent
     configured = _required_members(config, repository_root)
-    declared = _manifest_members(policy_path, policy, kind)
+    declared = _manifest_members(policy_path, policy, distribution, kind)
     if not set(configured) <= set(declared):
         raise ValueError("artifact policy required members contradict the canonical manifest")
     return declared
 
 
-def required_members_for_policy(policy_path: Path, kind: str) -> tuple[str, ...]:
+def required_members_for_policy(
+    policy_path: Path, distribution: str, kind: str
+) -> tuple[str, ...]:
     """Resolve every required member, including complete resource trees."""
     policy = _load_policy(policy_path)
-    return _required_members_for_kind(policy_path, policy, kind)
+    return _required_members_for_kind(policy_path, policy, distribution, kind)
 
 
 def _is_forbidden(member: str, patterns: tuple[str, ...]) -> bool:
@@ -219,28 +260,73 @@ def _is_forbidden(member: str, patterns: tuple[str, ...]) -> bool:
     return any(fnmatch.fnmatchcase(member, pattern) for pattern in patterns)
 
 
+def _artifact_coordinate_from_name(
+    policy: dict[str, object],
+    name: str,
+    *,
+    kind: str | None = None,
+) -> tuple[str, str] | None:
+    matches = [
+        (distribution, candidate_kind)
+        for distribution in _distribution_configs(policy)
+        for candidate_kind in ("wheel", "sdist")
+        if (kind is None or candidate_kind == kind)
+        and fnmatch.fnmatchcase(
+            name,
+            _artifact_name_pattern(policy, distribution, candidate_kind),
+        )
+    ]
+    if len(matches) > 1:
+        raise ValueError("artifact policy artifact name patterns overlap")
+    return matches[0] if matches else None
+
+
 def verify_artifacts(policy_path: Path, artifacts: Sequence[Path]) -> list[ArtifactPolicyFinding]:
     """Verify required and forbidden member names without reading artifact content."""
     policy = _load_policy(policy_path)
     findings: list[ArtifactPolicyFinding] = []
-    seen_kinds: set[str] = set()
+    expected_coordinates: set[tuple[str, str]] = set()
+    for distribution in _distribution_configs(policy):
+        for kind in ("wheel", "sdist"):
+            _artifact_config(policy, distribution, kind)
+            _artifact_name_pattern(policy, distribution, kind)
+            expected_coordinates.add((distribution, kind))
+    seen_coordinates: set[tuple[str, str]] = set()
     for artifact in artifacts:
         if not artifact.is_file():
             findings.append(ArtifactPolicyFinding(artifact.name, "<artifact>", "missing-artifact"))
+            coordinate = _artifact_coordinate_from_name(policy, artifact.name)
+            if coordinate is not None:
+                seen_coordinates.add(coordinate)
             continue
         kind, raw_members = _archive_members(artifact)
-        if kind in seen_kinds:
+        coordinate = _artifact_coordinate_from_name(policy, artifact.name, kind=kind)
+        if coordinate is None:
             findings.append(
-                ArtifactPolicyFinding(artifact.name, "<artifact>", "duplicate-artifact-kind")
+                ArtifactPolicyFinding(
+                    artifact.name,
+                    "<artifact>",
+                    "unknown-artifact-distribution",
+                )
             )
-        seen_kinds.add(kind)
+            continue
+        distribution, _ = coordinate
+        if coordinate in seen_coordinates:
+            findings.append(
+                ArtifactPolicyFinding(
+                    artifact.name,
+                    "<artifact>",
+                    "duplicate-artifact-coordinate",
+                )
+            )
+        seen_coordinates.add(coordinate)
         members = tuple(_safe_member(member) for member in raw_members)
         if len(set(members)) != len(members):
             findings.append(
                 ArtifactPolicyFinding(artifact.name, "<artifact>", "duplicate-member")
             )
-        config = _artifact_config(policy, kind)
-        required = _required_members_for_kind(policy_path, policy, kind)
+        config = _artifact_config(policy, distribution, kind)
+        required = _required_members_for_kind(policy_path, policy, distribution, kind)
         forbidden = _patterns(config, "forbidden_member_patterns")
         generated = _patterns(config, "generated_member_patterns")
         for required_member in required:
@@ -259,11 +345,14 @@ def verify_artifacts(policy_path: Path, artifacts: Sequence[Path]) -> list[Artif
                 findings.append(
                     ArtifactPolicyFinding(artifact.name, member, "undeclared-member")
                 )
-    for required_kind in ("wheel", "sdist"):
-        if required_kind not in seen_kinds:
-            findings.append(
-                ArtifactPolicyFinding("<artifacts>", required_kind, "missing-artifact-kind")
+    for distribution, kind in sorted(expected_coordinates - seen_coordinates):
+        findings.append(
+            ArtifactPolicyFinding(
+                "<artifacts>",
+                f"{distribution}-{kind}",
+                "missing-artifact-coordinate",
             )
+        )
     return sorted(set(findings), key=lambda item: (item.artifact, item.member, item.rule))
 
 

@@ -14,6 +14,12 @@ ROOT = Path(__file__).parents[3]
 POLICY_PATH = ROOT / "release" / "v0-artifact-policy.json"
 MANIFEST_PATH = ROOT / "docs" / "v0-package-classification.json"
 DOCUMENTATION_PATH = ROOT / "docs" / "artifact-characterization.md"
+ARTIFACT_NAMES = {
+    ("app", "wheel"): "open_brain-0.1.0-py3-none-any.whl",
+    ("app", "sdist"): "open_brain-0.1.0.tar.gz",
+    ("engine", "wheel"): "open_brain_engine-0.1.0-py3-none-any.whl",
+    ("engine", "sdist"): "open_brain_engine-0.1.0.tar.gz",
+}
 
 
 def _policy() -> dict[str, object]:
@@ -23,8 +29,14 @@ def _policy() -> dict[str, object]:
     return cast(dict[str, object], value)
 
 
-def _artifact_config(kind: str) -> dict[str, object]:
-    artifacts = _policy()["default_python_artifacts"]
+def _distribution_config(distribution: str) -> dict[str, object]:
+    distributions = _policy()["python_distributions"]
+    assert isinstance(distributions, dict) and isinstance(distributions[distribution], dict)
+    return cast(dict[str, object], distributions[distribution])
+
+
+def _artifact_config(distribution: str, kind: str) -> dict[str, object]:
+    artifacts = _distribution_config(distribution)["artifacts"]
     assert isinstance(artifacts, dict) and isinstance(artifacts[kind], dict)
     return cast(dict[str, object], artifacts[kind])
 
@@ -44,103 +56,163 @@ def _write_sdist(path: Path, members: list[str]) -> None:
             archive.addfile(info, BytesIO(data))
 
 
-def _manifest_members(kind: str) -> set[str]:
+def _write_policy_artifacts(tmp_path: Path) -> dict[tuple[str, str], Path]:
+    artifacts: dict[tuple[str, str], Path] = {}
+    for coordinate, name in ARTIFACT_NAMES.items():
+        distribution, kind = coordinate
+        path = tmp_path / name
+        members = list(required_members_for_policy(POLICY_PATH, distribution, kind))
+        if kind == "wheel":
+            _write_wheel(path, members)
+        else:
+            _write_sdist(path, members)
+        artifacts[coordinate] = path
+    return artifacts
+
+
+def _manifest_members(distribution: str, kind: str) -> set[str]:
     payload = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     records = [
         *payload["files"].values(),
         *payload["phase4"]["subjects"].values(),
     ]
-    label = f"engine-{kind}"
+    label = f"{distribution}-{kind}"
+    distribution_config = _distribution_config(distribution)
+    project_root = cast(str, distribution_config["project_root"])
     members: set[str] = set()
     for record in records:
         if label not in record["artifact_disposition"]:
             continue
         current = str(record["current_path"])
-        if current.startswith("packages/engine/src/"):
-            relative = current.removeprefix("packages/engine/")
+        if current.startswith(f"{project_root}/src/"):
+            relative = current.removeprefix(f"{project_root}/")
             members.add(relative if kind == "sdist" else relative.removeprefix("src/"))
-        elif current.startswith("packages/engine/"):
-            members.add(current.removeprefix("packages/engine/"))
+        elif current.startswith(f"{project_root}/"):
+            members.add(current.removeprefix(f"{project_root}/"))
         else:
             members.add(current)
-    manifest = cast(dict[str, object], _policy()["canonical_manifest"])
-    rewrites_by_kind = cast(dict[str, object], manifest["member_rewrites"])
+    rewrites_by_kind = cast(dict[str, object], distribution_config["member_rewrites"])
     rewrites = cast(dict[str, str], rewrites_by_kind[kind])
-    return {rewrites.get(member, member) for member in members}
+    return {rewrites.get(member, member.partition("#")[0]) for member in members}
 
 
-def test_phase_zero_policy_matches_explicit_hatch_configuration() -> None:
-    pyproject = tomllib.loads(
-        (ROOT / "packages/engine/pyproject.toml").read_text(encoding="utf-8")
-    )
-    hatch_build = pyproject["tool"]["hatch"]["build"]
-    build = hatch_build["targets"]
-    wheel = _artifact_config("wheel")
-    sdist = _artifact_config("sdist")
+def test_phase_four_policy_declares_engine_and_app_artifact_coordinates() -> None:
+    policy = _policy()
+    distributions = policy["python_distributions"]
 
-    assert _policy()["phase"] == "4-engine-isolation"
-    assert hatch_build["ignore-vcs"] is True
-    assert hatch_build["hooks"]["custom"] == {"path": "hatch_build.py"}
-    assert _policy()["build_hook"] == "packages/engine/hatch_build.py"
-    assert build["wheel"]["packages"] == wheel["configured_package_roots"]
-    assert build["wheel"].get("force-include", {}) == wheel["force_includes"]
-    assert build["sdist"]["include"] == sdist["configured_includes"]
-    assert build["sdist"]["exclude"] == sdist["configured_exclusions"]
-    assert build["sdist"]["force-include"] == sdist["force_includes"]
-    assert wheel["status"] == sdist["status"] == "engine-isolated-unpublished"
+    assert policy["policy_version"] == 2
+    assert policy["phase"] == "4-app-isolation"
+    assert isinstance(distributions, dict)
+    assert set(distributions) == {"app", "engine"}
+    for name in ("app", "engine"):
+        distribution = distributions[name]
+        assert isinstance(distribution, dict)
+        assert set(distribution["artifacts"]) == {"sdist", "wheel"}
+        assert set(distribution["artifact_name_patterns"]) == {"sdist", "wheel"}
+
+
+def test_phase_four_policy_matches_each_explicit_hatch_configuration() -> None:
     assert _policy()["canonical_manifest"] == {
-        "distribution": "engine",
-        "member_rewrites": {
-            "sdist": {},
-            "wheel": {
-                "LICENSE": "open_brain_engine-0.1.0.dist-info/licenses/LICENSE",
-                "NOTICE": "open_brain_engine-0.1.0.dist-info/licenses/NOTICE",
-            },
-        },
-        "path": "docs/v0-package-classification.json",
-        "project_root": "packages/engine",
+        "path": "docs/v0-package-classification.json"
     }
-    assert (ROOT / "packages/engine/LICENSE").read_bytes() == (ROOT / "LICENSE").read_bytes()
-    assert (ROOT / "packages/engine/NOTICE").read_bytes() == (ROOT / "NOTICE").read_bytes()
+    for distribution, project_root, status in (
+        ("app", "packages/app", "app-isolated-unpublished"),
+        ("engine", "packages/engine", "engine-isolated-unpublished"),
+    ):
+        pyproject = tomllib.loads(
+            (ROOT / project_root / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        hatch_build = pyproject["tool"]["hatch"]["build"]
+        build = hatch_build["targets"]
+        wheel = _artifact_config(distribution, "wheel")
+        sdist = _artifact_config(distribution, "sdist")
+        config = _distribution_config(distribution)
+
+        assert hatch_build["ignore-vcs"] is True
+        assert hatch_build["hooks"]["custom"] == {"path": "hatch_build.py"}
+        assert config["build_hook"] == f"{project_root}/hatch_build.py"
+        assert config["project_root"] == project_root
+        assert build["wheel"]["packages"] == wheel["configured_package_roots"]
+        assert build["wheel"].get("force-include", {}) == wheel["force_includes"]
+        assert build["sdist"]["include"] == sdist["configured_includes"]
+        assert build["sdist"]["exclude"] == sdist["configured_exclusions"]
+        assert build["sdist"]["force-include"] == sdist["force_includes"]
+        assert wheel["status"] == sdist["status"] == status
+        assert (ROOT / project_root / "LICENSE").read_bytes() == (ROOT / "LICENSE").read_bytes()
+        assert (ROOT / project_root / "NOTICE").read_bytes() == (ROOT / "NOTICE").read_bytes()
 
 
-def test_phase_zero_policy_verifies_required_and_forbidden_members(tmp_path: Path) -> None:
-    wheel = tmp_path / "open_brain-0.1.0-py3-none-any.whl"
-    sdist = tmp_path / "open_brain-0.1.0.tar.gz"
-    wheel_members = list(required_members_for_policy(POLICY_PATH, "wheel"))
-    sdist_members = list(required_members_for_policy(POLICY_PATH, "sdist"))
-    _write_wheel(wheel, wheel_members)
-    _write_sdist(sdist, sdist_members)
+def test_phase_four_policy_verifies_both_distributions_and_rejects_leaks(
+    tmp_path: Path,
+) -> None:
+    artifacts = _write_policy_artifacts(tmp_path)
+    paths = list(artifacts.values())
 
-    assert verify_artifacts(POLICY_PATH, [wheel, sdist]) == []
+    assert verify_artifacts(POLICY_PATH, paths) == []
 
     leaked = "open_brain_engine/portable/conformance/v1/.open-brain/x"
-    _write_wheel(wheel, [*wheel_members, leaked])
-    findings = verify_artifacts(POLICY_PATH, [wheel, sdist])
+    engine_wheel = artifacts[("engine", "wheel")]
+    engine_members = list(required_members_for_policy(POLICY_PATH, "engine", "wheel"))
+    _write_wheel(engine_wheel, [*engine_members, leaked])
+    findings = verify_artifacts(POLICY_PATH, paths)
     assert [(finding.member, finding.rule) for finding in findings] == [
         (leaked, "forbidden-member")
     ]
 
     undeclared = "unclassified.txt"
-    _write_wheel(wheel, [*wheel_members, undeclared])
-    findings = verify_artifacts(POLICY_PATH, [wheel, sdist])
+    _write_wheel(engine_wheel, [*engine_members, undeclared])
+    findings = verify_artifacts(POLICY_PATH, paths)
     assert [(finding.member, finding.rule) for finding in findings] == [
         (undeclared, "undeclared-member")
     ]
 
 
+def test_phase_four_policy_keys_duplicates_and_missing_artifacts_by_distribution(
+    tmp_path: Path,
+) -> None:
+    artifacts = _write_policy_artifacts(tmp_path)
+    duplicate = tmp_path / "open_brain-duplicate-py3-none-any.whl"
+    app_members = list(required_members_for_policy(POLICY_PATH, "app", "wheel"))
+    _write_wheel(duplicate, app_members)
+
+    findings = verify_artifacts(POLICY_PATH, [*artifacts.values(), duplicate])
+    assert [(finding.artifact, finding.member, finding.rule) for finding in findings] == [
+        (duplicate.name, "<artifact>", "duplicate-artifact-coordinate")
+    ]
+
+    missing_app_sdist = [
+        path for coordinate, path in artifacts.items() if coordinate != ("app", "sdist")
+    ]
+    findings = verify_artifacts(POLICY_PATH, missing_app_sdist)
+    assert [(finding.artifact, finding.member, finding.rule) for finding in findings] == [
+        ("<artifacts>", "app-sdist", "missing-artifact-coordinate")
+    ]
+
+
+def test_phase_four_build_and_ci_verify_engine_and_app_artifacts() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+
+    assert "uv build --no-sources --project packages/engine --out-dir dist" in makefile
+    assert "uv build --no-sources --project packages/app --out-dir dist" in makefile
+    assert "rm -rf dist" not in makefile
+    assert "- run: make verify-artifacts" in workflow
+    assert "packages/app/tests/integration/services/test_appliance_upgrade.py" in workflow
+    assert "packages/app/tests/integration/services/test_appliance_uninstall.py" in workflow
+    assert "packages/app/tests/integration/services/test_appliance_supervisors.py" in workflow
+
+
 def test_phase_four_policy_derives_exact_membership_from_canonical_manifest() -> None:
-    assert set(required_members_for_policy(POLICY_PATH, "wheel")) == _manifest_members(
-        "wheel"
-    )
-    assert set(required_members_for_policy(POLICY_PATH, "sdist")) == _manifest_members(
-        "sdist"
-    )
+    for distribution in ("app", "engine"):
+        for kind in ("wheel", "sdist"):
+            assert set(
+                required_members_for_policy(POLICY_PATH, distribution, kind)
+            ) == _manifest_members(distribution, kind)
 
 
 def test_phase_zero_policy_requires_every_schema_and_conformance_fixture() -> None:
-    wheel_members = set(required_members_for_policy(POLICY_PATH, "wheel"))
-    sdist_members = set(required_members_for_policy(POLICY_PATH, "sdist"))
+    wheel_members = set(required_members_for_policy(POLICY_PATH, "engine", "wheel"))
+    sdist_members = set(required_members_for_policy(POLICY_PATH, "engine", "sdist"))
     schema_files = {
         path.relative_to(
             ROOT / "packages/engine/src/open_brain_engine/portable/schemas/v1"
@@ -234,9 +306,11 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
     }
 
 
-def test_artifact_characterization_document_marks_phase_four_work_pending() -> None:
+def test_artifact_characterization_distinguishes_python_and_native_status() -> None:
     document = DOCUMENTATION_PATH.read_text(encoding="utf-8")
 
-    assert "Phase 4 pending" in document
+    assert "engine-isolated-unpublished" in document
+    assert "app-isolated-unpublished" in document
+    assert "Native artifacts remain pending" in document
     assert "does not" in document
     assert "native artifact exists" in document

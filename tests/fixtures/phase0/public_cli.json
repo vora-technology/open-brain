@@ -76,7 +76,10 @@
   "packaging": {
     "distribution": "open-brain",
     "version": "0.1.0",
-    "entry_points": {}
+    "entry_points": {
+      "open-brain": "open_brain.services.appliance_entrypoints:run_cli",
+      "open-brain-mcp": "open_brain.services.appliance_entrypoints:run_mcp"
+    }
   },
   "exit_classes": {
     "interactive": {"success": 0, "failure": 1, "usage": 2, "deferred": 3},

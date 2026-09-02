@@ -13,6 +13,7 @@ from tools.phase4.move_manifest import validate_manifest
 REPOSITORY_ROOT = Path(__file__).parents[2]
 CLASSIFICATION_PATH = REPOSITORY_ROOT / "docs" / "v0-package-classification.json"
 SOURCE_ROOT = REPOSITORY_ROOT / "src" / "open_brain"
+APP_SOURCE_ROOT = REPOSITORY_ROOT / "packages" / "app" / "src" / "open_brain"
 OWNERS = {"engine", "app", "connector", "hosted", "legacy", "workspace"}
 
 
@@ -60,6 +61,40 @@ def _root_modules(source_root: Path) -> set[str]:
 
 def _source_files(source_root: Path) -> list[Path]:
     return sorted(path for path in source_root.rglob("*.py") if "__pycache__" not in path.parts)
+
+
+def _current_open_brain_source(
+    classification: dict[str, object], relative_path: str
+) -> tuple[Path, Path]:
+    record = _metadata(_classified_files(classification), relative_path)
+    current_path = record.get("current_path")
+    if not isinstance(current_path, str):
+        raise TypeError("classification current path must be a string")
+    path = REPOSITORY_ROOT / current_path
+    for source_root in (SOURCE_ROOT, APP_SOURCE_ROOT):
+        if path.is_relative_to(source_root):
+            return path, source_root
+    raise ValueError(f"classified path is outside the open_brain namespace: {current_path}")
+
+
+def _current_open_brain_sources(
+    classification: dict[str, object],
+) -> list[tuple[str, Path, Path]]:
+    sources: list[tuple[str, Path, Path]] = []
+    for relative_path, raw_record in _classified_files(classification).items():
+        if not isinstance(raw_record, dict):
+            raise TypeError("classification record must be an object")
+        current_path = raw_record.get("current_path")
+        if not isinstance(current_path, str) or not current_path.endswith(".py"):
+            continue
+        path = REPOSITORY_ROOT / current_path
+        if not path.is_file():
+            continue
+        for source_root in (SOURCE_ROOT, APP_SOURCE_ROOT):
+            if path.is_relative_to(source_root):
+                sources.append((relative_path, path, source_root))
+                break
+    return sorted(sources)
 
 
 def _classified_files(classification: dict[str, object]) -> dict[str, object]:
@@ -470,15 +505,20 @@ def test_every_runtime_file_has_one_authoritative_owner() -> None:
 
 
 def test_current_namespace_imports_have_classified_file_endpoints() -> None:
-    classification = _planned_source_classification(_load_classification())
+    classification = _load_classification()
     classified_paths = set(_classified_files(classification))
-    references = [
-        reference
-        for path in _source_files(SOURCE_ROOT)
-        for reference in _import_references(path, SOURCE_ROOT, classified_paths)
-    ]
+    unresolved: set[str] = set()
+    references: list[ImportReference] = []
+    for relative_path, path, source_root in _current_open_brain_sources(classification):
+        current_references = _import_references(path, source_root, classified_paths)
+        references.extend(current_references)
+        unresolved.update(
+            f"{relative_path}:{reference.line} -> {reference.module}"
+            for reference in current_references
+            if _module_target(reference.module, classified_paths) is None
+        )
     assert references
-    assert _unresolved_internal_imports(SOURCE_ROOT, classification) == []
+    assert sorted(unresolved) == []
 
 
 def test_nonliteral_dynamic_import_sites_are_explicitly_reviewed() -> None:
@@ -522,10 +562,10 @@ def test_p2_w1_owner_edges_are_closed() -> None:
     classified_paths = set(_classified_files(classification))
 
     def targets(relative_path: str) -> set[str]:
-        path = SOURCE_ROOT / relative_path
+        path, source_root = _current_open_brain_source(classification, relative_path)
         return {
             target
-            for reference in _import_references(path, SOURCE_ROOT, classified_paths)
+            for reference in _import_references(path, source_root, classified_paths)
             if (target := _module_target(reference.module, classified_paths)) is not None
         }
 
@@ -559,10 +599,10 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     classified_paths = set(_classified_files(classification))
 
     def targets(relative_path: str) -> set[str]:
-        path = SOURCE_ROOT / relative_path
+        path, source_root = _current_open_brain_source(classification, relative_path)
         return {
             target
-            for reference in _import_references(path, SOURCE_ROOT, classified_paths)
+            for reference in _import_references(path, source_root, classified_paths)
             if (target := _module_target(reference.module, classified_paths)) is not None
         }
 
@@ -604,24 +644,27 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     assert CompatibilityProductionApplication is ApplicationProductionApplication
 
 
-def test_p4_w1_source_entrypoints_are_legacy_writer_free_and_not_installed() -> None:
+def test_p4_w2_installed_entrypoints_are_legacy_writer_free() -> None:
     app_project = tomllib.loads(
         (REPOSITORY_ROOT / "packages/app/pyproject.toml").read_text(encoding="utf-8")
     )
-    phase1_entrypoints = (SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
+    phase1_entrypoints = (APP_SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
         encoding="utf-8"
     )
-    appliance_entrypoints = (SOURCE_ROOT / "services" / "appliance_entrypoints.py").read_text(
-        encoding="utf-8"
-    )
-    scheduler = (SOURCE_ROOT / "services" / "appliance_scheduler.py").read_text(
+    appliance_entrypoints = (
+        APP_SOURCE_ROOT / "services" / "appliance_entrypoints.py"
+    ).read_text(encoding="utf-8")
+    scheduler = (APP_SOURCE_ROOT / "services" / "appliance_scheduler.py").read_text(
         encoding="utf-8"
     )
     classification = _load_classification()
     files = _classified_files(classification)
 
-    assert "scripts" not in app_project["project"]
-    assert app_project["tool"]["uv"]["package"] is False
+    assert app_project["project"]["scripts"] == {
+        "open-brain": "open_brain.services.appliance_entrypoints:run_cli",
+        "open-brain-mcp": "open_brain.services.appliance_entrypoints:run_mcp",
+    }
+    assert "package" not in app_project["tool"]["uv"]
     assert "SingleUserLocalApplication" not in phase1_entrypoints
     assert "compose_http_from_config" not in phase1_entrypoints
     assert "compose_mcp_from_config" not in phase1_entrypoints

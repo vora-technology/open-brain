@@ -1,35 +1,36 @@
 # v0 artifact characterization
 
-Status: Phase 0 explicit boundary. Machine policy:
+Status: Phase 4 app/engine isolation boundary. Machine policy:
 [`release/v0-artifact-policy.json`](../release/v0-artifact-policy.json).
 
-This records the Python artifacts produced from the current monolith. It does not claim that the
-native v0 release exists or that mixed and legacy packages are ready to ship.
+This records the isolated, unpublished engine and app Python artifacts. It does not claim that a
+native v0 release exists or that the connector and legacy distributions are ready to ship.
 
 ## Wheel
 
-Hatch builds the wheel from `src/open_brain`. The current wheel therefore contains the complete
-existing package graph, including paths classified as mixed, legacy, connector-specific, or
-workspace tooling. Phase 0 characterizes that fact instead of silently excluding files that the
-current CLI still imports.
+Hatch builds two wheels with workspace sources disabled:
 
-Two public compatibility resources are force-included:
+- `open-brain-engine` contains the public engine facade, engine implementation, and Portable
+  schemas/conformance data. It contains no app, connector, legacy, test, or workspace module.
+- `open-brain` contains app composition, daemon/HTTP/UI behavior, installed CLI/MCP entry points,
+  and packaged launchd/systemd templates. It has an exact `open-brain-engine==0.1.0` dependency
+  and contains no engine copy, connector, legacy, test, or workspace module.
 
-- `schemas/portable-brain/v1` at `open_brain/portable/schemas/v1`;
-- `tests/fixtures/portable-brain/v1` at
-  `open_brain/portable/conformance/v1`.
+The app scanner rejects imports of engine modules not marked public in
+`docs/v0-package-classification.json`. Installed acceptance creates a fresh product environment
+from only the app and engine wheels and runs the app tests from a separate test environment.
 
-The machine policy derives required members from every file in both resource trees, rather than
-sampling one representative schema or fixture. Missing files or new unaccounted-for files are
-therefore visible in artifact verification. The wheel status is
-`explicit-current-not-release-ready`.
+The machine policy derives required members from every classified artifact member. Missing files,
+new unaccounted-for files, private resources, and duplicate distribution/kind coordinates fail
+verification. The wheel statuses are `engine-isolated-unpublished` and
+`app-isolated-unpublished`.
 
 ## Source distribution
 
-The sdist has an explicit Hatch include list. It contains the current source package, root project
-metadata, the selected public architecture and contract documents, artifact policy, Portable
-Brain schemas, current-record characterization, contract tests, and synthetic conformance
-fixtures. It does not include nested workstream state under `docs/ai`.
+Each sdist has an explicit Hatch include list. The engine sdist contains engine source, Portable
+resources, and release policy metadata. The app sdist contains app source, public documentation,
+synthetic examples, and release policy metadata. Neither includes tests, nested workstream state
+under `docs/ai`, connector source, or legacy source.
 
 `open_brain.dev.artifact_policy` strips the sdist root directory and compares actual archive
 members with the machine policy. Missing schemas or conformance evidence, duplicate members,
@@ -37,11 +38,9 @@ unsafe member paths, operational state, credential paths, or database files fail
 
 ## Target release exclusions
 
-The current artifact and the target public artifact are different boundaries. Before release,
-package separation must remove workspace tooling, predecessor migration/parity and cutover code,
-optional cloud code, and source-specific connector bridges from the default app artifact. The
-complete target list is machine-readable. Optional connectors can be built and tested separately
-after their own Phase 2 contracts exist.
+The default app and engine artifacts already exclude workspace tooling, predecessor migration and
+cutover code, optional cloud code, and source-specific connector bridges. Connector and legacy
+distributions remain separate gated work. The complete exclusion list is machine-readable.
 
 ## Approved host matrix
 
@@ -51,9 +50,10 @@ v0 support promise.
 
 ## Native artifact status
 
-Phase 4 pending: PyInstaller 6 onedir is the first candidate, with Nuitka standalone as the
-accepted fallback if that spike fails. The policy has an empty `published` list and does not
-assert that a native artifact exists. No bundler spike or clean-host run is Phase 0 evidence.
+Native artifacts remain pending. PyInstaller 6 onedir is the first candidate, with Nuitka
+standalone as the accepted fallback if that spike fails. The policy has an empty `published` list
+and does not assert that a native artifact exists. No bundler spike or clean-host run is current
+release evidence.
 
 ## Private-history audit
 

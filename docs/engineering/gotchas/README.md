@@ -513,3 +513,18 @@ Fix: Set an explicit bounded backlog larger than one and keep the accepted-clien
 the backlog in the stalled-client regression instead of adding sleeps or client-side retries.
 
 Discovered: 2026-09-01.
+
+### PACKAGING-001: A moved regular subpackage hides unmoved workspace modules
+
+Symptom: Root tests cannot import legacy or connector modules even though both source roots are on
+`PYTHONPATH`.
+
+Cause: A moved `open_brain.cli`, `open_brain.integrations`, or `open_brain.services` initializer
+creates a regular package whose search path excludes the still-classified directory under
+`src/open_brain`.
+
+Fix: Extend those search paths only in the root test harness while the phased move is incomplete.
+Never add workspace path extension to the shipping app. The wheel-only harness must remain green,
+and P4-W4 removes the test overlay with the old monolith tree.
+
+Discovered: 2026-09-01.

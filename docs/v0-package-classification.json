@@ -48,12 +48,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/__main__.py",
+      "current_path": "packages/app/src/open_brain/__main__.py",
       "import_rewrite": {
         "from": "open_brain.__main__",
         "to": "open_brain.__main__"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -93,12 +93,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/capture/auth.py",
+      "current_path": "packages/app/src/open_brain/capture/auth.py",
       "import_rewrite": {
         "from": "open_brain.capture.auth",
         "to": "open_brain.capture.auth"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -307,12 +307,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/capture/http.py",
+      "current_path": "packages/app/src/open_brain/capture/http.py",
       "import_rewrite": {
         "from": "open_brain.capture.http",
         "to": "open_brain.capture.http"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -460,12 +460,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/cli/__init__.py",
+      "current_path": "packages/app/src/open_brain/cli/__init__.py",
       "import_rewrite": {
         "from": "open_brain.cli",
         "to": "open_brain.cli"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -483,12 +483,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/cli/_common.py",
+      "current_path": "packages/app/src/open_brain/cli/_common.py",
       "import_rewrite": {
         "from": "open_brain.cli._common",
         "to": "open_brain.cli._common"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -695,12 +695,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/cli/phase1.py",
+      "current_path": "packages/app/src/open_brain/cli/phase1.py",
       "import_rewrite": {
         "from": "open_brain.cli.phase1",
         "to": "open_brain.cli.phase1"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -718,12 +718,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/cli/phase1_registry.py",
+      "current_path": "packages/app/src/open_brain/cli/phase1_registry.py",
       "import_rewrite": {
         "from": "open_brain.cli.phase1_registry",
         "to": "open_brain.cli.phase1_registry"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -909,12 +909,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/config.py",
+      "current_path": "packages/app/src/open_brain/config.py",
       "import_rewrite": {
         "from": "open_brain.config",
         "to": "open_brain.config"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -1588,12 +1588,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/integrations/__init__.py",
+      "current_path": "packages/app/src/open_brain/integrations/__init__.py",
       "import_rewrite": {
         "from": "open_brain.integrations",
         "to": "open_brain.integrations"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -1611,12 +1611,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/integrations/config.py",
+      "current_path": "packages/app/src/open_brain/integrations/config.py",
       "import_rewrite": {
         "from": "open_brain.integrations.config",
         "to": "open_brain.integrations.config"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -1781,12 +1781,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/integrations/mcp.py",
+      "current_path": "packages/app/src/open_brain/integrations/mcp.py",
       "import_rewrite": {
         "from": "open_brain.integrations.mcp",
         "to": "open_brain.integrations.mcp"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -1867,12 +1867,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/integrations/phase1_ui.py",
+      "current_path": "packages/app/src/open_brain/integrations/phase1_ui.py",
       "import_rewrite": {
         "from": "open_brain.integrations.phase1_ui",
         "to": "open_brain.integrations.phase1_ui"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -1890,12 +1890,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/integrations/ports.py",
+      "current_path": "packages/app/src/open_brain/integrations/ports.py",
       "import_rewrite": {
         "from": "open_brain.integrations.ports",
         "to": "open_brain.integrations.ports"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -1999,12 +1999,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/integrations/ui.py",
+      "current_path": "packages/app/src/open_brain/integrations/ui.py",
       "import_rewrite": {
         "from": "open_brain.integrations.ui",
         "to": "open_brain.integrations.ui"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -3747,12 +3747,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/profile.py",
+      "current_path": "packages/app/src/open_brain/profile.py",
       "import_rewrite": {
         "from": "open_brain.profile",
         "to": "open_brain.profile"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4153,12 +4153,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/__init__.py",
+      "current_path": "packages/app/src/open_brain/services/__init__.py",
       "import_rewrite": {
         "from": "open_brain.services",
         "to": "open_brain.services"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4176,12 +4176,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_application.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_application.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_application",
         "to": "open_brain.services.appliance_application"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4199,12 +4199,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_auth.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_auth.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_auth",
         "to": "open_brain.services.appliance_auth"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4222,12 +4222,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_daemon.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_daemon.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_daemon",
         "to": "open_brain.services.appliance_daemon"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4245,12 +4245,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_entrypoints.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_entrypoints.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_entrypoints",
         "to": "open_brain.services.appliance_entrypoints"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4268,12 +4268,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_history.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_history.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_history",
         "to": "open_brain.services.appliance_history"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4291,12 +4291,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_init.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_init.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_init",
         "to": "open_brain.services.appliance_init"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4314,12 +4314,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_lifecycle.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_lifecycle.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_lifecycle",
         "to": "open_brain.services.appliance_lifecycle"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4339,12 +4339,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_recovery.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_recovery.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_recovery",
         "to": "open_brain.services.appliance_recovery"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4362,12 +4362,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_scheduler.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_scheduler.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_scheduler",
         "to": "open_brain.services.appliance_scheduler"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4385,12 +4385,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_status.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_status.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_status",
         "to": "open_brain.services.appliance_status"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4408,12 +4408,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/appliance_supervisors.py",
+      "current_path": "packages/app/src/open_brain/services/appliance_supervisors.py",
       "import_rewrite": {
         "from": "open_brain.services.appliance_supervisors",
         "to": "open_brain.services.appliance_supervisors"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [
@@ -4475,12 +4475,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/composition.py",
+      "current_path": "packages/app/src/open_brain/services/composition.py",
       "import_rewrite": {
         "from": "open_brain.services.composition",
         "to": "open_brain.services.composition"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4498,12 +4498,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/connectors.py",
+      "current_path": "packages/app/src/open_brain/services/connectors.py",
       "import_rewrite": {
         "from": "open_brain.services.connectors",
         "to": "open_brain.services.connectors"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4545,12 +4545,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/http_server.py",
+      "current_path": "packages/app/src/open_brain/services/http_server.py",
       "import_rewrite": {
         "from": "open_brain.services.http_server",
         "to": "open_brain.services.http_server"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4568,12 +4568,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/mcp_stdio.py",
+      "current_path": "packages/app/src/open_brain/services/mcp_stdio.py",
       "import_rewrite": {
         "from": "open_brain.services.mcp_stdio",
         "to": "open_brain.services.mcp_stdio"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4591,12 +4591,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/phase1_application.py",
+      "current_path": "packages/app/src/open_brain/services/phase1_application.py",
       "import_rewrite": {
         "from": "open_brain.services.phase1_application",
         "to": "open_brain.services.phase1_application"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4614,12 +4614,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/phase1_entrypoints.py",
+      "current_path": "packages/app/src/open_brain/services/phase1_entrypoints.py",
       "import_rewrite": {
         "from": "open_brain.services.phase1_entrypoints",
         "to": "open_brain.services.phase1_entrypoints"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4637,12 +4637,12 @@
         "app-sdist",
         "app-wheel"
       ],
-      "current_path": "src/open_brain/services/runtime.py",
+      "current_path": "packages/app/src/open_brain/services/runtime.py",
       "import_rewrite": {
         "from": "open_brain.services.runtime",
         "to": "open_brain.services.runtime"
       },
-      "movement_state": "planned",
+      "movement_state": "moved",
       "old_import_disposition": "retain",
       "owner": "app",
       "resource_requirements": [],
@@ -4977,9 +4977,7 @@
       "toolchain_record": "release/phase4-toolchain.json"
     },
     "reserved_entry_points": [
-      "pyproject.toml#project.scripts.open-brain",
-      "pyproject.toml#project.scripts.open-brain-mcp",
-      "src/open_brain/services/appliance_entrypoints.py#run_http"
+      "packages/app/src/open_brain/services/appliance_entrypoints.py#run_http"
     ],
     "runtime_dependency_graph": {
       "app": [
@@ -5047,9 +5045,6 @@
       "LICENSE": {
         "api_status": "workspace-only",
         "artifact_disposition": [
-          "app-native",
-          "app-sdist",
-          "app-wheel",
           "connector-sdist",
           "connector-wheel"
         ],
@@ -5085,9 +5080,6 @@
       "NOTICE": {
         "api_status": "workspace-only",
         "artifact_disposition": [
-          "app-native",
-          "app-sdist",
-          "app-wheel",
           "connector-sdist",
           "connector-wheel"
         ],
@@ -5510,6 +5502,62 @@
         "target_path": "examples/synthetic-vault/README.md",
         "test_owner": "workspace"
       },
+      "packages/app/LICENSE": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "app-native",
+          "app-sdist",
+          "app-wheel"
+        ],
+        "current_path": "packages/app/LICENSE",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/LICENSE",
+        "test_owner": "app"
+      },
+      "packages/app/NOTICE": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "app-native",
+          "app-sdist",
+          "app-wheel"
+        ],
+        "current_path": "packages/app/NOTICE",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/NOTICE",
+        "test_owner": "app"
+      },
+      "packages/app/hatch_build.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "app-sdist"
+        ],
+        "current_path": "packages/app/hatch_build.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/hatch_build.py",
+        "test_owner": "app"
+      },
       "packages/app/pyproject.toml": {
         "api_status": "workspace-only",
         "artifact_disposition": [
@@ -5524,6 +5572,22 @@
         "runtime_namespace": null,
         "target_distribution": "app",
         "target_path": "packages/app/pyproject.toml",
+        "test_owner": "app"
+      },
+      "packages/app/tests/contract/test_v0_wheel_gates.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "packages/app/tests/contract/test_v0_wheel_gates.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "app",
+        "target_path": "packages/app/tests/contract/test_v0_wheel_gates.py",
         "test_owner": "app"
       },
       "packages/connectors/pyproject.toml": {
@@ -5651,13 +5715,13 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "pyproject.toml#project.scripts.open-brain",
+        "current_path": "packages/app/pyproject.toml#project.scripts.open-brain",
         "import_rewrite": {
           "from": "open_brain.services.appliance_entrypoints:run_cli",
           "to": "open_brain.services.appliance_entrypoints:run_cli"
         },
         "kind": "entry-point",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "retain",
         "resource_requirements": [],
         "runtime_namespace": "open_brain",
@@ -5672,13 +5736,13 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "pyproject.toml#project.scripts.open-brain-mcp",
+        "current_path": "packages/app/pyproject.toml#project.scripts.open-brain-mcp",
         "import_rewrite": {
           "from": "open_brain.services.appliance_entrypoints:run_mcp",
           "to": "open_brain.services.appliance_entrypoints:run_mcp"
         },
         "kind": "entry-point",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "retain",
         "resource_requirements": [],
         "runtime_namespace": "open_brain",
@@ -6058,10 +6122,10 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "src/open_brain/resources/supervisors/launchd.json",
+        "current_path": "packages/app/src/open_brain/resources/supervisors/launchd.json",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "importlib.resources"
@@ -6078,10 +6142,10 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "src/open_brain/resources/supervisors/systemd.service",
+        "current_path": "packages/app/src/open_brain/resources/supervisors/systemd.service",
         "import_rewrite": null,
         "kind": "package-resource",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [
           "importlib.resources"
@@ -6098,13 +6162,13 @@
           "app-sdist",
           "app-wheel"
         ],
-        "current_path": "src/open_brain/services/appliance_entrypoints.py#run_http",
+        "current_path": "packages/app/src/open_brain/services/appliance_entrypoints.py#run_http",
         "import_rewrite": {
           "from": "open_brain.services.appliance_entrypoints:run_http",
           "to": "open_brain.services.appliance_entrypoints:run_http"
         },
         "kind": "entry-point",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "retain",
         "resource_requirements": [],
         "runtime_namespace": "open_brain",
@@ -6654,10 +6718,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/capture/test_share_http.py",
+        "current_path": "packages/app/tests/integration/capture/test_share_http.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7118,10 +7182,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/engine/test_backup.py",
+        "current_path": "packages/app/tests/integration/engine/test_backup.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7134,10 +7198,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/engine/test_maintenance.py",
+        "current_path": "packages/app/tests/integration/engine/test_maintenance.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7150,10 +7214,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/engine/test_portability.py",
+        "current_path": "packages/app/tests/integration/engine/test_portability.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7166,10 +7230,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/engine/test_reconciliation.py",
+        "current_path": "packages/app/tests/integration/engine/test_reconciliation.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7182,10 +7246,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/engine/test_vertical_slice.py",
+        "current_path": "packages/app/tests/integration/engine/test_vertical_slice.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7230,10 +7294,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/integrations/test_integration_ports.py",
+        "current_path": "packages/app/tests/integration/integrations/test_integration_ports.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -7486,10 +7550,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/mcp/test_mcp.py",
+        "current_path": "packages/app/tests/integration/mcp/test_mcp.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8286,10 +8350,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_control.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_control.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8302,10 +8366,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_daemon.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_daemon.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8318,10 +8382,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_entrypoints.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_entrypoints.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8334,10 +8398,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_init.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_init.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8350,10 +8414,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_recovery.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_recovery.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8366,10 +8430,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_run_history.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_run_history.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8382,10 +8446,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_scheduler.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_scheduler.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8398,10 +8462,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_supervisors.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_supervisors.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8414,10 +8478,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_uninstall.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_uninstall.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8430,10 +8494,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_appliance_upgrade.py",
+        "current_path": "packages/app/tests/integration/services/test_appliance_upgrade.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8462,10 +8526,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_entrypoints.py",
+        "current_path": "packages/app/tests/integration/services/test_entrypoints.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8494,10 +8558,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_phase2_surfaces.py",
+        "current_path": "packages/app/tests/integration/services/test_phase2_surfaces.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8510,10 +8574,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_protocols.py",
+        "current_path": "packages/app/tests/integration/services/test_protocols.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8526,10 +8590,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/services/test_service_composition.py",
+        "current_path": "packages/app/tests/integration/services/test_service_composition.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8558,10 +8622,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ui/test_phase3_ui.py",
+        "current_path": "packages/app/tests/integration/ui/test_phase3_ui.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -8574,10 +8638,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/integration/ui/test_ui.py",
+        "current_path": "packages/app/tests/integration/ui/test_ui.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -9433,6 +9497,22 @@
         "target_path": "tests/phase4/test_acceptance_harness.py",
         "test_owner": "workspace"
       },
+      "tests/phase4/test_app_distribution.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tests/phase4/test_app_distribution.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "planned",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tests/phase4/test_app_distribution.py",
+        "test_owner": "workspace"
+      },
       "tests/phase4/test_engine_distribution.py": {
         "api_status": "test-only",
         "artifact_disposition": [
@@ -10030,10 +10110,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/engine/test_foundation_contracts.py",
+        "current_path": "packages/app/tests/unit/engine/test_foundation_contracts.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10062,10 +10142,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/engine/test_portability_ports.py",
+        "current_path": "packages/app/tests/unit/engine/test_portability_ports.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10078,10 +10158,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/engine/test_profile.py",
+        "current_path": "packages/app/tests/unit/engine/test_profile.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
@@ -10574,10 +10654,10 @@
         "artifact_disposition": [
           "excluded"
         ],
-        "current_path": "tests/unit/test_config.py",
+        "current_path": "packages/app/tests/unit/test_config.py",
         "import_rewrite": null,
         "kind": "test",
-        "movement_state": "planned",
+        "movement_state": "moved",
         "old_import_disposition": "not-applicable",
         "resource_requirements": [],
         "runtime_namespace": null,
