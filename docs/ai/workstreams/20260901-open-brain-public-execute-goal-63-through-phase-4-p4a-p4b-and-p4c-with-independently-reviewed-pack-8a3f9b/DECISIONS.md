@@ -400,3 +400,17 @@
   label or add event/measurement integrations solely to label v1 stable.
 - Why: artifact membership is keyed by canonical disposition labels, and a
   passing reference connector does not establish the two deferred proof classes.
+
+## D-037: separate installed metadata from injected in-process compatibility
+
+- Chosen: reserve `open_brain.connectors.v1` for installed metadata and the
+  isolated worker. Keep explicitly injected legacy/test connectors on the
+  distinct `open_brain.internal_connectors.v1` group. Installed registry
+  sources may discover metadata but cannot resolve or execute, and the
+  published entry-point object exposes conformance without `run()`.
+- Rejected: let the default `ConnectorHost` resolve the same installed entry
+  point as the worker or rely only on the connector object's missing methods
+  after importing its module in the parent.
+- Why: metadata discovery and code execution are separate authorities. Sharing
+  one loadable registry path allowed callers to bypass every child-process
+  limit despite the worker itself being bounded.

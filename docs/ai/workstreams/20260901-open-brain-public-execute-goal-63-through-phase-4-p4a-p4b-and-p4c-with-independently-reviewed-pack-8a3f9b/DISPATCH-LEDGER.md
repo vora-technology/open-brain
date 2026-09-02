@@ -230,10 +230,29 @@ coordinator-owned.
 
 - Status: active
 - Active children: 0 of 6
-- Total children: 0 of 12
+- Total children: 1 of 12
 - Identical failures: 0 of 2
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; no child write scope is reserved
-- Review lineage: unallocated until all applicable exact-head CI is green
+- Review lineage: child 13 reserved after exact-head CI, Release audit, and
+  CodeQL passed at `2c05dead068ef517ed365d100f3b6273c29eeba9`
 - Reset authority: D-031 closes the P4-W2 lineage and starts this milestone
   with a fresh child budget
+
+## Child 13: P4-W3 connector-isolation final review
+
+- Status: complete; same-lineage rereview pending repair and exact-head CI
+- Agent ID: `01a06202-4d7a-7331-a038-239a6e93a630`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only independent reviewer
+- Write scope: none
+- Source scope: public repository through
+  `2c05dead068ef517ed365d100f3b6273c29eeba9`
+- Required result: `READY` with P0/P1/P2 `0/0/0`; otherwise return bounded
+  findings with exact source evidence
+- Result: `NOT_READY`; P0/P1/P2 `0/1/0`. `P4W3-001` proved the default
+  in-process `ConnectorRegistry.resolve()` can load and execute the installed
+  `open_brain.connectors.v1` entry point outside the bounded worker. Repair must
+  make installed connector resolution child-only and add a wheel-only parent
+  non-load regression.

@@ -33,7 +33,6 @@ from open_brain.extensions.connectors import (
     ConnectorMetadataLogger,
     ConnectorRunContext,
     ConnectorRunEvidence,
-    ConnectorRunReceipt,
 )
 from open_brain_connectors.capture.extractors.youtube import YouTubeMediaResult
 from open_brain_connectors.capture.media import MediaCommand
@@ -96,12 +95,9 @@ class _ConformanceMediaAdapter:
 
 
 class YouTubeConnectorPlugin:
-    """One entry-point object supporting legacy run and isolated conformance."""
+    """Installed entry-point object exposing isolated conformance only."""
 
     manifest = YouTubeReferenceConnector.manifest
-
-    def run(self, context: ConnectorRunContext) -> ConnectorRunReceipt:
-        return YouTubeReferenceConnector().run(context)
 
     def conformance(self, request: ConnectorWorkerRequest) -> ConnectorWorkerReceipt:
         if (

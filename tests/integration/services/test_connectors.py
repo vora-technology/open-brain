@@ -17,6 +17,7 @@ from open_brain_engine.engine import (
     ReferencePayload,
 )
 
+from open_brain.extensions.connectors import CONNECTOR_ENTRY_POINT_GROUP
 from open_brain.services.application import SingleUserLocalApplication
 from open_brain.services.connectors import (
     INTERNAL_CONNECTOR_ENTRY_POINT_GROUP,
@@ -24,6 +25,7 @@ from open_brain.services.connectors import (
     ConnectorBudgetLimits,
     ConnectorCapabilityPolicy,
     ConnectorCaptureIdentity,
+    ConnectorConfigurationError,
     ConnectorDiscoveryError,
     ConnectorEntryPoint,
     ConnectorHost,
@@ -36,6 +38,7 @@ from open_brain.services.connectors import (
     ConnectorRunContext,
     ConnectorRunEvidence,
     ConnectorRunReceipt,
+    InstalledConnectorEntryPointSource,
 )
 
 
@@ -59,6 +62,15 @@ class _Source:
     def entry_points(self, *, group: str) -> tuple[ConnectorEntryPoint, ...]:
         assert group == INTERNAL_CONNECTOR_ENTRY_POINT_GROUP
         self.metadata_calls += 1
+        return self._entries
+
+
+class _InstalledSource(InstalledConnectorEntryPointSource):
+    def __init__(self, *entries: ConnectorEntryPoint) -> None:
+        self._entries = entries
+
+    def entry_points(self, *, group: str) -> tuple[ConnectorEntryPoint, ...]:
+        assert group == CONNECTOR_ENTRY_POINT_GROUP
         return self._entries
 
 
@@ -218,6 +230,20 @@ def test_installed_but_unlisted_connector_is_hidden_without_loading() -> None:
     registry = ConnectorRegistry(_Source(entry))
 
     assert registry.discover(ConnectorProfile()) == ()
+    assert entry.load_count == 0
+
+
+def test_installed_registry_is_metadata_only_and_cannot_resolve() -> None:
+    entry = _EntryPoint("youtube", "synthetic.youtube:connector", _Connector(_manifest()))
+    registry = ConnectorRegistry(_InstalledSource(entry))
+    profile = ConnectorProfile(allow_list=("youtube",), egress_enabled=True)
+
+    assert tuple((item.name, item.value) for item in registry.discover(profile)) == (
+        ("youtube", "synthetic.youtube:connector"),
+    )
+    with pytest.raises(ConnectorConfigurationError, match="requires isolated worker"):
+        registry.resolve("youtube", profile)
+
     assert entry.load_count == 0
 
 

@@ -455,6 +455,40 @@
   regression now requires all four pins to be present and identical. The
   corrected workflow, regression, `actionlint`, `make phase4-contracts`, and
   `make verify` all pass locally.
-- Exact-head CI and the independent source-SHA-bound review are still pending.
-  No publication, tag, release, native build, deployment, production/private
+- Repair checkpoint `2c05dead068ef517ed365d100f3b6273c29eeba9`
+  passed exact-head CI run `33627525857`, Release audit run `33627525864`, and
+  CodeQL run `33627520718`. The run includes green connector-isolation jobs on
+  Python 3.12, 3.13, and 3.14, three full verify jobs, Phase 4 contracts, the
+  macOS appliance suite, public artifacts, source/artifact and history audits,
+  and Gitleaks. PR #6, its remote branch, and local HEAD matched the reviewed
+  source; the draft PR was mergeable.
+- Child 13 (`01a06202-4d7a-7331-a038-239a6e93a630`) reviewed source `2c05dea`
+  and returned `NOT_READY`, P0/P1/P2 `0/1/0`. `P4W3-001` proved that the
+  default in-process registry could resolve and execute the installed public
+  connector entry point, bypassing the worker boundary.
+- A direct regression failed on the reviewed design, then passed after the
+  installed public group became metadata-only, injected compatibility retained
+  a distinct internal group, and the published entry-point object lost its
+  direct `run()` method. The wheel-only contract now proves both
+  `ConnectorRegistry.resolve()` and `ConnectorHost.run()` leave the connector
+  module unloaded in the parent. All 72 focused connector/composition tests,
+  `make phase4-contracts` with 87 tests, and `make verify` with Ruff, strict
+  MyPy on 500 files, 3,171 tests, six artifact builds, and artifact policy pass.
+  The wheel-only connector journey passes on Python 3.12, 3.13, and 3.14.
+- Source/artifact and reachable-history audits, Gitleaks 8.30.1 over 85 commits,
+  actionlint, `uv lock --check`, and `git diff --check` pass for the repair.
+  Rebuilt SHA-256 digests are app wheel
+  `19a4e217385abc42b38266f7ef8b27206c93995cfef3e036f762b68d0a1a4c49`,
+  app sdist
+  `4070a47cf3f22ae60ff90ccf96b7c3ddc8867470677146efc7bab94c2e0899ef`,
+  connector wheel
+  `2018c931cd372287a2828197ee937ce5a0de4c39f944a204040c8e84e4fb09eb`,
+  connector sdist
+  `0b27910054ff1f12c877728dcf6868b7de65ed11ba04e369db64d67c86a7d33a`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `199e0fc2adb264b0a0f9db50fd291e906b4d0a61cdb90e4eb55784716d000eca`.
+  A repair checkpoint and exact-head CI remain pending.
+- No publication, tag, release, native build, deployment, production/private
   access, cutover action, or P4-W4 work occurred.

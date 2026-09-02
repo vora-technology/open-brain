@@ -718,6 +718,20 @@ bind the reported capture count to the created receipts before accepting worker 
 
 Discovered: 2026-09-02.
 
+### CONNECTOR-004: Metadata discovery must not retain installed execution authority
+
+Symptom: The app discovers an installed connector without importing it, but a later call through
+the same registry loads and executes that connector in the parent process.
+
+Cause: Metadata-only discovery and in-process compatibility shared one loadable entry-point group
+and registry implementation, so the bounded worker was optional rather than exclusive.
+
+Fix: Reserve the installed public group for metadata and child execution only. Use a distinct
+group for explicitly injected compatibility sources, reject installed registry resolution, and
+prove from wheels that every parent resolver leaves the connector module unloaded.
+
+Discovered: 2026-09-02.
+
 ### RELEASE-002: Artifact coordinates and manifest labels must use the same number
 
 Symptom: Connector wheels and sdists build, but artifact policy reports a stale rewrite or empty

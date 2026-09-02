@@ -1840,6 +1840,10 @@ import open_brain_connectors
 import open_brain_engine
 
 
+def forbidden_context(*_args: object, **_kwargs: object) -> object:
+    raise AssertionError("installed connector context must not run in the parent")
+
+
 def main() -> None:
     distribution = importlib.metadata.distribution("open-brain-connectors")
     assert distribution.version == "0.1.0"
@@ -1881,6 +1885,21 @@ def main() -> None:
     assert tuple((item.name, item.value) for item in host.discover(profile)) == (
         ("youtube", "open_brain_connectors.conformance:connector"),
     )
+    assert "open_brain_connectors.conformance" not in sys.modules
+    installed_registry = extension.ConnectorRegistry()
+    try:
+        installed_registry.resolve("youtube", profile)
+    except extension.ConnectorConfigurationError as error:
+        assert str(error) == "installed connector requires isolated worker"
+    else:
+        raise AssertionError("installed connector resolved in the parent")
+    in_process = extension.ConnectorHost(installed_registry).run(
+        "youtube",
+        profile=profile,
+        context_factory=forbidden_context,
+    )
+    assert in_process.outcome is extension.ConnectorOutcome.FAILED
+    assert in_process.failure_code is extension.ConnectorFailureCode.INVALID_REGISTRATION
     assert "open_brain_connectors.conformance" not in sys.modules
     receipt = host.run_conformance(
         "youtube",

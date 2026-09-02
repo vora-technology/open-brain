@@ -162,6 +162,8 @@ lifecycle proof, and production cutover remain separate gated work.
 
 **A valid child receipt can still violate the issued budget.** Revalidate both run counts against the parent request, require replay to create no captures, and bind the reported capture count to created receipts before accepting worker metadata.
 
+**Installed connector metadata is not in-process execution authority.** The public entry-point group is worker-only. Keep explicitly injected compatibility sources on the separate internal group, and never let the default app registry resolve installed connector code.
+
 **Artifact-policy coordinates match manifest disposition labels exactly.** Use singular `connector` so the policy selects `connector-wheel` and `connector-sdist`; plural `connectors` silently selects no canonical members.
 
 **`actionlint` does not prove a pinned action commit exists.** Keep repeated action pins identical across jobs and test that invariant; a one-character SHA drift fails during job setup before any repository step runs.

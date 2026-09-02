@@ -29,7 +29,7 @@ from open_brain_engine.engine import (
 CONNECTOR_API_STATUS = "provisional"
 CONNECTOR_API_VERSION = 1
 CONNECTOR_ENTRY_POINT_GROUP = "open_brain.connectors.v1"
-INTERNAL_CONNECTOR_ENTRY_POINT_GROUP = CONNECTOR_ENTRY_POINT_GROUP
+INTERNAL_CONNECTOR_ENTRY_POINT_GROUP = "open_brain.internal_connectors.v1"
 
 __all__ = [
     "CONNECTOR_API_STATUS",
@@ -811,7 +811,7 @@ class InstalledConnectorEntryPointSource:
     """Production metadata source. Calling it never imports a connector module."""
 
     def entry_points(self, *, group: str) -> Sequence[ConnectorEntryPoint]:
-        if group != INTERNAL_CONNECTOR_ENTRY_POINT_GROUP:
+        if group != CONNECTOR_ENTRY_POINT_GROUP:
             raise ConnectorDiscoveryError("invalid connector entry-point group")
         return tuple(cast(Sequence[ConnectorEntryPoint], entry_points(group=group)))
 
@@ -874,7 +874,7 @@ class _ResolvedConnector:
 
 
 class ConnectorRegistry:
-    """Enumerates metadata first, then loads only a checked requested connector."""
+    """Discover installed metadata or resolve an explicitly injected connector."""
 
     def __init__(
         self,
@@ -886,7 +886,16 @@ class ConnectorRegistry:
             capability_policy = ConnectorCapabilityPolicy()
         if type(capability_policy) is not ConnectorCapabilityPolicy:
             raise ConnectorContractError("invalid connector registry")
-        self._source = InstalledConnectorEntryPointSource() if source is None else source
+        selected_source = InstalledConnectorEntryPointSource() if source is None else source
+        self._source = selected_source
+        self._installed_metadata_only = isinstance(
+            selected_source, InstalledConnectorEntryPointSource
+        )
+        self._entry_point_group = (
+            CONNECTOR_ENTRY_POINT_GROUP
+            if self._installed_metadata_only
+            else INTERNAL_CONNECTOR_ENTRY_POINT_GROUP
+        )
         self._capability_policy = _snapshot_capability_policy(capability_policy)
 
     def discover(self, profile: ConnectorProfile) -> tuple[ConnectorEntryPointMetadata, ...]:
@@ -905,9 +914,7 @@ class ConnectorRegistry:
         self, profile: ConnectorProfile
     ) -> tuple[tuple[ConnectorEntryPointMetadata, ConnectorEntryPoint], ...]:
         try:
-            entries = tuple(
-                self._source.entry_points(group=INTERNAL_CONNECTOR_ENTRY_POINT_GROUP)
-            )
+            entries = tuple(self._source.entry_points(group=self._entry_point_group))
         except Exception as error:
             raise ConnectorDiscoveryError("invalid connector entry-point metadata") from error
         if len(entries) > 32:
@@ -941,6 +948,8 @@ class ConnectorRegistry:
             raise ConnectorConfigurationError("invalid connector profile") from error
         if not selected_profile.allows(connector_name):
             raise ConnectorConfigurationError("connector is not allow-listed")
+        if self._installed_metadata_only:
+            raise ConnectorConfigurationError("installed connector requires isolated worker")
         entries = self._validated_entries(selected_profile)
         selected = next(
             (entry for metadata, entry in entries if metadata.name == connector_name),

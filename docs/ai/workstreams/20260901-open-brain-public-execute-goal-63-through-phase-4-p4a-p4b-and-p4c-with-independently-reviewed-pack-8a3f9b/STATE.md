@@ -12,10 +12,10 @@
 
 - Milestone: P4-W3 connector distribution, provisional interface, and isolated
   worker
-- Status: locally verified CI-pin repair after source checkpoint
-  `fe579e4f51d50b35c844c13ef3df58b61a6b9b91`. A separate repair checkpoint,
-  exact-head CI, and independent review remain pending; the P4-W3 reviewer
-  ledger is still zero
+- Status: child 13 returned `NOT_READY`, P0/P1/P2 `0/1/0`, for source
+  `2c05dead068ef517ed365d100f3b6273c29eeba9`. The installed parent-load P1 is
+  repaired with full local gates green; a repair checkpoint, exact-head CI,
+  and same-lineage rereview remain pending
 - Allowed scope: the five manifest-owned connector runtime files and authorized
   tests/resources; `open-brain-connectors` build metadata and artifacts;
   already-demonstrated provisional extension values and conformance rules;
@@ -86,9 +86,9 @@
 
 ## Next action
 
-Create and push the bounded CI-pin repair checkpoint, then require exact-head
-CI to pass. Only then dispatch one fresh source-SHA-bound read-only reviewer
-before milestone closure.
+Create a bounded source checkpoint for the child-13 P1 repair and repeat
+exact-head CI. Then resume child 13 for same-lineage rereview; close P4-W3 only
+on `READY` with P0/P1/P2 `0/0/0`.
 
 ## P4-W0 complete
 
@@ -428,5 +428,20 @@ before milestone closure.
   passed. The repair makes all four `setup-uv` pins identical, adds a regression,
   and passes focused checks, actionlint, `make phase4-contracts`, and `make
   verify` locally. `CI-002` records that actionlint cannot validate remote pins.
-- Exact-head CI and a fresh independent READY P0/P1/P2 `0/0/0` verdict remain
-  required. Reviewer budget remains 0 active and 0 total until CI is green.
+- Repair checkpoint `2c05dea` passed exact-head CI `33627525857`, Release audit
+  `33627525864`, and CodeQL `33627520718`. All three connector-isolation jobs,
+  all three full verify jobs, Phase 4 contracts, macOS appliance checks, and
+  public artifacts are green. PR #6 is open, draft, mergeable, and bound to the
+  same source SHA.
+- Child 13 (`01a06202-4d7a-7331-a038-239a6e93a630`) returned `NOT_READY`,
+  P0/P1/P2 `0/1/0`. `P4W3-001` found that the default app registry could load
+  the installed connector entry point and call `run()` outside the bounded
+  child.
+- The repair separates the installed public metadata group from the injected
+  internal compatibility group, rejects installed registry resolution, removes
+  `run()` from the published entry-point object, and adds a wheel-only parent
+  non-load regression. All 72 focused tests, 87 Phase 4 tests, and 3,171 full
+  tests pass with Ruff, strict MyPy, six artifact builds/policy, the supported
+  Python wheel matrix, release/history/Gitleaks audits, actionlint, lockfile,
+  and diff integrity. Reviewer budget is 0 active and 1 total until repair CI
+  is green.
