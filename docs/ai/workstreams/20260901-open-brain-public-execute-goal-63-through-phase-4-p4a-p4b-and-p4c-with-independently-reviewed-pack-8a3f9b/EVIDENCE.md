@@ -281,6 +281,29 @@
   CodeQL run `33600287985` passed at `bd994a0`, including interpreter-specific
   wheel execution on Python 3.12, 3.13, and 3.14.
 - Rebuilt artifact SHA-256 digests remained unchanged.
+- Evidence checkpoint `0cff2ea6077b2450febd07f456310aff1f6ffd25`
+  passed all exact-head checks before the fifth P4-W2 review.
+- Child 10 reviewed `0cff2ea` and returned `NOT_READY`, P0/P1/P2 `0/2/0`.
+  One P1 reproduced forbidden imports through aliases of `sys.__dict__`,
+  `sys.__getattribute__`, and `builtins.object`. The other reproduced a PEP
+  572 comprehension assignment that lost its enclosing-scope provenance.
+- Focused wheel regressions failed before repair for each positive path and
+  for the related shadow-negative case. Self-review added symmetric
+  `importlib` and `builtins` aliases plus normal walrus overwrite behavior.
+- Repair checkpoint `e103255b2ab03c3312206383b71ce38fcde67b8e`
+  derives `ImportFrom` bindings from the same modeled module-member authority
+  used for attribute access. Comprehension assignment expressions now update
+  their nearest enclosing scope and are predeclared as function locals.
+- Latest local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,151 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (82 tests, Ruff, MyPy, manifest); all 14 analyzer and
+  app-wheel tests on Python 3.12, 3.13, and 3.14; source+artifact release
+  audit; reachable-history audit; Gitleaks 8.30.1 over 75 commits; `uv lock
+  --check`; and `git diff --check`.
+- Exact-head CI run `33602946392`, public-artifacts run `33602946514`, and
+  CodeQL run `33602944303` passed at `e103255`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14.
+- Rebuilt artifact SHA-256 digests remained unchanged.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
   successor, exact-head CI, and a fresh read-only review remain required before

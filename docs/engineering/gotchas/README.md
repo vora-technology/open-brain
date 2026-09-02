@@ -622,3 +622,18 @@ Fix: Track sets of possible provenance, join control-flow outcomes, predeclare f
 names, and model loop, `with`, exception, match, and comprehension scopes before inspecting uses.
 
 Discovered: 2026-09-02.
+
+### AUDIT-007: Import aliases and comprehension walrus targets share existing authorities
+
+Symptom: Attribute-based reflection is rejected, but importing that same member with
+`from ... import ...` passes; or a walrus target disappears when a comprehension scope exits.
+
+Cause: The analyzer maintains separate syntax-specific member rules and treats every name inside a
+comprehension as comprehension-local. Python resolves imported members through the module object,
+while PEP 572 binds assignment-expression targets in the enclosing scope.
+
+Fix: Use one module-member provenance function for attribute and `ImportFrom` syntax. Keep
+iteration targets local to the comprehension, but propagate walrus targets to the nearest enclosing
+scope and predeclare them as function locals.
+
+Discovered: 2026-09-02.

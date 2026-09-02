@@ -293,3 +293,14 @@
 - Why: a dead or alternate branch must not erase a possible importer path, but
   a loop, context-manager, or exception target must shadow that path inside its
   own body. Conservative joins enforce both halves of the boundary.
+
+## D-028: derive imported members and comprehension bindings from Python semantics
+
+- Chosen: resolve `ImportFrom` aliases through the same module-member model as
+  attribute access, and bind comprehension assignment expressions in the
+  nearest enclosing non-comprehension scope.
+- Rejected: maintain separate per-syntax alias lists or discard all names when
+  a comprehension scope exits.
+- Why: equivalent member access must carry equivalent provenance regardless of
+  syntax. PEP 572 deliberately gives walrus targets different scope from
+  comprehension iteration targets, so the analyzer must preserve that split.

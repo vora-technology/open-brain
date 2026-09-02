@@ -11,10 +11,10 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: flow-sensitive import review repair
-  `bd994a0288f8711f216e130c25c45f7a654eb90f` is pushed and exact-head CI
-  is green. The fourth P4-W2 review returned `NOT_READY` with P0/P1/P2
-  `0/1/0`; its sole finding is repaired. This evidence successor, exact-head
+- Status: import-alias and comprehension review repair
+  `e103255b2ab03c3312206383b71ce38fcde67b8e` is pushed and exact-head CI
+  is green. The fifth P4-W2 review returned `NOT_READY` with P0/P1/P2
+  `0/2/0`; both findings are repaired. This evidence successor, exact-head
   CI, and a fresh read-only review remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
@@ -290,6 +290,28 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
   Gitleaks over 73 commits; lockfile and diff integrity.
 - Exact-head CI run `33600292963`, public-artifacts run `33600292877`, and
   CodeQL run `33600287985` passed at `bd994a0`. PR head, remote branch, and
+  local head matched; the draft PR was mergeable.
+- Evidence checkpoint `0cff2ea6077b2450febd07f456310aff1f6ffd25`
+  recorded the fourth review and repair. Child 10 reviewed that exact
+  candidate and returned `NOT_READY`, P0/P1/P2 `0/2/0`. The P1 findings were
+  missing `ImportFrom` provenance for modeled module members and incorrect
+  PEP 572 scope for assignment expressions inside comprehensions.
+- Focused wheel regressions failed before repair for aliases of
+  `sys.__dict__`, `sys.__getattribute__`, and `builtins.object`, plus an
+  enclosing-scope comprehension assignment and its shadow-negative case.
+  Self-review added symmetric `importlib` and `builtins` aliases and normal
+  walrus overwrite behavior.
+- Source repair `e103255b2ab03c3312206383b71ce38fcde67b8e`
+  derives `ImportFrom` provenance uniformly from modeled module members and
+  binds comprehension assignment expressions to the nearest enclosing scope
+  without changing ordinary assignment-expression semantics.
+- Latest local gates passed: `make verify` with strict MyPy on 488 files,
+  3,151 tests, and four artifact builds; uncached Ruff;
+  `make phase4-contracts` with 82 tests; all 14 analyzer and app-wheel tests on
+  each of Python 3.12, 3.13, and 3.14; source/artifact and reachable-history
+  audits; Gitleaks over 75 commits; lockfile and diff integrity.
+- Exact-head CI run `33602946392`, public-artifacts run `33602946514`, and
+  CodeQL run `33602944303` passed at `e103255`. PR head, remote branch, and
   local head matched; the draft PR was mergeable.
 - Rebuilt SHA-256 digests are app wheel
   `9b0f06e03e2bdfcfc690e011faa15773eb4efbf26844fff5c446bfc0d11ad84d`,
