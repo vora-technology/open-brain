@@ -6,6 +6,7 @@ on:
     branches: [main]
   pull_request:
     paths:
+      - ".gitleaksignore"
       - "pyproject.toml"
       - "uv.lock"
       - "src/**"

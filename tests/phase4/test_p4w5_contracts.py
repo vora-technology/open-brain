@@ -36,6 +36,21 @@ def test_one_shot_readiness_snapshot_is_immutable_and_reusable() -> None:
         assert result.for_wave(wave) is result
 
 
+def test_readiness_snapshot_gitleaks_exception_is_exact_and_audited() -> None:
+    relative = (WORKSTREAM / "P4-READINESS-SNAPSHOT.json").relative_to(ROOT).as_posix()
+    fingerprint = (
+        "638ff2d57b5553ea50fc98648053d1cd11793712:"
+        f"{relative}:generic-api-key:13"
+    )
+    ignore_lines = (ROOT / ".gitleaksignore").read_text(encoding="utf-8").splitlines()
+    release_workflow = (ROOT / ".github/workflows/release-audit.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert ignore_lines.count(fingerprint) == 1
+    assert '      - ".gitleaksignore"' in release_workflow
+
+
 def test_review_binding_separates_source_candidate_from_evidence_closure() -> None:
     plan = (ROOT / "docs/plans/phase-4-physical-split-native-artifacts-and-cutover.md").read_text(
         encoding="utf-8"

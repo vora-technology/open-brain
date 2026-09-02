@@ -568,3 +568,15 @@
   binding, and accepted D-031 already defines docs-only evidence successors.
   This is an application of the reviewed contract, not a new exception or
   clarification.
+
+## D-049: bind the opaque readiness receipt to one exact Gitleaks fingerprint
+
+- Chosen: preserve the immutable readiness snapshot and add the single
+  `generic-api-key` fingerprint from its introducing commit to
+  `.gitleaksignore`. Make changes to that file trigger the full Release audit
+  and enforce the exact fingerprint in the P4-W5 contract.
+- Rejected: alter or regenerate the snapshot, suppress the generic detector by
+  path or rule, or skip Gitleaks for Phase 4 evidence.
+- Why: the reported value is a schema-validated opaque receipt, not a
+  credential. An exact commit/path/rule/line exception keeps every other
+  secret finding fatal while preserving the one-shot snapshot byte for byte.

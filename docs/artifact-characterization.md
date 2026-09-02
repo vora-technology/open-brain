@@ -75,5 +75,11 @@ Reviewed historical false positives may be recorded in
 repository path, and one rule. Only `absolute-home-path` and `private-ip-address` are eligible;
 credential, denylist, forbidden-path, and scan-limit findings cannot be suppressed.
 
+Gitleaks has a separate exact-fingerprint ignore file for reviewed synthetic or opaque public
+values that match a generic detector. Each exception binds the introducing commit, path, rule, and
+line. The immutable P4 readiness snapshot uses one such entry for an opaque receipt; its strict
+schema and fixed file SHA-256 remain independently enforced. Changing `.gitleaksignore` triggers
+the full Release audit workflow.
+
 The Phase 0 real-history result is recorded in
 [`docs/audits/2026-08-30-phase0-public-history-audit.md`](audits/2026-08-30-phase0-public-history-audit.md).
