@@ -7,6 +7,7 @@ import importlib.metadata
 import json
 import os
 import re
+import shlex
 import shutil
 import socket
 import stat
@@ -17,7 +18,7 @@ import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from hashlib import sha256
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from typing import Final, cast
 
@@ -35,6 +36,7 @@ _FAILURE: Final = "native build operation failed"
 _SOURCE_SHA: Final = re.compile(r"[0-9a-f]{40}")
 _TOOLCHAIN = Path("release/phase4-toolchain.json")
 _SPEC = Path("release/native/open-brain.spec")
+_ARTIFACT_POLICY = Path(__file__).resolve().parents[2] / "release/v0-artifact-policy.json"
 _RESOURCE_MEMBERS: Final = (
     "_internal/open_brain/resources/supervisors/launchd.json",
     "_internal/open_brain/resources/supervisors/systemd.service",
@@ -206,8 +208,7 @@ def audit_native_artifact(
         member_paths = frozenset(member.path for member in members)
         if (
             not set(_RESOURCE_MEMBERS) <= member_paths
-            or any(member.path.endswith((".py", ".pyc")) for member in members)
-            or any(member.path.startswith(("packages/", "tests/")) for member in members)
+            or any(not _native_member_allowed(member) for member in members)
         ):
             raise NativeBuildError(_FAILURE)
         encoded = json.dumps(
@@ -312,8 +313,29 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
             install_root = smoke_root / "install"
             candidates = install_root / "candidates"
             candidates.mkdir(parents=True)
-            isolated_artifact = candidates / artifact.name
-            shutil.copytree(artifact, isolated_artifact, symlinks=True)
+            prior_id = "candidate_native-p4w5-prior"
+            failed_id = "candidate_native-p4w5-failed"
+            isolated_artifact = _copy_native_candidate(
+                artifact,
+                candidates / audit.candidate_id,
+                candidate_id=audit.candidate_id,
+                version=audit.version,
+                platform_tag=audit.platform_tag,
+            )
+            _copy_native_candidate(
+                artifact,
+                candidates / prior_id,
+                candidate_id=prior_id,
+                version=audit.version,
+                platform_tag=audit.platform_tag,
+            )
+            failed_artifact = _copy_native_candidate(
+                artifact,
+                candidates / failed_id,
+                candidate_id=failed_id,
+                version=audit.version,
+                platform_tag=audit.platform_tag,
+            )
             stage = "isolated-audit"
             isolated_audit = audit_native_artifact(
                 isolated_artifact,
@@ -331,16 +353,26 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 version=audit.version,
                 artifact_kind="native-onedir",
             )
+            prior_candidate = ArtifactCandidate(
+                candidate_id=prior_id,
+                version=audit.version,
+                artifact_kind="native-onedir",
+            )
             compatibility = adapter.compatibility_preflight(candidate)
-            activation = adapter.activate(candidate)
+            activation = adapter.activate(prior_candidate)
             if (
                 compatibility.status != "compatible"
                 or activation.status != "activated"
-                or adapter.active_candidate_id != audit.candidate_id
+                or adapter.active_candidate_id != prior_id
             ):
                 raise NativeBuildError(_FAILURE)
             executable = install_root / "current" / NATIVE_EXECUTABLE_NAME
-            environment = _runtime_environment(smoke_root)
+            brain_root = smoke_root / "brain"
+            environment = _runtime_environment(
+                smoke_root,
+                executable=executable,
+                brain_root=brain_root,
+            )
             stage = "version"
             version = _run_checked(
                 (str(executable), "--version"),
@@ -379,7 +411,6 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 or connector_value.get("failure_code") != "process_failed"
             ):
                 raise NativeBuildError(_FAILURE)
-            brain_root = smoke_root / "brain"
             appliance_environment = {
                 **environment,
                 "OPEN_BRAIN_ROOT": str(brain_root),
@@ -394,29 +425,112 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
             )
             if _json_object(initialized.stdout).get("status") != "initialized":
                 raise NativeBuildError(_FAILURE)
+            stage = "supervisor-install"
+            installed = _run_checked(
+                (str(executable), "supervisor", "install", "--json"),
+                cwd=smoke_root,
+                environment=appliance_environment,
+                timeout=30,
+            )
+            if _json_object(installed.stdout).get("status") != "ok":
+                raise NativeBuildError(_FAILURE)
             stage = "daemon-start"
             _run_daemon_cycle(executable, brain_root, smoke_root, appliance_environment)
             stage = "daemon-restart"
             _run_daemon_cycle(executable, brain_root, smoke_root, appliance_environment)
-            stage = "artifact-uninstall"
-            removal = adapter.remove(current_candidate_id=audit.candidate_id)
+            stage = "portable-round-trip"
+            portable = _run_checked(
+                (
+                    str(executable),
+                    "__native-portable-self-check",
+                    str(smoke_root / "portable-export"),
+                    str(smoke_root / "portable-import"),
+                ),
+                cwd=smoke_root,
+                environment=appliance_environment,
+                timeout=60,
+            )
+            portable_value = _json_object(portable.stdout)
             if (
-                removal.status != "removed"
-                or adapter.active_candidate_id is not None
+                portable_value.get("status") != "passed"
+                or portable_value.get("portable_export") != "exported"
+                or portable_value.get("portable_import") != "imported"
+            ):
+                raise NativeBuildError(_FAILURE)
+            stage = "artifact-rollback"
+            rollback = _run_checked(
+                (
+                    str(executable),
+                    "__native-rollback-self-check",
+                    failed_id,
+                    prior_id,
+                ),
+                cwd=smoke_root,
+                environment=appliance_environment,
+                timeout=30,
+            )
+            if _json_object(rollback.stdout).get("status") != "rolled_back":
+                raise NativeBuildError(_FAILURE)
+            shutil.rmtree(failed_artifact)
+            stage = "artifact-upgrade"
+            disposable_root = smoke_root / "upgrade-preflight"
+            disposable_root.mkdir(mode=0o700)
+            upgraded = _run_checked(
+                (
+                    str(executable),
+                    "upgrade",
+                    f"--candidate-id={candidate.candidate_id}",
+                    f"--version={candidate.version}",
+                    "--artifact-kind=native-onedir",
+                    f"--backup-destination={smoke_root / 'upgrade-backup'}",
+                    f"--disposable-root={disposable_root}",
+                    "--request-id=upgrade_123e4567-e89b-42d3-a456-4266141745a3",
+                    "--requested-at=2026-09-02T12:00:00Z",
+                    "--confirm-owner",
+                    "--json",
+                ),
+                cwd=smoke_root,
+                environment=appliance_environment,
+                timeout=90,
+            )
+            if _json_object(upgraded.stdout).get("status") != "upgraded":
+                raise NativeBuildError(_FAILURE)
+            stage = "artifact-uninstall"
+            uninstalled = _run_checked(
+                (
+                    str(executable),
+                    "uninstall",
+                    "--request-id=uninstall_123e4567-e89b-42d3-a456-4266141745a4",
+                    "--requested-at=2026-09-02T12:01:00Z",
+                    "--confirm-owner",
+                    "--json",
+                ),
+                cwd=smoke_root,
+                environment=appliance_environment,
+                timeout=60,
+            )
+            if (
+                _json_object(uninstalled.stdout).get("status") != "uninstalled"
                 or (install_root / "current").exists()
                 or tuple(candidates.iterdir())
+                or not brain_root.is_dir()
             ):
                 raise NativeBuildError(_FAILURE)
         runtime: dict[str, object] = {
             "artifact_activation": "activated",
+            "artifact_rollback": "rolled_back",
             "artifact_uninstall": "clean",
+            "artifact_upgrade": "upgraded",
+            "backup_restore": "passed",
             "child_environment": "sanitized",
             "connector_child": "bounded",
             "daemon_restart_count": 2,
             "init_status": "initialized",
             "package_resources": "available",
+            "portable_round_trip": "passed",
             "source_checkout_required": False,
             "status": "passed",
+            "supervisor_lifecycle": "isolated-shim",
             "system_python_required": False,
         }
         stage = "evidence"
@@ -426,6 +540,25 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
         raise
     except Exception as error:
         raise NativeSmokeError(stage) from error
+
+
+def _copy_native_candidate(
+    source: Path,
+    destination: Path,
+    *,
+    candidate_id: str,
+    version: str,
+    platform_tag: str,
+) -> Path:
+    shutil.copytree(source, destination, symlinks=True)
+    (destination / NATIVE_MANIFEST_NAME).unlink()
+    NativeArtifactManifest.create(
+        destination,
+        candidate_id=candidate_id,
+        version=version,
+        platform_tag=platform_tag,
+    ).write(destination)
+    return destination
 
 
 def _artifact_members(root: Path) -> tuple[NativeArtifactMember, ...]:
@@ -459,6 +592,63 @@ def _artifact_members(root: Path) -> tuple[NativeArtifactMember, ...]:
 
     visit(root)
     return tuple(members)
+
+
+def _native_member_allowed(member: NativeArtifactMember) -> bool:
+    try:
+        policy = json.loads(_ARTIFACT_POLICY.read_text(encoding="utf-8"))["native_artifacts"][
+            "member_policy"
+        ]
+        if not isinstance(policy, dict):
+            raise NativeBuildError(_FAILURE)
+        allowed_exact = _policy_strings(policy, "allowed_exact")
+        allowed_trees = _policy_strings(policy, "allowed_trees")
+        forbidden_components = frozenset(
+            component.casefold()
+            for component in _policy_strings(policy, "forbidden_components")
+        )
+        forbidden_suffixes = _policy_strings(policy, "forbidden_suffixes")
+        library_pattern = policy.get("allowed_internal_library_pattern")
+        if not isinstance(library_pattern, str):
+            raise NativeBuildError(_FAILURE)
+        compiled_library = re.compile(library_pattern)
+    except (KeyError, OSError, TypeError, json.JSONDecodeError, re.error) as error:
+        raise NativeBuildError(_FAILURE) from error
+
+    path = PurePosixPath(member.path)
+    components = tuple(component.casefold() for component in path.parts)
+    if (
+        path.is_absolute()
+        or not components
+        or any(
+            component in forbidden_components
+            or PurePosixPath(component).stem in forbidden_components
+            for component in components
+        )
+        or member.path.endswith(forbidden_suffixes)
+    ):
+        return False
+    if member.path in allowed_exact:
+        return True
+    if compiled_library.fullmatch(member.path) is not None:
+        return member.kind in {"file", "symlink"}
+    return any(
+        member.path == tree
+        or member.path.startswith(tree + "/")
+        or tree.startswith(member.path + "/")
+        for tree in allowed_trees
+    )
+
+
+def _policy_strings(policy: Mapping[str, object], key: str) -> tuple[str, ...]:
+    value = policy.get(key)
+    if (
+        not isinstance(value, list)
+        or not value
+        or any(not isinstance(item, str) or not item for item in value)
+    ):
+        raise NativeBuildError(_FAILURE)
+    return tuple(cast(list[str], value))
 
 
 def _run_daemon_cycle(
@@ -547,7 +737,12 @@ def _build_environment() -> dict[str, str]:
     return environment
 
 
-def _runtime_environment(root: Path) -> dict[str, str]:
+def _runtime_environment(
+    root: Path,
+    *,
+    executable: Path,
+    brain_root: Path,
+) -> dict[str, str]:
     home = root / "home"
     temporary = root / "tmp"
     host_tools = root / "host-tools"
@@ -555,10 +750,17 @@ def _runtime_environment(root: Path) -> dict[str, str]:
     temporary.mkdir()
     host_tools.mkdir()
     supervisor_name = "launchctl" if sys.platform == "darwin" else "systemctl"
-    supervisor = shutil.which(supervisor_name, path=os.defpath)
-    if supervisor is None:
-        raise NativeBuildError(_FAILURE)
-    (host_tools / supervisor_name).symlink_to(supervisor)
+    supervisor = host_tools / supervisor_name
+    pidfile = root / "supervised-daemon.pid"
+    supervisor.write_text(
+        _supervisor_shim(
+            executable=executable,
+            brain_root=brain_root,
+            pidfile=pidfile,
+        ),
+        encoding="utf-8",
+    )
+    supervisor.chmod(0o755)
     return {
         "HOME": str(home),
         "PATH": str(host_tools),
@@ -566,6 +768,56 @@ def _runtime_environment(root: Path) -> dict[str, str]:
         "PYTHONNOUSERSITE": "1",
         "TMPDIR": str(temporary),
     }
+
+
+def _supervisor_shim(*, executable: Path, brain_root: Path, pidfile: Path) -> str:
+    return f"""#!/bin/sh
+pidfile={shlex.quote(str(pidfile))}
+executable={shlex.quote(str(executable))}
+brain_root={shlex.quote(str(brain_root))}
+
+stop_daemon() {{
+    if [ -f "$pidfile" ]; then
+        pid=$(/bin/cat "$pidfile")
+        if kill -0 "$pid" 2>/dev/null; then
+            kill "$pid" 2>/dev/null || true
+            count=0
+            while kill -0 "$pid" 2>/dev/null && [ "$count" -lt 200 ]; do
+                /bin/sleep 0.05
+                count=$((count + 1))
+            done
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -KILL "$pid" 2>/dev/null || true
+            fi
+        fi
+        /bin/rm -f "$pidfile"
+    fi
+}}
+
+start_daemon() {{
+    "$executable" __appliance-daemon --root "$brain_root" >/dev/null 2>&1 &
+    echo "$!" > "$pidfile"
+}}
+
+status_daemon() {{
+    if [ -f "$pidfile" ]; then
+        pid=$(/bin/cat "$pidfile")
+        if kill -0 "$pid" 2>/dev/null; then
+            printf 'active\\n'
+            exit 0
+        fi
+    fi
+    exit 1
+}}
+
+case " $* " in
+    *" kickstart "*|*" restart "*) stop_daemon; start_daemon ;;
+    *" start "*) start_daemon ;;
+    *" kill "*|*" stop "*|*" bootout "*|*" disable "*) stop_daemon ;;
+    *" print "*|*" status "*) status_daemon ;;
+    *) exit 0 ;;
+esac
+"""
 
 
 def _available_port() -> int:

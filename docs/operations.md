@@ -17,9 +17,12 @@ After committing a clean source candidate, run
 refuses a dirty tree or a mismatched SHA. It builds the checked-in PyInstaller onedir spec, audits
 members and confined symlinks, activates the artifact through the native lifecycle adapter, and
 runs the frozen executable without a source checkout or Python on `PATH`. The smoke covers packaged
-supervisor resources, the connector child, init, two daemon cycles, uninstall, and clean managed
-residue. It writes bounded ignored evidence under `build/p4w5-native` and performs no signing,
-notarization, publication, deployment, or service installation.
+supervisor resources, the connector child, init, two daemon cycles, Portable export/import,
+verified backup and disposable restore, corrupt-active rollback, native upgrade, application
+uninstall, and clean managed residue. Supervisor effects use an isolated temporary shim that starts
+the real bundled daemon without installing a host service. The command writes bounded ignored
+evidence under `build/p4w5-native` and performs no signing, notarization, publication, deployment,
+or host service installation.
 
 ## Capture publication
 

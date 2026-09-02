@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import secrets
 import shutil
 import stat
 from contextlib import suppress
@@ -246,7 +247,15 @@ class NativeArtifactLifecycleAdapter:
         *,
         prior_candidate_id: str | None,
     ) -> ArtifactRollbackReceipt:
-        self._manifest(candidate)
+        if (
+            not isinstance(candidate, ArtifactCandidate)
+            or candidate.artifact_kind != NATIVE_ARTIFACT_KIND
+        ):
+            raise NativeArtifactError(_FAILURE)
+        active_candidate_id = self._read_active_candidate_id()
+        allowed_active_ids = {candidate.candidate_id, prior_candidate_id}
+        if active_candidate_id not in allowed_active_ids:
+            raise NativeArtifactError(_FAILURE)
         if prior_candidate_id is None:
             self._remove_current_link()
         else:
@@ -338,7 +347,7 @@ class NativeArtifactLifecycleAdapter:
         ):
             raise NativeArtifactError(_FAILURE)
         candidate_id = target.parts[1]
-        self._manifest_by_id(candidate_id)
+        self._candidate_path(candidate_id)
         return candidate_id
 
     def _replace_current(self, candidate_id: str) -> None:
@@ -350,17 +359,23 @@ class NativeArtifactLifecycleAdapter:
             current_metadata = None
         if current_metadata is not None and not stat.S_ISLNK(current_metadata.st_mode):
             raise NativeArtifactError(_FAILURE)
-        temporary = self._install_root / f".{_CURRENT_LINK}-{os.getpid()}.tmp"
+        temporary = self._install_root / (
+            f".{_CURRENT_LINK}-{os.getpid()}-{secrets.token_hex(16)}.tmp"
+        )
+        created = False
         try:
-            temporary.unlink(missing_ok=True)
             temporary.symlink_to(
                 Path(_CANDIDATES_DIRECTORY) / candidate_id,
                 target_is_directory=True,
             )
+            created = True
             os.replace(temporary, current)
+            created = False
             _fsync_directory(self._install_root)
         except OSError as error:
-            temporary.unlink(missing_ok=True)
+            if created:
+                with suppress(OSError):
+                    temporary.unlink()
             raise NativeArtifactError(_FAILURE) from error
 
     def _remove_current_link(self) -> None:

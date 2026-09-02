@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
+
+import pytest
 
 from open_brain.services.native_artifacts import NativeArtifactManifest, native_platform_tag
 from tools.phase4.native_build import (
+    NativeBuildError,
     audit_native_artifact,
     load_native_build_configuration,
     pyinstaller_command,
+    smoke_native_artifact,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -50,9 +55,7 @@ def test_native_artifact_audit_requires_executable_resources_and_safe_symlinks(
     executable.chmod(0o755)
     (resources / "launchd.json").write_text("{}\n", encoding="utf-8")
     (resources / "systemd.service").write_text("[Service]\n", encoding="utf-8")
-    (artifact / "_internal/resource-link.json").symlink_to(
-        "open_brain/resources/supervisors/launchd.json"
-    )
+    (resources / "launchd-link.json").symlink_to("launchd.json")
     NativeArtifactManifest.create(
         artifact,
         candidate_id="candidate_native-p4w5",
@@ -71,3 +74,39 @@ def test_native_artifact_audit_requires_executable_resources_and_safe_symlinks(
         "_internal/open_brain/resources/supervisors/systemd.service",
     )
     assert len(audit.tree_sha256) == 64
+
+
+def test_native_artifact_audit_rejects_private_residue(tmp_path: Path) -> None:
+    artifact = (tmp_path / "candidate_native-p4w5").resolve()
+    resources = artifact / "_internal/open_brain/resources/supervisors"
+    resources.mkdir(parents=True)
+    executable = artifact / "open-brain"
+    executable.write_bytes(b"native executable")
+    executable.chmod(0o755)
+    (resources / "launchd.json").write_text("{}\n", encoding="utf-8")
+    (resources / "systemd.service").write_text("[Service]\n", encoding="utf-8")
+    private = artifact / "_internal/credentials"
+    private.mkdir()
+    (private / "private.txt").write_text("private", encoding="utf-8")
+    NativeArtifactManifest.create(
+        artifact,
+        candidate_id="candidate_native-p4w5",
+        version="0.1.0",
+        platform_tag=native_platform_tag(),
+    ).write(artifact)
+
+    with pytest.raises(NativeBuildError, match="native build operation failed"):
+        audit_native_artifact(artifact, expected_platform=native_platform_tag())
+
+
+def test_native_smoke_uses_frozen_recovery_upgrade_rollback_and_uninstall() -> None:
+    source = inspect.getsource(smoke_native_artifact)
+
+    for command in (
+        "__native-portable-self-check",
+        "__native-rollback-self-check",
+        '"upgrade"',
+        '"uninstall"',
+    ):
+        assert command in source
+    assert "adapter.remove" not in source

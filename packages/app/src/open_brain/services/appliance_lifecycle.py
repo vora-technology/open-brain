@@ -35,7 +35,11 @@ from .appliance_daemon import (
     request_status,
 )
 from .appliance_recovery import ApplianceBackupResult, ApplianceReplacementPreflight
-from .appliance_supervisors import LaunchdSupervisor, SystemdSupervisor
+from .appliance_supervisors import (
+    LaunchdSupervisor,
+    SystemdSupervisor,
+    native_supervisor_effects,
+)
 
 _SUPERVISOR_ACTIONS = frozenset(
     {"discover", "install", "start", "stop", "restart", "status", "remove"}
@@ -378,13 +382,13 @@ class RecoveryLifecyclePort(Protocol):
 
 
 class SupervisorLifecyclePort(Protocol):
-    def restart(self) -> None: ...
+    def restart(self) -> object: ...
 
     def status(self) -> str: ...
 
-    def stop(self) -> None: ...
+    def stop(self) -> object: ...
 
-    def remove(self) -> None: ...
+    def remove(self) -> object: ...
 
 
 MigrationStep = Callable[[ArtifactCandidate], LifecycleMigrationReceipt]
@@ -1414,22 +1418,50 @@ def _source_checkout_root() -> Path | None:
 
 
 def _supervisor(root: Path) -> LaunchdSupervisor | SystemdSupervisor:
-    checkout_root = _source_checkout_root()
+    native_runtime = bool(getattr(sys, "frozen", False))
+    checkout_root = None if native_runtime else _source_checkout_root()
+    runtime_kind = "native-onedir" if native_runtime else "python"
+    native_effects = native_supervisor_effects() if native_runtime else None
     host = platform.system()
     if host == "Darwin":
+        if native_effects is not None:
+            return LaunchdSupervisor(
+                root=root,
+                checkout_root=checkout_root,
+                python_executable=sys.executable,
+                unit_directory=Path.home() / "Library" / "LaunchAgents",
+                user_id=os.getuid(),
+                runtime_kind=runtime_kind,
+                write_file=native_effects[0],
+                remove_file=native_effects[1],
+                run_command=native_effects[2],
+            )
         return LaunchdSupervisor(
             root=root,
             checkout_root=checkout_root,
             python_executable=sys.executable,
             unit_directory=Path.home() / "Library" / "LaunchAgents",
             user_id=os.getuid(),
+            runtime_kind=runtime_kind,
         )
     if host == "Linux":
+        if native_effects is not None:
+            return SystemdSupervisor(
+                root=root,
+                checkout_root=checkout_root,
+                python_executable=sys.executable,
+                unit_directory=Path.home() / ".config" / "systemd" / "user",
+                runtime_kind=runtime_kind,
+                write_file=native_effects[0],
+                remove_file=native_effects[1],
+                run_command=native_effects[2],
+            )
         return SystemdSupervisor(
             root=root,
             checkout_root=checkout_root,
             python_executable=sys.executable,
             unit_directory=Path.home() / ".config" / "systemd" / "user",
+            runtime_kind=runtime_kind,
         )
     raise ValueError("unsupported appliance supervisor")
 

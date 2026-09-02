@@ -305,6 +305,47 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
     assert policy["native_artifacts"] == {
         "bundler_candidate": "PyInstaller 6 onedir",
         "fallback": "Nuitka standalone",
+        "member_policy": {
+            "allowed_exact": [
+                "_internal",
+                "_internal/Python",
+                "_internal/base_library.zip",
+                "open-brain",
+            ],
+            "allowed_internal_library_pattern": (
+                r"^_internal/lib[A-Za-z0-9._+-]+(?:\.dylib|\.so(?:\.[0-9]+)*)$"
+            ),
+            "allowed_trees": [
+                "_internal/Python.framework",
+                "_internal/open_brain/resources/supervisors",
+                "_internal/open_brain_engine/portable/conformance",
+                "_internal/python3.12",
+            ],
+            "forbidden_components": [
+                ".git",
+                ".github",
+                "__pycache__",
+                "credential",
+                "credentials",
+                "open_brain_connectors",
+                "open_brain_legacy",
+                "packages",
+                "private",
+                "secret",
+                "secrets",
+                "state",
+                "tests",
+                "tools",
+            ],
+            "forbidden_suffixes": [
+                ".db",
+                ".py",
+                ".pyc",
+                ".pyo",
+                ".sqlite",
+                ".sqlite3",
+            ],
+        },
         "published": [],
         "status": "p4w5-unpublished-build-subject",
     }

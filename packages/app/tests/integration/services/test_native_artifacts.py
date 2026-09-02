@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -120,6 +121,64 @@ def test_native_adapter_activates_reopens_and_rolls_back_exact_candidates(
     assert rollback.active_candidate_id == current.name
     assert reopened.active_candidate_id == current.name
     assert (install_root / "current").readlink() == Path("candidates") / current.name
+
+
+def test_native_adapter_rolls_back_when_the_active_candidate_is_corrupt(
+    tmp_path: Path,
+) -> None:
+    install_root = _install_root(tmp_path)
+    prior = _write_candidate(
+        install_root,
+        candidate_id="candidate_native-prior",
+        version="0.1.0",
+    )
+    failed = _write_candidate(
+        install_root,
+        candidate_id="candidate_native-failed",
+        version="0.2.0",
+    )
+    adapter = NativeArtifactLifecycleAdapter(
+        install_root=install_root,
+        current_version="0.1.0",
+    )
+    prior_candidate = ArtifactCandidate(prior.name, "0.1.0", NATIVE_ARTIFACT_KIND)
+    failed_candidate = ArtifactCandidate(failed.name, "0.2.0", NATIVE_ARTIFACT_KIND)
+    adapter.activate(prior_candidate)
+    adapter.activate(failed_candidate)
+    (failed / "_internal/resource.json").write_text("corrupt", encoding="utf-8")
+
+    reopened = NativeArtifactLifecycleAdapter(
+        install_root=install_root,
+        current_version="0.1.0",
+    )
+    receipt = reopened.rollback(failed_candidate, prior_candidate_id=prior.name)
+
+    assert receipt.active_candidate_id == prior.name
+    assert reopened.active_candidate_id == prior.name
+    assert (install_root / "current").readlink() == Path("candidates") / prior.name
+
+
+def test_native_activation_preserves_unowned_temporary_name_collisions(
+    tmp_path: Path,
+) -> None:
+    install_root = _install_root(tmp_path)
+    candidate_path = _write_candidate(
+        install_root,
+        candidate_id="candidate_native-v1",
+        version="0.1.0",
+    )
+    collision = install_root / f".current-{os.getpid()}.tmp"
+    collision.write_text("owner state", encoding="utf-8")
+    adapter = NativeArtifactLifecycleAdapter(
+        install_root=install_root,
+        current_version="0.1.0",
+    )
+
+    adapter.activate(
+        ArtifactCandidate(candidate_path.name, "0.1.0", NATIVE_ARTIFACT_KIND)
+    )
+
+    assert collision.read_text(encoding="utf-8") == "owner state"
 
 
 def test_native_adapter_rejects_tampering_and_escaping_symlinks_with_bounded_errors(

@@ -52,11 +52,11 @@ its retained predecessor support is confined to `open_brain_legacy._compat`.
 | `packages/connectors/src/open_brain_connectors/conformance.py` | Real YouTube reference conformance run and entry-point object |
 | `tools/phase4/readiness_preflight.py` | Reusable read-only P4-W5 through P4-W9 readiness snapshot with boolean and opaque-receipt output only |
 | `release/native/open-brain.spec` | Deterministic PyInstaller onedir spec shared by native macOS ARM64 and Linux x86_64 builders |
-| `tools/phase4/native_build.py` | Exact-source native build, membership/digest audit, lifecycle activation, frozen-runtime smoke, and clean-residue verifier |
+| `tools/phase4/native_build.py` | Exact-source native build, policy-bound membership/digest audit, and frozen recovery/Portable/upgrade/rollback/uninstall smoke |
 | `packages/app/src/open_brain/profile.py` | Single-user local Brain-root compiler and stable owner identity |
 | `packages/app/src/open_brain/services/appliance_entrypoints.py` | Installed `open-brain` and `open-brain-mcp` callables |
 | `packages/app/src/open_brain/services/appliance_daemon.py` | Sole installed mutation authority and control transport |
-| `packages/app/src/open_brain/services/appliance_supervisors.py` | Source-checkout and installed-mode supervisor rendering |
+| `packages/app/src/open_brain/services/appliance_supervisors.py` | Source-checkout rendering plus bounded frozen-native unit-file and host-command effects |
 | `packages/app/src/open_brain/resources/supervisors/` | Packaged launchd/systemd templates loaded with `importlib.resources` |
 | `packages/app/src/open_brain/integrations/phase1_ui.py` | Authenticated local UI/API handler over app task capabilities |
 | `packages/app/tests/contract/test_v0_wheel_gates.py` | Explicit wheel-only `V0-GATE-07` and `V0-GATE-13` journeys |

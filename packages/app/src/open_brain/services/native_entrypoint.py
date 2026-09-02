@@ -6,21 +6,49 @@ import json
 import os
 import plistlib
 import sys
+import time
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
+
+from open_brain_engine import __version__
+from open_brain_engine.engine import acquire_daemon_authority
 
 from open_brain.extensions.connector_worker_v1 import (
     _child_main as run_connector_worker,
 )
 from open_brain.extensions.connector_worker_v1 import _worker_command
+from open_brain.profile import open_existing_single_user_local
+from open_brain.services.appliance_application import ApplianceApplication
 from open_brain.services.appliance_daemon import main as run_appliance_daemon
 from open_brain.services.appliance_entrypoints import run_cli
+from open_brain.services.appliance_lifecycle import (
+    ApplianceLifecycleService,
+    ArtifactCandidate,
+    LifecycleMigrationReceipt,
+    MigrationStep,
+    _supervisor,
+    read_status_via_control,
+)
+from open_brain.services.appliance_recovery import (
+    ApplianceBackupResult,
+    ApplianceReplacementPreflight,
+)
 from open_brain.services.appliance_supervisors import LaunchdSupervisor, SystemdSupervisor
-from open_brain.services.native_artifacts import NATIVE_ARTIFACT_KIND, native_platform_tag
+from open_brain.services.native_artifacts import (
+    NATIVE_ARTIFACT_KIND,
+    NATIVE_EXECUTABLE_NAME,
+    NativeArtifactError,
+    NativeArtifactLifecycleAdapter,
+    NativeArtifactManifest,
+    native_platform_tag,
+)
 
 _DAEMON_COMMAND = "__appliance-daemon"
 _CONNECTOR_WORKER_COMMAND = "__connector-worker"
+_PORTABLE_SELF_CHECK_COMMAND = "__native-portable-self-check"
+_ROLLBACK_SELF_CHECK_COMMAND = "__native-rollback-self-check"
 _SELF_CHECK_COMMAND = "__native-self-check"
 _SELF_CHECK_ROOT = Path("/open-brain-native-self-check")
 
@@ -38,7 +66,177 @@ def main(
         return run_connector_worker()
     if arguments == (_SELF_CHECK_COMMAND,):
         return _native_self_check()
-    return int(run_cli(arguments, environment=selected_environment))
+    if arguments[:1] == (_PORTABLE_SELF_CHECK_COMMAND,):
+        return _native_portable_self_check(arguments[1:], selected_environment)
+    if arguments[:1] == (_ROLLBACK_SELF_CHECK_COMMAND,):
+        return _native_rollback_self_check(arguments[1:])
+    lifecycle = None
+    if arguments[:1] in {("upgrade",), ("uninstall",)} and getattr(sys, "frozen", False):
+        try:
+            lifecycle = _native_lifecycle(selected_environment)
+        except (NativeArtifactError, OSError, ValueError):
+            lifecycle = None
+    if lifecycle is None:
+        return int(run_cli(arguments, environment=selected_environment))
+    return int(run_cli(arguments, environment=selected_environment, lifecycle=lifecycle))
+
+
+@dataclass(frozen=True, slots=True)
+class _NativeRecoveryLifecycle:
+    root: Path
+
+    def create_backup(self, destination: Path, *, backup_id: str) -> ApplianceBackupResult:
+        profile = open_existing_single_user_local(self.root)
+        with acquire_daemon_authority(profile) as authority:
+            application = ApplianceApplication.open_mutating(self.root, authority)
+            return application.recovery().create_backup(destination, backup_id=backup_id)
+
+    def preflight_replacement(
+        self,
+        source: Path,
+        disposable_root: Path,
+    ) -> ApplianceReplacementPreflight:
+        profile = open_existing_single_user_local(self.root)
+        with acquire_daemon_authority(profile) as authority:
+            application = ApplianceApplication.open_mutating(self.root, authority)
+            return application.recovery().preflight_replacement(source, disposable_root)
+
+
+def _native_lifecycle(environment: Mapping[str, str]) -> ApplianceLifecycleService:
+    root = _native_root(environment)
+    install_root = _native_install_root()
+    return ApplianceLifecycleService(
+        root,
+        recovery=_NativeRecoveryLifecycle(root),
+        artifact_port=NativeArtifactLifecycleAdapter(
+            install_root=install_root,
+            current_version=__version__,
+        ),
+        supervisor=_supervisor(root),
+        migrations=(_native_migration("engine"), _native_migration("app")),
+        doctor_reader=lambda: _native_doctor(root),
+    )
+
+
+def _native_migration(component: str) -> MigrationStep:
+    def migrate(candidate: ArtifactCandidate) -> LifecycleMigrationReceipt:
+        return LifecycleMigrationReceipt(
+            component=component,
+            from_version=__version__,
+            to_version=candidate.version,
+            status="applied",
+        )
+
+    migrate.__name__ = f"migrate:{component}"
+    return migrate
+
+
+def _native_doctor(root: Path) -> Mapping[str, object]:
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        try:
+            doctor = read_status_via_control(root).envelope.get("doctor")
+            if isinstance(doctor, dict) and isinstance(doctor.get("state"), str):
+                return cast(dict[str, object], doctor)
+        except Exception:
+            pass
+        time.sleep(0.05)
+    raise RuntimeError("native lifecycle doctor unavailable")
+
+
+def _native_portable_self_check(
+    arguments: Sequence[str],
+    environment: Mapping[str, str],
+) -> int:
+    try:
+        if len(arguments) != 2 or not getattr(sys, "frozen", False):
+            raise ValueError("native runtime unavailable")
+        export_root, import_root = (Path(value) for value in arguments)
+        if not export_root.is_absolute() or not import_root.is_absolute():
+            raise ValueError("native runtime unavailable")
+        root = _native_root(environment)
+        profile = open_existing_single_user_local(root)
+        with acquire_daemon_authority(profile) as authority:
+            recovery = ApplianceApplication.open_mutating(root, authority).recovery()
+            exported = recovery.export_portable(
+                export_root,
+                export_id="export_123e4567-e89b-42d3-a456-4266141745a1",
+            )
+            imported = recovery.import_portable(
+                export_root,
+                import_root,
+                import_id="import_123e4567-e89b-42d3-a456-4266141745a2",
+            )
+        if exported.status != "exported" or imported.status != "imported":
+            raise ValueError("native runtime unavailable")
+        payload = {
+            "portable_export": "exported",
+            "portable_import": "imported",
+            "status": "passed",
+        }
+        exit_code = 0
+    except Exception:
+        payload = {"status": "failed"}
+        exit_code = 1
+    sys.stdout.write(json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n")
+    return exit_code
+
+
+def _native_rollback_self_check(arguments: Sequence[str]) -> int:
+    try:
+        if len(arguments) != 2 or not getattr(sys, "frozen", False):
+            raise ValueError("native runtime unavailable")
+        failed_candidate_id, prior_candidate_id = arguments
+        install_root = _native_install_root()
+        failed_path = install_root / "candidates" / failed_candidate_id
+        failed_manifest = NativeArtifactManifest.load(failed_path)
+        adapter = NativeArtifactLifecycleAdapter(
+            install_root=install_root,
+            current_version=__version__,
+        )
+        failed_candidate = ArtifactCandidate(
+            candidate_id=failed_candidate_id,
+            version=failed_manifest.version,
+            artifact_kind=NATIVE_ARTIFACT_KIND,
+        )
+        adapter.activate(failed_candidate)
+        resource = failed_path / "_internal/open_brain/resources/supervisors/launchd.json"
+        resource.write_bytes(resource.read_bytes() + b"\n")
+        reopened = NativeArtifactLifecycleAdapter(
+            install_root=install_root,
+            current_version=__version__,
+        )
+        receipt = reopened.rollback(
+            failed_candidate,
+            prior_candidate_id=prior_candidate_id,
+        )
+        if receipt.active_candidate_id != prior_candidate_id:
+            raise ValueError("native runtime unavailable")
+        payload = {"active_candidate": "prior", "status": "rolled_back"}
+        exit_code = 0
+    except Exception:
+        payload = {"status": "failed"}
+        exit_code = 1
+    sys.stdout.write(json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n")
+    return exit_code
+
+
+def _native_root(environment: Mapping[str, str]) -> Path:
+    value = environment.get("OPEN_BRAIN_ROOT")
+    if not isinstance(value, str) or not value or "\x00" in value:
+        raise ValueError("native runtime unavailable")
+    root = Path(value)
+    if not root.is_absolute():
+        raise ValueError("native runtime unavailable")
+    return root.resolve(strict=True)
+
+
+def _native_install_root() -> Path:
+    executable = Path(sys.executable).resolve(strict=True)
+    candidate = executable.parent
+    if executable.name != NATIVE_EXECUTABLE_NAME or candidate.parent.name != "candidates":
+        raise NativeArtifactError("native artifact operation failed")
+    return candidate.parent.parent
 
 
 def _native_self_check() -> int:

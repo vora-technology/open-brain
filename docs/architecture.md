@@ -92,12 +92,13 @@ defines the typed `ArtifactLifecyclePort` for bounded candidate identity, compat
 activation, rollback, and removal receipts. Source checkout proves that orchestration only through
 injected fake or disposable adapters, verified backup plus disposable-restore preflight, versioned
 engine and app migration evidence, authority-preserving restart checks, post-migration doctor, and
-data-preserving uninstall. The default artifact effect boundary stays fail-closed; no shipping path
-in this monolith installs or removes a native artifact directly. A distinct kernel-backed lifecycle
-lease serializes owner requests, while canonical root-confined journals preserve request identity,
-stage, terminal receipt, conflict detection, and crash rollback across processes. The source-checkout
-CLI exposes upgrade and uninstall only when composition injects that lifecycle port; it does not run
-the self-restarting lifecycle inside the daemon control loop.
+data-preserving uninstall. The source-checkout artifact effect boundary stays fail-closed. The P4-W5
+frozen entry point is the first composition that injects the manifest-bound native adapter and
+bounded host supervisor effects; its target-native smoke uses only isolated temporary supervisor
+state. A distinct kernel-backed lifecycle lease serializes owner requests, while canonical
+root-confined journals preserve request identity, stage, terminal receipt, conflict detection, and
+crash rollback across processes. The CLI exposes upgrade and uninstall only when composition injects
+that lifecycle port; it does not run the self-restarting lifecycle inside the daemon control loop.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that

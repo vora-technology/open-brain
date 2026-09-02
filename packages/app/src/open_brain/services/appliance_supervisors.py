@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 import plistlib
+import secrets
+import stat
+import subprocess
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
@@ -19,6 +23,8 @@ _RESOURCE_NAMES: Final[frozenset[str]] = frozenset({"launchd.json", "systemd.ser
 _SYSTEMD_COMMAND_TOKEN: Final[str] = "@OPEN_BRAIN_COMMAND@"
 _SYSTEMD_SOURCE_TOKEN: Final[str] = "@OPEN_BRAIN_SOURCE_CHECKOUT@"
 _RUNTIME_KINDS: Final[frozenset[str]] = frozenset({"native-onedir", "python"})
+_MAXIMUM_COMMAND_OUTPUT: Final[int] = 16 * 1024
+_MAXIMUM_UNIT_BYTES: Final[int] = 16 * 1024
 
 FileWriter = Callable[[Path, str], None]
 FileRemover = Callable[[Path], None]
@@ -96,6 +102,117 @@ def _remove_file(path: Path) -> None:
 def _run_command(argv: tuple[str, ...]) -> str:
     del argv
     raise SupervisorCommandError(_SUPERVISOR_FAILURE)
+
+
+def native_supervisor_effects() -> tuple[FileWriter, FileRemover, CommandRunner]:
+    """Return bounded host effects for the frozen native composition only."""
+    return _native_write_file, _native_remove_file, _native_run_command
+
+
+def _native_write_file(path: Path, content: str) -> None:
+    payload = content.encode("utf-8")
+    if (
+        not path.is_absolute()
+        or not payload
+        or len(payload) > _MAXIMUM_UNIT_BYTES
+        or b"\x00" in payload
+    ):
+        raise _supervisor_failure()
+    parent = path.parent
+    try:
+        parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        parent_metadata = parent.lstat()
+        if not stat.S_ISDIR(parent_metadata.st_mode) or parent.is_symlink():
+            raise _supervisor_failure()
+        try:
+            current_metadata = path.lstat()
+        except FileNotFoundError:
+            current_metadata = None
+        if current_metadata is not None and not stat.S_ISREG(current_metadata.st_mode):
+            raise _supervisor_failure()
+        temporary = parent / f".{path.name}-{os.getpid()}-{secrets.token_hex(16)}.tmp"
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(temporary, flags, 0o600)
+        created = True
+        try:
+            with os.fdopen(descriptor, "wb", closefd=True) as stream:
+                stream.write(payload)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
+            created = False
+            _fsync_directory(parent)
+        finally:
+            if created:
+                with suppress(OSError):
+                    temporary.unlink()
+    except SupervisorCommandError:
+        raise
+    except OSError as error:
+        raise _supervisor_failure() from error
+
+
+def _native_remove_file(path: Path) -> None:
+    if not path.is_absolute():
+        raise _supervisor_failure()
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        return
+    except OSError as error:
+        raise _supervisor_failure() from error
+    if not stat.S_ISREG(metadata.st_mode):
+        raise _supervisor_failure()
+    try:
+        path.unlink()
+        _fsync_directory(path.parent)
+    except OSError as error:
+        raise _supervisor_failure() from error
+
+
+def _native_run_command(argv: tuple[str, ...]) -> str:
+    if (
+        not isinstance(argv, tuple)
+        or not argv
+        or any(
+            not isinstance(argument, str) or not argument or "\x00" in argument
+            for argument in argv
+        )
+    ):
+        raise _supervisor_failure()
+    try:
+        result = subprocess.run(
+            argv,
+            check=False,
+            capture_output=True,
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        raise _supervisor_failure() from error
+    if (
+        result.returncode != 0
+        or len(result.stdout) > _MAXIMUM_COMMAND_OUTPUT
+        or len(result.stderr) > _MAXIMUM_COMMAND_OUTPUT
+    ):
+        raise _supervisor_failure()
+    if argv[:2] == ("launchctl", "print") or argv[:3] == (
+        "systemctl",
+        "--user",
+        "status",
+    ):
+        return "active"
+    try:
+        return result.stdout.decode("utf-8").strip()
+    except UnicodeError as error:
+        raise _supervisor_failure() from error
+
+
+def _fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 def _contains_unsafe_text(value: str) -> bool:
@@ -341,4 +458,5 @@ __all__ = [
     "LaunchdSupervisor",
     "SupervisorCommandError",
     "SystemdSupervisor",
+    "native_supervisor_effects",
 ]

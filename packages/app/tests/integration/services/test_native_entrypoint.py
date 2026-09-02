@@ -7,6 +7,14 @@ from pathlib import Path
 import pytest
 
 import open_brain.services.native_entrypoint as native_entrypoint
+from open_brain.services.appliance_lifecycle import ApplianceLifecycleService
+from open_brain.services.appliance_supervisors import LaunchdSupervisor, SystemdSupervisor
+from open_brain.services.native_artifacts import (
+    NATIVE_ARTIFACT_KIND,
+    NativeArtifactLifecycleAdapter,
+    NativeArtifactManifest,
+    native_platform_tag,
+)
 
 
 def test_native_entrypoint_routes_cli_daemon_and_connector_worker(
@@ -74,3 +82,58 @@ def test_native_self_check_exercises_packaged_resources_and_direct_commands(
         "status": "ok",
     }
     assert str(executable) not in output
+
+
+def test_frozen_lifecycle_commands_receive_real_native_composition(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = (tmp_path / "brain").resolve()
+    root.mkdir()
+    install_root = (tmp_path / "install").resolve()
+    candidate = install_root / "candidates/candidate_native-v1"
+    candidate.mkdir(parents=True)
+    executable = candidate / "open-brain"
+    executable.write_bytes(b"native executable")
+    executable.chmod(0o755)
+    NativeArtifactManifest.create(
+        candidate,
+        candidate_id=candidate.name,
+        version="0.1.0",
+        platform_tag=native_platform_tag(),
+    ).write(candidate)
+    (install_root / "current").symlink_to(Path("candidates") / candidate.name)
+    observed: list[object] = []
+
+    def cli(
+        argv: tuple[str, ...],
+        *,
+        environment: dict[str, str],
+        lifecycle: object | None = None,
+    ) -> int:
+        del argv, environment
+        observed.append(lifecycle)
+        return 0
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(executable))
+    monkeypatch.setattr(native_entrypoint, "run_cli", cli)
+
+    assert (
+        native_entrypoint.main(
+            ("uninstall", "--confirm-owner"),
+            environment={"OPEN_BRAIN_ROOT": str(root)},
+        )
+        == 0
+    )
+
+    assert len(observed) == 1
+    lifecycle = observed[0]
+    assert isinstance(lifecycle, ApplianceLifecycleService)
+    assert isinstance(lifecycle._artifact_port, NativeArtifactLifecycleAdapter)
+    supervisor = lifecycle._supervisor
+    assert isinstance(supervisor, LaunchdSupervisor | SystemdSupervisor)
+    assert supervisor.runtime_kind == NATIVE_ARTIFACT_KIND
+    assert supervisor.checkout_root is None
+    rendered = supervisor.render()
+    assert " -m " not in rendered
