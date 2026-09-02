@@ -24,8 +24,27 @@ _FORBIDDEN_APP_IMPORT_ROOTS: Final = frozenset(
     {"open_brain_connectors", "open_brain_legacy"}
 )
 _REVIEWED_APP_DYNAMIC_IMPORTS: Final[Mapping[str, tuple[str, ...]]] = {
-    "open_brain/integrations/ports.py": ("import_module(import_path)",),
+    "open_brain/integrations/ports.py": (
+        "<module>:bind:import_module=import_module",
+        "_loaded_optional_module:call:import_module(import_path)",
+    ),
 }
+_IMPORTLIB_MODULE: Final = "importlib"
+_BUILTINS_MODULE: Final = "builtins"
+_IMPORT_MODULE_CALLABLE: Final = "import_module"
+_BUILTIN_IMPORT_CALLABLE: Final = "__import__"
+_GETATTR_CALLABLE: Final = "getattr"
+_DYNAMIC_IMPORT_CALLABLES: Final = frozenset(
+    {_IMPORT_MODULE_CALLABLE, _BUILTIN_IMPORT_CALLABLE}
+)
+_DYNAMIC_IMPORT_CAPABILITIES: Final = frozenset(
+    {
+        _IMPORTLIB_MODULE,
+        _BUILTINS_MODULE,
+        _IMPORT_MODULE_CALLABLE,
+        _BUILTIN_IMPORT_CALLABLE,
+    }
+)
 
 
 @dataclass(frozen=True, order=True, slots=True)
@@ -668,36 +687,247 @@ def _declared_import_roots(payloads: Mapping[str, bytes]) -> frozenset[str]:
     return frozenset(roots)
 
 
-def _dynamic_import_bindings(tree: ast.AST) -> tuple[set[str], set[str]]:
-    functions = {"__import__"}
-    modules = {"importlib"}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.name == "importlib":
-                    modules.add(alias.asname or alias.name)
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module == "importlib":
-            for alias in node.names:
-                if alias.name == "import_module":
-                    functions.add(alias.asname or alias.name)
-    return functions, modules
+def _argument_names(arguments: ast.arguments) -> set[str]:
+    names = {
+        argument.arg
+        for argument in (
+            *arguments.posonlyargs,
+            *arguments.args,
+            *arguments.kwonlyargs,
+        )
+    }
+    if arguments.vararg is not None:
+        names.add(arguments.vararg.arg)
+    if arguments.kwarg is not None:
+        names.add(arguments.kwarg.arg)
+    return names
 
 
-def _dynamic_import_name(
-    call: ast.Call,
-    functions: set[str],
-    modules: set[str],
-) -> str | None:
-    if isinstance(call.func, ast.Name) and call.func.id in functions:
-        return "__import__" if call.func.id == "__import__" else "import_module"
-    if (
-        isinstance(call.func, ast.Attribute)
-        and call.func.attr == "import_module"
-        and isinstance(call.func.value, ast.Name)
-        and call.func.value.id in modules
-    ):
-        return "import_module"
+def _constant_string(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left = _constant_string(node.left)
+        right = _constant_string(node.right)
+        if left is not None and right is not None:
+            return left + right
     return None
+
+
+class _DynamicImportAnalyzer(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.imported: set[str] = set()
+        self.events: list[str] = []
+        self._bindings: list[dict[str, str | None]] = [
+            {
+                "__builtins__": _BUILTINS_MODULE,
+                "__import__": _BUILTIN_IMPORT_CALLABLE,
+                "getattr": _GETATTR_CALLABLE,
+            }
+        ]
+        self._scope_path: list[str] = []
+
+    def _scope_name(self) -> str:
+        return ".".join(self._scope_path) if self._scope_path else "<module>"
+
+    def _record(self, event: str) -> None:
+        self.events.append(f"{self._scope_name()}:{event}")
+
+    def _resolve(self, name: str) -> str | None:
+        for bindings in reversed(self._bindings):
+            if name in bindings:
+                return bindings[name]
+        return None
+
+    def _bind(self, name: str, binding: str | None, *, review: bool = True) -> None:
+        self._bindings[-1][name] = binding
+        if review and binding in _DYNAMIC_IMPORT_CAPABILITIES:
+            self._record(f"bind:{name}={binding}")
+
+    @staticmethod
+    def _member_binding(owner: str | None, member: str) -> str | None:
+        if owner == _IMPORTLIB_MODULE and member == "import_module":
+            return _IMPORT_MODULE_CALLABLE
+        if owner == _BUILTINS_MODULE and member == "__import__":
+            return _BUILTIN_IMPORT_CALLABLE
+        if owner == _BUILTINS_MODULE and member == "getattr":
+            return _GETATTR_CALLABLE
+        return None
+
+    def _binding(self, node: ast.AST) -> str | None:
+        if isinstance(node, ast.Name):
+            return self._resolve(node.id)
+        if isinstance(node, ast.Attribute):
+            return self._member_binding(self._binding(node.value), node.attr)
+        if isinstance(node, ast.Subscript):
+            member = _constant_string(node.slice)
+            if member is not None:
+                return self._member_binding(self._binding(node.value), member)
+        if (
+            isinstance(node, ast.Call)
+            and self._binding(node.func) == _GETATTR_CALLABLE
+            and len(node.args) == 2
+            and not node.keywords
+        ):
+            member = _constant_string(node.args[1])
+            if member is not None:
+                return self._member_binding(self._binding(node.args[0]), member)
+        return None
+
+    def _bind_assignment(self, target: ast.expr, value: ast.expr) -> None:
+        if isinstance(target, ast.Name):
+            self._bind(target.id, self._binding(value))
+            return
+        if (
+            isinstance(target, (ast.Tuple, ast.List))
+            and isinstance(value, (ast.Tuple, ast.List))
+            and len(target.elts) == len(value.elts)
+        ):
+            for child_target, child_value in zip(target.elts, value.elts, strict=True):
+                self._bind_assignment(child_target, child_value)
+            return
+        if self._binding(value) in _DYNAMIC_IMPORT_CAPABILITIES:
+            self._record("escape:dynamic-importer")
+
+    def _push_scope(self, names: set[str], label: str) -> None:
+        self._bindings.append(dict.fromkeys(names))
+        self._scope_path.append(label)
+
+    def _pop_scope(self) -> None:
+        self._scope_path.pop()
+        self._bindings.pop()
+
+    def _visit_function(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for default in (*node.args.defaults, *node.args.kw_defaults):
+            if default is not None:
+                self.visit(default)
+        if node.returns is not None:
+            self.visit(node.returns)
+        self._bind(node.name, None, review=False)
+        self._push_scope(_argument_names(node.args), node.name)
+        for statement in node.body:
+            self.visit(statement)
+        self._pop_scope()
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:  # noqa: N802
+        self._visit_function(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
+        for expression in (*node.decorator_list, *node.bases, *node.keywords):
+            self.visit(expression)
+        self._bind(node.name, None, review=False)
+        self._push_scope(set(), node.name)
+        for statement in node.body:
+            self.visit(statement)
+        self._pop_scope()
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:  # noqa: N802
+        for default in (*node.args.defaults, *node.args.kw_defaults):
+            if default is not None:
+                self.visit(default)
+        self._push_scope(_argument_names(node.args), f"<lambda>@{node.lineno}")
+        self.visit(node.body)
+        self._pop_scope()
+
+    def visit_Import(self, node: ast.Import) -> None:  # noqa: N802
+        for alias in node.names:
+            name = alias.asname or alias.name.partition(".")[0]
+            if alias.name == "importlib" or (
+                alias.asname is None and alias.name.startswith("importlib.")
+            ):
+                self._bind(name, _IMPORTLIB_MODULE)
+            elif alias.name == "builtins":
+                self._bind(name, _BUILTINS_MODULE)
+            else:
+                self._bind(name, None, review=False)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:  # noqa: N802
+        for alias in node.names:
+            if alias.name == "*":
+                if node.level == 0 and node.module in {"builtins", "importlib"}:
+                    self._record("escape:dynamic-importer")
+                continue
+            name = alias.asname or alias.name
+            if node.level == 0 and node.module == "importlib" and alias.name == "import_module":
+                self._bind(name, _IMPORT_MODULE_CALLABLE)
+            elif node.level == 0 and node.module == "builtins" and alias.name == "__import__":
+                self._bind(name, _BUILTIN_IMPORT_CALLABLE)
+            elif node.level == 0 and node.module == "builtins" and alias.name == "getattr":
+                self._bind(name, _GETATTR_CALLABLE, review=False)
+            else:
+                self._bind(name, None, review=False)
+
+    def visit_Assign(self, node: ast.Assign) -> None:  # noqa: N802
+        self.visit(node.value)
+        for target in node.targets:
+            self._bind_assignment(target, node.value)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:  # noqa: N802
+        self.visit(node.annotation)
+        if node.value is not None:
+            self.visit(node.value)
+            self._bind_assignment(node.target, node.value)
+        elif isinstance(node.target, ast.Name):
+            self._bind(node.target.id, None, review=False)
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:  # noqa: N802
+        self.visit(node.value)
+        self._bind_assignment(node.target, node.value)
+
+    def visit_Name(self, node: ast.Name) -> None:  # noqa: N802
+        if isinstance(node.ctx, ast.Load) and (
+            binding := self._resolve(node.id)
+        ) in _DYNAMIC_IMPORT_CAPABILITIES:
+            self._record(f"reference:{node.id}={binding}")
+
+    def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
+        binding = self._binding(node.func)
+        if binding in _DYNAMIC_IMPORT_CALLABLES:
+            target_node = node.args[0] if node.args else next(
+                (keyword.value for keyword in node.keywords if keyword.arg == "name"),
+                None,
+            )
+            target = _constant_string(target_node) if target_node is not None else None
+            if target is not None:
+                self.imported.add(target)
+            if len(node.args) == 1 and not node.keywords and isinstance(node.args[0], ast.Name):
+                argument = node.args[0].id
+            elif target is not None:
+                argument = "<literal>"
+            else:
+                argument = "<unresolved>"
+            self._record(f"call:{binding}({argument})")
+        if binding == _GETATTR_CALLABLE and len(node.args) >= 2:
+            owner = self._binding(node.args[0])
+            if (
+                owner in {_IMPORTLIB_MODULE, _BUILTINS_MODULE}
+                and _constant_string(node.args[1]) is None
+            ):
+                self._record("reflect:dynamic-importer=<unresolved>")
+        if binding not in _DYNAMIC_IMPORT_CALLABLES:
+            self.visit(node.func)
+        for child in node.args:
+            self.visit(child)
+        for keyword in node.keywords:
+            self.visit(keyword.value)
+
+    def visit_Return(self, node: ast.Return) -> None:  # noqa: N802
+        if node.value is not None:
+            self.visit(node.value)
+
+
+def _dynamic_imports(tree: ast.AST) -> tuple[set[str], tuple[str, ...]]:
+    analyzer = _DynamicImportAnalyzer()
+    analyzer.visit(tree)
+    return analyzer.imported, tuple(sorted(analyzer.events))
 
 
 def _app_import_boundary_findings(
@@ -728,8 +958,8 @@ def _app_import_boundary_findings(
             findings.append(Finding("P4H007", name, "app source inspection failed"))
             continue
         imported: set[str] = set()
-        dynamic_signatures: list[str] = []
-        dynamic_functions, importlib_modules = _dynamic_import_bindings(tree)
+        dynamic_imported, dynamic_signatures = _dynamic_imports(tree)
+        imported.update(dynamic_imported)
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module is not None:
                 imported.add(node.module)
@@ -744,26 +974,7 @@ def _app_import_boundary_findings(
                     )
             elif isinstance(node, ast.Import):
                 imported.update(alias.name for alias in node.names)
-            elif isinstance(node, ast.Call):
-                function = _dynamic_import_name(node, dynamic_functions, importlib_modules)
-                if function is None:
-                    continue
-                if (
-                    len(node.args) == 1
-                    and not node.keywords
-                    and isinstance(node.args[0], ast.Constant)
-                    and isinstance(node.args[0].value, str)
-                ):
-                    imported.add(node.args[0].value)
-                elif (
-                    len(node.args) == 1
-                    and not node.keywords
-                    and isinstance(node.args[0], ast.Name)
-                ):
-                    dynamic_signatures.append(f"{function}({node.args[0].id})")
-                else:
-                    dynamic_signatures.append(f"{function}(unreviewed)")
-        if tuple(dynamic_signatures) != _REVIEWED_APP_DYNAMIC_IMPORTS.get(name, ()):
+        if dynamic_signatures != _REVIEWED_APP_DYNAMIC_IMPORTS.get(name, ()):
             findings.append(
                 Finding("P4H009", name, "app artifact has an undeclared or unreviewed import")
             )

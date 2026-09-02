@@ -250,6 +250,73 @@ def test_app_artifact_rejects_private_engine_and_undeclared_imports(tmp_path: Pa
     }
 
 
+def test_app_artifact_tracks_dynamic_import_provenance_and_shadowing(
+    tmp_path: Path,
+) -> None:
+    wheel = tmp_path / "app.whl"
+    _wheel(
+        wheel,
+        {
+            "open_brain/builtins_use.py": (
+                b"import builtins\n"
+                b'builtins.__import__("open_brain_connectors")\n'
+            ),
+            "open_brain/builtins_alias_use.py": (
+                b"from builtins import __import__ as load\n"
+                b'load("open_brain_engine.engine.local")\n'
+            ),
+            "open_brain/assignment_alias_use.py": (
+                b"from importlib import import_module\n"
+                b"load = import_module\n"
+                b'load("open_brain_connectors")\n'
+            ),
+            "open_brain/reflective_alias_use.py": (
+                b"import importlib as loader\n"
+                b'load = getattr(loader, "import_module")\n'
+                b'load("open_brain_connectors")\n'
+            ),
+            "open_brain/integrations/ports.py": (
+                b"from importlib import import_module\n"
+                b"def _loaded_optional_module(import_path: str) -> object:\n"
+                b"    return import_module(import_path)\n"
+                b"IMPORTERS = (import_module,)\n"
+            ),
+            "open_brain/shadowed_importlib.py": (
+                b"class Loader:\n"
+                b"    def import_module(self, target: str) -> object:\n"
+                b"        return target\n"
+                b"importlib = Loader()\n"
+                b'importlib.import_module("open_brain_connectors")\n'
+            ),
+            "open_brain-0.1.0.dist-info/METADATA": (
+                b"Name: open-brain\nVersion: 0.1.0\n"
+                b"Requires-Dist: open-brain-engine==0.1.0\n"
+            ),
+        },
+    )
+
+    findings = _app_import_boundary_findings(
+        wheel,
+        frozenset(
+            {
+                "open_brain_engine",
+                "open_brain_engine.engine",
+                "open_brain_engine.engine.local",
+            }
+        ),
+        frozenset({"open_brain_engine", "open_brain_engine.engine"}),
+    )
+
+    assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H009", "open_brain/assignment_alias_use.py"),
+        ("P4H008", "open_brain/builtins_alias_use.py"),
+        ("P4H009", "open_brain/builtins_alias_use.py"),
+        ("P4H009", "open_brain/builtins_use.py"),
+        ("P4H009", "open_brain/integrations/ports.py"),
+        ("P4H009", "open_brain/reflective_alias_use.py"),
+    }
+
+
 def test_expected_red_report_is_bounded_metadata_only() -> None:
     payload = json.loads(EXPECTED_RED.read_text(encoding="utf-8"))
 
