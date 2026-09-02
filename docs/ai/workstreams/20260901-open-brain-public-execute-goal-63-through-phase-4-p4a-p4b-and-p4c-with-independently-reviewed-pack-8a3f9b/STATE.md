@@ -198,7 +198,7 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
   `PYTHONPATH` or working directory. Source-checkout rendering remains explicit.
 - The app isolation harness builds app and engine with workspace sources
   disabled, installs only those two wheels into the product environment, and
-  runs 402 app tests through a separate locked test environment. Connector,
+  runs 400 app tests through a separate locked test environment. Connector,
   legacy, workspace source, and private engine imports remain unavailable.
 - Named wheel-only tests prove `V0-GATE-07` through independent CLI/UI sibling
   approve, reject, and safe edit, and `V0-GATE-13` through create, rename,

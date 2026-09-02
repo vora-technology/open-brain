@@ -317,6 +317,75 @@ def test_app_artifact_tracks_dynamic_import_provenance_and_shadowing(
     }
 
 
+def test_app_artifact_rejects_reflective_builtin_namespace_access(
+    tmp_path: Path,
+) -> None:
+    wheel = tmp_path / "app.whl"
+    _wheel(
+        wheel,
+        {
+            "open_brain/sys_modules_use.py": (
+                b"import sys\n"
+                b'sys.modules["builtins"].__import__('
+                b'"open_brain_engine.engine.local")\n'
+            ),
+            "open_brain/globals_use.py": (
+                b'globals()["__builtins__"]["__import__"]('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/locals_use.py": (
+                b'locals()["__builtins__"]["__import__"]('
+                b'"open_brain_connectors")\n'
+            ),
+            "open_brain/vars_use.py": (
+                b'vars(__builtins__)["__import__"]("open_brain_connectors")\n'
+            ),
+            "open_brain/eval_use.py": (
+                b'eval("__import__(\\"open_brain_connectors\\")")\n'
+            ),
+            "open_brain/exec_use.py": (
+                b'exec("__import__(\\"open_brain_connectors\\")")\n'
+            ),
+            "open_brain/eval_alias_use.py": (
+                b"run = eval\n"
+                b'run("__import__(\\"open_brain_connectors\\")")\n'
+            ),
+            "open_brain/shadowed_globals.py": (
+                b"def globals() -> dict[str, object]:\n"
+                b"    return {}\n"
+                b"globals()\n"
+            ),
+            "open_brain-0.1.0.dist-info/METADATA": (
+                b"Name: open-brain\nVersion: 0.1.0\n"
+                b"Requires-Dist: open-brain-engine==0.1.0\n"
+            ),
+        },
+    )
+
+    findings = _app_import_boundary_findings(
+        wheel,
+        frozenset(
+            {
+                "open_brain_engine",
+                "open_brain_engine.engine",
+                "open_brain_engine.engine.local",
+            }
+        ),
+        frozenset({"open_brain_engine", "open_brain_engine.engine"}),
+    )
+
+    assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H009", "open_brain/eval_alias_use.py"),
+        ("P4H009", "open_brain/eval_use.py"),
+        ("P4H009", "open_brain/exec_use.py"),
+        ("P4H009", "open_brain/globals_use.py"),
+        ("P4H009", "open_brain/locals_use.py"),
+        ("P4H008", "open_brain/sys_modules_use.py"),
+        ("P4H009", "open_brain/sys_modules_use.py"),
+        ("P4H009", "open_brain/vars_use.py"),
+    }
+
+
 def test_expected_red_report_is_bounded_metadata_only() -> None:
     payload = json.loads(EXPECTED_RED.read_text(encoding="utf-8"))
 

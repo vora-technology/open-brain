@@ -31,20 +31,51 @@ _REVIEWED_APP_DYNAMIC_IMPORTS: Final[Mapping[str, tuple[str, ...]]] = {
 }
 _IMPORTLIB_MODULE: Final = "importlib"
 _BUILTINS_MODULE: Final = "builtins"
+_SYS_MODULE: Final = "sys"
+_SYS_MODULES: Final = "sys.modules"
+_NAMESPACE_MAPPING: Final = "namespace"
+_BUILTINS_NAMESPACE: Final = "builtins.__dict__"
 _IMPORT_MODULE_CALLABLE: Final = "import_module"
 _BUILTIN_IMPORT_CALLABLE: Final = "__import__"
 _GETATTR_CALLABLE: Final = "getattr"
+_GLOBALS_CALLABLE: Final = "globals"
+_LOCALS_CALLABLE: Final = "locals"
+_VARS_CALLABLE: Final = "vars"
+_EVAL_CALLABLE: Final = "eval"
+_EXEC_CALLABLE: Final = "exec"
 _DYNAMIC_IMPORT_CALLABLES: Final = frozenset(
     {_IMPORT_MODULE_CALLABLE, _BUILTIN_IMPORT_CALLABLE}
+)
+_UNSAFE_REFLECTION_CALLABLES: Final = frozenset(
+    {
+        _GLOBALS_CALLABLE,
+        _LOCALS_CALLABLE,
+        _VARS_CALLABLE,
+        _EVAL_CALLABLE,
+        _EXEC_CALLABLE,
+    }
 )
 _DYNAMIC_IMPORT_CAPABILITIES: Final = frozenset(
     {
         _IMPORTLIB_MODULE,
         _BUILTINS_MODULE,
+        _SYS_MODULES,
+        _NAMESPACE_MAPPING,
+        _BUILTINS_NAMESPACE,
         _IMPORT_MODULE_CALLABLE,
         _BUILTIN_IMPORT_CALLABLE,
+        *_UNSAFE_REFLECTION_CALLABLES,
     }
 )
+_BUILTINS_MEMBERS: Final[Mapping[str, str]] = {
+    "__import__": _BUILTIN_IMPORT_CALLABLE,
+    "getattr": _GETATTR_CALLABLE,
+    "globals": _GLOBALS_CALLABLE,
+    "locals": _LOCALS_CALLABLE,
+    "vars": _VARS_CALLABLE,
+    "eval": _EVAL_CALLABLE,
+    "exec": _EXEC_CALLABLE,
+}
 
 
 @dataclass(frozen=True, order=True, slots=True)
@@ -723,6 +754,11 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 "__builtins__": _BUILTINS_MODULE,
                 "__import__": _BUILTIN_IMPORT_CALLABLE,
                 "getattr": _GETATTR_CALLABLE,
+                "globals": _GLOBALS_CALLABLE,
+                "locals": _LOCALS_CALLABLE,
+                "vars": _VARS_CALLABLE,
+                "eval": _EVAL_CALLABLE,
+                "exec": _EXEC_CALLABLE,
             }
         ]
         self._scope_path: list[str] = []
@@ -748,10 +784,16 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
     def _member_binding(owner: str | None, member: str) -> str | None:
         if owner == _IMPORTLIB_MODULE and member == "import_module":
             return _IMPORT_MODULE_CALLABLE
-        if owner == _BUILTINS_MODULE and member == "__import__":
-            return _BUILTIN_IMPORT_CALLABLE
-        if owner == _BUILTINS_MODULE and member == "getattr":
-            return _GETATTR_CALLABLE
+        if owner in {_BUILTINS_MODULE, _BUILTINS_NAMESPACE}:
+            return _BUILTINS_MEMBERS.get(member)
+        if owner == _SYS_MODULE and member == "modules":
+            return _SYS_MODULES
+        if owner == _SYS_MODULES and member == "builtins":
+            return _BUILTINS_MODULE
+        if owner == _SYS_MODULES and member == "importlib":
+            return _IMPORTLIB_MODULE
+        if owner == _NAMESPACE_MAPPING and member == "__builtins__":
+            return _BUILTINS_MODULE
         return None
 
     def _binding(self, node: ast.AST) -> str | None:
@@ -772,6 +814,15 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             member = _constant_string(node.args[1])
             if member is not None:
                 return self._member_binding(self._binding(node.args[0]), member)
+        if isinstance(node, ast.Call):
+            binding = self._binding(node.func)
+            if binding in {_GLOBALS_CALLABLE, _LOCALS_CALLABLE}:
+                return _NAMESPACE_MAPPING
+            if binding == _VARS_CALLABLE:
+                if not node.args:
+                    return _NAMESPACE_MAPPING
+                if len(node.args) == 1 and self._binding(node.args[0]) == _BUILTINS_MODULE:
+                    return _BUILTINS_NAMESPACE
         return None
 
     def _bind_assignment(self, target: ast.expr, value: ast.expr) -> None:
@@ -846,6 +897,8 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 self._bind(name, _IMPORTLIB_MODULE)
             elif alias.name == "builtins":
                 self._bind(name, _BUILTINS_MODULE)
+            elif alias.name == "sys":
+                self._bind(name, _SYS_MODULE, review=False)
             else:
                 self._bind(name, None, review=False)
 
@@ -862,6 +915,14 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
                 self._bind(name, _BUILTIN_IMPORT_CALLABLE)
             elif node.level == 0 and node.module == "builtins" and alias.name == "getattr":
                 self._bind(name, _GETATTR_CALLABLE, review=False)
+            elif (
+                node.level == 0
+                and node.module == "builtins"
+                and alias.name in _UNSAFE_REFLECTION_CALLABLES
+            ):
+                self._bind(name, alias.name)
+            elif node.level == 0 and node.module == "sys" and alias.name == "modules":
+                self._bind(name, _SYS_MODULES)
             else:
                 self._bind(name, None, review=False)
 
@@ -888,6 +949,24 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
         ) in _DYNAMIC_IMPORT_CAPABILITIES:
             self._record(f"reference:{node.id}={binding}")
 
+    def visit_Attribute(self, node: ast.Attribute) -> None:  # noqa: N802
+        binding = self._binding(node)
+        owner = self._binding(node.value)
+        if binding in _DYNAMIC_IMPORT_CAPABILITIES or owner == _SYS_MODULES:
+            self._record(f"reference:attribute={binding or owner}")
+        self.generic_visit(node)
+
+    def visit_Subscript(self, node: ast.Subscript) -> None:  # noqa: N802
+        binding = self._binding(node)
+        owner = self._binding(node.value)
+        if binding in _DYNAMIC_IMPORT_CAPABILITIES or owner in {
+            _SYS_MODULES,
+            _NAMESPACE_MAPPING,
+            _BUILTINS_NAMESPACE,
+        }:
+            self._record(f"reference:subscript={binding or owner}")
+        self.generic_visit(node)
+
     def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
         binding = self._binding(node.func)
         if binding in _DYNAMIC_IMPORT_CALLABLES:
@@ -905,10 +984,20 @@ class _DynamicImportAnalyzer(ast.NodeVisitor):
             else:
                 argument = "<unresolved>"
             self._record(f"call:{binding}({argument})")
+        elif binding in _UNSAFE_REFLECTION_CALLABLES:
+            self._record(f"call:{binding}")
         if binding == _GETATTR_CALLABLE and len(node.args) >= 2:
             owner = self._binding(node.args[0])
             if (
-                owner in {_IMPORTLIB_MODULE, _BUILTINS_MODULE}
+                owner
+                in {
+                    _IMPORTLIB_MODULE,
+                    _BUILTINS_MODULE,
+                    _SYS_MODULE,
+                    _SYS_MODULES,
+                    _NAMESPACE_MAPPING,
+                    _BUILTINS_NAMESPACE,
+                }
                 and _constant_string(node.args[1]) is None
             ):
                 self._record("reflect:dynamic-importer=<unresolved>")

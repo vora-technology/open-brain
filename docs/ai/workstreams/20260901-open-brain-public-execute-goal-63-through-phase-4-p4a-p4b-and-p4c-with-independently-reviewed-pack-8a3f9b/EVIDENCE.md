@@ -166,7 +166,7 @@
   canonical manifest and rejects app imports of private engine modules.
 - The isolated app contract builds with `--no-sources`, installs only copied
   app/engine wheels into Python 3.12, and exposes that site-packages directory
-  to a separate locked test runner. All 402 app tests pass without checkout
+  to a separate locked test runner. All 400 app tests pass without checkout
   fixtures, connector, legacy, or workspace source.
 - Named wheel-only contracts pass `V0-GATE-07` with six sibling proposals and
   independent CLI/UI approve, reject, and safe edit. They pass `V0-GATE-13`
