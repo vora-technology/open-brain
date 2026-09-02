@@ -266,22 +266,20 @@ coordinator-owned.
 
 ## P4-W4 milestone budget
 
-- Status: active
+- Status: complete
 - Active children: 0 of 6
 - Total children: 1 of 12
 - Identical failures: 0 of 2
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; no child write scope is reserved
-- Review lineage: child 14 completed the first review at
-  `7927162096330355520f2de756aa45b48ccb6493` and the first rereview at
-  `b86beacbc7005b0a7f2ceeb5c009f0a2849579a6`; retain the same lineage and
-  resume it only after the next repair candidate passes exact-head remote checks
+- Review lineage: child 14 returned final `READY` at
+  `9098ff5e676a76ef1637f30dee99ff6508d46a30`; lineage closed
 - Reset authority: D-038 closes the P4-W3 lineage and starts P4-W4 with a fresh
   child budget
 
 ## Child 14: P4-W4 and P4A final review
 
-- Status: complete; lineage retained for rereview
+- Status: complete; lineage closed
 - Agent ID: `01a0628c-d723-73e0-96cc-f2b3d8ca3f63`
 - Model: `gpt-5.6-sol`
 - Reasoning effort: `xhigh`
@@ -308,3 +306,11 @@ coordinator-owned.
   `SystemExit` escaped with raw detail. The lineage remains retained for one
   rereview after the focused regressions, full local gates, and new exact-head
   remote checks pass.
+- Final source scope:
+  `9098ff5e676a76ef1637f30dee99ff6508d46a30`
+- Final evidence: exact-head CI `33654478123`, Release audit `33654478071`,
+  and CodeQL `33654473793` passed before the second same-lineage rereview
+- Final result: `READY`; P0/P1/P2 `0/0/0`. The reviewer independently
+  reproduced the focused repair checks and private artifact hashes, explicitly
+  closed `P4A-001` through `P4A-004`, found no new issue, and declared P4-W4
+  and P4A ready for milestone closure.

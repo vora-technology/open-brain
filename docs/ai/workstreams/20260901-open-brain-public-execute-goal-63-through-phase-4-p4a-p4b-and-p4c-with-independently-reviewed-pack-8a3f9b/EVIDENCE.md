@@ -609,3 +609,37 @@
   `make verify` with Ruff, strict MyPy, 3,184 tests, six source-free shipping
   artifacts, and artifact policy; and 100 P4A tests on each of Python 3.12,
   3.13, and 3.14. Exact-commit audits and remote checks remain pending.
+- At exact source `9098ff5e676a76ef1637f30dee99ff6508d46a30`,
+  artifact policy, source plus six-shipping-artifact release audit,
+  reachable-history audit with the same synthetic denylist, Gitleaks 8.30.1
+  over 93 commits, actionlint, `uv lock --check`, manifest validation, `git
+  diff --check`, and clean-tree verification passed.
+- Exact shipping SHA-256 values are app wheel
+  `19a4e217385abc42b38266f7ef8b27206c93995cfef3e036f762b68d0a1a4c49`,
+  app sdist
+  `964e55220df93e956c5aab0a67097d1fb4340df3d75c1f40fbf1e2f6aaa33aea`,
+  connector wheel
+  `2018c931cd372287a2828197ee937ce5a0de4c39f944a204040c8e84e4fb09eb`,
+  connector sdist
+  `0b27910054ff1f12c877728dcf6868b7de65ed11ba04e369db64d67c86a7d33a`,
+  engine wheel
+  `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
+  and engine sdist
+  `199e0fc2adb264b0a0f9db50fd291e906b4d0a61cdb90e4eb55784716d000eca`.
+  Private legacy SHA-256 values are wheel
+  `a10330f320439eb7fc240f663a59ed1422c44db204274c140de036e6aa47985c`
+  and sdist
+  `8ad90592be262c42d7312d2da0adbece4c5d0823d555d08fb4795fa2b977538e`.
+- Exact-head CI `33654478123`, Release audit `33654478071`, and CodeQL
+  `33654473793` passed. All 12 PR #6 jobs are green; local HEAD and the remote
+  branch matched the exact reviewed source.
+- Child 14's second same-lineage rereview returned `READY`, P0/P1/P2
+  `0/0/0`. It independently reproduced the ten focused tests, found zero
+  disallowed or unresolved `_compat` imports, verified `SystemExit` fails
+  closed while `KeyboardInterrupt` remains effective, rebuilt the private
+  artifacts with matching hashes, and explicitly closed `P4A-001` through
+  `P4A-004` with no new finding.
+- P4-W4 and P4A are complete. No private readiness implementation or state was
+  accessed; only the public preflight contract was reviewed. No publication,
+  tag, release, native build, deployment, production/private access, or
+  cutover action occurred, and P4-W5 remains intentionally unstarted.

@@ -541,3 +541,22 @@ CodeQL green before resuming child 14 for rereview.
   validation, `make verify` with all 3,184 repository tests and six shipping
   artifacts, and the 100-test P4A matrix on Python 3.12, 3.13, and 3.14.
   Exact-commit audits and remote checks remain pending for the next candidate.
+- Exact candidate `9098ff5e676a76ef1637f30dee99ff6508d46a30`
+  passed source plus six-artifact release audit, reachable-history audit,
+  Gitleaks over 93 commits, actionlint, lock, manifest, diff, and clean-tree
+  checks. Private legacy SHA-256 values are
+  `a10330f320439eb7fc240f663a59ed1422c44db204274c140de036e6aa47985c`
+  for the wheel and
+  `8ad90592be262c42d7312d2da0adbece4c5d0823d555d08fb4795fa2b977538e`
+  for the sdist.
+- Exact-head CI `33654478123`, Release audit `33654478071`, and CodeQL
+  `33654473793` passed; all 12 PR #6 jobs passed and local, remote, and PR
+  source identities matched.
+- Child 14's second same-lineage rereview returned `READY`, P0/P1/P2
+  `0/0/0`, at exact source `9098ff5`. It independently reproduced the focused
+  regressions, built private artifacts with matching hashes, closed
+  `P4A-001` through `P4A-004`, and found no new issue. The lineage is closed.
+- P4-W4 and the aggregate P4A gate are complete. P4-W5 did not start. No
+  publication, tag, release, native build, deployment, private-state access,
+  production access, or cutover action occurred. The reusable readiness
+  preflight is ready to run once at P4-W5 and reuse unchanged through P4-W9.
