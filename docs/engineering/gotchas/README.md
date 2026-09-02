@@ -665,3 +665,16 @@ Fix: Replace arbitrary module strings with a closed typed provider registry, rej
 identifiers at runtime, and review the gate against a named finite adversarial corpus.
 
 Discovered: 2026-09-02.
+
+### AUDIT-010: Source projections must not erase stale review evidence
+
+Symptom: A removed exception remains in the canonical review inventory, but the normal
+architecture gate passes after the reviewed file moves to another source root.
+
+Cause: A helper filters both source records and their review entries before stale-review
+validation. The evidence disappears from the test instead of becoming stale.
+
+Fix: Validate the canonical review inventory against current source locations, including moved
+records. Keep legacy source projections limited to the code or debt they were created to select.
+
+Discovered: 2026-09-02.

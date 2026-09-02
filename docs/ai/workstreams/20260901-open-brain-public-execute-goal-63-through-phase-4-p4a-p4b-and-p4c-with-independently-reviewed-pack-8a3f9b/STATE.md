@@ -11,11 +11,14 @@
 ## Current milestone
 
 - Milestone: P4-W2 app distribution and installed entry points
-- Status: closed optional-provider registry review candidate
-  `9ca31ba36c44e4e4a269e5c932fae27fa174831e` is pushed and exact-head CI
-  is green. The generic string loader and its dynamic-import exception are
-  removed. This evidence successor, exact-head
-  CI, and a fresh read-only review remain before P4-W2 closes
+- Status: canonical review-inventory repair candidate
+  `30d49d31d35f86e26be3c0ac99b884a47d76b5f6` is pushed and exact-head CI
+  is green. Child 12 found one P2 in the prior candidate: the canonical
+  manifest retained the removed generic-loader exception, while the normal
+  architecture gate filtered moved sources before validating stale reviews.
+  The repair removes that exception and checks the canonical review inventory
+  against current source locations. This evidence successor, exact-head CI,
+  and the same-lineage read-only rereview remain before P4-W2 closes
 - Allowed scope: manifest-driven app runtime/test/resource movement, exact
   engine dependency, installed CLI/MCP bindings, wheel-only app journeys,
   multi-distribution Python artifact policy, CI wiring, and bounded evidence
@@ -83,9 +86,10 @@
 
 ## Next action
 
-Commit this P4-W2 evidence successor, push both local commits, require every
-exact-head PR check to pass, then dispatch a fresh read-only P4-W2 review.
-P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
+Commit and push this P4-W2 docs-only evidence successor, require every
+exact-head PR check to pass, then resume child 12 against source `30d49d3` and
+the evidence successor. P4-W3 remains blocked until the verdict is `READY`
+with P0/P1/P2 `0/0/0`.
 
 ## P4-W0 complete
 
@@ -355,6 +359,26 @@ P4-W3 remains blocked until the verdict is `READY` with P0/P1/P2 `0/0/0`.
 - Exact-head CI run `33611279850`, public-artifacts run `33611279794`, and
   CodeQL run `33611274401` passed at `9ca31ba`. PR head, remote branch, and
   local head matched; the draft PR was mergeable.
+- Evidence checkpoint `ee2f8c22ac1bd00fd6a3d2924071b8ff23a32238`
+  passed CI run `33611917553`, public-artifacts run `33611917534`, and CodeQL
+  run `33611914545`. Child 12 resumed against source `9ca31ba` and this
+  docs-only evidence successor, then returned `NOT_READY`, P0/P1/P2 `0/0/1`.
+  The P2 was a stale dynamic-import review in the canonical manifest that the
+  normal architecture gate hid by filtering moved source records first.
+- Source repair `30d49d31d35f86e26be3c0ac99b884a47d76b5f6`
+  removes the stale generic-loader review, validates the canonical review
+  inventory against every current `open_brain` source location, and adds a
+  moved-source regression. The legacy source projection no longer rewrites
+  review evidence.
+- Latest local gates passed: `make verify` with strict MyPy on 488 files,
+  3,158 tests, and four artifact builds; uncached Ruff;
+  `make phase4-contracts` with 85 tests; exact collection of 404 app tests;
+  all 16 analyzer and app-wheel tests on each of Python 3.12, 3.13, and 3.14;
+  source/artifact and reachable-history audits; Gitleaks 8.30.1 over 81
+  commits; lockfile and diff integrity.
+- Exact-head CI run `33614647926`, public-artifacts run `33614647755`, and
+  CodeQL run `33614643945` passed at `30d49d3`. PR head, remote branch, and
+  local head matched; the draft PR remained open.
 - Independent review is bound to the source SHA. A docs-only evidence
   successor does not invalidate an unchanged source review. Child budgets are
   scoped to and reset at each milestone.

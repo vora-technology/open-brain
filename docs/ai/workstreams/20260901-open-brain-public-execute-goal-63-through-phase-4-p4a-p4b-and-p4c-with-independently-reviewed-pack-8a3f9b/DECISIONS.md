@@ -341,3 +341,15 @@
 - Why: source review and evidence history have different identities. Keeping
   those identities explicit prevents an infinite evidence-review loop while
   preserving an auditable gate for each milestone.
+
+## D-032: validate review evidence against current source locations
+
+- Chosen: keep one canonical dynamic-import review inventory and validate it
+  against every current `open_brain` source location, including manifest
+  records whose movement state is `moved`. Legacy source projections may
+  select code for debt checks but may not rewrite review evidence.
+- Rejected: filter review entries to whichever source subtree a particular
+  architecture test happens to scan.
+- Why: filtering hid the removed generic-loader exception after its source
+  moved into the app distribution. Review evidence must become stale when the
+  reviewed source site disappears, regardless of package movement.

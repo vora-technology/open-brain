@@ -367,10 +367,34 @@
   `83e534799359e8ccb7ac8e90dfd5114564c0638428c5f50ca897a26f495cc682`,
   and engine sdist
   `a52e659e44d4dcfc882f76d998540a41d2abffa7886a83db365cb688c914084a`.
+- Evidence checkpoint `ee2f8c22ac1bd00fd6a3d2924071b8ff23a32238`
+  passed CI run `33611917553`, public-artifacts run `33611917534`, and CodeQL
+  run `33611914545`. Its six changed files were docs-only, so child 12 resumed
+  against unchanged source `9ca31ba` with `ee2f8c2` as the evidence scope.
+- Child 12 returned `NOT_READY`, P0/P1/P2 `0/0/1`. The canonical manifest
+  retained the removed optional-loader review at `integrations/ports.py:917`.
+  A direct full-inventory reproduction reported the stale review, while the
+  normal architecture test passed because `_planned_source_classification`
+  removed reviews for moved source records before stale validation.
+- Repair checkpoint `30d49d31d35f86e26be3c0ac99b884a47d76b5f6`
+  removes the stale review and makes the normal architecture gate compare the
+  canonical review inventory with all current `open_brain` source locations.
+  A moved-source regression proves stale and unreviewed records remain visible;
+  the legacy source projection no longer filters review evidence.
+- Latest local verification passed: `make verify` (Ruff, strict MyPy on 488
+  files, 3,158 tests, and all four artifact builds/policy); uncached Ruff;
+  `make phase4-contracts` (85 tests, Ruff, MyPy, manifest); exact collection
+  of 404 app tests; all 16 analyzer and app-wheel tests on Python 3.12, 3.13,
+  and 3.14; source+artifact release audit; reachable-history audit; Gitleaks
+  8.30.1 over 81 commits; `uv lock --check`; and `git diff --check`.
+- Exact-head CI run `33614647926`, public-artifacts run `33614647755`, and
+  CodeQL run `33614643945` passed at `30d49d3`, including interpreter-specific
+  wheel execution on Python 3.12, 3.13, and 3.14. Rebuilt artifact SHA-256
+  digests remained unchanged.
 - Independent review is source-SHA-bound. A docs-only evidence successor does
   not invalidate unchanged source review, and the child budget resets at each
   milestone boundary.
 - No package publication, tag, release, native build, deployment, production
   access, private-state access, or cutover action occurred. This evidence
-  successor, exact-head CI, and a fresh read-only review remain required before
-  P4-W2 closes.
+  successor, exact-head CI, and the child 12 same-lineage rereview remain
+  required before P4-W2 closes.
