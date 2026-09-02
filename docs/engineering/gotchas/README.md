@@ -744,3 +744,30 @@ Fix: Name the policy coordinate `connector`. Keep the distribution directory and
 names independently plural where their published identities require it.
 
 Discovered: 2026-09-02.
+
+### LEGACY-001: Importing every wheel module does not exercise lazy dependency edges
+
+Symptom: A private legacy wheel installs beside engine and imports every packaged module, but an
+enabled compatibility path later imports an undeclared third-party SDK from the host environment.
+
+Cause: Import smoke tests execute module bodies, not lazy loaders. A copied compatibility snapshot
+can therefore retain ambient package authority while its metadata still claims an engine-only edge.
+
+Fix: Inspect every compatibility source in the built wheel for static and dynamic import roots.
+Require optional providers through an injected callable, and exercise an enabled injected path in
+the engine-plus-legacy-only environment.
+
+Discovered: 2026-09-02.
+
+### READINESS-001: CLI-style probe exits bypass ordinary fail-closed handling
+
+Symptom: One readiness probe terminates the aggregate preflight and exposes raw exit text even
+though ordinary probe exceptions become opaque unavailable receipts.
+
+Cause: `SystemExit` inherits directly from `BaseException`, so `except Exception` does not catch a
+CLI helper that exits.
+
+Fix: Catch `SystemExit` explicitly beside `Exception` at the probe boundary, preserve
+`KeyboardInterrupt`, and test both paths with sensitive canaries.
+
+Discovered: 2026-09-02.

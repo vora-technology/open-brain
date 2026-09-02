@@ -198,7 +198,7 @@ def _observe(name: str, probe: ReadinessProbe) -> ReadinessObservation:
         if type(observation) is not ReadinessObservation:
             raise ValueError("invalid readiness observation")
         return observation
-    except Exception:
+    except (Exception, SystemExit):
         return ReadinessObservation(
             ready=False,
             receipt=_opaque_receipt({"check": name, "state": "unavailable"}),

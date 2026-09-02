@@ -13,6 +13,7 @@ from tools.phase4.acceptance_harness import (
     ArtifactContract,
     ImportProbe,
     _app_import_boundary_findings,
+    _legacy_compat_import_boundary_findings,
     artifact_findings,
     build_command,
     create_environment_command,
@@ -242,6 +243,32 @@ def test_app_artifact_rejects_private_engine_and_undeclared_imports(tmp_path: Pa
         ("P4H008", "open_brain/private_use.py"),
         ("P4H009", "open_brain/dynamic_use.py"),
         ("P4H009", "open_brain/undeclared_use.py"),
+    }
+
+
+def test_legacy_compat_rejects_static_and_dynamic_external_imports(tmp_path: Path) -> None:
+    wheel = tmp_path / "legacy.whl"
+    _wheel(
+        wheel,
+        {
+            "open_brain_legacy/_compat/allowed.py": (
+                b"import json\n"
+                b"import open_brain_engine\n"
+                b"from open_brain_legacy import services\n"
+            ),
+            "open_brain_legacy/_compat/static_external.py": b"import openai\n",
+            "open_brain_legacy/_compat/dynamic_external.py": (
+                b"from importlib import import_module as load\n"
+                b'load("openai")\n'
+            ),
+        },
+    )
+
+    findings = _legacy_compat_import_boundary_findings(wheel)
+
+    assert {(finding.code, finding.subject) for finding in findings} == {
+        ("P4H009", "open_brain_legacy/_compat/dynamic_external.py"),
+        ("P4H009", "open_brain_legacy/_compat/static_external.py"),
     }
 
 

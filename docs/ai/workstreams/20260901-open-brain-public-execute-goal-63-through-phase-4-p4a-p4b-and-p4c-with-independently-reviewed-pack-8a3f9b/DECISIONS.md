@@ -486,3 +486,28 @@
 - Why: one stable preflight prevents gate drift across P4B and P4C while
   keeping private topology, credentials, and raw operational output outside the
   public repository.
+
+## D-043: inject private compatibility providers instead of importing ambient SDKs
+
+- Chosen: retain provider-neutral legacy compatibility metadata, but require
+  its enabled provider loader to be injected by the caller. Enforce the
+  private wheel with AST inspection that rejects static and dynamic `_compat`
+  imports outside stdlib, engine, and legacy, then exercise the enabled
+  injected path in the engine-plus-legacy clean room.
+- Rejected: keep an undeclared ambient `openai` import, add an OpenAI extra to
+  the private legacy distribution, or delete the provider-neutral metadata
+  without proving enabled compatibility behavior.
+- Why: the current app owns optional SDK packaging and loading. An explicit
+  callable preserves legacy compatibility behavior without creating a hidden
+  package edge or weakening the approved `legacy -> engine` boundary.
+
+## D-044: map CLI-style readiness exits to opaque unavailability
+
+- Chosen: catch `SystemExit` explicitly at each readiness probe boundary and
+  map it to the same deterministic unavailable receipt as ordinary probe
+  exceptions. Keep `KeyboardInterrupt` outside the catch boundary.
+- Rejected: catch all `BaseException`, allow CLI helpers to terminate the
+  aggregate preflight, or expose their exit text in public evidence.
+- Why: a read-only probe may wrap a CLI-style helper that raises `SystemExit`.
+  The preflight still must finish with booleans and opaque receipts, while an
+  operator interrupt must remain effective.

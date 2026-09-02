@@ -614,6 +614,31 @@ def main() -> None:
     imported = [importlib.import_module(name) for name in sorted(modules)]
     assert imported
     assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    ports = importlib.import_module(
+        "open_brain_legacy._compat.open_brain.integrations.ports"
+    )
+    config_module = importlib.import_module(
+        "open_brain_legacy._compat.open_brain.integrations.config"
+    )
+    metadata = ports.OptionalIntegrationMetadata(
+        capability=ports.Capability.FINANCE,
+        provider=ports.OptionalProvider.OPENAI,
+    )
+    config = config_module.IntegrationConfig(
+        live_adapters=frozenset({ports.Capability.FINANCE})
+    )
+    provider_calls = []
+
+    def load_provider(provider):
+        provider_calls.append(provider)
+        return object()
+
+    outcome = metadata.load(config=config, provider_loader=load_provider)
+    assert outcome == ports.IntegrationOutcome.available_for(
+        capability=ports.Capability.FINANCE
+    )
+    assert provider_calls == [ports.OptionalProvider.OPENAI]
+    assert metadata.load(config=config).reason is ports.UnavailableReason.OPTIONAL_DEPENDENCY
     representative = importlib.import_module("open_brain_legacy.services.application")
     print(json.dumps({
         "module_paths": [representative.__file__, open_brain_engine.__file__],
@@ -624,6 +649,43 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 """
+
+
+def _legacy_compat_import_boundary_findings(wheel: Path) -> list[Finding]:
+    """Reject imports outside stdlib, engine, and legacy from private compatibility code."""
+
+    findings: list[Finding] = []
+    try:
+        with zipfile.ZipFile(wheel) as archive:
+            sources = {
+                name: archive.read(name)
+                for name in archive.namelist()
+                if name.startswith("open_brain_legacy/_compat/") and name.endswith(".py")
+            }
+    except (OSError, UnicodeError, ValueError, zipfile.BadZipFile):
+        return [Finding("P4H007", "legacy-compat", "legacy compatibility source is unreadable")]
+    allowed_roots = frozenset(
+        {"__future__", "open_brain_engine", "open_brain_legacy", *sys.stdlib_module_names}
+    )
+    for name, payload in sorted(sources.items()):
+        try:
+            tree = ast.parse(payload, filename=name)
+        except (SyntaxError, UnicodeError):
+            findings.append(Finding("P4H007", name, "legacy compatibility source is unreadable"))
+            continue
+        imported, dynamic_signatures = _dynamic_imports(tree)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module is not None:
+                imported.add(node.module)
+            elif isinstance(node, ast.Import):
+                imported.update(alias.name for alias in node.names)
+        if dynamic_signatures or any(
+            module.partition(".")[0] not in allowed_roots for module in imported
+        ):
+            findings.append(
+                Finding("P4H009", name, "legacy compatibility has an undeclared import")
+            )
+    return sorted(set(findings))
 
 
 def legacy_isolation_findings(root: Path, work: Path) -> list[Finding]:
@@ -670,6 +732,9 @@ def legacy_isolation_findings(root: Path, work: Path) -> list[Finding]:
             expected_version="0.1.0",
         ),
     )
+    if findings:
+        return findings
+    findings = _legacy_compat_import_boundary_findings(legacy_wheel)
     if findings:
         return findings
     stage = "create product environment"

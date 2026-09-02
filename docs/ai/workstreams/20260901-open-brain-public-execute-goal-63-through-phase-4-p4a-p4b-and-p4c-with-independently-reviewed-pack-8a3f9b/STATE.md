@@ -520,3 +520,24 @@ CodeQL green before resuming child 14 for rereview.
   MyPy on 536 files, manifest validation, all 3,182 repository tests, six
   source-free shipping artifacts, artifact policy, lockfile integrity, and
   diff integrity. Exact-commit audits and remote checks remain pending.
+- Repair checkpoint `b86beacbc7005b0a7f2ceeb5c009f0a2849579a6`
+  passed exact-head CI `33650699793`, Release audit `33650699895`, and CodeQL
+  `33650693028`; local, remote, and PR source matched. Child 14's same-lineage
+  rereview returned `NOT_READY`, P0/P1/P2 `0/1/1`. The prior `P4A-001` and
+  `P4A-002` findings are closed; new `P4A-003` found one ambient `openai`
+  import in `_compat`, and `P4A-004` proved that a readiness probe's
+  `SystemExit` escaped with raw detail.
+- Both new findings failed focused regressions before repair. Legacy wheel
+  inspection now rejects every static or dynamic `_compat` import outside
+  stdlib, engine, and legacy. Optional provider metadata accepts only an
+  explicit injected loader, and the engine-plus-legacy clean room exercises
+  that enabled path while the OpenAI SDK remains absent.
+- Readiness observation now treats `SystemExit` as an unavailable probe and
+  retains the same boolean-and-opaque-receipt projection. `KeyboardInterrupt`
+  remains interruptible. The sensitive-canary regression covers both ordinary
+  exceptions and CLI-style exits.
+- Current second-repair gates pass: 10 focused tests, `make
+  phase4-contracts` with 100 tests, Ruff, strict MyPy on 536 files, manifest
+  validation, `make verify` with all 3,184 repository tests and six shipping
+  artifacts, and the 100-test P4A matrix on Python 3.12, 3.13, and 3.14.
+  Exact-commit audits and remote checks remain pending for the next candidate.

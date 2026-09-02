@@ -94,7 +94,13 @@ def test_snapshot_is_reused_through_p4_w9_without_rerunning_probes() -> None:
     assert calls == 6
 
 
-def test_probe_failures_emit_only_booleans_and_opaque_receipts() -> None:
+@pytest.mark.parametrize(
+    "failure_type",
+    (RuntimeError, SystemExit),
+)
+def test_probe_failures_emit_only_booleans_and_opaque_receipts(
+    failure_type: type[BaseException],
+) -> None:
     canaries = (
         "/private/recovery/path",
         "credential=synthetic-secret",
@@ -102,7 +108,7 @@ def test_probe_failures_emit_only_booleans_and_opaque_receipts() -> None:
     )
 
     def failed() -> ReadinessObservation:
-        raise RuntimeError(" ".join(canaries))
+        raise failure_type(" ".join(canaries))
 
     result = run_readiness_preflight(
         ReadinessProbes(

@@ -273,8 +273,9 @@ coordinator-owned.
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; no child write scope is reserved
 - Review lineage: child 14 completed the first review at
-  `7927162096330355520f2de756aa45b48ccb6493`; retain the same lineage and
-  resume it only after the repair candidate passes exact-head remote checks
+  `7927162096330355520f2de756aa45b48ccb6493` and the first rereview at
+  `b86beacbc7005b0a7f2ceeb5c009f0a2849579a6`; retain the same lineage and
+  resume it only after the next repair candidate passes exact-head remote checks
 - Reset authority: D-038 closes the P4-W3 lineage and starts P4-W4 with a fresh
   child budget
 
@@ -296,3 +297,14 @@ coordinator-owned.
   legacy-to-app/connector dependency as weaker than the governing plan and
   published migration-interface boundary. `P4A-002` identifies the removed
   artifact-policy path retained in `CLAUDE.md`.
+- First rereview source scope:
+  `b86beacbc7005b0a7f2ceeb5c009f0a2849579a6`
+- First rereview evidence: exact-head CI `33650699793`, Release audit
+  `33650699895`, and CodeQL `33650693028` passed before resuming the same
+  lineage
+- First rereview result: `NOT_READY`; P0/P1/P2 `0/1/1`. The reviewer closed
+  `P4A-001` and `P4A-002`. `P4A-003` found the sole external `_compat` import,
+  an ambient undeclared `openai` loader. `P4A-004` proved that readiness probe
+  `SystemExit` escaped with raw detail. The lineage remains retained for one
+  rereview after the focused regressions, full local gates, and new exact-head
+  remote checks pass.

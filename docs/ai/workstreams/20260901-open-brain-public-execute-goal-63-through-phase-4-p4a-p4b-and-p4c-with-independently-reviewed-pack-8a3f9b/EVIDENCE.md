@@ -583,3 +583,29 @@
   strict MyPy on 536 files, manifest validation, all 3,182 repository tests,
   six source-free shipping builds, artifact policy, `uv lock --check`, and
   `git diff --check`. Exact-commit audits and remote checks remain pending.
+- Candidate `b86beacbc7005b0a7f2ceeb5c009f0a2849579a6` passed exact-head CI
+  `33650699793`, Release audit `33650699895`, and CodeQL `33650693028`; every
+  PR #6 job passed and local/remote source identities matched. Child 14's
+  same-lineage rereview returned `NOT_READY`, P0/P1/P2 `0/1/1`. It explicitly
+  closed `P4A-001` and `P4A-002`, then reported `P4A-003` for the sole external
+  `_compat` import and `P4A-004` for uncaught `SystemExit` from a readiness
+  probe.
+- The new legacy wheel regression failed with `P4H009` on
+  `_compat/open_brain/integrations/ports.py`. The readiness canary failed by
+  propagating `SystemExit` and its synthetic sensitive detail. These were the
+  expected red states before implementation.
+- The repaired private compatibility metadata has no ambient provider loader.
+  Its enabled path requires an injected callable; no callable returns the
+  stable optional-dependency outcome. Wheel-level AST analysis rejects both
+  static and dynamic import authority outside stdlib, engine, and legacy. The
+  installed engine-plus-legacy-only contract imports every packaged module and
+  exercises the enabled injected path without installing the OpenAI SDK.
+- The readiness observer catches `SystemExit` alongside ordinary exceptions,
+  fails closed, and derives the same opaque unavailable receipt without
+  retaining exception text. `KeyboardInterrupt` is intentionally not caught.
+  Both synthetic failure classes pass the boolean-and-receipt-only canary.
+- Post-repair verification passed 10 focused tests; `make phase4-contracts`
+  with 100 tests, Ruff, strict MyPy on 536 files, and manifest validation;
+  `make verify` with Ruff, strict MyPy, 3,184 tests, six source-free shipping
+  artifacts, and artifact policy; and 100 P4A tests on each of Python 3.12,
+  3.13, and 3.14. Exact-commit audits and remote checks remain pending.

@@ -17,9 +17,6 @@ if TYPE_CHECKING:
     from .config import IntegrationConfig
 
 _OPAQUE_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
-_FORBIDDEN_OPTIONAL_IMPORT_ROOTS = frozenset(
-    {"open_brain", "open_brain_connectors", "open_brain_engine", "open_brain_legacy"}
-)
 _PUBLIC_TEXT_RESIDUAL_PATTERNS = (
     re.compile(
         r"(?ix)\b(?:api[\s_-]*key|authorization|bearer|credential|password|secret|token)"
@@ -854,20 +851,9 @@ class ExternalRuntimeAudit(Protocol):
     def inspect(self, request: RuntimeAuditRequest) -> RuntimeAuditResult: ...
 
 
-def _load_openai_provider() -> object:
-    import openai  # type: ignore[import-not-found]  # noqa: PLC0415
-
-    return openai
-
-
-_OPTIONAL_PROVIDER_LOADERS: Mapping[OptionalProvider, Callable[[], object]] = MappingProxyType(
-    {OptionalProvider.OPENAI: _load_openai_provider}
-)
-
-
 @dataclass(frozen=True, slots=True)
 class OptionalIntegrationMetadata:
-    """Optional-provider metadata with fail-closed lazy loading."""
+    """Optional-provider metadata with fail-closed injected loading."""
 
     capability: Capability
     provider: OptionalProvider
@@ -882,8 +868,13 @@ class OptionalIntegrationMetadata:
     def scope(self) -> IntegrationScope:
         return self.capability.scope
 
-    def load(self, *, config: IntegrationConfig | None = None) -> IntegrationOutcome:
-        """Load only explicitly enabled packages and redact every load failure."""
+    def load(
+        self,
+        *,
+        config: IntegrationConfig | None = None,
+        provider_loader: Callable[[OptionalProvider], object] | None = None,
+    ) -> IntegrationOutcome:
+        """Call an injected loader only when enabled and redact every load failure."""
         if config is None:
             return IntegrationOutcome.unavailable(
                 capability=self.capability,
@@ -899,9 +890,16 @@ class OptionalIntegrationMetadata:
                 capability=self.capability,
                 reason=UnavailableReason.DISABLED,
             )
+        if provider_loader is None:
+            return IntegrationOutcome.unavailable(
+                capability=self.capability,
+                reason=UnavailableReason.OPTIONAL_DEPENDENCY,
+            )
+        if not callable(provider_loader):
+            raise ValueError("invalid optional integration loader")
 
         try:
-            _loaded_optional_provider(self.provider)
+            provider_loader(self.provider)
         except ModuleNotFoundError:
             return IntegrationOutcome.unavailable(
                 capability=self.capability,
@@ -913,16 +911,6 @@ class OptionalIntegrationMetadata:
                 reason=UnavailableReason.LOAD_FAILURE,
             )
         return IntegrationOutcome.available_for(capability=self.capability)
-
-
-def _loaded_optional_provider(provider: OptionalProvider) -> object:
-    if (
-        not isinstance(provider, OptionalProvider)
-        or provider.value.partition(".")[0] in _FORBIDDEN_OPTIONAL_IMPORT_ROOTS
-        or (loader := _OPTIONAL_PROVIDER_LOADERS.get(provider)) is None
-    ):
-        raise ValueError("invalid optional integration provider")
-    return loader()
 
 
 @dataclass(frozen=True, slots=True)
