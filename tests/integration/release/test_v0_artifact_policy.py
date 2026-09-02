@@ -12,6 +12,7 @@ from open_brain.dev.artifact_policy import required_members_for_policy, verify_a
 
 ROOT = Path(__file__).parents[3]
 POLICY_PATH = ROOT / "release" / "v0-artifact-policy.json"
+MANIFEST_PATH = ROOT / "docs" / "v0-package-classification.json"
 DOCUMENTATION_PATH = ROOT / "docs" / "artifact-characterization.md"
 
 
@@ -43,6 +44,31 @@ def _write_sdist(path: Path, members: list[str]) -> None:
             archive.addfile(info, BytesIO(data))
 
 
+def _manifest_members(kind: str) -> set[str]:
+    payload = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    records = [
+        *payload["files"].values(),
+        *payload["phase4"]["subjects"].values(),
+    ]
+    label = f"engine-{kind}"
+    members: set[str] = set()
+    for record in records:
+        if label not in record["artifact_disposition"]:
+            continue
+        current = str(record["current_path"])
+        if current.startswith("packages/engine/src/"):
+            relative = current.removeprefix("packages/engine/")
+            members.add(relative if kind == "sdist" else relative.removeprefix("src/"))
+        elif current.startswith("packages/engine/"):
+            members.add(current.removeprefix("packages/engine/"))
+        else:
+            members.add(current)
+    manifest = cast(dict[str, object], _policy()["canonical_manifest"])
+    rewrites_by_kind = cast(dict[str, object], manifest["member_rewrites"])
+    rewrites = cast(dict[str, str], rewrites_by_kind[kind])
+    return {rewrites.get(member, member) for member in members}
+
+
 def test_phase_zero_policy_matches_explicit_hatch_configuration() -> None:
     pyproject = tomllib.loads(
         (ROOT / "packages/engine/pyproject.toml").read_text(encoding="utf-8")
@@ -54,10 +80,28 @@ def test_phase_zero_policy_matches_explicit_hatch_configuration() -> None:
 
     assert _policy()["phase"] == "4-engine-isolation"
     assert hatch_build["ignore-vcs"] is True
+    assert hatch_build["hooks"]["custom"] == {"path": "hatch_build.py"}
+    assert _policy()["build_hook"] == "packages/engine/hatch_build.py"
     assert build["wheel"]["packages"] == wheel["configured_package_roots"]
-    assert wheel["force_includes"] == []
+    assert build["wheel"].get("force-include", {}) == wheel["force_includes"]
     assert build["sdist"]["include"] == sdist["configured_includes"]
+    assert build["sdist"]["exclude"] == sdist["configured_exclusions"]
+    assert build["sdist"]["force-include"] == sdist["force_includes"]
     assert wheel["status"] == sdist["status"] == "engine-isolated-unpublished"
+    assert _policy()["canonical_manifest"] == {
+        "distribution": "engine",
+        "member_rewrites": {
+            "sdist": {},
+            "wheel": {
+                "LICENSE": "open_brain_engine-0.1.0.dist-info/licenses/LICENSE",
+                "NOTICE": "open_brain_engine-0.1.0.dist-info/licenses/NOTICE",
+            },
+        },
+        "path": "docs/v0-package-classification.json",
+        "project_root": "packages/engine",
+    }
+    assert (ROOT / "packages/engine/LICENSE").read_bytes() == (ROOT / "LICENSE").read_bytes()
+    assert (ROOT / "packages/engine/NOTICE").read_bytes() == (ROOT / "NOTICE").read_bytes()
 
 
 def test_phase_zero_policy_verifies_required_and_forbidden_members(tmp_path: Path) -> None:
@@ -76,6 +120,22 @@ def test_phase_zero_policy_verifies_required_and_forbidden_members(tmp_path: Pat
     assert [(finding.member, finding.rule) for finding in findings] == [
         (leaked, "forbidden-member")
     ]
+
+    undeclared = "unclassified.txt"
+    _write_wheel(wheel, [*wheel_members, undeclared])
+    findings = verify_artifacts(POLICY_PATH, [wheel, sdist])
+    assert [(finding.member, finding.rule) for finding in findings] == [
+        (undeclared, "undeclared-member")
+    ]
+
+
+def test_phase_four_policy_derives_exact_membership_from_canonical_manifest() -> None:
+    assert set(required_members_for_policy(POLICY_PATH, "wheel")) == _manifest_members(
+        "wheel"
+    )
+    assert set(required_members_for_policy(POLICY_PATH, "sdist")) == _manifest_members(
+        "sdist"
+    )
 
 
 def test_phase_zero_policy_requires_every_schema_and_conformance_fixture() -> None:

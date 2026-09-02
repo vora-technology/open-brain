@@ -30,6 +30,12 @@ def _load_policy(path: Path) -> dict[str, object]:
     return cast(dict[str, object], value)
 
 
+def _mapping(value: object, *, error: str) -> dict[str, object]:
+    if not isinstance(value, dict) or any(not isinstance(key, str) for key in value):
+        raise ValueError(error)
+    return cast(dict[str, object], value)
+
+
 def _safe_member(name: str) -> str:
     return name.replace("\n", "?").replace("\r", "?")
 
@@ -89,10 +95,121 @@ def _required_members(config: dict[str, object], project_root: Path) -> tuple[st
     return tuple(sorted(required))
 
 
+def _relative_manifest_path(value: object, *, error: str) -> PurePosixPath:
+    if not isinstance(value, str) or not value or "\\" in value:
+        raise ValueError(error)
+    path = PurePosixPath(value)
+    if path.is_absolute() or ".." in path.parts or path.as_posix() != value:
+        raise ValueError(error)
+    return path
+
+
+def _manifest_member(current_path: str, *, project_root: str, kind: str) -> str:
+    source_prefix = f"{project_root}/src/"
+    project_prefix = f"{project_root}/"
+    if current_path.startswith(source_prefix):
+        relative = current_path.removeprefix(project_prefix)
+        return relative if kind == "sdist" else relative.removeprefix("src/")
+    if current_path.startswith(project_prefix):
+        return current_path.removeprefix(project_prefix)
+    return current_path
+
+
+def _manifest_members(
+    policy_path: Path,
+    policy: dict[str, object],
+    kind: str,
+) -> tuple[str, ...]:
+    config = _mapping(
+        policy.get("canonical_manifest"),
+        error="artifact policy canonical manifest is missing",
+    )
+    manifest_relative = _relative_manifest_path(
+        config.get("path"),
+        error="artifact policy canonical manifest path is invalid",
+    )
+    project_relative = _relative_manifest_path(
+        config.get("project_root"),
+        error="artifact policy project root is invalid",
+    )
+    distribution = config.get("distribution")
+    if not isinstance(distribution, str) or not distribution:
+        raise ValueError("artifact policy distribution is invalid")
+    raw_rewrites = _mapping(
+        config.get("member_rewrites"),
+        error="artifact policy member rewrites are invalid",
+    )
+    rewrites = _mapping(
+        raw_rewrites.get(kind),
+        error="artifact policy member rewrites are invalid",
+    )
+    if any(not isinstance(value, str) for value in rewrites.values()):
+        raise ValueError("artifact policy member rewrite is invalid")
+
+    repository_root = policy_path.resolve().parent.parent
+    manifest = _load_policy(repository_root / manifest_relative)
+    files = _mapping(manifest.get("files"), error="canonical manifest files are invalid")
+    phase4 = _mapping(manifest.get("phase4"), error="canonical manifest phase4 is invalid")
+    subjects = _mapping(
+        phase4.get("subjects"),
+        error="canonical manifest subjects are invalid",
+    )
+    label = f"{distribution}-{kind}"
+    members: set[str] = set()
+    used_rewrites: set[str] = set()
+    for raw_record in (*files.values(), *subjects.values()):
+        record = _mapping(raw_record, error="canonical manifest record is invalid")
+        disposition = record.get("artifact_disposition")
+        if not isinstance(disposition, list) or any(
+            not isinstance(item, str) for item in disposition
+        ):
+            raise ValueError("canonical manifest artifact disposition is invalid")
+        if label not in disposition:
+            continue
+        current = _relative_manifest_path(
+            record.get("current_path"),
+            error="canonical manifest current path is invalid",
+        ).as_posix()
+        member = _manifest_member(
+            current,
+            project_root=project_relative.as_posix(),
+            kind=kind,
+        )
+        if member in rewrites:
+            used_rewrites.add(member)
+            member = cast(str, rewrites[member])
+        normalized = _relative_manifest_path(
+            member,
+            error="canonical manifest artifact member is invalid",
+        ).as_posix()
+        if normalized in members:
+            raise ValueError("canonical manifest artifact member is duplicated")
+        members.add(normalized)
+    if used_rewrites != set(rewrites):
+        raise ValueError("artifact policy member rewrite is stale")
+    if not members:
+        raise ValueError("canonical manifest artifact membership is empty")
+    return tuple(sorted(members))
+
+
+def _required_members_for_kind(
+    policy_path: Path,
+    policy: dict[str, object],
+    kind: str,
+) -> tuple[str, ...]:
+    config = _artifact_config(policy, kind)
+    repository_root = policy_path.resolve().parent.parent
+    configured = _required_members(config, repository_root)
+    declared = _manifest_members(policy_path, policy, kind)
+    if not set(configured) <= set(declared):
+        raise ValueError("artifact policy required members contradict the canonical manifest")
+    return declared
+
+
 def required_members_for_policy(policy_path: Path, kind: str) -> tuple[str, ...]:
     """Resolve every required member, including complete resource trees."""
     policy = _load_policy(policy_path)
-    return _required_members(_artifact_config(policy, kind), policy_path.resolve().parent.parent)
+    return _required_members_for_kind(policy_path, policy, kind)
 
 
 def _is_forbidden(member: str, patterns: tuple[str, ...]) -> bool:
@@ -123,18 +240,25 @@ def verify_artifacts(policy_path: Path, artifacts: Sequence[Path]) -> list[Artif
                 ArtifactPolicyFinding(artifact.name, "<artifact>", "duplicate-member")
             )
         config = _artifact_config(policy, kind)
-        required = _required_members(config, policy_path.resolve().parent.parent)
+        required = _required_members_for_kind(policy_path, policy, kind)
         forbidden = _patterns(config, "forbidden_member_patterns")
+        generated = _patterns(config, "generated_member_patterns")
         for required_member in required:
             if required_member not in members:
                 findings.append(
                     ArtifactPolicyFinding(artifact.name, required_member, "missing-required-member")
                 )
-        findings.extend(
-            ArtifactPolicyFinding(artifact.name, member, "forbidden-member")
-            for member in members
-            if _is_forbidden(member, forbidden)
-        )
+        for member in members:
+            if _is_forbidden(member, forbidden):
+                findings.append(
+                    ArtifactPolicyFinding(artifact.name, member, "forbidden-member")
+                )
+            elif member not in required and not any(
+                fnmatch.fnmatchcase(member, pattern) for pattern in generated
+            ):
+                findings.append(
+                    ArtifactPolicyFinding(artifact.name, member, "undeclared-member")
+                )
     for required_kind in ("wheel", "sdist"):
         if required_kind not in seen_kinds:
             findings.append(

@@ -5049,9 +5049,7 @@
           "app-sdist",
           "app-wheel",
           "connector-sdist",
-          "connector-wheel",
-          "engine-sdist",
-          "engine-wheel"
+          "connector-wheel"
         ],
         "current_path": "LICENSE",
         "import_rewrite": null,
@@ -5089,9 +5087,7 @@
           "app-sdist",
           "app-wheel",
           "connector-sdist",
-          "connector-wheel",
-          "engine-sdist",
-          "engine-wheel"
+          "connector-wheel"
         ],
         "current_path": "NOTICE",
         "import_rewrite": null,
@@ -5543,6 +5539,60 @@
         "target_distribution": "connectors",
         "target_path": "packages/connectors/pyproject.toml",
         "test_owner": "connector"
+      },
+      "packages/engine/LICENSE": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "engine-sdist",
+          "engine-wheel"
+        ],
+        "current_path": "packages/engine/LICENSE",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "engine",
+        "target_path": "packages/engine/LICENSE",
+        "test_owner": "engine"
+      },
+      "packages/engine/NOTICE": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "engine-sdist",
+          "engine-wheel"
+        ],
+        "current_path": "packages/engine/NOTICE",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "engine",
+        "target_path": "packages/engine/NOTICE",
+        "test_owner": "engine"
+      },
+      "packages/engine/hatch_build.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "engine-sdist"
+        ],
+        "current_path": "packages/engine/hatch_build.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "engine",
+        "target_path": "packages/engine/hatch_build.py",
+        "test_owner": "engine"
       },
       "packages/engine/pyproject.toml": {
         "api_status": "workspace-only",

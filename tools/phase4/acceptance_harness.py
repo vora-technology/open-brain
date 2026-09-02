@@ -6,6 +6,7 @@ import argparse
 import fnmatch
 import json
 import os
+import shutil
 import subprocess
 import tarfile
 import zipfile
@@ -113,6 +114,7 @@ def sanitized_environment(source: Mapping[str, str] | None = None) -> dict[str, 
         environment.pop(name, None)
     environment["PYTHONNOUSERSITE"] = "1"
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
     return environment
 
 
@@ -141,6 +143,68 @@ def install_command(python: Path, artifacts: Sequence[Path]) -> tuple[str, ...]:
         os.fspath(python),
         "--no-index",
         *(os.fspath(path) for path in artifacts),
+    )
+
+
+def export_test_requirements_command() -> tuple[str, ...]:
+    return (
+        "uv",
+        "export",
+        "--locked",
+        "--only-group",
+        "dev",
+        "--no-emit-project",
+        "--no-emit-workspace",
+        "--prune",
+        "build",
+        "--prune",
+        "cryptography",
+        "--prune",
+        "mypy",
+        "--prune",
+        "ruff",
+        "--no-annotate",
+        "--no-header",
+    )
+
+
+def install_test_requirements_command(
+    python: Path,
+    requirements: Path,
+) -> tuple[str, ...]:
+    return (
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        os.fspath(python),
+        "--require-hashes",
+        "--requirements",
+        os.fspath(requirements),
+    )
+
+
+def engine_test_command(
+    python: Path,
+    runner: Path,
+    tests: Path,
+    engine_site_packages: Path,
+) -> tuple[str, ...]:
+    return (
+        os.fspath(python),
+        "-I",
+        os.fspath(runner),
+        os.fspath(tests),
+        os.fspath(engine_site_packages),
+    )
+
+
+def site_packages_command(python: Path) -> tuple[str, ...]:
+    return (
+        os.fspath(python),
+        "-I",
+        "-c",
+        "import sysconfig; print(sysconfig.get_path('purelib'))",
     )
 
 
@@ -271,6 +335,60 @@ if __name__ == "__main__":
 """
 
 
+def _engine_test_runner_source() -> str:
+    return """from __future__ import annotations
+
+import importlib.util
+import runpy
+import sys
+from pathlib import Path
+
+
+def main() -> None:
+    test_root = Path(sys.argv[1]).resolve()
+    engine_site_packages = Path(sys.argv[2]).resolve()
+    sys.path.insert(0, str(engine_site_packages))
+    sys.path.insert(0, str(test_root))
+    forbidden = ("open_brain", "open_brain_connectors", "open_brain_legacy")
+    assert all(importlib.util.find_spec(name) is None for name in forbidden)
+    sys.argv = [
+        "pytest",
+        "-q",
+        "-c",
+        str(test_root / "pytest.ini"),
+        "--rootdir",
+        str(test_root),
+        str(test_root / "packages/engine/tests"),
+    ]
+    runpy.run_module("pytest", run_name="__main__")
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+def _copy_engine_test_contract(root: Path, destination: Path) -> None:
+    shutil.copytree(
+        root / "packages/engine/tests",
+        destination / "packages/engine/tests",
+    )
+    for relative in (
+        Path("tests/__init__.py"),
+        Path("tests/unit/__init__.py"),
+        Path("tests/unit/storage/__init__.py"),
+        Path("tests/unit/storage/_factories.py"),
+    ):
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(root / relative, target)
+    shutil.copy2(root / "tests/conftest.py", destination / "conftest.py")
+    (destination / "pytest.ini").write_text(
+        "[pytest]\naddopts = --import-mode=importlib\n",
+        encoding="utf-8",
+    )
+
+
 def engine_isolation_findings(root: Path, work: Path) -> list[Finding]:
     """Build and execute the engine contract without repository source access."""
 
@@ -279,6 +397,7 @@ def engine_isolation_findings(root: Path, work: Path) -> list[Finding]:
         return [Finding("P4H007", "engine-isolation", "engine project is absent")]
     dist = work / "dist"
     environment = work / "venv"
+    test_environment = work / "test-venv"
     run_root = work / "run"
     dist.mkdir(parents=True, exist_ok=True)
     run_root.mkdir(parents=True, exist_ok=True)
@@ -318,6 +437,33 @@ def engine_isolation_findings(root: Path, work: Path) -> list[Finding]:
         run_checked(create_environment_command(environment), cwd=run_root)
         python = environment / "bin/python"
         run_checked(install_command(python, [wheel]), cwd=run_root)
+        run_checked(create_environment_command(test_environment), cwd=run_root)
+        test_python = test_environment / "bin/python"
+        requirements = run_root / "test-requirements.txt"
+        exported = run_checked(export_test_requirements_command(), cwd=root)
+        requirements.write_text(exported.stdout, encoding="utf-8")
+        run_checked(
+            install_test_requirements_command(test_python, requirements),
+            cwd=run_root,
+        )
+        engine_site_packages = Path(
+            run_checked(site_packages_command(python), cwd=run_root).stdout.strip()
+        )
+        if not engine_site_packages.is_absolute():
+            raise OSError("engine site-packages path is invalid")
+        test_root = run_root / "test-contract"
+        _copy_engine_test_contract(root, test_root)
+        test_runner = run_root / "engine_test_runner.py"
+        test_runner.write_text(_engine_test_runner_source(), encoding="utf-8")
+        run_checked(
+            engine_test_command(
+                test_python,
+                test_runner,
+                test_root,
+                engine_site_packages,
+            ),
+            cwd=run_root,
+        )
         contract = run_root / "engine_contract.py"
         contract.write_text(_engine_contract_source(), encoding="utf-8")
         completed = run_checked((os.fspath(python), "-I", os.fspath(contract)), cwd=run_root)

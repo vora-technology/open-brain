@@ -2,10 +2,10 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `562`
+- Total subjects: `565`
 - app: `66`
 - connectors: `9`
-- engine: `101`
+- engine: `104`
 - legacy: `299`
 - workspace: `87`
 
@@ -14,9 +14,9 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `.github/dependabot.yml` | `.github/dependabot.yml` | `planned` | `release-tool` | `workspace` | `.github/dependabot.yml` | `excluded` |
 | `.github/workflows/ci.yml` | `.github/workflows/ci.yml` | `planned` | `release-tool` | `workspace` | `.github/workflows/ci.yml` | `excluded` |
 | `.github/workflows/release-audit.yml` | `.github/workflows/release-audit.yml` | `planned` | `release-tool` | `workspace` | `.github/workflows/release-audit.yml` | `excluded` |
-| `LICENSE` | `LICENSE` | `planned` | `package-resource` | `workspace` | `LICENSE` | `app-native, app-sdist, app-wheel, connector-sdist, connector-wheel, engine-sdist, engine-wheel` |
+| `LICENSE` | `LICENSE` | `planned` | `package-resource` | `workspace` | `LICENSE` | `app-native, app-sdist, app-wheel, connector-sdist, connector-wheel` |
 | `Makefile` | `Makefile` | `planned` | `release-tool` | `workspace` | `Makefile` | `excluded` |
-| `NOTICE` | `NOTICE` | `planned` | `package-resource` | `workspace` | `NOTICE` | `app-native, app-sdist, app-wheel, connector-sdist, connector-wheel, engine-sdist, engine-wheel` |
+| `NOTICE` | `NOTICE` | `planned` | `package-resource` | `workspace` | `NOTICE` | `app-native, app-sdist, app-wheel, connector-sdist, connector-wheel` |
 | `README.md` | `README.md` | `planned` | `package-resource` | `workspace` | `README.md` | `app-sdist` |
 | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json` | `planned` | `generated-resource` | `workspace` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-EXPECTED-RED.json` | `excluded` |
 | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md` | `planned` | `generated-resource` | `workspace` | `docs/ai/workstreams/20260901-open-brain-public-execute-goal-63-through-phase-4-p4a-p4b-and-p4c-with-independently-reviewed-pack-8a3f9b/P4-W0-IMPORT-REPORT.md` | `excluded` |
@@ -42,6 +42,9 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `examples/synthetic-vault/README.md` | `examples/synthetic-vault/README.md` | `planned` | `package-resource` | `workspace` | `examples/synthetic-vault/README.md` | `app-sdist` |
 | `packages/app/pyproject.toml` | `packages/app/pyproject.toml` | `moved` | `release-tool` | `app` | `packages/app/pyproject.toml` | `app-sdist` |
 | `packages/connectors/pyproject.toml` | `packages/connectors/pyproject.toml` | `moved` | `release-tool` | `connectors` | `packages/connectors/pyproject.toml` | `connector-sdist` |
+| `packages/engine/LICENSE` | `packages/engine/LICENSE` | `moved` | `package-resource` | `engine` | `packages/engine/LICENSE` | `engine-sdist, engine-wheel` |
+| `packages/engine/NOTICE` | `packages/engine/NOTICE` | `moved` | `package-resource` | `engine` | `packages/engine/NOTICE` | `engine-sdist, engine-wheel` |
+| `packages/engine/hatch_build.py` | `packages/engine/hatch_build.py` | `moved` | `release-tool` | `engine` | `packages/engine/hatch_build.py` | `engine-sdist` |
 | `packages/engine/pyproject.toml` | `packages/engine/pyproject.toml` | `moved` | `release-tool` | `engine` | `packages/engine/pyproject.toml` | `engine-sdist` |
 | `packages/legacy/pyproject.toml` | `packages/legacy/pyproject.toml` | `moved` | `release-tool` | `legacy` | `packages/legacy/pyproject.toml` | `legacy-only` |
 | `pyproject.toml` | `pyproject.toml` | `planned` | `release-tool` | `workspace` | `pyproject.toml` | `excluded` |

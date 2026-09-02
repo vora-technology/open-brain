@@ -14,6 +14,8 @@ from tools.phase4.acceptance_harness import (
     artifact_findings,
     build_command,
     create_environment_command,
+    engine_test_command,
+    export_test_requirements_command,
     import_probe_findings,
     install_command,
     run_checked,
@@ -68,6 +70,22 @@ def test_build_and_install_commands_enforce_no_sources_and_python_312(tmp_path: 
     command = install_command(tmp_path / "venv/bin/python", [tmp_path / "app.whl"])
     assert "--no-index" in command
     assert "app.whl" in command[-1]
+    export = export_test_requirements_command()
+    assert "--locked" in export
+    assert "--no-emit-workspace" in export
+    assert "open-brain-engine" not in export
+    assert engine_test_command(
+        tmp_path / "venv/bin/python",
+        tmp_path / "engine_test_runner.py",
+        tmp_path / "tests",
+        tmp_path / "venv/lib/python3.12/site-packages",
+    ) == (
+        str(tmp_path / "venv/bin/python"),
+        "-I",
+        str(tmp_path / "engine_test_runner.py"),
+        str(tmp_path / "tests"),
+        str(tmp_path / "venv/lib/python3.12/site-packages"),
+    )
 
 
 def test_isolated_environment_removes_source_masking_inputs() -> None:
@@ -85,6 +103,7 @@ def test_isolated_environment_removes_source_masking_inputs() -> None:
         "PATH": "/bin",
         "PYTHONDONTWRITEBYTECODE": "1",
         "PYTHONNOUSERSITE": "1",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
     }
 
 

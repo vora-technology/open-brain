@@ -9,6 +9,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import cast
 
+import open_brain_engine
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker  # type: ignore[import-untyped]
 from open_brain_engine.portable import (
@@ -22,9 +23,9 @@ from open_brain_engine.portable.v1 import validate_portable_write
 from open_brain_engine.storage.markdown import parse_markdown, render_markdown
 from referencing import Registry, Resource
 
-ENGINE_ROOT = Path(__file__).resolve().parents[2]
-SCHEMA_ROOT = ENGINE_ROOT / "src/open_brain_engine/portable/schemas/v1"
-FIXTURE_ROOT = ENGINE_ROOT / "src/open_brain_engine/portable/conformance/v1"
+PACKAGE_ROOT = Path(open_brain_engine.__file__).resolve().parent
+SCHEMA_ROOT = PACKAGE_ROOT / "portable/schemas/v1"
+FIXTURE_ROOT = PACKAGE_ROOT / "portable/conformance/v1"
 _FORMAT_CHECKER = FormatChecker()
 _DIGEST = "0" * 64
 TENANT = "tenant_123e4567-e89b-42d3-a456-426614174000"

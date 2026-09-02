@@ -1,13 +1,25 @@
 {
   "policy_version": 1,
   "phase": "4-engine-isolation",
+  "canonical_manifest": {
+    "distribution": "engine",
+    "member_rewrites": {
+      "sdist": {},
+      "wheel": {
+        "LICENSE": "open_brain_engine-0.1.0.dist-info/licenses/LICENSE",
+        "NOTICE": "open_brain_engine-0.1.0.dist-info/licenses/NOTICE"
+      }
+    },
+    "path": "docs/v0-package-classification.json",
+    "project_root": "packages/engine"
+  },
   "default_python_artifacts": {
     "wheel": {
       "configured_package_roots": [
         "src/open_brain_engine"
       ],
       "configured_exclusions": [],
-      "force_includes": [],
+      "force_includes": {},
       "required_members": [
         "open_brain_engine/__init__.py",
         "open_brain_engine/engine/__init__.py"
@@ -33,6 +45,11 @@
         "**/*.sqlite",
         "**/*.sqlite3"
       ],
+      "generated_member_patterns": [
+        "open_brain_engine-*.dist-info/METADATA",
+        "open_brain_engine-*.dist-info/RECORD",
+        "open_brain_engine-*.dist-info/WHEEL"
+      ],
       "status": "engine-isolated-unpublished"
     },
     "sdist": {
@@ -40,7 +57,15 @@
         "/pyproject.toml",
         "/src/open_brain_engine"
       ],
-      "configured_exclusions": [],
+      "configured_exclusions": [
+        "/.gitignore"
+      ],
+      "force_includes": {
+        "../../release/phase4-compatibility.json": "release/phase4-compatibility.json",
+        "../../release/phase4-toolchain.json": "release/phase4-toolchain.json",
+        "../../release/public-history-allowlist.json": "release/public-history-allowlist.json",
+        "../../release/v0-artifact-policy.json": "release/v0-artifact-policy.json"
+      },
       "required_members": [
         "src/open_brain_engine/__init__.py",
         "src/open_brain_engine/engine/__init__.py"
@@ -66,9 +91,13 @@
         "**/*.sqlite",
         "**/*.sqlite3"
       ],
+      "generated_member_patterns": [
+        "PKG-INFO"
+      ],
       "status": "engine-isolated-unpublished"
     }
   },
+  "build_hook": "packages/engine/hatch_build.py",
   "target_release_exclusions": [
     "open_brain/dev/**",
     "open_brain/migrate/**",
