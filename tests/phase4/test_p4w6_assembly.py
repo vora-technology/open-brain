@@ -307,6 +307,18 @@ def test_python_distribution_inventory_requires_exact_six_coordinates(tmp_path: 
         python_distribution_artifacts(tmp_path)
 
 
+def test_uv_build_ignore_cleanup_accepts_only_the_exact_generated_marker(tmp_path: Path) -> None:
+    marker = tmp_path / ".gitignore"
+    marker.write_bytes(b"*")
+
+    release_assembly._remove_uv_build_ignore(tmp_path)
+
+    assert not marker.exists()
+    marker.write_bytes(b"*\n")
+    with pytest.raises(ReleaseCandidateError, match="release candidate operation failed"):
+        release_assembly._remove_uv_build_ignore(tmp_path)
+
+
 def test_native_build_evidence_rebinds_signed_tree_without_private_metadata(
     tmp_path: Path,
 ) -> None:

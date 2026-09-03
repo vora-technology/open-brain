@@ -913,6 +913,7 @@ def build_python_distributions(
                         timeout=600,
                     )
                 )
+            _remove_uv_build_ignore(staging)
             if exact_source_tree_sha256(source_root) != source_tree_sha256:
                 raise ReleaseCandidateError(_FAILURE)
             inventory = python_distribution_artifacts(staging)
@@ -1423,6 +1424,19 @@ def _copy_release_artifact(
         path=destination,
         relative_to=root,
     )
+
+
+def _remove_uv_build_ignore(directory: Path) -> None:
+    marker = directory / ".gitignore"
+    try:
+        _regular_file(marker)
+        if marker.read_bytes() != b"*":
+            raise ReleaseCandidateError(_FAILURE)
+        marker.unlink()
+    except ReleaseCandidateError:
+        raise
+    except OSError as error:
+        raise ReleaseCandidateError(_FAILURE) from error
 
 
 def _copy_regular_file(source: Path, destination: Path) -> None:

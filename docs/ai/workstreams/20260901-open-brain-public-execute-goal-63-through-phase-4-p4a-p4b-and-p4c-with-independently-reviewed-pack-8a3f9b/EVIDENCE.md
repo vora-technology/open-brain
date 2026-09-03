@@ -850,9 +850,14 @@
   rejects untracked output residue, and revalidates all hashes, checksums, native-build evidence,
   notarization evidence, clean-host records, supported hosts, Portable range, and unpublished
   publication state.
-- Current pre-commit gates pass: `make p4w6-preflight` with 26 focused tests and pinned native
-  configuration; the 10-test release-policy suite; `make phase4-contracts` with 145 tests, Ruff,
-  strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,247 repository
+- Initial source candidate `b99e6194d6e4f28cf7b3294b6cd1c63ef734fbac` exposed one bounded
+  exact-build failure after all three Python distributions built: `uv build --out-dir` creates an
+  exact one-byte `*` `.gitignore` beside its outputs. The inventory continued to reject all
+  residue; assembly now removes only that exact generated marker and has a focused fail-closed
+  regression for any differing bytes.
+- Current pre-commit gates pass: `make p4w6-preflight` with 27 focused tests and pinned native
+  configuration; the 10-test release-policy suite; `make phase4-contracts` with 146 tests, Ruff,
+  strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,248 repository
   tests plus all six source-free distribution builds and artifact policy. Actionlint, ShellCheck,
   Perl syntax, diff integrity, and the immutable readiness hash also pass.
 - The immutable snapshot remains exactly
