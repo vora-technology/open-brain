@@ -962,3 +962,57 @@
   `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`; no readiness probe
   or P4-W5 target reran. P4-W6 is complete. P4-W7 is unstarted, and no publication, tag,
   release, deployment, production/private-content access, or cutover occurred.
+
+## P4-W7 exact-candidate audit
+
+- `P4-W7-AUDIT.md` maps the exact-candidate and aggregate P4A/P4B gates to
+  direct evidence. This audit does not claim P4B acceptance before the fresh
+  reviewer verdict.
+- Current head `ab3f860e23abab2177341c9598011487eaf5ab2b` differs from
+  accepted source `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` only in the
+  governed workstream records and gotcha registry allowed by D-031 and D-053.
+  The P4-W6 handoff packet validates at 1,936 serialized bytes.
+- All exact-source run and job records remain green: CI `33714932363` has 16
+  successful jobs, Release audit `33714932452` has the successful artifact,
+  source, complete-history, and Gitleaks steps, and CodeQL `33714929770` has
+  successful Python and Actions analyses. PR #6 reports 20 successful checks.
+- The six unexpired CI bundles were downloaded fresh. Their six Python
+  artifacts, Linux media and checksum, Linux native evidence, three Linux host
+  receipts, and macOS 14 source-equivalent receipt match the final candidate
+  exactly. GitHub reports SHA-256 digests for all six bundles.
+- The standalone release verifier returned `valid` with 23 artifacts bound to
+  source `537bc4f`. The manifest SHA-256 is
+  `e5891a2dab80034199be0102d39fc6ee5ff84499d1fb10c7f3d27e7f7e337ab5`.
+  A before/after aggregate over every candidate file remained
+  `82c5ee005ed008e6681a401e598ba485650c68def3d6982d504d158d92645a90`.
+- Both checksum files pass. DMG integrity, strict signature, staple, and
+  Gatekeeper checks pass. Fresh unpacked audits reproduce Linux membership
+  `121db9cdd0622785771b77456327499a82661b4fa9689d0f8e2e4e924647649a`
+  and tree `e3abd69ad931f1e20915a4caece3ce6b370cf91d4e9fba57047f1ca96dd8731c`,
+  plus macOS membership
+  `2b5ddbe0986f8ac4d9a427a950a02db75e9f22cf1a681e3f89768942fb26c344`
+  and tree `26ea9d2c5f26eda35e4957255227a8b6470ee6bbf69403df5b58c32a7d30f169`.
+- Exact Git materialization reproduces source-tree digest
+  `1fd73d629664e7284f2be4a9640be73982b5c7272b74ffaabcae0c5da74a2a11`.
+  Fresh generic source-plus-six-artifact and complete-history audits pass;
+  Gitleaks 8.30.1 scans all 114 currently reachable commits with no finding.
+  Artifact policy and candidate license, SPDX, checksum, and residue checks
+  pass. The accepted private-denylist result remains the unchanged
+  exact-candidate evidence; its private input was not available or recreated.
+- Fresh public-state checks report zero tags, releases, release assets, and
+  deployments. The three expected PyPI projects and 15 expected public GitHub
+  package coordinates are absent. Authenticated Actions artifacts remain
+  retained CI evidence only. No publish, push, merge, deployment,
+  production/private-state access, cutover, or P4-W8 action occurred.
+- D-054 records the exact CI/signing boundary for explicit independent
+  adjudication. P4-W7 and P4B remain pending the fresh review.
+- Review children 19 and 20 failed through the Codex CLI before execution when
+  both WebSocket and HTTPS transports returned HTTP 404. The second attempt
+  changed from explicit Sol to the documented GPT-5.6 family selector before
+  the two-identical-failure breaker closed that path. Child 21 then used the
+  separate in-app subagent channel and hit the same shared endpoint failure
+  before execution. All slots are released; no report or verdict exists.
+- The completed audit remains valid, but it is not self-certified. P4-W7 and
+  P4B are blocked at the mandatory fresh read-only review. Source, candidate,
+  P4-W5, the readiness snapshot, public release state, and P4-W8 remain
+  unchanged.

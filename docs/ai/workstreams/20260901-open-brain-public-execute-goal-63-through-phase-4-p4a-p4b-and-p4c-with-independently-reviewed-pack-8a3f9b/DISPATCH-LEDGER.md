@@ -442,3 +442,74 @@ coordinator-owned.
 - Final same-lineage result: `READY`; P0/P1/P2 `0/0/0`. The reviewer completed each missing
   bounded check, closed `P4W6-AR-001`, found no product issue, and confirmed P4-W6 ready for
   milestone closure.
+
+## P4-W7 milestone budget
+
+- Status: blocked; coordinator audit complete and fresh review unavailable
+- Active children: 0 of 6
+- Total children: 3 of 12
+- Identical failures: 2 of 2; children 19 and 20 hit the same CLI transport
+  endpoint failure, so that dispatch path is closed for this milestone
+- Consecutive timeouts: 0 of 2
+- Implementation writer: coordinator only; reviewer write scope is read-only
+- Review lineage: children 19, 20, and 21 dead without verdicts; all slots
+  released
+- Reset authority: P4-W6 child 18 is closed. The validated P4-W6 handoff,
+  rendered P4-W7 contract, and D-054 start a fresh milestone budget without
+  changing P4-W5, the readiness snapshot, source, or artifact bytes.
+
+## Child 19: P4-W7 exact-candidate and aggregate P4B review
+
+- Status: dead without verdict; slot released
+- Dispatch ID: `p4w7-review-01`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only independent final reviewer
+- Write scope: none
+- Source scope: accepted source
+  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`, its exact 23-coordinate
+  unpublished candidate, exact run state, P4-W7 audit, D-054, and all P4A/P4B
+  completion criteria
+- Required result: `READY` with P0/P1/P2 `0/0/0` and all three D-054
+  adjudications accepted, or `NOT_READY` with bounded findings
+- Result: the Codex CLI received HTTP 404 from both WebSocket and HTTPS
+  transports before model execution and produced no closed report. No review
+  occurred and no verdict is inferred.
+
+## Child 20: P4-W7 replacement exact-candidate and aggregate P4B review
+
+- Status: dead without verdict; slot released
+- Dispatch ID: `p4w7-review-02`
+- Model: `gpt-5.6`
+- Reasoning effort: `high`
+- Role: read-only independent final reviewer
+- Write scope: none
+- Source scope: identical to child 19
+- Retry strategy: use the documented family selector after the explicit Sol
+  endpoint returned 404 before execution; prompt and evidence remain unchanged
+- Required result: `READY` with P0/P1/P2 `0/0/0` and all three D-054
+  adjudications accepted, or `NOT_READY` with bounded findings
+- Result: the changed model selector reached the same HTTP 404 on both Codex
+  CLI transports before execution and produced no closed report. The
+  two-identical-failure breaker closes the CLI path; no review or verdict is
+  inferred.
+
+## Child 21: P4-W7 in-app exact-candidate and aggregate P4B review
+
+- Status: errored before execution; slot released and agent closed
+- Dispatch ID: `p4w7-review-03`
+- Agent ID: `01a067c2-50dd-7fe0-909b-7f3d8f1ae181`
+- Nickname: Halley
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only independent final reviewer
+- Write scope: none
+- Source scope: identical to children 19 and 20
+- Retry strategy: use the separate in-app subagent runtime after closing the
+  failed CLI transport path; the rendered prompt and evidence are unchanged
+- Required result: `READY` with P0/P1/P2 `0/0/0` and all three D-054
+  adjudications accepted, or `NOT_READY` with bounded findings
+- Result: the separate in-app runtime reached the same shared response
+  endpoint and received HTTP 404 before execution. No review, verdict, or file
+  change occurred. The milestone is blocked rather than weakening or
+  self-certifying the mandatory review gate.

@@ -10,22 +10,23 @@
 
 ## Current milestone
 
-- Milestone: P4-W6 signed/checksummed clean-host artifact matrix
-- Status: active from clean evidence checkpoint
-  `6d8ce32d2e5fcca187b28ae7b3a740d356fe220c`. P4-W5 remains complete at
-  accepted source `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. Private
-  notarization authentication is ready through a bounded receipt; the
-  immutable public readiness snapshot remains historical and unchanged.
-- Allowed scope: P4-W6-specific release/signing/checksum/manifest tooling and
-  tests; bounded shared exact-source native primitives that preserve P4-W5
-  behavior; Makefile and clean-host CI; release policy/toolchain/compatibility;
-  operator documentation; and bounded public/private workstream evidence.
-- Stop condition: any P4-W5 accepted-evidence or readiness-snapshot change,
-  credential/account metadata exposure, source-path or system-Python runtime
-  dependency, invalid signing/hardened-runtime/timestamp/notarization/stapling,
-  unsafe nested code or archive, non-exact source/artifact binding, weakened
-  host/lifecycle/privacy/recovery gates, publication, production/private-content
-  access, cutover, or P4-W7 work.
+- Milestone: P4-W7 exact-candidate audit and P4B review
+- Status: blocked after completing the coordinator audit from docs-only evidence checkpoint
+  `ab3f860e23abab2177341c9598011487eaf5ab2b`. The accepted source and exact
+  unpublished candidate remain bound to
+  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`. P4-W5 remains complete at
+  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`; the immutable readiness
+  snapshot remains historical and unchanged.
+- Allowed scope: P4-W7 prompt, audit, and read-only review records; direct
+  checks of the existing exact source, candidate, CI, public release state,
+  and P4A/P4B evidence; bounded workstream state; and one local evidence-only
+  checkpoint. Product source, tests, tooling, workflows, and artifact bytes
+  are frozen.
+- Stop condition: any source/artifact mismatch, incomplete or failed required
+  gate, public package/tag/release/download, review finding, P4-W5 or readiness
+  change, private-data exposure, candidate rebuild, source repair, push,
+  merge, publication, deployment, production/private-state access, cutover,
+  or P4-W8 action.
 - Base: freshly fetched `origin/main` at
   `3b89a4ba4787a378e6040ff042bd117da881918d`
 - Launch commit: reviewed planning commit cherry-picked as
@@ -665,3 +666,43 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`.
 - P4-W7 has not started. No artifact was published, tagged, released, deployed, or used for
   production/private-content access or cutover.
+
+## P4-W7 exact-candidate audit pending review
+
+- The rendered P4-W7 contract limits this wave to audit, public-state checks,
+  governed evidence, and one fresh read-only reviewer. It forbids product or
+  artifact changes, push, merge, publication, deployment, and P4-W8.
+- Current head `ab3f860e23abab2177341c9598011487eaf5ab2b` is a docs-only
+  successor of accepted source
+  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`. The P4-W6 handoff schema
+  validates, and its accepted-source identity is reconciled through D-031 and
+  D-053 rather than treated as the docs-only closure head.
+- CI `33714932363`, Release audit `33714932452`, and CodeQL `33714929770`
+  remain completed successfully at the exact accepted source. All 16 CI jobs
+  and all 20 PR checks are green. The six retained CI bundles are unexpired.
+- Fresh download and comparison proves that all six CI Python artifacts, the
+  Linux archive and checksum, Linux build evidence, three Linux host records,
+  and the macOS 14 source-equivalent record match the assembled candidate byte
+  for byte where they are candidate coordinates.
+- The standalone candidate verifier rehashed all 23 coordinates. Direct DMG
+  integrity, signature, stapling, and Gatekeeper checks passed. Fresh unpacked
+  audits reproduced the 111-member Linux and 144-member macOS membership and
+  tree digests. Exact Git materialization reproduced source-tree digest
+  `1fd73d629664e7284f2be4a9640be73982b5c7272b74ffaabcae0c5da74a2a11`.
+- Fresh source-plus-six-artifact generic release audit, complete reachable
+  history audit, Gitleaks 8.30.1 over 114 commits, artifact policy, SPDX,
+  license, checksum, and residue checks passed. The earlier exact-candidate
+  private-denylist audit remains valid because source and artifact bytes did
+  not change; that private input is unavailable in this shell and was not
+  reconstructed.
+- Public state reports zero tags, releases, release assets, and deployments.
+  All three expected PyPI project endpoints and 15 expected public GitHub
+  package coordinates return not found. Six authenticated Actions artifacts
+  remain CI evidence, not release assets or public package downloads.
+- The fresh reviewer must explicitly adjudicate D-054's CI boundary and every
+  P4A/P4B completion criterion. P4-W7 and P4B remain incomplete until that
+  reviewer returns `READY`, P0/P1/P2 `0/0/0`.
+- Three fresh reviewer dispatches across Codex CLI and the separate in-app
+  subagent channel failed at the shared response endpoint with HTTP 404 before
+  execution. No reviewer returned a verdict or changed a file. The milestone
+  is blocked at the mandatory fresh review and cannot advance to P4-W8.

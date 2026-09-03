@@ -671,3 +671,36 @@ has become corrupt.
 - Why: signing and assembly transform bytes after the native build, so source identity alone is
   insufficient. The closed manifest and independent artifact review bind every transformed byte
   and compatibility claim while preserving the immutable P4-W5 and readiness evidence.
+
+## D-054: audit the frozen P4-W6 candidate without creating a new artifact identity
+
+- Chosen: use exact-source CI `33714932363`, Release audit `33714932452`,
+  CodeQL `33714929770`, and their retained outputs as P4-W7's CI rebuild
+  evidence. Re-download and compare those outputs with the frozen 23-coordinate
+  candidate, then directly revalidate the final signed DMG and unpacked native
+  trees. Require the P4-W7 reviewer to accept or reject this boundary
+  explicitly.
+- Rejected: rerun P4-W5, rerun the readiness probes, rebuild or re-sign the
+  accepted P4-W6 candidate, create a new source identity from docs-only closure
+  commits, place signing authority in hosted CI, or publish an artifact merely
+  to make it reviewable.
+- Why: the exact run already rebuilt the six Python distributions, Linux
+  archive, and macOS source-equivalent native subject from accepted source
+  `537bc4f`. The final DMG is a timestamped, coordinator-only signing and
+  notarization transform under D-052, so byte-identical CI reproduction would
+  require a new signed artifact and would invalidate the candidate being
+  audited. Direct hash, signature, stapling, Gatekeeper, unpacked-tree, host,
+  and manifest checks preserve the intended independent evidence boundary.
+
+## D-055: block P4-W7 when no fresh reviewer can execute
+
+- Chosen: preserve the completed exact-candidate audit and stop P4-W7 as
+  blocked after two Codex CLI dispatches and one separate in-app subagent
+  dispatch all failed at the shared response endpoint before execution.
+- Rejected: make a third CLI retry, substitute the coordinator's own judgment,
+  reuse child 18's P4-W6 verdict as a fresh P4-W7 verdict, lower the required
+  `READY` threshold, use a non-Codex reviewer, or continue to P4-W8.
+- Why: the reviewed Phase 4 contract requires a fresh exact-source/artifact
+  Codex review after the P4-W7 gates are green. A transport failure provides
+  neither approval nor a finding. Stopping retains the verified audit without
+  converting unavailable independent judgment into false acceptance.
