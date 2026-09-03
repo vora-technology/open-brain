@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from open_brain.release.evidence import (
+from open_brain_legacy.release.evidence import (
     REQUIRED_DAY_CHECKS,
     DailyEvidence,
     DayCheck,
@@ -14,7 +14,7 @@ from open_brain.release.evidence import (
     StabilizationReset,
     StabilizationResetReason,
 )
-from open_brain.release.stabilization import validate_stabilization_evidence
+from open_brain_legacy.release.stabilization import validate_stabilization_evidence
 
 
 def test_stabilization_reset_restarts_the_seven_day_clock() -> None:

@@ -4,9 +4,10 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import quote
 
-from open_brain.engine import CaptureAction, ReferencePayload, TextPayload
-from open_brain.engine.contracts import project_public_result_text
-from open_brain.engine.local import BrainEngine
+from open_brain_engine.engine import CaptureAction, ReferencePayload, TextPayload
+from open_brain_engine.engine.contracts import project_public_result_text
+from open_brain_engine.engine.local import BrainEngine
+
 from open_brain.integrations.phase1_ui import Phase1UiHandler, Phase1UiRequest
 from open_brain.profile import compile_single_user_local
 

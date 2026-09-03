@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "status": "phase-0-characterization",
+  "records": [
+    {
+      "symbol": "open_brain_engine.core.models.CaptureEnvelope",
+      "fields": ["schema_version", "capture_id", "source_type", "content_kind", "source_url", "title", "shared_text", "captured_at", "capture_why", "capture_why_origin", "capture_source", "provenance", "raw_assets", "privacy_decision"],
+      "representation": "canonical_json",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.core.models.PrivacyDecision",
+      "fields": ["tier", "reason", "policy_version", "authority", "confirmation_ref"],
+      "representation": "nested_json",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.core.models.Provenance",
+      "fields": ["source_ref", "content_origin", "owner_context"],
+      "representation": "nested_json",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.core.models.RawAssetRef",
+      "fields": ["asset_id", "sha256", "media_type", "byte_length"],
+      "representation": "nested_json_and_blob",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.core.ports.EventRecord",
+      "fields": ["event_id", "stream_id", "event_type", "occurred_at", "privacy_decision", "payload", "redaction_receipt"],
+      "representation": "canonical_json_sqlite_event",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.core.ports.RedactionReceipt",
+      "fields": ["source_digest_sha256", "output_digest_sha256", "policy_version", "findings"],
+      "representation": "nested_json",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.review.models.Actor",
+      "fields": ["kind", "label"],
+      "representation": "nested_json",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.review.models.ReviewProposal",
+      "fields": ["schema_version", "review_id", "capture_id", "source_ref", "privacy_tier", "proposed_intent", "proposal_reason", "capture_why", "state", "created_at", "created_by"],
+      "representation": "canonical_json_sqlite_review",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.review.models.ReviewEvent",
+      "fields": ["decision_id", "review_id", "from_state", "to_state", "reason", "occurred_at", "actor"],
+      "representation": "canonical_json_sqlite_review",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_engine.review.models.ApprovedIntentRecord",
+      "fields": ["record_id", "review_id", "capture_id", "intent", "owner_statement", "source_ref", "privacy_tier", "approved_at", "approved_by"],
+      "representation": "canonical_json",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    },
+    {
+      "symbol": "open_brain_legacy.ledger.models.LedgerScanRecord",
+      "fields": ["record_id", "capture_id", "event_id", "event_digest_sha256", "event_type", "source_locator", "content_digest_sha256", "taxonomy_version", "route", "event_privacy_decision", "privacy_decision", "upstream_redaction_receipt", "redacted_text", "capture_why", "captured_at", "capture_source", "source_type", "content_kind", "provenance", "topic_id", "topic_label"],
+      "representation": "frozen_runtime_record",
+      "portable_v1_status": "legacy-characterized-not-portable-v1"
+    }
+  ],
+  "other_representations": [
+    {
+      "name": "canonical_markdown",
+      "source": "packages/engine/src/open_brain_engine/storage/markdown.py",
+      "authority": "owner knowledge plus canonical writer rules",
+      "portable": true
+    },
+    {
+      "name": "operational_sqlite",
+      "source": "packages/engine/src/open_brain_engine/storage/sqlite.py",
+      "authority": "engine migrations and single-writer rules",
+      "portable": false
+    }
+  ]
+}

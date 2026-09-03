@@ -1,9 +1,9 @@
 # Public CLI characterization
 
-This document records the retained Phase 0 parser and scheduled-route boundary. Phase 3 moves the
-installed CLI and MCP scripts to the appliance entrypoints and removes the standalone HTTP and
-legacy bridge scripts. The 31-family parser below remains compatibility evidence, while the
-packaging subsection follows current metadata.
+This document records the retained Phase 0 parser and scheduled-route boundary. The installed CLI
+and MCP behavior belongs to the isolated app distribution; standalone HTTP and legacy bridge
+scripts are not installed. The 31-family parser below remains compatibility evidence rather than
+the default installed entry point.
 
 The machine-readable source is [`tests/fixtures/phase0/public_cli.json`](../tests/fixtures/phase0/public_cli.json). The focused characterization test compares that fixture with the live parser registry, scheduled route registry, static `pyproject.toml` metadata, and stable exit-code constants.
 
@@ -60,12 +60,17 @@ Several routes share a parser path and are distinguished by their options and jo
 
 ## Packaging and entry points
 
-The static package metadata identifies distribution `open-brain`, version `0.1.0`, and these two Phase 3 console entry points:
+The app distribution is `open-brain` version `0.1.0`. Its installed scripts are:
 
-- `open-brain` → `open_brain.services.appliance_entrypoints:run_cli`
-- `open-brain-mcp` → `open_brain.services.appliance_entrypoints:run_mcp`
+- `open-brain = open_brain.services.appliance_entrypoints:run_cli`
+- `open-brain-mcp = open_brain.services.appliance_entrypoints:run_mcp`
 
-The test reads only the `[project]` and `[project.scripts]` tables from `pyproject.toml`. It does not inspect an installed environment, absolute paths, ignored files, or remote metadata.
+The app wheel depends on exactly `open-brain-engine==0.1.0`. Wheel-only acceptance verifies both
+script bindings, starts the daemon-owned CLI/UI journey, and runs with connector and legacy
+distributions absent.
+
+Source characterization still reads static parser metadata. Phase 4 acceptance independently
+checks installed distribution metadata, module origins, resources, and console scripts.
 
 ## Stable exit classes
 

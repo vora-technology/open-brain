@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from open_brain.release.day_zero import (
+from open_brain_legacy.release.day_zero import (
     DAY_ZERO_CHECKS,
     EXPECTED_JOB_IDS,
     EXPECTED_WRITER_SURFACES,

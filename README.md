@@ -97,10 +97,15 @@ not raw or encoded protected references, absolute paths, credentials, storage-de
 paths, or bare SHA-256 tokens.
 Phase 3 also defines source-checkout upgrade, rollback, and data-preserving uninstall through an
 injected artifact lifecycle port, with launchd/systemd adapter evidence on Linux and macOS CI. The
-default native-artifact effect remains unavailable. Phase 4 owns physical distributions, clean-host
-and prior-artifact proofs, signing, publishing, the `packages/` split, isolated connector workers,
-and bundler/native artifact work. Predecessor modules remain retained legacy compatibility code and
-are excluded from the default application path.
+default source-checkout effect remains unavailable. P4-W5 adds an unpublished frozen composition
+with a manifest-bound native adapter, active-daemon quiescence, rollback restoration, and confined
+managed cleanup. The native build reads an isolated archive of the named Git tree, rejects
+replacement refs and external attributes, and compares every extracted blob and mode with the raw
+no-replace tree. It admits only tracked package resources and records the source-tree digest.
+Launchd upgrades unload the KeepAlive job before offline work and bootstrap it again afterward.
+Later Phase 4 waves still own clean-host and prior-artifact proofs, signing, and publishing.
+Predecessor modules remain retained legacy compatibility code and are excluded from the default
+application path.
 
 ## License
 

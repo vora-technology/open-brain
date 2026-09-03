@@ -1,14 +1,15 @@
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     PrivacyDecision,
     PrivacyReason,
     PrivacyTier,
     RawAssetRef,
 )
-from open_brain.core.policy import BoundaryErrorCode
-from open_brain.core.ports import TextModelRequest, TextModelResult
-from open_brain.providers.base import ProviderService
-from open_brain.providers.transcription import (
+from open_brain_engine.core.policy import BoundaryErrorCode
+from open_brain_engine.core.ports import TextModelRequest, TextModelResult
+from open_brain_engine.providers.base import ProviderService
+
+from open_brain_legacy.providers.transcription import (
     TranscriptionRequest,
     TranscriptionResult,
     TranscriptionService,
@@ -165,4 +166,4 @@ def test_transcription_disabled_or_unauthorized_never_constructs_provider() -> N
     assert disabled.error_code is BoundaryErrorCode.OPTIONAL_EXTRA_UNAVAILABLE
     assert unauthorized.error_code is BoundaryErrorCode.CLOUD_AUTHORITY_REQUIRED
     assert factory_calls == 0
-    assert TranscriptionResult.__module__ == "open_brain.providers.transcription"
+    assert TranscriptionResult.__module__ == "open_brain_legacy.providers.transcription"

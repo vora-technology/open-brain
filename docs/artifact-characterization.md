@@ -1,35 +1,38 @@
 # v0 artifact characterization
 
-Status: Phase 0 explicit boundary. Machine policy:
+Status: Phase 4 P4-W6 unpublished release-candidate contract. Machine policy:
 [`release/v0-artifact-policy.json`](../release/v0-artifact-policy.json).
 
-This records the Python artifacts produced from the current monolith. It does not claim that the
-native v0 release exists or that mixed and legacy packages are ready to ship.
+This records the isolated Python artifacts, the accepted P4-W5 native build subject, and the
+P4-W6 assembly and verification contract. It does not claim that a native v0 release exists or
+that any artifact is ready to publish. A P4-W6 candidate remains unpublished even after every
+manifest coordinate and host result passes.
 
 ## Wheel
 
-Hatch builds the wheel from `src/open_brain`. The current wheel therefore contains the complete
-existing package graph, including paths classified as mixed, legacy, connector-specific, or
-workspace tooling. Phase 0 characterizes that fact instead of silently excluding files that the
-current CLI still imports.
+Hatch builds two wheels with workspace sources disabled:
 
-Two public compatibility resources are force-included:
+- `open-brain-engine` contains the public engine facade, engine implementation, and Portable
+  schemas/conformance data. It contains no app, connector, legacy, test, or workspace module.
+- `open-brain` contains app composition, daemon/HTTP/UI behavior, installed CLI/MCP entry points,
+  and packaged launchd/systemd templates. It has an exact `open-brain-engine==0.1.0` dependency
+  and contains no engine copy, connector, legacy, test, or workspace module.
 
-- `schemas/portable-brain/v1` at `open_brain/portable/schemas/v1`;
-- `tests/fixtures/portable-brain/v1` at
-  `open_brain/portable/conformance/v1`.
+The app scanner rejects imports of engine modules not marked public in
+`docs/v0-package-classification.json`. Installed acceptance creates a fresh product environment
+from only the app and engine wheels and runs the app tests from a separate test environment.
 
-The machine policy derives required members from every file in both resource trees, rather than
-sampling one representative schema or fixture. Missing files or new unaccounted-for files are
-therefore visible in artifact verification. The wheel status is
-`explicit-current-not-release-ready`.
+The machine policy derives required members from every classified artifact member. Missing files,
+new unaccounted-for files, private resources, and duplicate distribution/kind coordinates fail
+verification. The wheel statuses are `engine-isolated-unpublished` and
+`app-isolated-unpublished`.
 
 ## Source distribution
 
-The sdist has an explicit Hatch include list. It contains the current source package, root project
-metadata, the selected public architecture and contract documents, artifact policy, Portable
-Brain schemas, current-record characterization, contract tests, and synthetic conformance
-fixtures. It does not include nested workstream state under `docs/ai`.
+Each sdist has an explicit Hatch include list. The engine sdist contains engine source, Portable
+resources, and release policy metadata. The app sdist contains app source, public documentation,
+synthetic examples, and release policy metadata. Neither includes tests, nested workstream state
+under `docs/ai`, connector source, or legacy source.
 
 `open_brain.dev.artifact_policy` strips the sdist root directory and compares actual archive
 members with the machine policy. Missing schemas or conformance evidence, duplicate members,
@@ -37,11 +40,9 @@ unsafe member paths, operational state, credential paths, or database files fail
 
 ## Target release exclusions
 
-The current artifact and the target public artifact are different boundaries. Before release,
-package separation must remove workspace tooling, predecessor migration/parity and cutover code,
-optional cloud code, and source-specific connector bridges from the default app artifact. The
-complete target list is machine-readable. Optional connectors can be built and tested separately
-after their own Phase 2 contracts exist.
+The default app and engine artifacts already exclude workspace tooling, predecessor migration and
+cutover code, optional cloud code, and source-specific connector bridges. Connector and legacy
+distributions remain separate gated work. The complete exclusion list is machine-readable.
 
 ## Approved host matrix
 
@@ -51,9 +52,37 @@ v0 support promise.
 
 ## Native artifact status
 
-Phase 4 pending: PyInstaller 6 onedir is the first candidate, with Nuitka standalone as the
-accepted fallback if that spike fails. The policy has an empty `published` list and does not
-assert that a native artifact exists. No bundler spike or clean-host run is Phase 0 evidence.
+Native build subjects are present for PyInstaller 6.22.2 onedir with
+`pyinstaller-hooks-contrib` 2026.7 and Python 3.12. The same checked-in spec runs on native macOS
+ARM64 and Ubuntu 24.04 x86_64 CI. Its bounded audit records exact source identity, member and tree
+digests, policy-confined runtime and exact tracked resource membership, confined symlinks, frozen
+child routing, daemon restart, Portable requests through the public daemon control contract,
+verified backup and disposable restore, owner-confirmed corrupt-candidate rollback, native
+lifecycle upgrade, application uninstall, and clean managed residue. Each build materializes only
+the named Git tree, compares the archive with raw no-replace Git blob IDs and modes, and verifies
+that source image before and after PyInstaller runs. Replacement refs, external attributes, extra
+resources, and every `.env*` member fail closed. A canonical adapter-owned inventory enrolls
+candidates through lifecycle operations and may bootstrap only the explicit current link.
+Uninstall quarantines enrolled trees before non-symlink-following removal, including a tree whose
+manifest no longer validates, while unregistered candidates survive.
+
+The accepted P4-W5 subjects remain immutable inputs, not published release artifacts. P4-W6 uses
+separate exact-source builds with the `candidate_native-p4w6` identity. Linux media is a
+deterministic checksummed tarball. macOS media is a Developer ID Application-signed DMG whose
+nested Mach-O files are signed inside-out with hardened runtime and secure timestamps before the
+DMG is notarized, stapled, and assessed. The artifact-only clean-host harness covers install,
+schema upgrade, daemon supervision, backup and exact restore, V0-GATE-07, V0-GATE-13, Portable
+round trip, forced rollback, successful upgrade, uninstall, and residue without a source checkout
+or system Python.
+
+The final unpublished manifest binds six Python distributions, both native media files and their
+checksums, launchd and systemd resources, native-build and notarization evidence, SPDX and license
+evidence, and every required clean-host result. Linux runs the exact archive on Ubuntu 24.04,
+Ubuntu 26.04, and Debian 13. The signed DMG runs on the signing host. If an exact signed-candidate
+macOS 14 runner is unavailable, the manifest requires both a bounded unavailable-runner record and
+a separate source-equivalent macOS 14 lifecycle result. Nuitka standalone 4.2 remains the accepted
+fallback only if the documented PyInstaller failure gate is exhausted. The policy keeps
+`published` empty.
 
 ## Private-history audit
 
@@ -67,6 +96,12 @@ Reviewed historical false positives may be recorded in
 `release/public-history-allowlist.json`. Each entry binds one SHA-256 blob digest, one normalized
 repository path, and one rule. Only `absolute-home-path` and `private-ip-address` are eligible;
 credential, denylist, forbidden-path, and scan-limit findings cannot be suppressed.
+
+Gitleaks has a separate exact-fingerprint ignore file for reviewed synthetic or opaque public
+values that match a generic detector. Each exception binds the introducing commit, path, rule, and
+line. The immutable P4 readiness snapshot uses one such entry for an opaque receipt; its strict
+schema and fixed file SHA-256 remain independently enforced. Changing `.gitleaksignore` triggers
+the full Release audit workflow.
 
 The Phase 0 real-history result is recorded in
 [`docs/audits/2026-08-30-phase0-public-history-audit.md`](audits/2026-08-30-phase0-public-history-audit.md).

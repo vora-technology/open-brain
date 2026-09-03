@@ -568,26 +568,86 @@ Exit gate:
 - `V0-GATE-14` passes through the public app interface;
 - uninstall leaves the Brain root readable.
 
-### Phase 4: make the physical split
+### Phase 4: split, prove artifacts, and perform the full-stop cutover
 
-Estimate: 1 to 2 weeks.
+Estimate: 2 to 3 weeks for the code and artifact gates, followed by one
+owner-gated production window. The production window has no downtime cap; its
+duration is measured for evidence and does not authorize skipping a safety
+check.
 
-Work:
+Phase 4 uses three ordered gates. The detailed executable contract lives in
+[`phase-4-physical-split-native-artifacts-and-cutover.md`](phase-4-physical-split-native-artifacts-and-cutover.md).
+
+#### P4-W0: freeze the move and acceptance contracts
+
+Before moving a source file, extend the existing package classification into
+one machine-validated move manifest. It must assign every runtime file, test,
+fixture, schema, entry point, and packaged resource exactly one distribution,
+destination, API status, and artifact disposition. Destination collisions,
+stale or missing paths, unresolved old imports, and disallowed dependency
+edges fail the manifest gate.
+
+Build the Phase 4 acceptance harness at the same time. It must be able to
+prove, from installed artifacts rather than the repository source path, that:
+
+- the engine wheel works with no app source available;
+- the app works with the engine installed and connectors and legacy physically absent;
+- connector code uses only the versioned extension interface and public engine values;
+- default artifacts contain no legacy, workspace, private-fixture, or unselected cloud code;
+- every distribution, native artifact, and Portable Brain export reports one release identity and schema compatibility range.
+
+The current monolith produces bounded expected-red findings from this harness;
+the default repository test gate remains green. P4-W0 also pins the workspace,
+build backend, native build Python, PyInstaller and hooks versions, fallback
+criteria, signing/notarization prerequisites, and the first draft-PR CI lanes.
+
+#### Gate P4A: physical split and distribution isolation
 
 - create the four workspace areas and move code in dependency order: engine, app, connectors, then legacy;
-- replace temporary in-package facades with published package interfaces;
-- build each shipping distribution in an isolated environment;
-- remove old import paths and let legacy own any private compatibility wrapper;
-- build the accepted PyInstaller one-folder macOS `arm64` and Linux `x86_64` artifacts from the app distribution, or record the failed spike evidence and use the accepted Nuitka fallback.
+- use distinct top-level namespaces and published package interfaces; do not use a shared namespace or artifact include/exclude rules as a substitute for physical ownership;
+- keep move commits behavior-neutral; any required behavior repair gets a red regression and a separate verified commit;
+- remove old import paths rather than retaining indefinite compatibility shims;
+- build and test each shipping distribution in a disposable isolated environment;
+- ship a versioned provisional connector interface, conformance kit, and isolated worker runtime without claiming stable SDK compatibility before the reference, event, and measurement proofs all pass;
+- open a draft PR after P4-W0 and require the applicable macOS and Linux lanes to pass at each clean checkpoint.
 
-Exit gate:
+P4A exits only when the isolated engine, app, and connector checks pass, legacy
+and workspace code are physically absent from the default app environment,
+all old import paths are gone, the root suite passes, and a fresh read-only
+review accepts the exact green-CI candidate.
 
-- isolated engine tests pass with no app source on the import path;
-- isolated app tests pass without connectors or legacy installed;
-- connector tests run against only published extension interfaces;
-- artifact inspection finds no legacy modules, private fixtures, development tools, or optional cloud SDK unless selected;
-- wheel/sdist and native artifacts report one version and schema compatibility range;
-- Portable Brain exports report the same schema compatibility range as the engine and app artifacts.
+#### Gate P4B: native artifacts and clean-host proof
+
+- run the bounded PyInstaller 6 one-folder spike on native macOS `arm64` and Linux `x86_64` builders; switch to the accepted Nuitka standalone fallback only after the recorded PyInstaller failure gate is met;
+- implement the real app-owned native artifact lifecycle adapter without changing the Phase 3 orchestration contract;
+- build the macOS artifact on macOS and the Linux artifact on Linux; neither artifact may require system Python on its release host;
+- run clean-host install, initialization, daemon, capture, review, retrieval, backup, disposable restore, Portable export/import, prior-schema upgrade, uninstall, and residue checks against the exact artifacts;
+- sign and notarize the macOS candidate, checksum the Linux archive, and bind wheels, sdists, native artifacts, supervisor templates, supported-version metadata, and schema compatibility to one unpublished release-candidate manifest;
+- scan source, complete Git history, every Python artifact, and unpacked native artifacts for private or forbidden content.
+
+P4B exits only after the full host matrix and required CI are green and a
+fresh exact-candidate review returns no P0, P1, or P2 finding. Phase 4 proves
+publishable artifacts but does not upload packages, create tags or releases,
+or satisfy the publication half of `V0-INSTALL-01`; public release remains
+Phase 5.
+
+#### Gate P4C: owner-gated full-stop production cutover
+
+- verify fresh encrypted recovery points and disposable restores against the exact P4B artifact;
+- rehearse one transaction that stops all predecessor writers together, proves zero remaining predecessor writer authority, performs copy-only/idempotent migration and derived-state rebuilds, starts Open Brain, verifies all required surfaces, and either accepts the result or restores the complete prior owner map;
+- after independent receipt review, run the same transaction in the authorized production window;
+- prove data integrity, privacy, queue health, exactly one writer for every shared surface, and healthy Open Brain entry points before restoring synchronization or declaring success;
+- retain disabled predecessors, backups, manifests, helpers, and all rollback assets; deletion, decommissioning, and irreversible cleanup remain unauthorized;
+- record the day-0 stabilization baseline and reset rules on the final unchanged production state.
+
+This gate supersedes the phased/one-surface-at-a-time transition order and
+the rehearsal-derived four-hour downtime formulas in Goals `#24` and `#41`.
+It does not weaken their parity, backup, verified-restore, privacy,
+exactly-one-writer, rollback, retention, or day-0 evidence requirements.
+
+Phase 4 exits only when P4A, P4B, and P4C all pass against bound source,
+artifact, configuration, migration, and recovery identities. No predecessor
+or rollback asset is deleted, and no public package or release is published.
 
 ### Phase 5: release the public alpha
 

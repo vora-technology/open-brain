@@ -1,0 +1,11 @@
+[Unit]
+Description=Open Brain appliance daemon
+
+[Service]
+Type=simple
+@OPEN_BRAIN_SOURCE_CHECKOUT@
+ExecStart=@OPEN_BRAIN_COMMAND@
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

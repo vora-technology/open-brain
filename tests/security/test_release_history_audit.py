@@ -9,7 +9,7 @@ from subprocess import run
 import pytest
 from pytest import CaptureFixture
 
-from open_brain.dev.public_history_audit import HistoryFinding, audit_history, main
+from tools.open_brain_dev.public_history_audit import HistoryFinding, audit_history, main
 
 
 def git(repository: Path, *args: str) -> str:

@@ -1,111 +1,122 @@
 # Open Brain
 
 **GitHub:** `vora-technology/open-brain`
-**Stack:** Python 3.12–3.14, standard-library engine contracts, filesystem/SQLite/Markdown persistence, typed app and connector boundaries
+**Stack:** Python 3.12–3.14, Hatch/uv workspace packages, filesystem/SQLite/Markdown persistence
 
 ## Quick reference
 
-| Property | Value |
+| Action | Command or state |
 |---|---|
-| Local development | `OPEN_BRAIN_ROOT=$HOME/open-brain-data uv run open-brain inbox list --json`; one private Brain root, no bound service port |
-| Staging | TBD |
-| Production | Python CLI/service with generic launchd/systemd templates; Docker deferred |
+| Install | `uv sync --frozen --group dev` |
+| Local CLI | `OPEN_BRAIN_ROOT=$HOME/open-brain-data uv run open-brain inbox list --json` |
+| Full verification | `make verify` |
+| Phase 4 contracts | `make phase4-contracts` |
+| P4-W5 candidate preflight | `make p4w5-preflight` runs focused native/lifecycle contracts, pinned configuration, static checks, manifest validation, and diff integrity |
+| Native spike | `make p4w5-native P4W5_SOURCE_SHA=<exact-clean-HEAD>` builds, audits, and smokes one target-native PyInstaller onedir subject |
+| Python artifacts | `make verify-artifacts` builds and audits engine+app+connector wheels/sdists |
+| Release state | Python artifacts and native P4-W5 build subjects are unpublished; signing, clean-host proof, deployment, and publication remain pending |
 
 ## Architecture
 
-| Layer | Responsibility |
+| Boundary | Responsibility |
 |---|---|
-| `profile` | Compile one owner-only `single-user-local` Brain root, stable portable identity, provider-none mode, and optional starter spaces |
-| `engine` | Capture, inbox/space, review, publication, recovery, retrieval, and Portable validate/export/clean-import/rebuild task surfaces |
-| `services/phase1_application` | Compose one engine task set and inject bounded capabilities into each default representation and public job |
-| `core` | Immutable capture/privacy values, deterministic IDs, intent policy, ports, provider/executor guards |
-| `review` | Terminal review state machine and owner-authored approved-intent records |
-| `storage` | Root-confined atomic raw/Markdown persistence and checksummed SQLite migrations |
-| `events` | Idempotent SQLite event stream over redacted typed records |
-| `config` | Explicit environment/TOML/default precedence with local-only safe defaults |
-| `capture` | Durable intake, authenticated share parsing, pinned egress, bounded extractors, versioned redaction, and recovery-safe orchestration |
-| `providers` | Retained legacy provider composition; the Phase 2 single-user profile uses provider `none` |
-| `services/connectors` | Internal allow-listed connector host, host evidence, bounded receipts, and checkpoint binding |
-| `legacy` | Retained predecessor and operational compatibility modules; never imported by the default Phase 2 path |
-| `ledger` | Receipt-bound scan/stage, sanitized merge, durable publication, archive-first slim, and lock-guarded synthesis |
-| `integrations/phase1_ui` | Bearer-authenticated, framework-neutral Phase 1 HTML/API handler over engine tasks |
+| `packages/engine/src/open_brain_engine` | App-independent domain engine, public task contracts, persistence, Portable schemas, and conformance data |
+| `packages/app/src/open_brain` | Installed CLI/MCP entry points, appliance daemon, HTTP/UI, app configuration, and engine composition |
+| `packages/connectors` | Provisional connector distribution, YouTube reference implementation, conformance kit, and tests; not a default app dependency |
+| `packages/legacy` | Physically quarantined private compatibility source; not a default app or engine dependency |
+| `tools/open_brain_dev` | Workspace-only artifact and release-safety tooling |
+| `tools/phase4` | Canonical move-manifest validation and isolated built-artifact acceptance harnesses |
+| `docs/v0-package-classification.json` | Source of truth for ownership, API status, movement, imports, tests, resources, and artifact membership |
+| `release/v0-artifact-policy.json` | One unpublished release contract keyed by Python distribution and artifact kind |
 
-Domain contracts do not import concrete adapters, CLI, HTTP, configuration, integrations, or operations. Private content and rendered host configuration stay outside this repository.
+The engine cannot import app, connector, legacy, or workspace modules. The app depends on exactly
+`open-brain-engine==0.1.0` and may import only engine modules marked public in the canonical
+manifest. Mutating installed CLI/UI requests go through the appliance daemon; MCP receives only
+space-scoped read capabilities and metadata feedback. The connector distribution depends on exact
+app and engine versions. It may import app code only through the published provisional extension
+modules under `open_brain.extensions`. The private legacy distribution depends only on the engine;
+its retained predecessor support is confined to `open_brain_legacy._compat`.
 
 ## Key files
 
 | File | Purpose |
 |---|---|
-| `pyproject.toml` | Packaging, supported Python versions, tools, and extras |
-| `src/open_brain/profile.py` | Single-user local Brain-root compiler and stable owner identity |
-| `src/open_brain/engine/` | Public task contracts, local engine implementation, Portable operations, and public-result projection |
-| `src/open_brain/services/phase1_application.py` | Default single-user app composition and bounded representation capabilities |
-| `src/open_brain/services/phase1_entrypoints.py` | Installed CLI, HTTP, and MCP process entry points |
-| `src/open_brain/services/connectors.py` | Internal connector contract and host-owned evidence boundary |
-| `src/open_brain/production/youtube_poll.py` | Explicit, capture-only `JOB-029` reference proof |
-| `src/open_brain/cli/main.py` | Retained legacy parser and scheduled-route shell |
-| `src/open_brain/cli/phase1.py` | Thin Phase 1 CLI adapters over engine tasks |
-| `src/open_brain/integrations/phase1_ui.py` | Authenticated local UI request handler |
-| `src/open_brain/core/models.py` | Capture provenance and immutable privacy contracts |
-| `src/open_brain/core/policy.py` | Closed intent routing and provider/executor guards |
-| `src/open_brain/core/ports.py` | Private raw and redacted work-tier port records |
-| `src/open_brain/review/models.py` | Review state machine and approval audit binding |
-| `src/open_brain/storage/` | Atomic filesystem, frontmatter, and SQLite foundations |
-| `src/open_brain/events/store.py` | Idempotent SQLite event adapter |
-| `src/open_brain/config.py` | Immutable local-first configuration |
-| `src/open_brain/capture/queue.py` | Process-safe durable capture recovery queue |
-| `src/open_brain/capture/http.py` | Framework-neutral authenticated share boundary |
-| `src/open_brain/capture/egress.py` | DNS/redirect/cookie-validated pinned egress policy |
-| `src/open_brain/capture/service.py` | Raw-to-hold/event/distillation orchestration |
-| `src/open_brain/capture/redaction.py` | Approved deterministic work-tier redaction policy |
-| `src/open_brain/providers/base.py` | One-provider selection and fail-closed cloud boundary |
-| `src/open_brain/providers/local.py` | Injected local text-model adapter |
-| `src/open_brain/ledger/scan.py` | Work-item/event compound binding and trusted taxonomy routing |
-| `src/open_brain/ledger/service.py` | Deterministic two-document ledger preparation and apply |
-| `src/open_brain/ledger/store.py` | Metadata-only journal, publication manifest, and durable slim state |
-| `src/open_brain/ledger/synthesis.py` | Strict structured synthesis outside authoritative locks |
-| `src/open_brain/ledger/synthesis_store.py` | Atomic evaluating synthesis page/row/link-back persistence |
-| `src/open_brain/review/service.py` | Review outbox and receipt-verified owner-output delivery |
-| `src/open_brain/review/routing.py` | Closed reference/hold/review-only Phase 4 intent orchestration |
-| `src/open_brain/dev/release_audit.py` | Public-tree and release-artifact safety audit |
+| `pyproject.toml` | Workspace membership and root test/lint/typecheck configuration |
+| `packages/engine/pyproject.toml` | Isolated `open-brain-engine` package and artifact configuration |
+| `packages/app/pyproject.toml` | Isolated `open-brain` package, exact engine dependency, and installed scripts |
+| `packages/connectors/pyproject.toml` | Isolated `open-brain-connectors` package, exact app/engine dependencies, and provisional v1 entry point |
+| `packages/engine/src/open_brain_engine/engine/__init__.py` | Explicit public engine facade |
+| `packages/engine/src/open_brain_engine/portable/` | Portable schemas, validator, and conformance resources |
+| `packages/app/src/open_brain/extensions/connectors.py` | Published provisional connector values and app-owned host contracts |
+| `packages/app/src/open_brain/extensions/connector_worker_v1.py` | Bounded worker request, receipt, process, capability, and replay protocol |
+| `packages/connectors/src/open_brain_connectors/conformance.py` | Real YouTube reference conformance run and entry-point object |
+| `tools/phase4/readiness_preflight.py` | Reusable read-only P4-W5 through P4-W9 readiness snapshot with boolean and opaque-receipt output only |
+| `release/native/open-brain.spec` | Deterministic PyInstaller onedir spec shared by native macOS ARM64 and Linux x86_64 builders |
+| `tools/phase4/native_build.py` | Exact-source native build, policy-bound membership/digest audit, and frozen recovery/Portable/upgrade/rollback/uninstall smoke |
+| `packages/app/src/open_brain/profile.py` | Single-user local Brain-root compiler and stable owner identity |
+| `packages/app/src/open_brain/services/appliance_entrypoints.py` | Installed `open-brain` and `open-brain-mcp` callables |
+| `packages/app/src/open_brain/services/appliance_daemon.py` | Sole installed mutation authority and control transport |
+| `packages/app/src/open_brain/services/appliance_supervisors.py` | Source-checkout rendering plus bounded frozen-native unit-file and host-command effects |
+| `packages/app/src/open_brain/resources/supervisors/` | Packaged launchd/systemd templates loaded with `importlib.resources` |
+| `packages/app/src/open_brain/integrations/phase1_ui.py` | Authenticated local UI/API handler over app task capabilities |
+| `packages/app/tests/contract/test_v0_wheel_gates.py` | Explicit wheel-only `V0-GATE-07` and `V0-GATE-13` journeys |
+| `tests/phase4/test_connector_distribution.py` | Wheel-only connector build, import-boundary, entry-point, worker, replay, and CI contracts |
+| `tools/phase4/acceptance_harness.py` | Wheel build/install isolation, membership, import, and installed-test contracts |
+| `tools/open_brain_dev/artifact_policy.py` | Multi-distribution wheel/sdist membership verifier |
 | `docs/architecture.md` | Package and dependency boundaries |
 | `docs/privacy-model.md` | Privacy, public-result projection, connector evidence, and provider-routing invariants |
 
 ## Common commands
 
 ```bash
-uv sync --group dev
-OPEN_BRAIN_ROOT=$HOME/open-brain-data uv run open-brain inbox list --json
+uv sync --frozen --group dev
 make lint
 make typecheck
 make test
-make build
-PRIVATE_DENYLIST=/path/to/private-denylist.txt make audit
+make phase4-contracts
+make p4w5-preflight
+make verify-artifacts
+make verify
+PRIVATE_DENYLIST=/absolute/path/to/private-denylist.txt make audit
+```
+
+Run isolated app acceptance directly with:
+
+```bash
+uv run pytest -q tests/phase4/test_app_distribution.py
+```
+
+Run isolated connector acceptance directly with:
+
+```bash
+uv run pytest -q tests/phase4/test_connector_distribution.py
 ```
 
 ## Environment variables
 
 | Variable | Purpose |
 |---|---|
-| `OPEN_BRAIN_ROOT` | One absolute private Brain root for the Phase 2 `single-user-local` profile; takes precedence over retained-root composition |
-| `OPEN_BRAIN_CONFIG` | Absolute path to an untracked TOML file for retained legacy/application configuration |
-| `OPEN_BRAIN_STATE_ROOT`, `OPEN_BRAIN_WORK_ROOT`, `OPEN_BRAIN_PERSONAL_ROOT`, `OPEN_BRAIN_CAPTURE_ROOT`, `OPEN_BRAIN_SAVED_CONTENT_ROOT`, `OPEN_BRAIN_BACKUP_ROOT` | Retained-root configuration; not a second Phase 2 profile |
-| `OPEN_BRAIN_PROVIDER`, `OPEN_BRAIN_CLOUD_ENABLED`, `OPEN_BRAIN_EGRESS_ENABLED` | Retained composition settings; the single-user profile fixes provider `none`, and egress is off unless explicitly enabled for a connector |
-| `OPEN_BRAIN_PROVIDER_CONFIG` | Absolute private provider configuration reference for retained scheduled composition |
-| `OPEN_BRAIN_JOB_ID` | Retained legacy-facade route selector; synthetic connector proof uses `JOB-029` |
-| `OPEN_BRAIN_YOUTUBE_CONFIG` | Absolute private YouTube connector configuration reference; without it, the default connector profile is empty |
-| `OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS` | JSON array of caller-allowed opaque space IDs; `[]` supplies an empty MCP scope |
-| `OPEN_BRAIN_UI_BIND`, `OPEN_BRAIN_UI_PORT`, `OPEN_BRAIN_UI_ALLOW_PRIVATE` | Bounded local HTTP bind settings; defaults are `127.0.0.1`, `8788`, and `false` |
+| `OPEN_BRAIN_ROOT` | One absolute private Brain root; required by installed stateful commands |
+| `OPEN_BRAIN_CONFIG` | Absolute path to an untracked TOML application configuration |
+| `OPEN_BRAIN_STATE_ROOT`, `OPEN_BRAIN_WORK_ROOT`, `OPEN_BRAIN_PERSONAL_ROOT`, `OPEN_BRAIN_CAPTURE_ROOT`, `OPEN_BRAIN_SAVED_CONTENT_ROOT`, `OPEN_BRAIN_BACKUP_ROOT` | Retained-root configuration; not a second single-user profile |
+| `OPEN_BRAIN_PROVIDER`, `OPEN_BRAIN_CLOUD_ENABLED`, `OPEN_BRAIN_EGRESS_ENABLED` | Retained composition settings; the default single-user profile is provider-none and egress-off |
+| `OPEN_BRAIN_PROVIDER_CONFIG` | Absolute private provider configuration reference |
+| `OPEN_BRAIN_JOB_ID` | Retained legacy-facade route selector |
+| `OPEN_BRAIN_YOUTUBE_CONFIG` | Absolute private YouTube connector configuration; absence keeps the default connector profile empty |
+| `OPEN_BRAIN_MCP_ALLOWED_SPACE_IDS` | JSON array of caller-allowed opaque space IDs; `[]` creates an empty MCP scope |
+| `OPEN_BRAIN_UI_BIND`, `OPEN_BRAIN_UI_PORT`, `OPEN_BRAIN_UI_ALLOW_PRIVATE` | HTTP bind settings; defaults are `127.0.0.1`, `8788`, and `false` |
+| `OPEN_BRAIN_UI_EXTERNAL_TLS_TERMINATION`, `OPEN_BRAIN_UI_EXTERNAL_ORIGIN` | Required external encryption/origin declarations for an explicitly allowed private-network bind |
 
-The installed CLI reads `OPEN_BRAIN_ROOT` at its Phase 1 process boundary and does not import the
-retained legacy scheduler facade. MCP receives an already space-scoped retrieval capability plus
-metadata feedback; it does not receive the unrestricted retrieval task, profile, portability, or
-writer authority. Other composition roots must pass an explicit environment mapping. Core/config
-tests intentionally ignore ambient process variables.
+Core/config tests intentionally ignore ambient process variables. Other composition roots must pass
+an explicit environment mapping.
 
 ## Deployment
 
-No deployment exists. Generic launchd/systemd templates arrive only after production transport, composition, and service contracts stabilize.
+No public deployment or package publication exists. The app wheel contains generic launchd/systemd
+templates for installed-mode rendering without a checkout `PYTHONPATH`. The connector wheel is
+optional, provisional, and absent from default app acceptance. P4-W5 has a pinned native build and
+smoke subject, but signing, notarization, clean-host lifecycle proof, and production cutover remain
+separate gated work.
 
 ## Gotchas
 
@@ -145,8 +156,24 @@ No deployment exists. Generic launchd/systemd templates arrive only after produc
 
 **Space slugs are stable storage keys.** Renaming a space changes its display name but does not move the directory or change its ID; routing and references remain stable.
 
+**Artifact isolation requires `uv build --no-sources`.** Workspace source substitution can make an invalid package appear healthy; installed acceptance must use only the built wheels required by that product journey.
+
+**App tests cannot read checkout-relative engine fixtures or source.** Load packaged schemas, conformance data, and module source through installed package resources/paths so wheel-only tests remain real.
+
+**Artifact uniqueness is per distribution and kind.** Three wheels are expected after P4-W3; reject duplicates by `(app|connector|engine, wheel|sdist)`, not by kind alone.
+
+**Supervisor rendering has two explicit modes.** Pass a checkout root only for source execution. Installed mode loads packaged templates and must not emit `PYTHONPATH` or a checkout working directory.
+
+**The app cannot reach engine internals by convenience import.** Add an engine module to the canonical public API deliberately before importing it from app code; the wheel scanner rejects private imports.
+
+**Run worker code through a separate bootstrap module.** Executing the protocol module with `python -m` defines its classes under `__main__`; connector imports then create different exact-type identities. `connector_worker_child.py` must import and invoke the canonical protocol module.
+
+**A valid child receipt can still violate the issued budget.** Revalidate both run counts against the parent request, require replay to create no captures, and bind the reported capture count to created receipts before accepting worker metadata.
+
+**Installed connector metadata is not in-process execution authority.** The public entry-point group is worker-only. Keep explicitly injected compatibility sources on the separate internal group, and never let the default app registry resolve installed connector code.
+
+**Artifact-policy coordinates match manifest disposition labels exactly.** Use singular `connector` so the policy selects `connector-wheel` and `connector-sdist`; plural `connectors` silently selects no canonical members.
+
+**`actionlint` does not prove a pinned action commit exists.** Keep repeated action pins identical across jobs and test that invariant; a one-character SHA drift fails during job setup before any repository step runs.
+
 > Full registry: `docs/engineering/gotchas/README.md`.
-
-## Available skills
-
-No project-specific skill exists yet.

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from hashlib import sha256
 
-from open_brain.core.models import (
+from open_brain_engine.core.models import (
     Authority,
     CaptureEnvelope,
     CaptureSource,

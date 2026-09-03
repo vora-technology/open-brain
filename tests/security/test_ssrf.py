@@ -5,16 +5,16 @@ from dataclasses import dataclass, field
 from sys import float_info
 
 import pytest
+from open_brain_engine.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
+from open_brain_engine.core.ports import FetchRequest
 
-from open_brain.capture.egress import (
+from open_brain_legacy.capture.egress import (
     EgressFailure,
     EgressFailureCode,
     OutboundFetcher,
     PinnedRequest,
     TransportResponse,
 )
-from open_brain.core.models import Authority, PrivacyDecision, PrivacyReason, PrivacyTier
-from open_brain.core.ports import FetchRequest
 
 
 @dataclass

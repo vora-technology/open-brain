@@ -6,9 +6,11 @@ on:
     branches: [main]
   pull_request:
     paths:
+      - ".gitleaksignore"
       - "pyproject.toml"
       - "uv.lock"
       - "src/**"
+      - "packages/**"
       - "schemas/**"
       - "release/**"
       - "tests/contract/**"
@@ -16,11 +18,15 @@ on:
       - "tests/integration/release/**"
       - "tests/security/**"
       - "docs/*.md"
+      - "docs/v0-package-classification.json"
       - "examples/**"
       - "LICENSE"
       - "NOTICE"
       - "Makefile"
-      - ".github/workflows/release-audit.yml"
+      - "tools/open_brain_dev/**"
+      - "tools/phase4/**"
+      - "tests/phase4/**"
+      - ".github/workflows/*.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,25 +46,26 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: "3.14"
+          version: "0.12.8"
           enable-cache: true
       - run: uv sync --frozen --group dev
-      - run: uv run python -m build
+      - run: make build
       - name: Verify artifact member policy
         run: >-
-          uv run python -m open_brain.dev.artifact_policy
+          uv run python -m tools.open_brain_dev.artifact_policy
           --policy release/v0-artifact-policy.json
           --artifacts dist/*
       - name: Create synthetic CI denylist
         run: printf '%s\n' "ci-private-canary-${GITHUB_RUN_ID}" > "$RUNNER_TEMP/private-denylist.txt"
       - name: Audit source tree and built artifacts
         run: >-
-          uv run python -m open_brain.dev.release_audit
+          uv run python -m tools.open_brain_dev.release_audit
           --root .
           --private-denylist "$RUNNER_TEMP/private-denylist.txt"
           --artifacts dist/*
       - name: Audit reachable Git history
         run: >-
-          uv run python -m open_brain.dev.public_history_audit
+          uv run python -m tools.open_brain_dev.public_history_audit
           --repository .
           --private-denylist "$RUNNER_TEMP/private-denylist.txt"
       - name: Scan Git history with Gitleaks

@@ -8,9 +8,13 @@ from typing import cast
 
 import pytest
 
+from tools.phase4.move_manifest import validate_manifest
+
 REPOSITORY_ROOT = Path(__file__).parents[2]
 CLASSIFICATION_PATH = REPOSITORY_ROOT / "docs" / "v0-package-classification.json"
-SOURCE_ROOT = REPOSITORY_ROOT / "src" / "open_brain"
+MONOLITH_SOURCE_ROOT = REPOSITORY_ROOT / "src" / "open_brain"
+APP_SOURCE_ROOT = REPOSITORY_ROOT / "packages" / "app" / "src" / "open_brain"
+LEGACY_SOURCE_ROOT = REPOSITORY_ROOT / "packages" / "legacy" / "src" / "open_brain_legacy"
 OWNERS = {"engine", "app", "connector", "hosted", "legacy", "workspace"}
 
 
@@ -60,11 +64,58 @@ def _source_files(source_root: Path) -> list[Path]:
     return sorted(path for path in source_root.rglob("*.py") if "__pycache__" not in path.parts)
 
 
+def _current_open_brain_source(
+    classification: dict[str, object], relative_path: str
+) -> tuple[Path, Path]:
+    record = _metadata(_classified_files(classification), relative_path)
+    current_path = record.get("current_path")
+    if not isinstance(current_path, str):
+        raise TypeError("classification current path must be a string")
+    path = REPOSITORY_ROOT / current_path
+    for source_root in (APP_SOURCE_ROOT, LEGACY_SOURCE_ROOT):
+        if path.is_relative_to(source_root):
+            return path, source_root
+    raise ValueError(f"classified path is outside the open_brain namespace: {current_path}")
+
+
+def _current_open_brain_sources(
+    classification: dict[str, object],
+    *,
+    source_roots: tuple[Path, ...] = (APP_SOURCE_ROOT, LEGACY_SOURCE_ROOT),
+) -> list[tuple[str, Path, Path]]:
+    sources: list[tuple[str, Path, Path]] = []
+    for relative_path, raw_record in _classified_files(classification).items():
+        if not isinstance(raw_record, dict):
+            raise TypeError("classification record must be an object")
+        current_path = raw_record.get("current_path")
+        if not isinstance(current_path, str) or not current_path.endswith(".py"):
+            continue
+        path = REPOSITORY_ROOT / current_path
+        if not path.is_file():
+            continue
+        for source_root in source_roots:
+            if path.is_relative_to(source_root):
+                sources.append((relative_path, path, source_root))
+                break
+    return sorted(sources)
+
+
 def _classified_files(classification: dict[str, object]) -> dict[str, object]:
     files = classification.get("files")
     if not isinstance(files, dict):
         raise TypeError("classification files must be an object")
     return cast(dict[str, object], files)
+
+
+def _planned_source_classification(classification: dict[str, object]) -> dict[str, object]:
+    planned = deepcopy(classification)
+    files = _classified_files(planned)
+    planned["files"] = {
+        path: value
+        for path, value in files.items()
+        if isinstance(value, dict) and value.get("movement_state") != "moved"
+    }
+    return planned
 
 
 def _metadata(files: dict[str, object], relative_path: str) -> dict[str, object]:
@@ -103,11 +154,19 @@ def _absolute_from_module(node: ast.ImportFrom, path: Path, source_root: Path) -
 
 
 def _module_target(module: str, classified_paths: set[str]) -> str | None:
-    if module == "open_brain":
+    if module in {"open_brain", "open_brain_legacy"}:
         return "__init__.py" if "__init__.py" in classified_paths else None
-    if not module.startswith("open_brain."):
+    root = next(
+        (
+            candidate
+            for candidate in ("open_brain", "open_brain_legacy")
+            if module.startswith(f"{candidate}.")
+        ),
+        None,
+    )
+    if root is None:
         return None
-    relative = module.removeprefix("open_brain.").replace(".", "/")
+    relative = module.removeprefix(f"{root}.").replace(".", "/")
     module_path = f"{relative}.py"
     package_path = f"{relative}/__init__.py"
     if module_path in classified_paths:
@@ -137,11 +196,14 @@ def _import_references(
             references.extend(
                 ImportReference(node.lineno, alias.name)
                 for alias in node.names
-                if alias.name == "open_brain" or alias.name.startswith("open_brain.")
+                if alias.name in {"open_brain", "open_brain_legacy"}
+                or alias.name.startswith(("open_brain.", "open_brain_legacy."))
             )
         elif isinstance(node, ast.ImportFrom):
             module = _absolute_from_module(node, path, source_root)
-            if module != "open_brain" and not module.startswith("open_brain."):
+            if module not in {"open_brain", "open_brain_legacy"} and not module.startswith(
+                ("open_brain.", "open_brain_legacy.")
+            ):
                 continue
             for alias in node.names:
                 candidate = module if alias.name == "*" else f"{module}.{alias.name}"
@@ -157,28 +219,37 @@ def _import_references(
                 isinstance(argument, ast.Constant)
                 and isinstance(argument.value, str)
                 and (
-                    argument.value == "open_brain"
-                    or argument.value.startswith("open_brain.")
+                    argument.value in {"open_brain", "open_brain_legacy"}
+                    or argument.value.startswith(("open_brain.", "open_brain_legacy."))
                 )
             ):
                 references.append(ImportReference(node.lineno, argument.value))
     return references
 
 
+def _nonliteral_dynamic_import_lines(path: Path) -> list[int]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    return sorted(
+        {
+            node.lineno
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and _is_dynamic_import_call(node)
+            and (
+                not node.args
+                or not isinstance(node.args[0], ast.Constant)
+                or not isinstance(node.args[0].value, str)
+            )
+        }
+    )
+
+
 def _nonliteral_dynamic_import_sites(source_root: Path) -> list[DynamicImportSite]:
-    sites: set[DynamicImportSite] = set()
-    for path in _source_files(source_root):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call) or not _is_dynamic_import_call(node):
-                continue
-            argument = node.args[0] if node.args else None
-            if not (
-                isinstance(argument, ast.Constant) and isinstance(argument.value, str)
-            ):
-                sites.add(
-                    DynamicImportSite(path.relative_to(source_root).as_posix(), node.lineno)
-                )
+    sites = {
+        DynamicImportSite(path.relative_to(source_root).as_posix(), line)
+        for path in _source_files(source_root)
+        for line in _nonliteral_dynamic_import_lines(path)
+    }
     return sorted(sites, key=lambda site: (site.path, site.line))
 
 
@@ -316,8 +387,15 @@ def _dynamic_import_review_errors(
     source_root: Path,
     classification: dict[str, object],
 ) -> list[str]:
-    files = _classified_files(classification)
     sites = {(site.path, site.line) for site in _nonliteral_dynamic_import_sites(source_root)}
+    return _dynamic_import_review_errors_for_sites(sites, classification)
+
+
+def _dynamic_import_review_errors_for_sites(
+    sites: set[tuple[str, int]],
+    classification: dict[str, object],
+) -> list[str]:
+    files = _classified_files(classification)
     reviews = classification.get("dynamic_import_reviews")
     if not isinstance(reviews, list):
         raise TypeError("dynamic import reviews must be a list")
@@ -363,6 +441,22 @@ def _dynamic_import_review_errors(
         for path, line in sites - reviewed
     )
     return sorted(errors)
+
+
+def _current_dynamic_import_review_errors(
+    classification: dict[str, object],
+    *,
+    source_roots: tuple[Path, ...] = (APP_SOURCE_ROOT, LEGACY_SOURCE_ROOT),
+) -> list[str]:
+    sites = {
+        (relative_path, line)
+        for relative_path, path, _source_root in _current_open_brain_sources(
+            classification,
+            source_roots=source_roots,
+        )
+        for line in _nonliteral_dynamic_import_lines(path)
+    }
+    return _dynamic_import_review_errors_for_sites(sites, classification)
 
 
 def _nonliteral_dynamic_import_violations(
@@ -413,8 +507,14 @@ def _live_debt_errors(
 def test_every_immediate_package_has_one_explicit_classification() -> None:
     classification = _load_classification()
     packages = classification["packages"]
+    files = _classified_files(classification)
     assert isinstance(packages, dict)
-    assert set(packages) == _package_directories(SOURCE_ROOT)
+    origin_packages = {
+        Path(path).parts[0]
+        for path in files
+        if len(Path(path).parts) > 1 and not path.startswith(("packages/", "tools/"))
+    }
+    assert set(packages) == origin_packages
     assert all(
         isinstance(package, dict)
         and all(
@@ -428,35 +528,76 @@ def test_every_immediate_package_has_one_explicit_classification() -> None:
 def test_every_root_module_has_one_explicit_classification() -> None:
     classification = _load_classification()
     root_modules = classification["root_modules"]
+    files = _classified_files(classification)
     assert isinstance(root_modules, dict)
-    assert set(root_modules) == _root_modules(SOURCE_ROOT)
+    origin_modules = {Path(path).stem for path in files if len(Path(path).parts) == 1}
+    assert set(root_modules) == origin_modules
 
 
 def test_every_runtime_file_has_one_authoritative_owner() -> None:
     classification = _load_classification()
-    assert _ownership_errors(SOURCE_ROOT, classification) == []
+    assert validate_manifest(REPOSITORY_ROOT, classification) == []
+    assert all(
+        isinstance(value, dict)
+        and value.get("owner") in OWNERS
+        and value.get("api") in {"public", "internal"}
+        and isinstance(value.get("roles"), list)
+        for value in _classified_files(classification).values()
+    )
 
 
 def test_current_namespace_imports_have_classified_file_endpoints() -> None:
     classification = _load_classification()
     classified_paths = set(_classified_files(classification))
-    references = [
-        reference
-        for path in _source_files(SOURCE_ROOT)
-        for reference in _import_references(path, SOURCE_ROOT, classified_paths)
-    ]
+    unresolved: set[str] = set()
+    references: list[ImportReference] = []
+    for relative_path, path, source_root in _current_open_brain_sources(classification):
+        current_references = _import_references(path, source_root, classified_paths)
+        references.extend(current_references)
+        unresolved.update(
+            f"{relative_path}:{reference.line} -> {reference.module}"
+            for reference in current_references
+            if _module_target(reference.module, classified_paths) is None
+        )
     assert references
-    assert _unresolved_internal_imports(SOURCE_ROOT, classification) == []
+    assert sorted(unresolved) == []
 
 
 def test_nonliteral_dynamic_import_sites_are_explicitly_reviewed() -> None:
     classification = _load_classification()
-    assert _dynamic_import_review_errors(SOURCE_ROOT, classification) == []
+    assert _current_dynamic_import_review_errors(classification) == []
 
 
 def test_current_import_violations_exactly_match_temporary_live_debt() -> None:
     classification = _load_classification()
-    assert _live_debt_errors(SOURCE_ROOT, classification) == []
+    assert not MONOLITH_SOURCE_ROOT.exists()
+    assert _live_debt_errors(LEGACY_SOURCE_ROOT, classification) == []
+
+
+def test_engine_distribution_imports_no_other_runtime_distribution() -> None:
+    engine_root = REPOSITORY_ROOT / "packages/engine/src/open_brain_engine"
+    forbidden: set[str] = set()
+    for path in sorted(engine_root.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            modules: list[str] = []
+            if isinstance(node, ast.Import):
+                modules.extend(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                modules.append(node.module)
+            elif isinstance(node, ast.Call) and _is_dynamic_import_call(node) and node.args:
+                argument = node.args[0]
+                if isinstance(argument, ast.Constant) and isinstance(argument.value, str):
+                    modules.append(argument.value)
+            for module in modules:
+                if module == "open_brain" or module.startswith(
+                    ("open_brain.", "open_brain_connectors", "open_brain_legacy")
+                ):
+                    line = cast(int, getattr(node, "lineno", 0))
+                    forbidden.add(
+                        f"{path.relative_to(REPOSITORY_ROOT).as_posix()}:{line} -> {module}"
+                    )
+    assert forbidden == set()
 
 
 def test_p2_w1_owner_edges_are_closed() -> None:
@@ -464,29 +605,29 @@ def test_p2_w1_owner_edges_are_closed() -> None:
     classified_paths = set(_classified_files(classification))
 
     def targets(relative_path: str) -> set[str]:
-        path = SOURCE_ROOT / relative_path
+        path, source_root = _current_open_brain_source(classification, relative_path)
         return {
             target
-            for reference in _import_references(path, SOURCE_ROOT, classified_paths)
+            for reference in _import_references(path, source_root, classified_paths)
             if (target := _module_target(reference.module, classified_paths)) is not None
         }
 
     production_cli = {
-        (path.relative_to(SOURCE_ROOT).as_posix(), target)
-        for path in sorted((SOURCE_ROOT / "production").glob("*.py"))
-        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        (path.relative_to(LEGACY_SOURCE_ROOT).as_posix(), target)
+        for path in sorted((LEGACY_SOURCE_ROOT / "production").glob("*.py"))
+        for target in targets(path.relative_to(LEGACY_SOURCE_ROOT).as_posix())
         if target.startswith("cli/")
     }
     operations_cli = {
-        (path.relative_to(SOURCE_ROOT).as_posix(), target)
-        for path in sorted((SOURCE_ROOT / "operations").glob("*.py"))
-        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        (path.relative_to(LEGACY_SOURCE_ROOT).as_posix(), target)
+        for path in sorted((LEGACY_SOURCE_ROOT / "operations").glob("*.py"))
+        for target in targets(path.relative_to(LEGACY_SOURCE_ROOT).as_posix())
         if target.startswith("cli/")
     }
     storage_operations = {
-        (path.relative_to(SOURCE_ROOT).as_posix(), target)
-        for path in sorted((SOURCE_ROOT / "storage").glob("*.py"))
-        for target in targets(path.relative_to(SOURCE_ROOT).as_posix())
+        (path.relative_to(LEGACY_SOURCE_ROOT).as_posix(), target)
+        for path in sorted((LEGACY_SOURCE_ROOT / "storage").glob("*.py"))
+        for target in targets(path.relative_to(LEGACY_SOURCE_ROOT).as_posix())
         if target.startswith("operations/")
     }
 
@@ -496,46 +637,47 @@ def test_p2_w1_owner_edges_are_closed() -> None:
     assert storage_operations == set()
 
 
-def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
+def test_p4_w4_legacy_composition_uses_distribution_local_compatibility() -> None:
     classification = _load_classification()
     classified_paths = set(_classified_files(classification))
 
     def targets(relative_path: str) -> set[str]:
-        path = SOURCE_ROOT / relative_path
+        path, source_root = _current_open_brain_source(classification, relative_path)
         return {
             target
-            for reference in _import_references(path, SOURCE_ROOT, classified_paths)
+            for reference in _import_references(path, source_root, classified_paths)
             if (target := _module_target(reference.module, classified_paths)) is not None
         }
 
     entrypoints = targets("services/entrypoints.py")
     application = targets("services/application.py")
     production_application = targets("production/application.py")
+    compatibility_runtime = "_compat/open_brain/services/runtime.py"
 
-    assert {"services/application.py", "services/runtime.py"} <= entrypoints
+    assert {"services/application.py", compatibility_runtime} <= entrypoints
     assert "services/capabilities.py" not in entrypoints
     assert "production/application.py" not in entrypoints
-    assert {"services/capabilities.py", "services/runtime.py"} <= application
+    assert {"services/capabilities.py", compatibility_runtime} <= application
     assert "services/entrypoints.py" not in application
     assert production_application == {"services/application.py"}
 
-    from open_brain.production.application import (
+    from open_brain_legacy.production.application import (
         ProductionApplication as CompatibilityProductionApplication,
     )
-    from open_brain.production.application import (
+    from open_brain_legacy.production.application import (
         compose_production_application as compatibility_factory,
     )
-    from open_brain.services.application import (
+    from open_brain_legacy.services.application import (
         ProductionApplication as ApplicationProductionApplication,
     )
-    from open_brain.services.application import compose_production_application
-    from open_brain.services.capabilities import (
+    from open_brain_legacy.services.application import compose_production_application
+    from open_brain_legacy.services.capabilities import (
         ProductionApplication as CapabilityProductionApplication,
     )
-    from open_brain.services.capabilities import (
+    from open_brain_legacy.services.capabilities import (
         compose_production_application as capability_factory,
     )
-    from open_brain.services.entrypoints import (
+    from open_brain_legacy.services.entrypoints import (
         compose_production_application as entrypoint_factory,
     )
 
@@ -546,37 +688,40 @@ def test_p2_w1_composition_has_one_way_app_owned_factory_path() -> None:
     assert CompatibilityProductionApplication is ApplicationProductionApplication
 
 
-def test_p3_w2_shipped_scripts_and_compatibility_entrypoints_are_legacy_writer_free() -> None:
-    project = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))[
-        "project"
-    ]
-    scripts = project["scripts"]
-    phase1_entrypoints = (SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
+def test_p4_w2_installed_entrypoints_are_legacy_writer_free() -> None:
+    app_project = tomllib.loads(
+        (REPOSITORY_ROOT / "packages/app/pyproject.toml").read_text(encoding="utf-8")
+    )
+    phase1_entrypoints = (APP_SOURCE_ROOT / "services" / "phase1_entrypoints.py").read_text(
         encoding="utf-8"
     )
-    appliance_entrypoints = (SOURCE_ROOT / "services" / "appliance_entrypoints.py").read_text(
-        encoding="utf-8"
-    )
-    scheduler = (SOURCE_ROOT / "services" / "appliance_scheduler.py").read_text(
+    appliance_entrypoints = (
+        APP_SOURCE_ROOT / "services" / "appliance_entrypoints.py"
+    ).read_text(encoding="utf-8")
+    scheduler = (APP_SOURCE_ROOT / "services" / "appliance_scheduler.py").read_text(
         encoding="utf-8"
     )
     classification = _load_classification()
     files = _classified_files(classification)
 
-    assert scripts == {
+    assert app_project["project"]["scripts"] == {
         "open-brain": "open_brain.services.appliance_entrypoints:run_cli",
         "open-brain-mcp": "open_brain.services.appliance_entrypoints:run_mcp",
     }
+    assert "package" not in app_project["tool"]["uv"]
     assert "SingleUserLocalApplication" not in phase1_entrypoints
     assert "compose_http_from_config" not in phase1_entrypoints
     assert "compose_mcp_from_config" not in phase1_entrypoints
     assert "open_brain.production" not in phase1_entrypoints
     assert "open_brain.operations" not in phase1_entrypoints
+    assert "open_brain_legacy.production" not in phase1_entrypoints
+    assert "open_brain_legacy.operations" not in phase1_entrypoints
     assert "open-brain-http" not in appliance_entrypoints
     assert "JOB-00" not in appliance_entrypoints
     assert "open_brain.storage.filesystem" not in scheduler
-    assert "open_brain.storage.operational" in scheduler
-    assert _metadata(files, "storage/operational.py") == {
+    assert "open_brain_engine.storage.operational" in scheduler
+    operational = _metadata(files, "storage/operational.py")
+    assert {key: operational[key] for key in ("api", "owner", "roles")} == {
         "api": "public",
         "owner": "engine",
         "roles": [],
@@ -849,6 +994,39 @@ def test_nonliteral_import_review_inventory_is_exact(tmp_path: Path) -> None:
         "unreviewed nonliteral dynamic import: app/extension_host.py:2"
     ]
     assert _dynamic_import_review_errors(source_root, stale) == [
+        "stale nonliteral dynamic import review: app/extension_host.py:99",
+        "unreviewed nonliteral dynamic import: app/extension_host.py:2",
+    ]
+
+
+def test_moved_source_dynamic_import_review_is_not_filtered(tmp_path: Path) -> None:
+    source_root = tmp_path / "open_brain"
+    source_path = source_root / "app" / "extension_host.py"
+    source_path.parent.mkdir(parents=True)
+    source_path.write_text(
+        "from importlib import import_module\nimport_module(module_name)\n",
+        encoding="utf-8",
+    )
+    classification = _synthetic_classification()
+    files = deepcopy(SYNTHETIC_FILES)
+    record = files["app/extension_host.py"]
+    record["current_path"] = str(source_path)
+    record["movement_state"] = "moved"
+    classification["files"] = files
+    classification["dynamic_import_reviews"] = [
+        {
+            "path": "app/extension_host.py",
+            "line": 99,
+            "owner": "app",
+            "allowed_host": True,
+            "rationale": "Stale synthetic review for a moved source.",
+        }
+    ]
+
+    assert _current_dynamic_import_review_errors(
+        classification,
+        source_roots=(source_root,),
+    ) == [
         "stale nonliteral dynamic import review: app/extension_host.py:99",
         "unreviewed nonliteral dynamic import: app/extension_host.py:2",
     ]

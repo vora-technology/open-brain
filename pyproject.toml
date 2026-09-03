@@ -1,72 +1,45 @@
-[build-system]
-requires = ["hatchling>=1.27,<2"]
-build-backend = "hatchling.build"
-
-[project]
-name = "open-brain"
-version = "0.1.0"
-description = "A local-first capture, provenance, review, and knowledge pipeline."
-readme = "README.md"
-requires-python = ">=3.12,<3.15"
-license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE"]
-authors = [{ name = "Open Brain contributors" }]
-keywords = ["knowledge-management", "capture", "provenance", "local-first"]
-classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
-]
-dependencies = []
-
-[project.optional-dependencies]
-cloud = ["openai>=1.99,<3"]
-integrations = []
-mcp = []
-
-[project.scripts]
-open-brain = "open_brain.services.appliance_entrypoints:run_cli"
-open-brain-mcp = "open_brain.services.appliance_entrypoints:run_mcp"
-
 [dependency-groups]
 dev = [
   "build>=1.2.2,<2",
   "cryptography>=50,<51",
   "jsonschema>=4.25,<5",
   "mypy>=1.15,<2",
+  "open-brain-engine==0.1.0",
   "pytest>=8.3,<10",
   "ruff>=0.11,<1",
 ]
-
-[tool.hatch.build.targets.sdist]
-include = [
-  "/LICENSE",
-  "/NOTICE",
-  "/README.md",
-  "/docs/*.md",
-  "/docs/architecture/*.md",
-  "/pyproject.toml",
-  "/release/*.json",
-  "/schemas/portable-brain/v1/*.json",
-  "/src/open_brain",
-  "/tests/contract",
-  "/tests/fixtures/phase0",
-  "/tests/fixtures/portable-brain/v1",
+native-build = [
+  "pyinstaller==6.22.2",
+  "pyinstaller-hooks-contrib==2026.7",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/open_brain"]
+[tool.uv.workspace]
+members = [
+  "packages/app",
+  "packages/connectors",
+  "packages/engine",
+  "packages/legacy",
+]
 
-[tool.hatch.build.targets.wheel.force-include]
-"schemas/portable-brain/v1" = "open_brain/portable/schemas/v1"
-"tests/fixtures/portable-brain/v1" = "open_brain/portable/conformance/v1"
+[tool.uv.sources]
+open-brain-engine = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "-ra"
-testpaths = ["tests"]
+addopts = "-ra --import-mode=importlib"
+pythonpath = [
+  ".",
+  "packages/app/src",
+  "packages/connectors/src",
+  "packages/engine/src",
+  "packages/legacy/src",
+]
+testpaths = [
+  "tests",
+  "packages/app/tests",
+  "packages/connectors/tests",
+  "packages/engine/tests",
+  "packages/legacy/tests",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -75,7 +48,18 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["open_brain", "open_brain_connectors", "open_brain_legacy", "tools"]
+known-third-party = ["open_brain_engine"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "tests"]
+explicit_package_bases = true
+mypy_path = [
+  "packages/app/src",
+  "packages/connectors/src",
+  "packages/engine/src",
+  "packages/legacy/src",
+]
+files = ["packages", "tests", "tools"]

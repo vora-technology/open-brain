@@ -1,0 +1,6 @@
+{
+  "KeepAlive": true,
+  "Label": "org.open-brain.appliance-daemon",
+  "RunAtLoad": false,
+  "Umask": 63
+}

@@ -2,9 +2,12 @@
 
 > This page describes the current implementation. The proposed self-hosted and hosted product-family target is documented in [`architecture/proposed-v0-system-architecture.md`](architecture/proposed-v0-system-architecture.md).
 
-Open Brain is one retained monolith in one canonical repository. Phase 2 makes the runtime
-boundary explicit without creating distributions: one `single-user-local` profile opens one
-engine task set for one owner and one Brain root.
+Open Brain is one uv workspace in one canonical repository. Engine, app, connector, and private
+legacy code live in separate buildable distributions. Private compatibility source is physically
+quarantined under `packages/legacy`; workspace-only release tooling lives under
+`tools/open_brain_dev`. The old
+`src/open_brain` monolith no longer exists. One `single-user-local` profile opens one engine task
+set for one owner and one Brain root.
 
 The package map uses these ownership boundaries:
 
@@ -15,22 +18,23 @@ The package map uses these ownership boundaries:
 - `app`: profile and application composition. It owns the five representations and supplies only
   the capability each one needs: CLI, authenticated HTTP/share, local UI, scoped stdio MCP, and
   public-job sinks.
-- `connector`: the internal allow-listed connector implementation boundary. `services/connectors.py`
-  owns host meters, metadata receipts, and checkpoint evidence; connector code has capture-only
-  authority.
+- `connector`: the optional `open-brain-connectors` distribution. Published provisional values live
+  under `open_brain.extensions`; the app owns discovery, meters, worker limits, metadata receipts,
+  and checkpoint evidence. Connector code receives capture-only authority.
 - `storage`, `providers`, and `integrations`: retained adapters selected by composition. Adapters
   do not import CLI/HTTP handlers or one another.
 - `operations`: doctor, scheduling, retention, backup, and recovery behavior.
-- `dev`: public development and release-safety tools only.
-- `legacy`: retained predecessor and operational compatibility files. The default Phase 2 path
-  does not import them; physical removal or distribution movement is deferred.
+- `dev`: workspace-only development and release-safety tools under `tools/open_brain_dev`.
+- `legacy`: retained predecessor and operational compatibility files under the private
+  `open_brain_legacy` namespace. It depends only on the published engine and keeps the app and
+  source-specific behavior needed by the predecessor inside its private `_compat` namespace. No
+  default or shipping artifact depends on or packages legacy code.
 
 Private deployment configuration contains values and rendered manifests, never patched or copied application source.
 
-The file-level classification is authoritative for this retained monolith: every runtime file has
-one owner, such as `engine`, `app`, `connector`, `legacy`, or `workspace`. A mixed top-level
-package may remain in place during Phase 2, but no file is unclassified or assigned to multiple
-owners.
+The file-level classification is authoritative across the workspace: every runtime file has one
+owner, such as `engine`, `app`, `connector`, `legacy`, or `workspace`. Every runtime file is now at
+its final P4A path; no file is unclassified or assigned to multiple owners.
 
 The app-owned `profile` module compiles one `single-user-local` Brain root into an
 engine-owned context. The engine does not import profile, CLI, UI, service, migration,
@@ -88,12 +92,20 @@ defines the typed `ArtifactLifecyclePort` for bounded candidate identity, compat
 activation, rollback, and removal receipts. Source checkout proves that orchestration only through
 injected fake or disposable adapters, verified backup plus disposable-restore preflight, versioned
 engine and app migration evidence, authority-preserving restart checks, post-migration doctor, and
-data-preserving uninstall. The default artifact effect boundary stays fail-closed; no shipping path
-in this monolith installs or removes a native artifact directly. A distinct kernel-backed lifecycle
-lease serializes owner requests, while canonical root-confined journals preserve request identity,
-stage, terminal receipt, conflict detection, and crash rollback across processes. The source-checkout
-CLI exposes upgrade and uninstall only when composition injects that lifecycle port; it does not run
-the self-restarting lifecycle inside the daemon control loop.
+data-preserving uninstall. The source-checkout artifact effect boundary stays fail-closed. The P4-W5
+frozen entry point is the first composition that injects the manifest-bound native adapter and
+bounded host supervisor effects; its target-native smoke uses only isolated temporary supervisor
+state. Upgrade checks compatibility while the current daemon is active, journals a quiesce stage,
+unloads a launchd KeepAlive job or stops the systemd unit before offline recovery and migrations,
+then resumes the correct job after success or failure. Failure receipts distinguish artifact
+rollback from daemon restoration. Native builds run from an isolated archive of the named Git tree;
+replacement refs and repository-local attributes are rejected, external Git configuration is
+neutralized, and extracted blob IDs and modes must equal the raw no-replace tree. Their
+package-resource inventory is derived from tracked files and rejected on any extra member. A
+distinct kernel-backed lifecycle lease serializes owner requests, while canonical
+root-confined journals preserve request identity, stage, terminal receipt, conflict detection, and
+crash rollback across processes. The CLI exposes upgrade and uninstall only when composition injects
+that lifecycle port; it does not run the self-restarting lifecycle inside the daemon control loop.
 
 Every engine mutation and recovery pass holds the root-confined shared-writer lease across
 its SQLite reservation and portable file transitions. Reads remain available outside that
@@ -106,10 +118,13 @@ MCP gets an already scoped retrieval capability plus app feedback, and public jo
 it and applying scope only during calls.
 All of them share the underlying task identities created for the same root.
 
-Retained optional integration metadata is an app-owned extension host. It imports only the module
-named by composition metadata and only after that capability is explicitly enabled. Disabled
-integrations perform no import, while enabled installed modules do not depend on unrelated preload
-state. The nonliteral import site and its host role are recorded exactly in the package
+Retained optional integration metadata is an app-owned extension host. Composition selects a
+closed `OptionalProvider` identity whose immutable registry owns the corresponding lazy loader.
+The registry currently contains only the declared `openai` extra; arbitrary module strings and
+internal package roots are rejected at runtime. Disabled integrations perform no import, while
+enabled installed providers do not depend on unrelated preload state. P4H009 checks a finite
+adversarial corpus for architecture regressions and is not a malicious-code sandbox. The registry
+and its host role are recorded exactly in the package
 classification.
 
 The implemented application layers are:
@@ -132,9 +147,11 @@ reversible source-reference digests. This projection affects results only; Porta
 remain exact.
 
 Phase 3 owns the appliance lifecycle: initialization, one supervised daemon, internal scheduling,
-launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. Phase 4 owns
-the physical distributions and `packages/` split, isolated connector workers, the public Connector
-SDK and signing, and native artifact/bundler work. Phase 4 is also the first place allowed to add
-the real native-artifact adapter, prior-release artifact upgrade evidence, clean-host install-time
-claims, signed package residue scans, publication, or deployment. The retained monolith is the
-Phase 2 boundary.
+launchd/systemd integration, backup/restore, upgrade, and uninstall orchestration. The current
+Phase 4 split produces isolated, unpublished engine, app, and connector wheels and sdists. The
+connector interface is provisional v1. Parent discovery reads entry-point metadata without loading
+connector code; explicit allow-list and capability checks precede a bounded child process. The
+reference conformance run proves capture-only execution and replay through synthetic host-mediated
+transport. A stable Connector SDK promise remains blocked until reference, event, and measurement
+proofs all pass. Native artifacts, signing, clean-host lifecycle proof, and owner-gated deployment
+remain later Phase 4 gates. Public package publication, tags, and releases remain Phase 5.

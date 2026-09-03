@@ -1,0 +1,61 @@
+{
+  "baseline": "current-monolith",
+  "findings": [
+    {
+      "code": "P4E001",
+      "detail": "distribution root is absent",
+      "subject": "app"
+    },
+    {
+      "code": "P4E001",
+      "detail": "distribution root is absent",
+      "subject": "connectors"
+    },
+    {
+      "code": "P4E001",
+      "detail": "distribution root is absent",
+      "subject": "engine"
+    },
+    {
+      "code": "P4E001",
+      "detail": "distribution root is absent",
+      "subject": "legacy"
+    },
+    {
+      "code": "P4E002",
+      "detail": "workspace membership is inactive",
+      "subject": "uv-workspace"
+    },
+    {
+      "code": "P4E003",
+      "detail": "monolith source tree remains",
+      "subject": "src/open_brain"
+    },
+    {
+      "code": "P4E004",
+      "detail": "isolated distribution artifact is unavailable",
+      "subject": "app-wheel"
+    },
+    {
+      "code": "P4E004",
+      "detail": "isolated distribution artifact is unavailable",
+      "subject": "connector-wheel"
+    },
+    {
+      "code": "P4E004",
+      "detail": "isolated distribution artifact is unavailable",
+      "subject": "engine-wheel"
+    },
+    {
+      "code": "P4E005",
+      "detail": "native artifact is unavailable",
+      "subject": "linux-x86_64-native"
+    },
+    {
+      "code": "P4E005",
+      "detail": "native artifact is unavailable",
+      "subject": "macos-arm64-native"
+    }
+  ],
+  "schema_version": 1
+}

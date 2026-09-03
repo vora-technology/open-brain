@@ -500,6 +500,19 @@ portability. Treat the full multi-version Linux jobs as required evidence.
 
 Discovered: 2026-09-01.
 
+### CI-002: Syntax-valid action pins can still fail before checkout
+
+Symptom: A newly copied CI job fails during job setup on every matrix version, before checkout or
+any project command runs, while `actionlint` passes locally.
+
+Cause: A one-character commit-SHA drift still matches workflow syntax but does not identify the
+same valid pinned action revision used by sibling jobs.
+
+Fix: Keep repeated action pins identical and assert that invariant in a repository test. Treat
+`actionlint` as syntax validation, not remote action-revision validation.
+
+Discovered: 2026-09-02.
+
 ### CONTROL-001: Default Unix-socket backlog behavior varies by host
 
 Symptom: A partial client occupies the serial daemon reader and the next owner request gets
@@ -513,3 +526,349 @@ Fix: Set an explicit bounded backlog larger than one and keep the accepted-clien
 the backlog in the stalled-client regression instead of adding sleeps or client-side retries.
 
 Discovered: 2026-09-01.
+
+### PACKAGING-001: A moved regular subpackage hides unmoved workspace modules
+
+Symptom: Root tests cannot import legacy or connector modules even though both source roots are on
+`PYTHONPATH`.
+
+Cause: A moved `open_brain.cli`, `open_brain.integrations`, or `open_brain.services` initializer
+creates a regular package whose search path excludes the still-classified directory under
+`src/open_brain`.
+
+Fix: Extend those search paths only in the root test harness while the phased move is incomplete.
+Never add workspace path extension to the shipping app. The wheel-only harness must remain green,
+and P4-W4 removes the test overlay with the old monolith tree.
+
+Discovered: 2026-09-01.
+
+### TOOLING-001: Ruff cache can hide import reclassification after package moves
+
+Symptom: Local Ruff verification passes after moving modules between source roots, but a clean CI
+checkout reports many `I001` import-order failures.
+
+Cause: Cached lint results predate the relocation even though isort's first-party classification
+depends on the module's source root and distribution boundary.
+
+Fix: Configure `open_brain` as first-party and `open_brain_engine` as its third-party dependency.
+Run Ruff once with `--no-cache` after package moves and treat that result as the migration gate.
+
+Discovered: 2026-09-01.
+
+### PACKAGING-002: Module depth does not prove a source checkout
+
+Symptom: An installed supervisor manifest contains a nonexistent `PYTHONPATH` and working
+directory below the interpreter's library directory.
+
+Cause: The factory counted parents above `__file__`. Source and installed modules have similar
+depth, so a `site-packages` path was mistaken for a checkout.
+
+Fix: Enable source mode only when the module resolves to the exact declared source layout. Exercise
+the production factory from the installed wheel, not only constructors with `checkout_root=None`.
+
+Discovered: 2026-09-01.
+
+### TESTING-001: An inner fixed interpreter can falsify a CI version matrix
+
+Symptom: Python 3.13 and 3.14 jobs pass even though their wheel-isolation subprocesses run on
+Python 3.12.
+
+Cause: The outer matrix selected an interpreter, but the acceptance harness hard-coded another
+version when creating product and test environments.
+
+Fix: Derive isolation environments from the active matrix interpreter. Run the installed journey
+independently on every declared Python version.
+
+Discovered: 2026-09-01.
+
+### AUDIT-003: ImportFrom.module alone misses private child and lazy dependencies
+
+Symptom: An artifact scan accepts a private engine child imported through a public parent, or an
+undeclared dependency loaded only on a lazy path.
+
+Cause: The scanner recorded only the parent in `from package import child` and inspected only
+engine-prefixed static imports.
+
+Fix: Resolve aliases against the complete manifest module map, compare external roots with wheel
+metadata, reject forbidden workspace roots, and allow-list each variable dynamic import by exact
+artifact path and signature.
+
+Discovered: 2026-09-01.
+
+### AUDIT-004: Callable spelling does not establish dynamic-import provenance
+
+Symptom: An artifact scan misses imports reached through `builtins`, assignment aliases, or
+reflective lookup, while rejecting an unrelated local object whose name happens to be `importlib`.
+
+Cause: The scanner trusts global names instead of following bindings from actual importer
+capabilities. An allow-listed call signature also leaves untracked capability escapes in the same
+file.
+
+Fix: Track importer bindings and calls through lexical provenance. Treat every capability use as a
+review event, and bind the sole exception to its exact artifact path and function signature.
+
+Discovered: 2026-09-02.
+
+### AUDIT-005: Importer provenance also flows through runtime namespaces
+
+Symptom: Direct and aliased dynamic-import checks pass, but an artifact can still reach the same
+importer through `sys.modules["builtins"]`, namespace helpers, or dynamic evaluation.
+
+Cause: Python exposes built-in objects through module registries and namespace dictionaries. A
+scanner that follows only import statements and local aliases loses that provenance.
+
+Fix: Treat `sys.modules`, `globals`, `locals`, `vars`, `eval`, and `exec` as reviewed artifact
+capabilities. Reject them by default and keep the one authorized dynamic import bound to its exact
+file and function.
+
+Discovered: 2026-09-02.
+
+### AUDIT-006: AST walk order is not control-flow provenance
+
+Symptom: A dead-branch assignment erases a real importer path, while a loop, context-manager, or
+exception target is mistaken for the standard-library module it shadows.
+
+Cause: One mutable binding map follows AST visitation order. It neither joins alternate outcomes
+nor applies Python's lexical and compound-target binding rules.
+
+Fix: Track sets of possible provenance, join control-flow outcomes, predeclare function-local
+names, and model loop, `with`, exception, match, and comprehension scopes before inspecting uses.
+
+Discovered: 2026-09-02.
+
+### AUDIT-007: Import aliases and comprehension walrus targets share existing authorities
+
+Symptom: Attribute-based reflection is rejected, but importing that same member with
+`from ... import ...` passes; or a walrus target disappears when a comprehension scope exits.
+
+Cause: The analyzer maintains separate syntax-specific member rules and treats every name inside a
+comprehension as comprehension-local. Python resolves imported members through the module object,
+while PEP 572 binds assignment-expression targets in the enclosing scope.
+
+Fix: Use one module-member provenance function for attribute and `ImportFrom` syntax. Keep
+iteration targets local to the comprehension, but propagate walrus targets to the nearest enclosing
+scope and predeclare them as function locals.
+
+Discovered: 2026-09-02.
+
+### AUDIT-008: A reviewed name does not prove a reviewed dynamic-import value
+
+Symptom: An artifact passes because a dynamic loader and argument retain approved spellings, even
+though an equivalent module alias reaches the loader or the argument was reassigned first.
+
+Cause: The analyzer keys exceptions to syntax instead of semantic authority and value provenance.
+Python also exposes import state through package `__init__` modules, `pkgutil`, frames, and type
+reflection.
+
+Fix: Normalize equivalent authorities, distinguish pristine parameters from unknown or reassigned
+values through control-flow joins, and reject internal package roots again at the runtime optional
+loader boundary.
+
+Discovered: 2026-09-02.
+
+### AUDIT-009: Architecture gates should close authority, not simulate a sandbox
+
+Symptom: Each review finds another Python spelling that reaches the same generic loader, and the
+acceptance analyzer grows without producing a finite security boundary.
+
+Cause: P4H009 is treated as malicious-code containment even though its contract is to catch app
+architecture regressions. The generic string loader keeps the unwanted authority open.
+
+Fix: Replace arbitrary module strings with a closed typed provider registry, reject internal
+identifiers at runtime, and review the gate against a named finite adversarial corpus.
+
+Discovered: 2026-09-02.
+
+### AUDIT-010: Source projections must not erase stale review evidence
+
+Symptom: A removed exception remains in the canonical review inventory, but the normal
+architecture gate passes after the reviewed file moves to another source root.
+
+Cause: A helper filters both source records and their review entries before stale-review
+validation. The evidence disappears from the test instead of becoming stale.
+
+Fix: Validate the canonical review inventory against current source locations, including moved
+records. Keep legacy source projections limited to the code or debt they were created to select.
+
+Discovered: 2026-09-02.
+
+### CONNECTOR-002: A `python -m` protocol module creates a second type identity
+
+Symptom: A valid worker request reaches the child, but the connector rejects it because exact type
+checks see a different `ConnectorWorkerRequest` class.
+
+Cause: Running the protocol module with `python -m` defines its classes under `__main__`. The
+connector imports the canonical module name and receives a second set of class objects.
+
+Fix: Execute a small child bootstrap module that imports and invokes the canonical protocol module.
+Keep all request, receipt, and error types defined only under the canonical module name.
+
+Discovered: 2026-09-02.
+
+### CONNECTOR-003: A valid child receipt does not prove host-budget compliance
+
+Symptom: A connector worker returns schema-valid metadata with counts above the parent-issued
+budget, or claims that replay created another capture.
+
+Cause: Receipt validation checked field types and local count relationships without binding both
+runs to the request limits or the replay contract.
+
+Fix: Revalidate each run against the exact parent budget. Require replay to submit no captures and
+bind the reported capture count to the created receipts before accepting worker output.
+
+Discovered: 2026-09-02.
+
+### CONNECTOR-004: Metadata discovery must not retain installed execution authority
+
+Symptom: The app discovers an installed connector without importing it, but a later call through
+the same registry loads and executes that connector in the parent process.
+
+Cause: Metadata-only discovery and in-process compatibility shared one loadable entry-point group
+and registry implementation, so the bounded worker was optional rather than exclusive.
+
+Fix: Reserve the installed public group for metadata and child execution only. Use a distinct
+group for explicitly injected compatibility sources, reject installed registry resolution, and
+prove from wheels that every parent resolver leaves the connector module unloaded.
+
+Discovered: 2026-09-02.
+
+### RELEASE-002: Artifact coordinates and manifest labels must use the same number
+
+Symptom: Connector wheels and sdists build, but artifact policy reports a stale rewrite or empty
+canonical membership.
+
+Cause: The policy coordinate `connectors` generated `connectors-wheel` and `connectors-sdist`, while
+the canonical manifest uses singular `connector-wheel` and `connector-sdist` dispositions.
+
+Fix: Name the policy coordinate `connector`. Keep the distribution directory and Python package
+names independently plural where their published identities require it.
+
+Discovered: 2026-09-02.
+
+### LEGACY-001: Importing every wheel module does not exercise lazy dependency edges
+
+Symptom: A private legacy wheel installs beside engine and imports every packaged module, but an
+enabled compatibility path later imports an undeclared third-party SDK from the host environment.
+
+Cause: Import smoke tests execute module bodies, not lazy loaders. A copied compatibility snapshot
+can therefore retain ambient package authority while its metadata still claims an engine-only edge.
+
+Fix: Inspect every compatibility source in the built wheel for static and dynamic import roots.
+Require optional providers through an injected callable, and exercise an enabled injected path in
+the engine-plus-legacy-only environment.
+
+Discovered: 2026-09-02.
+
+### READINESS-001: CLI-style probe exits bypass ordinary fail-closed handling
+
+Symptom: One readiness probe terminates the aggregate preflight and exposes raw exit text even
+though ordinary probe exceptions become opaque unavailable receipts.
+
+Cause: `SystemExit` inherits directly from `BaseException`, so `except Exception` does not catch a
+CLI helper that exits.
+
+Fix: Catch `SystemExit` explicitly beside `Exception` at the probe boundary, preserve
+`KeyboardInterrupt`, and test both paths with sensitive canaries.
+
+Discovered: 2026-09-02.
+
+### RELEASE-003: Build tools may add control files beside requested outputs
+
+Symptom: Every requested wheel and sdist builds, but exact output inventory validation reports an
+extra `.gitignore` containing one `*` byte.
+
+Cause: `uv build --out-dir` creates its own ignore marker in the destination directory.
+
+Fix: Keep exact output inventory validation. Remove only the tool's exact known marker before
+validation, and reject the same filename when its bytes differ.
+
+Discovered: 2026-09-03.
+
+### RELEASE-004: A zero-issue notarization log may encode issues as null
+
+Symptom: Apple accepts a submission, but the bounded parser rejects its log before stapling because
+`issues` is `null` instead of an empty array.
+
+Cause: Notary service output has two observed zero-issue representations.
+
+Fix: Accept only `null` or an empty list when status is accepted. Reject nonempty lists and every
+other shape, then require stapling and validation independently.
+
+Discovered: 2026-09-03.
+
+### LIFECYCLE-003: Copying a symlink path is not portable target-copy behavior
+
+Symptom: A lifecycle copy produces a candidate directory on macOS but a preserved `current`
+symlink on GNU/Linux.
+
+Cause: `ditto` and `cp -RPp` do not treat a symlink supplied as the source path the same way.
+
+Fix: Validate the managed activation link, resolve it to the enrolled candidate identifier, and
+copy that explicit candidate directory. Never rely on platform-specific source-link handling.
+
+Discovered: 2026-09-03.
+
+### LIFECYCLE-004: Metadata-preserving fixture copies can retain a foreign UID
+
+Symptom: Artifact installation succeeds in a Linux container, then initialization rejects existing
+owner-only state even though modes and bytes are correct.
+
+Cause: Root runs `cp -p` against a bind-mounted fixture owned by the host runner, preserving UID
+1001 inside the container. Docker Desktop ownership remapping can hide the defect locally.
+
+Fix: Copy private fixture contents into a newly created destination without preserving ownership.
+Preserve bytes, modes, and symlinks, then exercise a synthetic foreign-owner fixture regression.
+
+Discovered: 2026-09-03.
+
+### TOOLING-002: Make prints path-bearing recipes unless they are silent
+
+Symptom: A command returns bounded JSON but Make prints the expanded recipe first, including local
+absolute artifact, fixture, or evidence paths.
+
+Cause: Output safety covered the child process but not Make's default command echo.
+
+Fix: Prefix path-bearing recipes with `@` and test the Makefile text as part of the public-output
+contract.
+
+Discovered: 2026-09-03.
+
+### AUDIT-011: A later shell command can mask an earlier audit failure
+
+Symptom: An audit prints findings, but the overall shell invocation exits zero after a following
+history check succeeds.
+
+Cause: Sequential commands ran without fail-fast shell behavior. The final command supplied the
+reported exit status.
+
+Fix: Run release gates with `set -eu` or as separate checked commands. Keep binary-native media in
+its dedicated validator instead of over-scoping a text scanner with a fixed content-size limit.
+
+Discovered: 2026-09-03.
+
+### TOOLING-003: Parallel uv commands can race on one project environment
+
+Symptom: Independent verification commands fail to spawn Python or fail while removing `.venv/bin`
+even though their inputs are valid.
+
+Cause: Concurrent `uv run` processes select different Python versions and replace the same project
+`.venv` at the same time.
+
+Fix: Run shared-environment `uv` gates sequentially, or give each parallel command an isolated
+environment. Restore a raced environment with one bounded `uv sync` before retrying.
+
+Discovered: 2026-09-03.
+
+### SIGNING-001: A read-only sandbox can falsify macOS signature verification
+
+Symptom: `codesign --verify --strict` reports unchanged signed DMG bytes as modified only inside a
+macOS read-only agent sandbox, while the same relative, absolute, and deep checks pass elsewhere.
+
+Cause: The sandbox can restrict macOS security-service or metadata access while `codesign` reports
+the result as a signature failure instead of a permission failure.
+
+Fix: Hash the subject before and after, reproduce the exact command outside that sandbox, and use
+a bounded sandbox that permits the required verification services while retaining a no-write task
+contract. Never rebuild a frozen candidate from one unreproduced sandboxed signature error.
+
+Discovered: 2026-09-03.
