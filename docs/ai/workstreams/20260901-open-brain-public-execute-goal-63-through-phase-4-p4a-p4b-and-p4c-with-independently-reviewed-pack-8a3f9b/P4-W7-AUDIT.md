@@ -1,7 +1,8 @@
 # P4-W7 exact-candidate audit
 
-Status: audit complete; blocked before independent review. P4-W7 and P4B are
-not accepted.
+Status: complete. Child 22 returned final `READY`, P0/P1/P2 `0/0/0`, after
+closing one sandbox-induced false positive in the same review lineage. P4-W7
+and aggregate P4B are accepted. P4-W8 has not started.
 
 ## Frozen identities
 
@@ -32,7 +33,7 @@ match their baseline hashes. No P4-W5 target or readiness probe ran.
 | CodeQL | CodeQL `33714929770` passed Python and Actions analysis at `537bc4f`. | Passed |
 | License, SBOM, compatibility | The candidate verifier rechecks SPDX 2.3, license bindings, supervisor resources, version `0.1.0`, Portable schema 1 through 1, supported hosts, checksums, and every evidence hash. | Passed |
 | Publication absence | The repository has zero tags, releases, release assets, and deployments. The three expected PyPI projects and 15 expected public GitHub package coordinates return not found. The manifest records empty package, release, and tag sets. | Passed with the package-API limit below |
-| Fresh P4B review | One new read-only reviewer must bind source, artifacts, manifest, host evidence, D-054, and every P4A/P4B criterion after the gates above. Three dispatches failed at the shared Codex response endpoint before any reviewer executed. | Blocked; no verdict |
+| Fresh P4B review | After Codex CLI 0.153.0 restored execution, child 22 bound source, artifacts, manifest, host evidence, D-054, and every P4A/P4B criterion. Its initial `P4W7-001` signature finding reproduced only in the CLI's macOS read-only sandbox. The same-lineage rerun, the coordinator shell, and all relative, absolute, and deep strict variants passed against unchanged DMG bytes. Child 22 closed the false positive and completed the skipped live checks. | `READY`; P0/P1/P2 `0/0/0` |
 
 ## P4A and P4B completion map
 
@@ -46,31 +47,29 @@ match their baseline hashes. No P4-W5 target or readiness probe ran.
 | Legacy and private residue | Legacy and workspace code, private fixtures, and unselected optional cloud dependencies are excluded by artifact policy, release audit, architecture tests, and exact candidate validation. |
 | P4-W5 native boundary | Accepted source `c7c4fad` and child 15's `READY`, P0/P1/P2 `0/0/0`, bind target-native PyInstaller subjects, lifecycle behavior, no checkout/system-Python dependency, and unchanged P4-W5 evidence. |
 | P4-W6 release boundary | Accepted source `537bc4f`, the 23-coordinate manifest, signed/checksummed media, five passed host records, the bounded macOS 14 record, and child 18's P4-W6 `READY`, P0/P1/P2 `0/0/0`, remain unchanged. |
-| P4-W7 exact-candidate boundary | This audit binds the exact CI outputs, direct candidate checks, public-state absence checks, and D-054. It remains incomplete until the new reviewer returns `READY`, P0/P1/P2 `0/0/0`. |
+| P4-W7 exact-candidate boundary | This audit binds the exact CI outputs, direct candidate checks, public-state absence checks, and D-054. Child 22 returned final `READY`, P0/P1/P2 `0/0/0`; P4-W7 and P4B are complete. |
 
 P4C recovery, rehearsal, production, and day-0 criteria are outside this audit.
 None ran.
 
-## Required reviewer adjudication
+## Reviewer adjudication
 
-1. Decide whether D-054 satisfies the plan's CI rebuild requirement. CI rebuilt
-   the six Python artifacts, Linux archive, and macOS source-equivalent native
-   subject. The timestamped final DMG remained a coordinator-only Developer ID
-   signing and notarization transform under D-052, then received fresh direct
-   hash, signature, staple, Gatekeeper, unpacked-tree, host, and manifest
-   validation. A byte-identical CI rebuild would create a new signed candidate.
-2. Decide whether the fresh audit plus the unchanged accepted private-denylist
-   result is sufficient. The private denylist was not present in this shell,
-   so the fresh scan used the tool's exact no-additional-terms marker and
-   Gitleaks while retaining the earlier accepted private scan.
-3. Decide whether publication absence is sufficiently direct. The available
-   token lacks package-list scope, so the audit checked zero tags/releases/
-   release assets, all expected public package pages, and all three PyPI
-   project endpoints. Authenticated Actions artifacts remain CI evidence and
-   are not release assets.
+1. **ACCEPTED:** D-054 satisfies the plan's CI rebuild requirement. Exact-source
+   CI rebuilt the six Python artifacts, Linux archive, and macOS
+   source-equivalent native subject. The timestamped final DMG remains a
+   coordinator-only transform bound by its exact hash and direct final-byte
+   checks; rebuilding it would create a different candidate identity.
+2. **ACCEPTED:** the fresh generic and Gitleaks audits plus the unchanged
+   accepted private-denylist result are sufficient because all bound source
+   and artifact identities remain unchanged.
+3. **ACCEPTED:** direct publication-absence checks are sufficient despite the
+   package-list API scope limit. Tags, releases, release assets, deployments,
+   15 expected public GitHub package pages, and three PyPI endpoints remain
+   absent. The six retained Actions artifacts require authentication and are
+   CI evidence rather than public release assets.
 
-Any rejected adjudication is a P4-W7 blocker. It does not authorize a rebuild,
-repair, publication, deployment, or P4-W8.
+No D-054 adjudication remains rejected or unresolved. This acceptance does not
+authorize publication, deployment, or P4-W8.
 
 ## Review dispatch outcome
 
@@ -82,6 +81,18 @@ repair, publication, deployment, or P4-W8.
 - Child 21 changed to the separate in-app subagent channel with
   `gpt-5.6-sol`. The shared response endpoint returned the same 404 before
   execution. The agent was closed with no result and no file change.
+- Child 22 ran after the explicit Codex CLI update from 0.152.1 to 0.153.0 and
+  a healthy Doctor check. Its first report was `NOT_READY`, P0/P1/P2 `0/1/0`,
+  because `codesign --verify --strict` returned a misleading
+  signature-modified result only inside the CLI's macOS read-only sandbox.
+  The coordinator immediately ran relative, absolute, and deep strict checks
+  against the same SHA-256 and each passed. The same reviewer lineage then
+  repeated those checks with a workspace-write sandbox but retained an
+  explicit no-write scope; every signature variant passed, the DMG hash and
+  worktree were unchanged, and `P4W7-001` was closed as a sandbox-induced
+  false positive.
+- Child 22 completed the previously skipped exact-run and publication-absence
+  queries, accepted all three D-054 adjudications, and returned final `READY`,
+  P0/P1/P2 `0/0/0`, with no file change or concern.
 
-No reviewer inspected or adjudicated the audit. P4-W7 must resume at the fresh
-read-only review after the response endpoint or account routing is restored.
+P4-W7 and aggregate P4B are complete. P4C and P4-W8 remain unstarted.

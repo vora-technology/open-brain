@@ -11,12 +11,12 @@
 ## Current milestone
 
 - Milestone: P4-W7 exact-candidate audit and P4B review
-- Status: blocked after completing the coordinator audit from docs-only evidence checkpoint
-  `ab3f860e23abab2177341c9598011487eaf5ab2b`. The accepted source and exact
-  unpublished candidate remain bound to
-  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`. P4-W5 remains complete at
+- Status: complete at accepted source
+  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` and its exact unpublished
+  candidate. Child 22 returned final `READY`, P0/P1/P2 `0/0/0`, and accepted
+  all three D-054 adjudications. P4-W5 remains complete at
   `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`; the immutable readiness
-  snapshot remains historical and unchanged.
+  snapshot remains historical and unchanged. P4-W8 has not started.
 - Allowed scope: P4-W7 prompt, audit, and read-only review records; direct
   checks of the existing exact source, candidate, CI, public release state,
   and P4A/P4B evidence; bounded workstream state; and one local evidence-only
@@ -664,10 +664,10 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
 - P4-W5 remains accepted at `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. No P4-W5 target or
   readiness probe reran, and the snapshot remains
   `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`.
-- P4-W7 has not started. No artifact was published, tagged, released, deployed, or used for
-  production/private-content access or cutover.
+- At P4-W6 closure, P4-W7 had not started. No artifact was published, tagged, released, deployed,
+  or used for production/private-content access or cutover.
 
-## P4-W7 exact-candidate audit pending review
+## P4-W7 exact-candidate audit and P4B complete
 
 - The rendered P4-W7 contract limits this wave to audit, public-state checks,
   governed evidence, and one fresh read-only reviewer. It forbids product or
@@ -699,10 +699,17 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   All three expected PyPI project endpoints and 15 expected public GitHub
   package coordinates return not found. Six authenticated Actions artifacts
   remain CI evidence, not release assets or public package downloads.
-- The fresh reviewer must explicitly adjudicate D-054's CI boundary and every
-  P4A/P4B completion criterion. P4-W7 and P4B remain incomplete until that
-  reviewer returns `READY`, P0/P1/P2 `0/0/0`.
-- Three fresh reviewer dispatches across Codex CLI and the separate in-app
-  subagent channel failed at the shared response endpoint with HTTP 404 before
-  execution. No reviewer returned a verdict or changed a file. The milestone
-  is blocked at the mandatory fresh review and cannot advance to P4-W8.
+- Children 19 through 21 failed at the shared response endpoint before review.
+  After the explicit Codex CLI 0.153.0 update and a healthy Doctor check,
+  child 22 completed the fresh review. Its initial P1 signature finding was
+  isolated to the CLI's macOS read-only sandbox: the coordinator and the same
+  reviewer lineage reproduced relative, absolute, and deep strict signature
+  passes against unchanged DMG bytes outside that sandbox. The reviewer closed
+  `P4W7-001`, completed the skipped live checks, and returned final `READY`,
+  P0/P1/P2 `0/0/0`, with no file change or concern.
+- Child 22 accepted D-054's CI rebuild boundary, retained private-denylist
+  boundary, and direct publication-absence boundary. Every P4A/P4B completion
+  criterion is supported. P4-W7 and aggregate P4B are complete.
+- No artifact was rebuilt, re-signed, published, tagged, released, deployed,
+  or used for production/private-state access or cutover. P4-W5 and readiness
+  were not rerun. P4C and P4-W8 remain unstarted.

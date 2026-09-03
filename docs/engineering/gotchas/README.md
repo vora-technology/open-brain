@@ -858,3 +858,17 @@ Fix: Run shared-environment `uv` gates sequentially, or give each parallel comma
 environment. Restore a raced environment with one bounded `uv sync` before retrying.
 
 Discovered: 2026-09-03.
+
+### SIGNING-001: A read-only sandbox can falsify macOS signature verification
+
+Symptom: `codesign --verify --strict` reports unchanged signed DMG bytes as modified only inside a
+macOS read-only agent sandbox, while the same relative, absolute, and deep checks pass elsewhere.
+
+Cause: The sandbox can restrict macOS security-service or metadata access while `codesign` reports
+the result as a signature failure instead of a permission failure.
+
+Fix: Hash the subject before and after, reproduce the exact command outside that sandbox, and use
+a bounded sandbox that permits the required verification services while retaining a no-write task
+contract. Never rebuild a frozen candidate from one unreproduced sandboxed signature error.
+
+Discovered: 2026-09-03.

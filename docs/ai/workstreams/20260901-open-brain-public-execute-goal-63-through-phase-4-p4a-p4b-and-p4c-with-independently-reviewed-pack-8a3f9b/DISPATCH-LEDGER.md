@@ -445,15 +445,16 @@ coordinator-owned.
 
 ## P4-W7 milestone budget
 
-- Status: blocked; coordinator audit complete and fresh review unavailable
+- Status: complete
 - Active children: 0 of 6
-- Total children: 3 of 12
-- Identical failures: 2 of 2; children 19 and 20 hit the same CLI transport
-  endpoint failure, so that dispatch path is closed for this milestone
+- Total children: 4 of 12
+- Identical failures: 0 of 2 for Codex CLI 0.153.0; children 19 and 20 closed
+  the unchanged 0.152.1 CLI path at 2 of 2
 - Consecutive timeouts: 0 of 2
 - Implementation writer: coordinator only; reviewer write scope is read-only
-- Review lineage: children 19, 20, and 21 dead without verdicts; all slots
-  released
+- Review lineage: children 19, 20, and 21 dead without verdicts; child 22
+  returned final `READY`, P0/P1/P2 `0/0/0`; all slots released and lineage
+  closed
 - Reset authority: P4-W6 child 18 is closed. The validated P4-W6 handoff,
   rendered P4-W7 contract, and D-054 start a fresh milestone budget without
   changing P4-W5, the readiness snapshot, source, or artifact bytes.
@@ -513,3 +514,33 @@ coordinator-owned.
   endpoint and received HTTP 404 before execution. No review, verdict, or file
   change occurred. The milestone is blocked rather than weakening or
   self-certifying the mandatory review gate.
+
+## Child 22: P4-W7 post-update exact-candidate and aggregate P4B review
+
+- Status: complete at 2026-09-03 12:37:38 CDT; slot released
+- Dispatch ID: `p4w7-review-04`
+- Session ID: `01a06848-e728-7242-95a6-f298cb1f5fe7`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only independent final reviewer
+- Write scope: none
+- Source scope: identical to children 19 through 21
+- Retry strategy: Codex CLI was explicitly updated from 0.152.1 to 0.153.0;
+  `codex doctor --summary` then reported 22 checks OK, zero warnings, zero
+  failures, WebSocket HTTP 101, and reachable provider endpoints. This is one
+  bounded attempt against materially changed client state, not a third retry
+  of the closed 0.152.1 path.
+- Required result: `READY` with P0/P1/P2 `0/0/0` and all three D-054
+  adjudications accepted, or `NOT_READY` with bounded findings
+- Initial result: `NOT_READY`; P0/P1/P2 `0/1/0`. `P4W7-001` reported that
+  strict signature verification failed, but the failure occurred only inside
+  the CLI's macOS read-only sandbox.
+- Same-lineage adjudication: the coordinator and child 22 each reproduced
+  relative, absolute, and deep strict signature passes against unchanged DMG
+  SHA-256 `aa78303a1b1ac7b42215adada8d7932fe55114391292f622073b9aec825a95ac`
+  outside that sandbox. Child 22 retained a no-write contract under a
+  workspace-write sandbox, observed no worktree or candidate change, and
+  closed `P4W7-001` as a sandbox-induced false positive.
+- Final result: `READY`; P0/P1/P2 `0/0/0`. All three D-054 adjudications and
+  all P4A/P4B completion criteria are accepted. No file changed and no concern
+  remains.

@@ -960,14 +960,14 @@
   `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. The readiness snapshot remains byte-for-byte
   unchanged at SHA-256
   `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`; no readiness probe
-  or P4-W5 target reran. P4-W6 is complete. P4-W7 is unstarted, and no publication, tag,
-  release, deployment, production/private-content access, or cutover occurred.
+  or P4-W5 target reran. At P4-W6 closure, P4-W7 was unstarted, and no publication, tag,
+  release, deployment, production/private-content access, or cutover had occurred.
 
 ## P4-W7 exact-candidate audit
 
 - `P4-W7-AUDIT.md` maps the exact-candidate and aggregate P4A/P4B gates to
-  direct evidence. This audit does not claim P4B acceptance before the fresh
-  reviewer verdict.
+  direct evidence. Child 22's final `READY`, P0/P1/P2 `0/0/0`, closes the
+  fresh-review gate and accepts P4-W7 plus aggregate P4B.
 - Current head `ab3f860e23abab2177341c9598011487eaf5ab2b` differs from
   accepted source `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` only in the
   governed workstream records and gotcha registry allowed by D-031 and D-053.
@@ -1004,15 +1004,25 @@
   package coordinates are absent. Authenticated Actions artifacts remain
   retained CI evidence only. No publish, push, merge, deployment,
   production/private-state access, cutover, or P4-W8 action occurred.
-- D-054 records the exact CI/signing boundary for explicit independent
-  adjudication. P4-W7 and P4B remain pending the fresh review.
+- Child 22 accepted all three D-054 adjudications: exact-source CI plus direct
+  final signed-transform checks, reuse of the unchanged accepted private
+  denylist alongside fresh generic/Gitleaks scans, and direct public absence
+  checks despite package-list API scope.
 - Review children 19 and 20 failed through the Codex CLI before execution when
   both WebSocket and HTTPS transports returned HTTP 404. The second attempt
   changed from explicit Sol to the documented GPT-5.6 family selector before
   the two-identical-failure breaker closed that path. Child 21 then used the
   separate in-app subagent channel and hit the same shared endpoint failure
-  before execution. All slots are released; no report or verdict exists.
-- The completed audit remains valid, but it is not self-certified. P4-W7 and
-  P4B are blocked at the mandatory fresh read-only review. Source, candidate,
-  P4-W5, the readiness snapshot, public release state, and P4-W8 remain
-  unchanged.
+  before execution.
+- Codex CLI 0.153.0 restored execution. Child 22 initially returned
+  `NOT_READY`, P0/P1/P2 `0/1/0`, after the CLI's macOS read-only sandbox made
+  `codesign --verify --strict` misreport unchanged DMG bytes as modified. The
+  exact relative, absolute, and deep strict commands passed immediately in the
+  coordinator shell and then in the same reviewer lineage under the
+  workspace-write sandbox with its no-write contract intact. The SHA-256 and
+  worktree remained unchanged, so child 22 closed `P4W7-001` as a
+  sandbox-induced false positive.
+- The same reviewer completed live exact-run and publication-absence checks,
+  then returned final `READY`, P0/P1/P2 `0/0/0`, with no file change or
+  concern. P4-W7 and P4B are complete. Source, candidate, P4-W5, the readiness
+  snapshot, and public release state remain unchanged; P4-W8 has not started.

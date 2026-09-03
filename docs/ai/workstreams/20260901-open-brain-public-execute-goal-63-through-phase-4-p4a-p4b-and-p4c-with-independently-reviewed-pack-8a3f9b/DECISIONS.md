@@ -704,3 +704,22 @@ has become corrupt.
   Codex review after the P4-W7 gates are green. A transport failure provides
   neither approval nor a finding. Stopping retains the verified audit without
   converting unavailable independent judgment into false acceptance.
+
+## D-056: distinguish sandboxed signature failures from artifact failures
+
+- Chosen: resume P4-W7 only after the explicit Codex CLI 0.153.0 update and a
+  healthy Doctor check. When child 22's macOS read-only sandbox reported the
+  exact DMG signature as modified, preserve the frozen bytes, reproduce the
+  identical strict checks in the coordinator shell, and require the same
+  reviewer lineage to adjudicate the conflicting machine evidence. Permit a
+  workspace-write sandbox for that bounded rereview while retaining an
+  explicit no-write contract and before/after hash plus worktree checks.
+- Rejected: rebuild or re-sign the candidate, accept the first sandboxed error
+  without reproduction, discard the reviewer, self-certify P4B, or weaken the
+  final `READY`, P0/P1/P2 `0/0/0` threshold.
+- Why: unchanged DMG bytes passed relative, absolute, and deep strict
+  signature verification outside the read-only sandbox and in the same
+  reviewer lineage after the sandbox changed. Child 22 therefore closed
+  `P4W7-001` as a sandbox-induced false positive, accepted every D-054
+  adjudication and P4A/P4B criterion, and returned final `READY`, P0/P1/P2
+  `0/0/0` without changing a file.
