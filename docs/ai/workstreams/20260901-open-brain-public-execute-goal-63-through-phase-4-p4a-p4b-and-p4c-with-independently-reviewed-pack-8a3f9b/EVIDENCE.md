@@ -907,7 +907,7 @@
 
 - The accepted source is `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`. Its exact-head CI
   `33714932363`, Release audit `33714932452`, and CodeQL `33714929770` passed on attempt one. PR
-  #6 reports all 18 checks green, including all three Linux clean-host jobs, the macOS 14
+  #6 reports all 20 checks green, including all three Linux clean-host jobs, the macOS 14
   source-equivalent lifecycle, Python/native builds, Phase 4 contracts, and Python 3.12 through
   3.14 verification.
 - Final local gates passed 28 focused P4-W6 tests, 147 Phase 4/security tests, Ruff, strict MyPy on

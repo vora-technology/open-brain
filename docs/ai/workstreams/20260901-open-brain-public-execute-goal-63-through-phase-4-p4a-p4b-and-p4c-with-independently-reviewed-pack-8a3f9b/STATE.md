@@ -650,7 +650,7 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   Actionlint, ShellCheck, Perl syntax, artifact policy, manifest validation, and diff integrity.
 - Exact source `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` passed CI
   `33714932363`, Release audit `33714932452`, and CodeQL `33714929770` on the first attempt. All
-  18 PR checks are green, including Ubuntu 24.04, Ubuntu 26.04, Debian 13, and macOS 14 lifecycle
+  20 PR checks are green, including Ubuntu 24.04, Ubuntu 26.04, Debian 13, and macOS 14 lifecycle
   evidence.
 - The final exact-source DMG is Developer ID-signed with hardened runtime and secure timestamps,
   accepted by Apple with zero issues, stapled, validated, and Gatekeeper-approved. Its SHA-256 is
