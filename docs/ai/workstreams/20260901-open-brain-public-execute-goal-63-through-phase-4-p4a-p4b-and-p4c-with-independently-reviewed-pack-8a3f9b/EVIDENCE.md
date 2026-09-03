@@ -1066,3 +1066,98 @@
   work until a functioning independent review path returns a closed verdict.
 - Source, candidate, P4-W5, readiness, production, recovery, and disposable
   state remain unchanged. P4-W9 was not started.
+
+## P4-W8 architecture review initial verdict
+
+- The distinct in-app Child 25 completed the bounded static review and changed
+  no file. Its initial verdict is `NOT_READY`, P0/P1/P2 `0/7/2`.
+- The reviewer rejects direct adaptation of Goal #24's production-oriented
+  controller and recommends a clean capability-isolated disposable engine,
+  complete owner descriptors plus an fsynced hash-chain rollback journal, one
+  closed exact stage manifest, and a verifier that imports no producer code.
+- Two feasibility gates precede implementation: an OS-enforced execution
+  boundary with no production-root authority and an online-consistency
+  primitive that binds both fresh backups to one immutable generation without
+  stopping production services.
+- The remaining design closures are transaction-unique descriptor/inode/path
+  safety, exact native/config/migration/rebuild bindings, a complete required
+  surface and writer matrix, marker-bound cleanup, and exact bounded
+  production before/after identity.
+- `P4W8-AR-001` records only that Child 25 was not given the exact nested
+  public prompt path. The prompt exists in this workstream and will be supplied
+  by absolute path and digest on same-lineage rereview.
+- No implementation or live inventory, backup, restore, staging, service, or
+  rehearsal action began. P4-W9 remains prohibited.
+
+## P4-W8 architecture adjudication evidence
+
+- The exact public phase prompt was supplied for same-lineage rereview at
+  SHA-256
+  `92c93fdf2a6176c8c5db805070a79ba0ebe2e109111cefc07dadfd17394228e7`.
+  The private adjudication and bounded feasibility receipt have SHA-256 values
+  `78f6242fda1f948c3d50f186c600caed32c5265930425f01fe7363f95a9a456e`
+  and `0386cf4b7b0f8eff240f9041b18eab5e72b51c502c295fdd63caa80f7e5ab966`.
+- A default-deny macOS sandbox ran the unchanged signed candidate and confined
+  child lifecycle. Public-repository reads, an unrelated sibling read, and real
+  `launchctl` execution were denied. The probe touched disposable temporary
+  state only and returned `passed`.
+- The adjudication selects one lease-held source generation across both helper
+  backups while production services remain loaded. It closes exact owner and
+  rollback-journal schemas, transaction namespace and inode rules, the full
+  stage coordinate set, a standalone FD-only verifier, all ten required
+  surfaces, marker-bound cleanup, and the bounded production before/after
+  digest set.
+- Child 25 is reserved on its existing lineage for the mandatory rereview. No
+  P4-W8 controller implementation, production inventory, backup, restore,
+  service action, rehearsal, publication, deployment, or P4-W9 action has run.
+
+## P4-W8 architecture second verdict
+
+- Child 25 verified all three supplied hashes, changed no file, and returned
+  `NOT_READY`, P0/P1/P2 `0/2/0` on the same lineage.
+- AR-001 and AR-004 through AR-009 are closed. The accepted closures cover the
+  exact prompt, one-generation dual-backup fence, descriptor/inode namespace,
+  no-fallback stage, independent verifier, ten-surface matrix, cleanup, and
+  production noninterference contracts.
+- AR-002 remains until runtime proof covers external same-user signals,
+  pre-existing loopback listeners, non-transaction Unix sockets, every bounded
+  production root, and all non-allowlisted host service controls. AR-003
+  remains until every mutation uses durable write-ahead `planned` and
+  `applied` records with crash-point reconciliation.
+- The reviewer slot is released. No implementation or live rehearsal action
+  has begun, and P4-W9 remains prohibited.
+
+## P4-W8 retained-finding repairs
+
+- The expanded OS-isolation probe passed against all five bound production
+  roots and 11 present host service controls. It denied external same-user
+  signaling, a pre-existing host loopback listener, a non-transaction Unix
+  socket, production-root reads and write-opens, and every service executable.
+- The same profile allowed only one exact transaction TCP port, one
+  transaction-path Unix socket, same-sandbox child lifecycle, transaction
+  writes, and the unchanged signed candidate. The receipt and probe SHA-256
+  values are
+  `760a55ccd0c1b4f639a5df7ef83f77b55aaf5f8b045b83d12f09af39b33f2841`
+  and `4c8bb414ae8ff270d3b05e3184bfed7fb823dd012f8a1e86bd278cbb5bfa8b9c`.
+- The amended journal contract now persists and fsyncs a complete `planned`
+  intent before every forward or inverse mutation, records `applied` only after
+  exact revalidation, and requires rollback-only reconciliation plus crash
+  injection at every append, fsync, mutation, and validation boundary.
+- Child 25 is reserved on the same lineage to adjudicate only AR-002 and AR-003
+  and reconfirm the seven prior closures. Implementation and live rehearsal
+  remain stopped.
+
+## P4-W8 architecture READY
+
+- Child 25 verified the amended adjudication, expanded probe source, and V2
+  receipt hashes and returned final `READY`, P0/P1/P2 `0/0/0`, without changing
+  a file.
+- AR-002 and AR-003 are closed. AR-001 and AR-004 through AR-009 remain closed;
+  no architecture finding or concern remains before red-first implementation.
+- The permission is implementation-only. Populated exact hashes, all 20
+  red-first tests, supported lint/type checks, the isolation and crash matrix,
+  and an independent pre-execution review must pass before any live inventory,
+  helper, backup, restore, service, or rehearsal operation.
+- Product source, the 23-coordinate P4B candidate, P4-W5, readiness, production
+  ownership, and release/publication state remain unchanged. P4-W9 has not
+  started.

@@ -11,14 +11,16 @@
 ## Current milestone
 
 - Milestone: P4-W8 disposable rehearsal and rollback proof
-- Status: blocked before implementation by the two-consecutive-timeout
-  architecture-review breaker. P4A/P4B remain merged at commit
+- Status: architecture `READY` before red-first implementation. Child 25's
+  final same-lineage verdict is P0/P1/P2 `0/0/0`; all nine findings are closed.
+  P4A/P4B remain merged at commit
   `10769806361e7ed419b653534e1303b623d84673`. Its tree exactly matches
   reviewed PR head `7e269219b340335f8567ca7bc13f07b1ee9323f0`.
   The P4-W8 phase contract is rendered, the exact 23-coordinate candidate
-  revalidates, and Children 23 and 24 are closed without verdict after bounded
-  read-only review timeouts. No controller implementation or private/live
-  rehearsal action has started.
+  revalidates. The expanded signal/network/socket, production-root, and
+  service-control denial proof passes. The write-ahead crash-recovery contract
+  is accepted. Red-first private implementation is eligible; no live inventory,
+  helper, backup, restore, service, or rehearsal action has started.
 - Allowed scope: the rendered P4-W8 contract and bounded public records; a new
   private Goal 63 controller, stager, verifier, manifests, tests, and receipts;
   metadata-only live inventory; narrowly scoped backup-access repair if
@@ -92,10 +94,10 @@
 
 ## Next action
 
-Restore a functioning independent architecture-review path and run the bounded
-Child 24 prompt without repeating the timed-out dispatch. Require a closed
-verdict before creating the new transaction implementation or performing a
-live inventory, backup, restore, or rehearsal action.
+Create the private P4-W8 source, schemas, and 20 red-first tests under the
+accepted module boundaries. Bring tests, lint, type checks, exact stage hashes,
+isolation, and crash recovery to green, then obtain independent pre-execution
+review before any live rehearsal work.
 
 ## P4-W0 complete
 
@@ -735,7 +737,8 @@ live inventory, backup, restore, or rehearsal action.
   transaction. Historical Goal #24 helper/recovery assets are static
   architecture references only; its completed production apply and cleanup
   remain permanently forbidden.
-- P4-W8 has not yet touched private/live state. Children 23 and 24 were both
-  closed without verdict after bounded read-only review timeouts. The
-  two-consecutive-timeout breaker prohibits another equivalent dispatch.
-  P4-W9 remains prohibited.
+- P4-W8 has not yet touched live state. Children 23 and 24 were both closed
+  without verdict after bounded CLI timeouts. Child 25 completed three passes
+  through the distinct in-app runtime and returned final architecture `READY`,
+  P0/P1/P2 `0/0/0`; its slot is released. Red-first private implementation is
+  eligible, while live work and P4-W9 remain prohibited.

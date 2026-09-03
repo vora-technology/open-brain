@@ -549,13 +549,15 @@ coordinator-owned.
 
 - Status: active
 - Active children: 0 of 6
-- Total children: 2 of 12
+- Total children: 3 of 12
 - Identical failures: 0 of 2
-- Consecutive timeouts: 2 of 2; breaker active
+- Consecutive timeouts: 2 of 2 for the closed CLI path; 0 of 2 on the in-app
+  path
 - Implementation writer: coordinator only; no child write scope is reserved
 - Review lineage: Children 23 and 24 closed without verdict after bounded
-  timeouts. The equivalent architecture-review dispatch path is closed until
-  its execution strategy changes. A separate final receipt reviewer remains
+  timeouts. The equivalent CLI dispatch path is closed. Child 25 returned final
+  architecture `READY`, P0/P1/P2 `0/0/0`, and its slot is released. A separate
+  pre-execution implementation review and final receipt review remain
   mandatory.
 - Reset authority: P4-W7 Child 22 is closed. The validated P4-W7 handoff,
   protected P4A/P4B merge, rendered P4-W8 contract, and D-057 start a fresh
@@ -599,3 +601,55 @@ coordinator-owned.
   still being inspected at interruption; no finding or approval is inferred.
   This is the second consecutive timeout, so D-058 closes equivalent review
   dispatches before implementation or live P4-W8 work.
+
+## Child 25: P4-W8 in-app bounded architecture review
+
+- Status: final architecture review complete; slot released, lineage closed
+- Dispatch ID: `p4w8-architecture-review-03`
+- Agent ID: `01a06884-a664-7722-9705-01351d9e4e94`
+- Nickname: Leibniz
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only adversarial architecture reviewer
+- Write scope: none
+- Source scope: identical named files and line ranges from Child 24
+- Retry strategy: use the distinct in-app subagent runtime discovered after
+  D-058 closed the two timed-out Codex CLI attempts
+- Required result: bounded architecture `READY` with P0/P1/P2 `0/0/0`,
+  or exact `P4W8-AR-*` findings and implementation guidance
+- Initial result: `NOT_READY`; P0/P1/P2 `0/7/2`. Direct adaptation of the
+  historical production controller is rejected. The clean architecture must
+  close capability isolation, complete owner-map/journal rollback, online
+  backup consistency, namespace/TOCTOU safety, exact stage bindings, an
+  independent data-only verifier, the surface matrix, and postflight cleanup.
+  `P4W8-AR-001` is a bounded path-resolution gap: the public prompt exists
+  but its exact path was not supplied to the fixed-region reviewer.
+- Rereview input: the exact public phase-prompt path and SHA-256, a private
+  nine-finding adjudication with SHA-256
+  `78f6242fda1f948c3d50f186c600caed32c5265930425f01fe7363f95a9a456e`,
+  and a bounded isolation-feasibility receipt with SHA-256
+  `0386cf4b7b0f8eff240f9041b18eab5e72b51c502c295fdd63caa80f7e5ab966`.
+- Required rereview result: explicitly close or retain each
+  `P4W8-AR-001` through `P4W8-AR-009`, then return `READY` with P0/P1/P2
+  `0/0/0` or a bounded remaining finding set. No file write or live command is
+  authorized.
+- Second result: `NOT_READY`; P0/P1/P2 `0/2/0`. AR-001 and AR-004 through
+  AR-009 are closed. AR-002 requires proof that the sandbox denies external
+  same-user signals, pre-existing loopback listeners, non-transaction Unix
+  sockets, all bounded production roots, and every non-allowlisted service
+  control. AR-003 requires durable write-ahead `planned` and `applied` records
+  plus crash-point reconciliation tests.
+- Third-review inputs: amended adjudication SHA-256
+  `f5dfa1a12580a9230a55b2f3e08ffdcaabc9faf0afda05bc3453036d60a2edd6`
+  and expanded isolation receipt SHA-256
+  `760a55ccd0c1b4f639a5df7ef83f77b55aaf5f8b045b83d12f09af39b33f2841`.
+  The probe source matches the receipt at SHA-256
+  `4c8bb414ae8ff270d3b05e3184bfed7fb823dd012f8a1e86bd278cbb5bfa8b9c`.
+- Required third result: accept or retain AR-002 and AR-003 only, confirm the
+  other seven closures remain valid, and return architecture `READY` with
+  P0/P1/P2 `0/0/0` before implementation.
+- Final result: `READY`; P0/P1/P2 `0/0/0`. AR-002 and AR-003 are closed and
+  AR-001 plus AR-004 through AR-009 remain closed. The verdict authorizes
+  red-first implementation only. Live inventory, helper, backup, restore,
+  service, and rehearsal work remain gated on populated hashes, tests, and
+  independent pre-execution review.

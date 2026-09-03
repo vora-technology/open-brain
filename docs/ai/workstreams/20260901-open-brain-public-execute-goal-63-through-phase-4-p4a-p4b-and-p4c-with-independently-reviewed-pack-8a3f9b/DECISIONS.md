@@ -756,3 +756,66 @@ has become corrupt.
   governance breaker requires a changed execution path after two consecutive
   timeouts and preserves the no-production/no-live boundary while review
   availability is restored.
+
+## D-059: use the distinct in-app runtime after closing the CLI path
+
+- Chosen: preserve both timeout records and keep the Codex CLI review path
+  closed, then reserve one bounded read-only reviewer on the separately
+  exposed in-app subagent runtime using Child 24's fixed named-region prompt.
+- Rejected: a third Codex CLI dispatch, a broader prompt, implementation before
+  review, or any live inventory, backup, restore, service, or rehearsal action.
+- Why: runtime capability discovery exposed an independent execution mechanism
+  after D-058. This materially changes the failed path while preserving the
+  same no-write/no-live contract and shared P4-W8 child budget.
+
+## D-060: isolate the disposable engine and fence one online backup generation
+
+- Chosen: keep all production discovery, scoped-helper calls, and before/after
+  comparison in a non-mutating host-side coordinator; run the rehearsal engine
+  and every candidate descendant under a deny-by-default macOS sandbox that
+  receives only transaction-owned descriptors and cannot execute real service
+  controls. Keep production services loaded while the recovery process holds
+  the complete closed set of writer leases across both fresh backups and proves
+  the source generation unchanged before, between, and after them.
+- Rejected: direct reuse of the Goal #24 production controller, an unrestricted
+  same-user process, stopping any production service, two independently sampled
+  live backups, or provisioning a macOS VM by consuming the host's remaining
+  disk margin or deleting unrelated data.
+- Why: the signed candidate and a same-sandbox child ran inside the restricted
+  boundary while public-repository reads, sibling reads, and real `launchctl`
+  execution were denied. A macOS VM remains the ideal isolation option, but no
+  manager or image is installed and current free space cannot safely absorb
+  one. The existing writer protocol provides a non-mutating generation fence:
+  exclusive acquisition of every inventoried lease completes prior writes and
+  prevents conforming writers from entering while both helper snapshots run.
+
+## D-061: exact-endpoint Seatbelt and write-ahead rollback
+
+- Chosen: restrict the sandbox to one transaction TCP port, transaction-path
+  Unix sockets, and same-sandbox descendants; deny every other endpoint,
+  outside-process signal, production root, and non-allowlisted service tool.
+  Journal a durable `planned` record before every forward or rollback mutation
+  and a matching `applied` record after identity/state revalidation.
+- Rejected: broad loopback access, post-mutation-only journaling, treating tests
+  as a substitute for runtime denial, or adding a broker/VM after the narrower
+  Seatbelt policy proved enforceable.
+- Why: the expanded probe denied reads and write-opens across all five bound
+  production roots, an outside same-user signal, a pre-existing loopback
+  listener, a non-transaction Unix socket, and all 11 present host service
+  tools while preserving exact transaction TCP/Unix, child lifecycle, write,
+  and signed-candidate behavior. Write-ahead intent closes the crash window
+  between a mutating syscall and its prior post-transition record.
+
+## D-062: accept the reviewed P4-W8 architecture before implementation
+
+- Chosen: accept Child 25's same-lineage `READY`, P0/P1/P2 `0/0/0`, only as
+  authority to begin red-first private implementation. Preserve the separate
+  no-live gate until generated configuration, migration, rebuild, controller,
+  verifier, and sandbox bytes are hash-closed, tested, and independently
+  reviewed.
+- Rejected: treating architecture READY as rehearsal authority, skipping the
+  20 red-first tests, weakening the expanded isolation probe or crash matrix,
+  or beginning inventory, helper, backup, restore, or service work early.
+- Why: the reviewer explicitly closed AR-002 and AR-003, reconfirmed all seven
+  prior closures, and retained no finding. Its stated permission ends at
+  implementation and preserves the final pre-execution review boundary.
