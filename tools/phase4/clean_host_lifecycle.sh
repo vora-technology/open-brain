@@ -202,12 +202,16 @@ run_product() {
         "$executable" "$@"
 }
 
-stage='prior-schema-upgrade'
+stage='prior-schema-reset'
 state_database=$brain/.open-brain/state/phase1.sqlite3
 sqlite3 "$state_database" 'PRAGMA user_version=0;' >/dev/null || fail
+stage='prior-schema-reset-verify'
 [ "$(sqlite3 "$state_database" 'PRAGMA user_version;')" = 0 ] || fail
+stage='prior-schema-init'
 run_product --json init > "$sandbox/init.json" || fail
+stage='prior-schema-receipt'
 jq -e '.state_schema_version == 1' "$sandbox/init.json" >/dev/null || fail
+stage='prior-schema-upgrade-verify'
 [ "$(sqlite3 "$state_database" 'PRAGMA user_version;')" = 1 ] || fail
 jq -r '.fixture_seed' "$controller" \
     > "$brain/.open-brain/state/appliance-owner-credential"
