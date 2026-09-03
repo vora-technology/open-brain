@@ -544,3 +544,58 @@ coordinator-owned.
 - Final result: `READY`; P0/P1/P2 `0/0/0`. All three D-054 adjudications and
   all P4A/P4B completion criteria are accepted. No file changed and no concern
   remains.
+
+## P4-W8 milestone budget
+
+- Status: active
+- Active children: 0 of 6
+- Total children: 2 of 12
+- Identical failures: 0 of 2
+- Consecutive timeouts: 2 of 2; breaker active
+- Implementation writer: coordinator only; no child write scope is reserved
+- Review lineage: Children 23 and 24 closed without verdict after bounded
+  timeouts. The equivalent architecture-review dispatch path is closed until
+  its execution strategy changes. A separate final receipt reviewer remains
+  mandatory.
+- Reset authority: P4-W7 Child 22 is closed. The validated P4-W7 handoff,
+  protected P4A/P4B merge, rendered P4-W8 contract, and D-057 start a fresh
+  milestone budget.
+
+## Child 23: P4-W8 pre-implementation architecture review
+
+- Status: closed without verdict after timeout breaker; slot released
+- Dispatch ID: `p4w8-architecture-review-01`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only adversarial architecture reviewer
+- Write scope: none
+- Source scope: static merged public P4-W8/P4B inputs plus the private
+  companion's current Goal #63 state and historical Goal #24 helper,
+  controller, tests, and bounded receipts
+- Required result: `READY` with P0/P1/P2 `0/0/0`, or bounded
+  `P4W8-AR-*` findings plus exact module, command, receipt, red-test, live
+  sequencing, and rollback guidance
+- Result: no closed report after about 190 seconds. The process was still
+  recursively inspecting static source at interruption and had consumed a
+  disproportionate context budget. No finding or approval is inferred. The
+  replacement must prohibit broad search/codegraph and limit inspection to
+  named source regions.
+
+## Child 24: P4-W8 bounded architecture review
+
+- Status: closed without verdict after timeout breaker; slot released
+- Dispatch ID: `p4w8-architecture-review-02`
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only adversarial architecture reviewer
+- Write scope: none
+- Source scope: only named public/private files and line ranges; broad search,
+  codegraph, Git history, web, and live commands are forbidden
+- Retry strategy: narrow Child 23's recursive static exploration to the exact
+  controller/helper/stager/verifier interfaces required by P4-W8
+- Required result: bounded architecture `READY` with P0/P1/P2 `0/0/0`,
+  or exact `P4W8-AR-*` findings and implementation guidance
+- Result: no closed report after the bounded wait. The fixed source set was
+  still being inspected at interruption; no finding or approval is inferred.
+  This is the second consecutive timeout, so D-058 closes equivalent review
+  dispatches before implementation or live P4-W8 work.

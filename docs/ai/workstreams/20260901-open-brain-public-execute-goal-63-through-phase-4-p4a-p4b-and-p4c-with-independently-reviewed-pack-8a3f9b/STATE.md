@@ -4,34 +4,39 @@
 - Repo root: <repo-root>
 - Remote identity SHA-256 fingerprint: `cb5e9cd7ac71c16e5109717b4bc07f01aed1bbda2b18a99bfbc76f7bd98245bc`
 - Worktree: <repo-root>
-- Branch: goal/open-brain-phase4
+- Branch: goal/open-brain-phase4-p4c
 - Objective: Execute Goal 63 through Phase 4 P4A, P4B, and P4C with independently reviewed package isolation, unpublished native artifacts, full-stop cutover, and day-0 evidence
 - Created date: 2026-09-01
 
 ## Current milestone
 
-- Milestone: P4-W7 exact-candidate audit and P4B review
-- Status: complete at accepted source
-  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` and its exact unpublished
-  candidate. Child 22 returned final `READY`, P0/P1/P2 `0/0/0`, and accepted
-  all three D-054 adjudications. P4-W5 remains complete at
-  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`; the immutable readiness
-  snapshot remains historical and unchanged. P4-W8 has not started.
-- Allowed scope: P4-W7 prompt, audit, and read-only review records; direct
-  checks of the existing exact source, candidate, CI, public release state,
-  and P4A/P4B evidence; bounded workstream state; and one local evidence-only
-  checkpoint. Product source, tests, tooling, workflows, and artifact bytes
-  are frozen.
-- Stop condition: any source/artifact mismatch, incomplete or failed required
-  gate, public package/tag/release/download, review finding, P4-W5 or readiness
-  change, private-data exposure, candidate rebuild, source repair, push,
-  merge, publication, deployment, production/private-state access, cutover,
-  or P4-W8 action.
-- Base: freshly fetched `origin/main` at
-  `3b89a4ba4787a378e6040ff042bd117da881918d`
+- Milestone: P4-W8 disposable rehearsal and rollback proof
+- Status: blocked before implementation by the two-consecutive-timeout
+  architecture-review breaker. P4A/P4B remain merged at commit
+  `10769806361e7ed419b653534e1303b623d84673`. Its tree exactly matches
+  reviewed PR head `7e269219b340335f8567ca7bc13f07b1ee9323f0`.
+  The P4-W8 phase contract is rendered, the exact 23-coordinate candidate
+  revalidates, and Children 23 and 24 are closed without verdict after bounded
+  read-only review timeouts. No controller implementation or private/live
+  rehearsal action has started.
+- Allowed scope: the rendered P4-W8 contract and bounded public records; a new
+  private Goal 63 controller, stager, verifier, manifests, tests, and receipts;
+  metadata-only live inventory; narrowly scoped backup-access repair if
+  required; fresh primary/replica backups and disposable restores; and one
+  collision-proof disposable full-stop/rollback transaction. Product source,
+  P4B artifact bytes, P4-W5 evidence, the readiness snapshot, and production
+  writer/service state are frozen.
+- Stop condition: any exact-input mismatch, incomplete current inventory,
+  unverified helper or broadened authority, backup/restore failure, production
+  target resolution, inability to prove zero writer authority or exact
+  rollback, private-data exposure, source/artifact mutation, publication,
+  deployment, production cutover, predecessor deletion, irreversible cleanup,
+  rerun of Goal #24's completed apply/cleanup, or any P4-W9 action.
+- Base: merged `origin/main` at
+  `10769806361e7ed419b653534e1303b623d84673`
 - Launch commit: reviewed planning commit cherry-picked as
   `68c34d723e8f0bbdc7a51d5c5070e63e994b335d`
-- Branch: `goal/open-brain-phase4`
+- Branch: `goal/open-brain-phase4-p4c`
 - Plan SHA-256:
   `7fe6e5d1e48b44fb4fba232661a8b01eeca019e4f35a43f1b2c162914905bfd2`
 - Launch runtime goal thread: `01a05f1b-de55-7a41-bc01-673d277a1995`
@@ -87,12 +92,10 @@
 
 ## Next action
 
-Implement D-052 against the recorded red
-`tests/phase4/test_p4w6_release.py` contract, then add the artifact-only
-clean-host harness and CI matrix. Child 16 returned no verdict before the
-two-timeout breaker; retain a fresh final exact-source/artifact review. Keep
-P4-W5 and the immutable six-probe snapshot unchanged. Recovery readiness
-remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
+Restore a functioning independent architecture-review path and run the bounded
+Child 24 prompt without repeating the timed-out dispatch. Require a closed
+verdict before creating the new transaction implementation or performing a
+live inventory, backup, restore, or rehearsal action.
 
 ## P4-W0 complete
 
@@ -713,3 +716,26 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
 - No artifact was rebuilt, re-signed, published, tagged, released, deployed,
   or used for production/private-state access or cutover. P4-W5 and readiness
   were not rerun. P4C and P4-W8 remain unstarted.
+
+## P4-W8 launch and merge gate
+
+- PR #6 was retitled to the completed P4A/P4B scope, marked ready, and
+  squash-merged only after all 20 exact-head checks remained successful.
+  Merged commit `10769806361e7ed419b653534e1303b623d84673` and reviewed
+  head `7e269219b340335f8567ca7bc13f07b1ee9323f0` both resolve to tree
+  `5c98b73fe854dd05406bf7992174cfbe20092eb9`.
+- The remote P4A/P4B branch was deleted by the normal merge workflow. New
+  local branch `goal/open-brain-phase4-p4c` starts exactly at
+  `origin/main`; the prior local branch remains intact.
+- Fresh post-merge queries found zero tags, GitHub releases, and deployments.
+  The exact candidate verifier still returns `valid`, source `537bc4f`,
+  and 23 artifacts. The plan, readiness snapshot, and P4-W5 prompt still hash
+  to their recorded values.
+- The rendered P4-W8 contract requires a new independently reviewed Goal #63
+  transaction. Historical Goal #24 helper/recovery assets are static
+  architecture references only; its completed production apply and cleanup
+  remain permanently forbidden.
+- P4-W8 has not yet touched private/live state. Children 23 and 24 were both
+  closed without verdict after bounded read-only review timeouts. The
+  two-consecutive-timeout breaker prohibits another equivalent dispatch.
+  P4-W9 remains prohibited.

@@ -1026,3 +1026,43 @@
   then returned final `READY`, P0/P1/P2 `0/0/0`, with no file change or
   concern. P4-W7 and P4B are complete. Source, candidate, P4-W5, the readiness
   snapshot, and public release state remain unchanged; P4-W8 has not started.
+
+## P4-W8 launch evidence
+
+- PR #6 exact head `7e269219b340335f8567ca7bc13f07b1ee9323f0`
+  remained mergeable and clean with 20 successful checks, including every
+  protected required check. It was marked ready and squash-merged at
+  `10769806361e7ed419b653534e1303b623d84673`.
+- The reviewed head and merged commit both have Git tree
+  `5c98b73fe854dd05406bf7992174cfbe20092eb9`. Fresh fetch confirmed
+  `origin/main` at the merge commit and deletion of the remote P4 branch.
+- Post-merge GitHub queries returned no tags, releases, or deployments.
+  Candidate verification returned `{"artifact_count":23,"source_sha":
+  "537bc4f1059ef4b4e8f0916702f38f4e531b13fe","status":"valid"}`.
+- The plan remains
+  `7fe6e5d1e48b44fb4fba232661a8b01eeca019e4f35a43f1b2c162914905bfd2`;
+  the immutable readiness snapshot remains
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`;
+  and the P4-W5 phase prompt remains
+  `71760e927bb24a85f7df51e1002f7a262b5adf2edb1fd152fd17370fc7038256`.
+- `P4-W8-PHASE-PROMPT.md` was rendered through the workflow-governance
+  phase template. The private companion holds separate sensitive phase and
+  architecture-review prompts. Child 23 is reserved before dispatch.
+- No package, tag, release, deployment, candidate rebuild, private/live
+  inventory, backup, restore, rehearsal, production mutation, or P4-W9 action
+  occurred during launch.
+
+## P4-W8 architecture-review blocker
+
+- Child 23 remained in recursive static inspection for about 190 seconds and
+  returned no closed report before interruption. It changed no file and had no
+  live authority; no finding or approval is inferred.
+- Child 24 used a materially narrower prompt that prohibited broad search,
+  codegraph, Git history, web, and live commands and limited inspection to
+  named source regions. It also returned no closed report within its bounded
+  wait and changed no file.
+- The milestone now records two consecutive review timeouts, zero active
+  children, and two total children. D-058 stops implementation and live P4-W8
+  work until a functioning independent review path returns a closed verdict.
+- Source, candidate, P4-W5, readiness, production, recovery, and disposable
+  state remain unchanged. P4-W9 was not started.

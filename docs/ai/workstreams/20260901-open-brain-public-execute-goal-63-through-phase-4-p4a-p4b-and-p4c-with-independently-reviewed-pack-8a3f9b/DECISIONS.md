@@ -723,3 +723,36 @@ has become corrupt.
   `P4W7-001` as a sandbox-induced false positive, accepted every D-054
   adjudication and P4A/P4B criterion, and returned final `READY`, P0/P1/P2
   `0/0/0` without changing a file.
+
+## D-057: merge the exact P4A/P4B tree before a new disposable transaction
+
+- Chosen: merge PR #6 through protected `main` after all 20 checks passed,
+  verify the squash commit's tree equals the exact reviewed branch-head tree,
+  and start P4-W8 on a new branch from that merge. Build a new Goal #63
+  transaction in private governed state, gated first by a read-only
+  architecture review. Reuse the approved helper and recovery semantics only
+  through explicit new hashes, manifests, tests, and disposable namespaces.
+- Rejected: rehearse from the unmerged feature branch, treat squash ancestry
+  as the identity proof, modify or rebuild the frozen P4B candidate, invoke
+  the historical Goal #24 controller directly, reuse its completed production
+  apply, or let P4-W8 touch production writer/service ownership.
+- Why: Goal #63 requires the exact reviewed P4A/P4B content to pass protected
+  merge before P4C consumes it. Tree equality proves the squash preserved that
+  content. A separate reviewed transaction prevents historical production
+  authority or stale topology from leaking into the disposable rehearsal.
+
+## D-058: stop before implementation after two architecture-review timeouts
+
+- Chosen: close Child 23 after its broad static review returned no report, then
+  make one materially narrower attempt limited to named files and regions.
+  Close Child 24 without verdict when it also exceeded the bounded wait, set
+  consecutive timeouts to two, and stop before controller implementation or
+  live P4-W8 work.
+- Rejected: infer approval from partial reviewer exploration, dispatch a third
+  equivalent child, self-certify the architecture, weaken the requirement for
+  reviewed control code, or begin inventory/backup/rehearsal while the review
+  gate is unresolved.
+- Why: neither child returned a closed report, finding, or verdict. The shared
+  governance breaker requires a changed execution path after two consecutive
+  timeouts and preserves the no-production/no-live boundary while review
+  availability is restored.
