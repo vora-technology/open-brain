@@ -478,11 +478,13 @@ def notarize_macos_dmg(
         _require_ok(log_result)
         log = _json_object(log_result.stdout)
         issues = log.get("issues")
+        issue_count = len(issues) if isinstance(issues, list) else 0
         if (
             log.get("jobId") != submission_id
             or log.get("status") != "Accepted"
-            or not isinstance(issues, list)
-            or issues
+            or issues is not None
+            and not isinstance(issues, list)
+            or issue_count != 0
         ):
             raise ReleaseCandidateError(_FAILURE)
         _require_ok(selected_runner(("xcrun", "stapler", "staple", str(path)), timeout=300))

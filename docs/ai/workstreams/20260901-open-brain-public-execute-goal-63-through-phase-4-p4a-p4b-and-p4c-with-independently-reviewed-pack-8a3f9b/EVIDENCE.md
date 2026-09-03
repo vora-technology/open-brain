@@ -855,9 +855,14 @@
   exact one-byte `*` `.gitignore` beside its outputs. The inventory continued to reject all
   residue; assembly now removes only that exact generated marker and has a focused fail-closed
   regression for any differing bytes.
-- Current pre-commit gates pass: `make p4w6-preflight` with 27 focused tests and pinned native
-  configuration; the 10-test release-policy suite; `make phase4-contracts` with 146 tests, Ruff,
-  strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,248 repository
+- Corrected source `69a9596031d96dfd51f9db3464f13c893709373c` built all six exact Python
+  artifacts. Its macOS submission was accepted by Apple, but the bounded parser stopped before
+  stapling because a zero-issue notary log represented `issues` as JSON `null` instead of `[]`.
+  The parser now accepts only those two zero-issue representations; null, empty-list, nonempty,
+  and invalid-shape behavior is covered without recording the submission ID or raw output.
+- Current pre-commit gates pass: `make p4w6-preflight` with 28 focused tests and pinned native
+  configuration; the 10-test release-policy suite; `make phase4-contracts` with 147 tests, Ruff,
+  strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,249 repository
   tests plus all six source-free distribution builds and artifact policy. Actionlint, ShellCheck,
   Perl syntax, diff integrity, and the immutable readiness hash also pass.
 - The immutable snapshot remains exactly

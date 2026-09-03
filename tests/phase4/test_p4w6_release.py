@@ -269,7 +269,11 @@ def test_macos_signing_requires_hardened_runtime_timestamp_and_bounded_evidence(
     assert "identity" not in json.dumps(evidence).casefold()
 
 
-def test_notarization_acceptance_is_stapled_validated_and_secret_safe(tmp_path: Path) -> None:
+@pytest.mark.parametrize("issues", (None, []))
+def test_notarization_acceptance_is_stapled_validated_and_secret_safe(
+    tmp_path: Path,
+    issues: object,
+) -> None:
     dmg = tmp_path / "open-brain-0.1.0-macos-arm64.dmg"
     dmg.write_bytes(b"synthetic dmg")
     submission_id = "123e4567-e89b-42d3-a456-426614174000"
@@ -283,7 +287,7 @@ def test_notarization_acceptance_is_stapled_validated_and_secret_safe(tmp_path: 
             output = {"id": submission_id, "message": "uploaded", "status": "Accepted"}
         elif "log" in command:
             output = {
-                "issues": [],
+                "issues": issues,
                 "jobId": submission_id,
                 "status": "Accepted",
                 "statusSummary": "Ready for distribution",
