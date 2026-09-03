@@ -628,6 +628,10 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
 - Source `69a9596` built the six exact Python artifacts. Apple accepted its macOS submission, but
   the parser correctly stopped before stapling on the previously unmodeled zero-issue `null`
   representation. Both accepted zero-issue shapes are now explicit and tested.
+- Source `3439fe6` then produced six Python artifacts plus a signed, accepted, stapled, validated,
+  Gatekeeper-approved DMG whose full artifact-only lifecycle passed in 19 seconds. It is superseded
+  because the Make recipe echoed local absolute paths before the bounded result; command echo is
+  now suppressed and covered.
 - Pre-commit verification is green: 28 focused P4-W6 tests, 10 release-policy tests, 147 Phase 4
   contracts, strict MyPy on 549 files, all 3,249 repository tests, six source-free artifacts,
   Actionlint, ShellCheck, Perl syntax, artifact policy, manifest validation, and diff integrity.

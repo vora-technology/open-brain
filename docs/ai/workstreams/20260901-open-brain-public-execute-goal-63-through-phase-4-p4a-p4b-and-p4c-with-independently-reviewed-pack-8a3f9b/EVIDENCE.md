@@ -860,6 +860,15 @@
   stapling because a zero-issue notary log represented `issues` as JSON `null` instead of `[]`.
   The parser now accepts only those two zero-issue representations; null, empty-list, nonempty,
   and invalid-shape behavior is covered without recording the submission ID or raw output.
+- Source `3439fe68e402be26a87f3774df103c2acfbc2601` built all six exact Python
+  artifacts and a Developer ID-signed macOS ARM64 DMG. Apple accepted it with zero issues; the
+  ticket stapled and validated, Gatekeeper assessment passed, and the exact DMG passed the complete
+  artifact-only lifecycle in 19 seconds. Its SHA-256 was
+  `be0a845f2f25c70ae3df0f08e9e949d84ce2e87a0ebffa5e7ab18789b7002fda`.
+- That candidate is superseded rather than promoted: the local Make invocation echoed its absolute
+  input paths before the bounded harness result. The recipe is now silent and a static contract
+  prevents path-bearing command echo. Exact source binding requires fresh artifacts after this
+  source-only hygiene repair.
 - Current pre-commit gates pass: `make p4w6-preflight` with 28 focused tests and pinned native
   configuration; the 10-test release-policy suite; `make phase4-contracts` with 147 tests, Ruff,
   strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,249 repository

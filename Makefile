@@ -174,7 +174,7 @@ p4w6-clean-host:
 	@test -n "$(P4W6_EVIDENCE)" || exit 2
 	@test -n "$(P4W6_HOST)" || exit 2
 	@test -n "$(P4W6_ARCHITECTURE)" || exit 2
-	tools/phase4/clean_host_lifecycle.sh "$(abspath $(P4W6_PACKAGE))" "$(abspath $(P4W6_CHECKSUM))" "$(abspath $(P4W6_FIXTURE))" "$(abspath $(P4W6_EVIDENCE))" "$(P4W6_SOURCE_SHA)" "$(P4W6_HOST)" "$(P4W6_ARCHITECTURE)" "$(P4W6_EXACT_SIGNED)"
+	@tools/phase4/clean_host_lifecycle.sh "$(abspath $(P4W6_PACKAGE))" "$(abspath $(P4W6_CHECKSUM))" "$(abspath $(P4W6_FIXTURE))" "$(abspath $(P4W6_EVIDENCE))" "$(P4W6_SOURCE_SHA)" "$(P4W6_HOST)" "$(P4W6_ARCHITECTURE)" "$(P4W6_EXACT_SIGNED)"
 
 p4w6-assemble:
 	uv run --frozen --python 3.12 --group native-build python -m tools.phase4.release_assembly assemble --root . --output $(P4W6_FINAL_OUTPUT) --source-sha $(P4W6_SOURCE_SHA) --python-directory $(P4W6_PYTHON_OUTPUT) --linux-directory $(P4W6_LINUX_OUTPUT) --macos-directory $(P4W6_MACOS_OUTPUT) --clean-host-directory $(P4W6_CLEAN_HOST_INPUT)

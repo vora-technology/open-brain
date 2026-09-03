@@ -41,6 +41,7 @@ def test_p4w6_make_targets_are_separate_from_frozen_p4w5_targets() -> None:
     assert "tools.phase4.release_assembly build-linux" in p4w6_section
     assert "tools.phase4.release_assembly build-macos" in p4w6_section
     assert "tools/phase4/clean_host_lifecycle.sh" in p4w6_section
+    assert '\t@tools/phase4/clean_host_lifecycle.sh' in p4w6_section
     assert "tools.phase4.release_assembly assemble" in p4w6_section
     assert "tools.phase4.release_assembly verify" in p4w6_section
 
