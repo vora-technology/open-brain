@@ -656,3 +656,18 @@ has become corrupt.
   auditable manifest as the closure boundary. Child 16 produced no verdict
   before two consecutive waits timed out and was closed under the milestone
   breaker, so D-052 still requires the final exact-source/artifact review.
+
+## D-053: bind P4-W6 to one exact unpublished candidate
+
+- Chosen: accept source `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` only with the exact six
+  Python artifacts, Linux archive, signed/notarized/stapled macOS DMG, five executed host records,
+  bounded macOS 14 unavailable-runner record, native-build evidence, checksums, SPDX/license
+  evidence, and 23-coordinate unpublished manifest reviewed by child 18. Treat a later docs-only
+  closure as an evidence successor under D-031; it does not change the reviewed source, tests,
+  policy, workflows, or artifact bytes.
+- Rejected: accept a superseded artifact, infer notarization from submission success alone, weaken
+  the macOS 14 requirement, publish from P4-W6, rerun P4-W5 or the readiness probes, or make a
+  source/test/tool change after the exact-source review.
+- Why: signing and assembly transform bytes after the native build, so source identity alone is
+  insufficient. The closed manifest and independent artifact review bind every transformed byte
+  and compatibility claim while preserving the immutable P4-W5 and readiness evidence.

@@ -771,3 +771,90 @@ Fix: Catch `SystemExit` explicitly beside `Exception` at the probe boundary, pre
 `KeyboardInterrupt`, and test both paths with sensitive canaries.
 
 Discovered: 2026-09-02.
+
+### RELEASE-003: Build tools may add control files beside requested outputs
+
+Symptom: Every requested wheel and sdist builds, but exact output inventory validation reports an
+extra `.gitignore` containing one `*` byte.
+
+Cause: `uv build --out-dir` creates its own ignore marker in the destination directory.
+
+Fix: Keep exact output inventory validation. Remove only the tool's exact known marker before
+validation, and reject the same filename when its bytes differ.
+
+Discovered: 2026-09-03.
+
+### RELEASE-004: A zero-issue notarization log may encode issues as null
+
+Symptom: Apple accepts a submission, but the bounded parser rejects its log before stapling because
+`issues` is `null` instead of an empty array.
+
+Cause: Notary service output has two observed zero-issue representations.
+
+Fix: Accept only `null` or an empty list when status is accepted. Reject nonempty lists and every
+other shape, then require stapling and validation independently.
+
+Discovered: 2026-09-03.
+
+### LIFECYCLE-003: Copying a symlink path is not portable target-copy behavior
+
+Symptom: A lifecycle copy produces a candidate directory on macOS but a preserved `current`
+symlink on GNU/Linux.
+
+Cause: `ditto` and `cp -RPp` do not treat a symlink supplied as the source path the same way.
+
+Fix: Validate the managed activation link, resolve it to the enrolled candidate identifier, and
+copy that explicit candidate directory. Never rely on platform-specific source-link handling.
+
+Discovered: 2026-09-03.
+
+### LIFECYCLE-004: Metadata-preserving fixture copies can retain a foreign UID
+
+Symptom: Artifact installation succeeds in a Linux container, then initialization rejects existing
+owner-only state even though modes and bytes are correct.
+
+Cause: Root runs `cp -p` against a bind-mounted fixture owned by the host runner, preserving UID
+1001 inside the container. Docker Desktop ownership remapping can hide the defect locally.
+
+Fix: Copy private fixture contents into a newly created destination without preserving ownership.
+Preserve bytes, modes, and symlinks, then exercise a synthetic foreign-owner fixture regression.
+
+Discovered: 2026-09-03.
+
+### TOOLING-002: Make prints path-bearing recipes unless they are silent
+
+Symptom: A command returns bounded JSON but Make prints the expanded recipe first, including local
+absolute artifact, fixture, or evidence paths.
+
+Cause: Output safety covered the child process but not Make's default command echo.
+
+Fix: Prefix path-bearing recipes with `@` and test the Makefile text as part of the public-output
+contract.
+
+Discovered: 2026-09-03.
+
+### AUDIT-011: A later shell command can mask an earlier audit failure
+
+Symptom: An audit prints findings, but the overall shell invocation exits zero after a following
+history check succeeds.
+
+Cause: Sequential commands ran without fail-fast shell behavior. The final command supplied the
+reported exit status.
+
+Fix: Run release gates with `set -eu` or as separate checked commands. Keep binary-native media in
+its dedicated validator instead of over-scoping a text scanner with a fixed content-size limit.
+
+Discovered: 2026-09-03.
+
+### TOOLING-003: Parallel uv commands can race on one project environment
+
+Symptom: Independent verification commands fail to spawn Python or fail while removing `.venv/bin`
+even though their inputs are valid.
+
+Cause: Concurrent `uv run` processes select different Python versions and replace the same project
+`.venv` at the same time.
+
+Fix: Run shared-environment `uv` gates sequentially, or give each parallel command an isolated
+environment. Restore a raced environment with one bounded `uv sync` before retrying.
+
+Discovered: 2026-09-03.

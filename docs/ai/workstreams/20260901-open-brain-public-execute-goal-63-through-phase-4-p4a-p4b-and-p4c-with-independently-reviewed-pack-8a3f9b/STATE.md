@@ -612,7 +612,7 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   tests, policy, workflows, and native artifacts remain those reviewed at
   `c7c4fad`.
 
-## P4-W6 active
+## P4-W6 complete
 
 - Private notarization readiness is owner-validated. Bounded coordinator checks confirm one
   Developer ID Application identity and the required third-party license inputs without exposing
@@ -643,12 +643,25 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   runner's ownership, rather than artifact or fixture content, caused the owner-only state check to
   fail. Fixture copying now preserves content and modes without preserving a foreign UID.
 - The ownership regression passes the complete lifecycle on local Ubuntu 24.04 and Debian 13.
-  Ubuntu 26.04 remains assigned to native CI because QEMU cannot extract the archive on that local
-  image. Fresh exact-head CI is required before rebuilding final signed media.
+  Local Ubuntu 26.04 QEMU cannot extract the archive, while the required native Ubuntu 26.04 CI
+  subject passes the exact lifecycle.
 - Pre-commit verification is green: 28 focused P4-W6 tests, 10 release-policy tests, 147 Phase 4
   contracts, strict MyPy on 549 files, all 3,249 repository tests, six source-free artifacts,
   Actionlint, ShellCheck, Perl syntax, artifact policy, manifest validation, and diff integrity.
-- Next: freeze the P4-W6 source commit, run exact-source Python and signed/notarized macOS builds,
-  push for the Linux and macOS 14 CI matrix, then assemble and independently review the exact
-  unpublished candidate. The snapshot hash remains
+- Exact source `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` passed CI
+  `33714932363`, Release audit `33714932452`, and CodeQL `33714929770` on the first attempt. All
+  18 PR checks are green, including Ubuntu 24.04, Ubuntu 26.04, Debian 13, and macOS 14 lifecycle
+  evidence.
+- The final exact-source DMG is Developer ID-signed with hardened runtime and secure timestamps,
+  accepted by Apple with zero issues, stapled, validated, and Gatekeeper-approved. Its SHA-256 is
+  `aa78303a1b1ac7b42215adada8d7932fe55114391292f622073b9aec825a95ac`; the exact signed
+  macOS 26 lifecycle passed. The Linux archive SHA-256 is
+  `aa84da386b70a8be826290d08342636de68ea275b47d9eaecbd74b456e5c72a2`.
+- The assembled unpublished candidate contains exactly 23 coordinates and passes the standalone
+  verifier. Child 18's same-lineage rereview returned `READY`, P0/P1/P2 `0/0/0`, closed
+  `P4W6-AR-001`, and found no product issue. Child 17 returned no result before its timeout breaker.
+- P4-W5 remains accepted at `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. No P4-W5 target or
+  readiness probe reran, and the snapshot remains
   `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`.
+- P4-W7 has not started. No artifact was published, tagged, released, deployed, or used for
+  production/private-content access or cutover.

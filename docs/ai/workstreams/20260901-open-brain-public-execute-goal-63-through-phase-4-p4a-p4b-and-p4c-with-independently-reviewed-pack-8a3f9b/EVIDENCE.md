@@ -902,3 +902,63 @@
   `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`. Exact-source native media,
   notarization, the CI host matrix, final manifest, exact-head audits, and independent review remain
   pending until this source candidate is committed.
+
+## P4-W6 accepted source and unpublished candidate closure
+
+- The accepted source is `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`. Its exact-head CI
+  `33714932363`, Release audit `33714932452`, and CodeQL `33714929770` passed on attempt one. PR
+  #6 reports all 18 checks green, including all three Linux clean-host jobs, the macOS 14
+  source-equivalent lifecycle, Python/native builds, Phase 4 contracts, and Python 3.12 through
+  3.14 verification.
+- Final local gates passed 28 focused P4-W6 tests, 147 Phase 4/security tests, Ruff, strict MyPy on
+  549 files, all 3,249 repository tests, six source-free Python builds, artifact policy, the
+  source-plus-six-artifact release audit, reachable-history audit, and Gitleaks 8.30.1 over 112
+  commits. Local HEAD, remote HEAD, and the clean worktree matched the accepted source.
+- Exact Python artifacts matched their CI copies byte for byte. Their SHA-256 values are
+  `34780ccd7daa3c54f0ba7a306b275dd2e06e16703793073d43a76a87aa23df38` (app wheel),
+  `cb8b0fc5fd01006474714175bb57249d189fea3b0994e7e4604a1972ccddec7e` (app sdist),
+  `3f9fc140331cd042466f4f7962f2a38459cb36f4ead14a9c1133850205fffb19` (connector wheel),
+  `6184805b26f930c55c870f6f9612207321b488adb25f550e74405b3a86edc012` (connector sdist),
+  `65568fe6ed12381e7311dbf72b9c8f300d33a9fca81f5ce350f2f1f99c931be1` (engine wheel), and
+  `c663273e6b54e17b2ec92afc857f7af15d05f9b588b95db84dd3de1c83755ff9` (engine sdist).
+- The Linux x86_64 archive SHA-256 is
+  `aa84da386b70a8be826290d08342636de68ea275b47d9eaecbd74b456e5c72a2`; its checksum-file
+  SHA-256 is `f6c79a2d7f54ef45f7f94d598069c10a431e10c91bea8a4b2b2d9736ebb6b707`. The native tree has
+  111 members, zero symlinks, membership
+  `121db9cdd0622785771b77456327499a82661b4fa9689d0f8e2e4e924647649a`, tree
+  `e3abd69ad931f1e20915a4caece3ce6b370cf91d4e9fba57047f1ca96dd8731c`, and source-tree
+  `1fd73d629664e7284f2be4a9640be73982b5c7272b74ffaabcae0c5da74a2a11`.
+- The macOS ARM64 DMG SHA-256 is
+  `aa78303a1b1ac7b42215adada8d7932fe55114391292f622073b9aec825a95ac`; its checksum-file
+  SHA-256 is `75ab75e46ca0b8a7eb54351aca927dcdf627db00189bf6e0ff7825c8e00af22d`. Its signed native tree
+  has 144 members, four symlinks, membership
+  `2b5ddbe0986f8ac4d9a427a950a02db75e9f22cf1a681e3f89768942fb26c344`, tree
+  `26ea9d2c5f26eda35e4957255227a8b6470ee6bbf69403df5b58c32a7d30f169`, and the same exact
+  source-tree digest as Linux.
+- Fifty-four nested code subjects were signed inside-out with hardened runtime and secure
+  timestamps. Apple accepted the submission with zero issues; opaque receipt
+  `rct_v1_bac00e280d273df7c2fc0aa9293f6039ec46203215e08d87e6e2e7f07447fbf5` is stapled and
+  validated, Gatekeeper assessment passed, and no account, team, certificate, profile, submission
+  ID, or raw notary output entered public evidence.
+- Ubuntu 24.04, Ubuntu 26.04, and Debian 13 passed the exact Linux lifecycle with two-second setup
+  receipts. The macOS 14 source-equivalent artifact passed in two seconds. The exact signed DMG
+  passed on macOS 26 in four seconds, while the separate macOS 14 record carries only the
+  plan-authorized `exact-signed-candidate-runner-unavailable` blocker.
+- The release candidate contains exactly 23 coordinates. Its standalone verifier rechecked every
+  artifact hash, checksum, build receipt, host role, Portable schema range, SPDX 2.3 document,
+  license binding, and the empty tag/package/release sets with publication status `unpublished`.
+- An exploratory audit over-scoped the text scanner to the native tar and produced the expected
+  size-limit findings; a following command initially masked that exit status. The final gate used
+  fail-fast shell behavior and the intended source-plus-six-Python-artifact scope, while dedicated
+  native and release-candidate validators covered binary media.
+- Child 17 (`01a0658a-9e01-71f3-98fa-6753cacc2c4e`) returned no verdict before two 60-second
+  waits triggered the timeout breaker. Fresh child 18 (`01a0658f-0169-7d41-8084-093c4f90d7f7`)
+  initially returned `NOT_READY`, P0/P1/P2 `0/1/0`, only because a coordinator interruption left
+  four review checks unfinished. Its bounded same-lineage rereview independently completed those
+  checks, closed `P4W6-AR-001`, and returned `READY`, P0/P1/P2 `0/0/0`, with no finding.
+- P4-W5 remains unchanged at accepted source
+  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. The readiness snapshot remains byte-for-byte
+  unchanged at SHA-256
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`; no readiness probe
+  or P4-W5 target reran. P4-W6 is complete. P4-W7 is unstarted, and no publication, tag,
+  release, deployment, production/private-content access, or cutover occurred.

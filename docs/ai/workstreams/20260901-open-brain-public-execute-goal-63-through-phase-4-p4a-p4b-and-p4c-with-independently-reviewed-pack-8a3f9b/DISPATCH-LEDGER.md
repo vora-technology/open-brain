@@ -377,14 +377,14 @@ coordinator-owned.
 
 ## P4-W6 milestone budget
 
-- Status: active
-- Active children: 0 of 6 reserved
-- Total children: 1 of 12
+- Status: complete
+- Active children: 0 of 6
+- Total children: 3 of 12
 - Identical failures: 0 of 2
-- Consecutive timeouts: 2 of 2; breaker applied to child 16
-- Implementation writer: coordinator only; child 16 is read-only
-- Review lineage: child 16 pre-implementation architecture review; final
-  exact-source/artifact acceptance review remains unreserved
+- Consecutive timeouts: 0 of 2; breakers applied separately to children 16 and 17
+- Implementation writer: coordinator only; all children were read-only
+- Review lineage: child 18 returned final `READY` at
+  `537bc4f1059ef4b4e8f0916702f38f4e531b13fe`; lineage closed
 - Reset authority: P4-W5 child 15 is closed; the validated private
   notarization receipt and the rendered P4-W6 phase contract start a fresh
   milestone budget without changing P4-W5 or the immutable readiness snapshot
@@ -407,3 +407,38 @@ coordinator-owned.
   wait. The agent remained running when closed. No finding or approval is
   inferred. D-052 records the coordinator's bounded architecture decision;
   the final exact-source/artifact acceptance review remains mandatory.
+
+## Child 17: P4-W6 exact-source and artifact review
+
+- Status: closed without verdict after timeout breaker
+- Agent ID: `01a0658a-9e01-71f3-98fa-6753cacc2c4e`
+- Nickname: Bacon
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only independent final reviewer
+- Write scope: none
+- Source scope: `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` and its exact 23-coordinate
+  unpublished candidate
+- Result: no result was returned after two consecutive 60-second waits. The agent was still
+  running when closed; no finding or approval is inferred.
+
+## Child 18: P4-W6 replacement final review
+
+- Status: complete; lineage closed
+- Agent ID: `01a0658f-0169-7d41-8084-093c4f90d7f7`
+- Nickname: Dirac
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only independent final reviewer
+- Write scope: none
+- Source scope: `537bc4f1059ef4b4e8f0916702f38f4e531b13fe` and its exact 23-coordinate
+  unpublished candidate
+- Evidence: exact-head CI `33714932363`, Release audit `33714932452`, CodeQL
+  `33714929770`, exact Python/Linux/macOS artifacts, five passed host records, one bounded macOS 14
+  unavailable-runner record, and immutable snapshot hash
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`
+- Initial result: `NOT_READY`; P0/P1/P2 `0/1/0`. `P4W6-AR-001` recorded that a coordinator
+  interruption left critical diff, P4-W5 default, notarization flag, and snapshot checks unfinished.
+- Final same-lineage result: `READY`; P0/P1/P2 `0/0/0`. The reviewer completed each missing
+  bounded check, closed `P4W6-AR-001`, found no product issue, and confirmed P4-W6 ready for
+  milestone closure.
