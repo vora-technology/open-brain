@@ -1,11 +1,12 @@
 # v0 artifact characterization
 
-Status: Phase 4 P4-W5 unpublished native build subject. Machine policy:
+Status: Phase 4 P4-W6 unpublished release-candidate contract. Machine policy:
 [`release/v0-artifact-policy.json`](../release/v0-artifact-policy.json).
 
-This records the isolated, unpublished Python artifacts and the native P4-W5 build subject. It
-does not claim that a native v0 release exists, that a clean-host candidate has passed P4-W6, or
-that any artifact is ready to publish.
+This records the isolated Python artifacts, the accepted P4-W5 native build subject, and the
+P4-W6 assembly and verification contract. It does not claim that a native v0 release exists or
+that any artifact is ready to publish. A P4-W6 candidate remains unpublished even after every
+manifest coordinate and host result passes.
 
 ## Wheel
 
@@ -65,10 +66,23 @@ candidates through lifecycle operations and may bootstrap only the explicit curr
 Uninstall quarantines enrolled trees before non-symlink-following removal, including a tree whose
 manifest no longer validates, while unregistered candidates survive.
 
-These are P4-W5 spike inputs and checks, not published release artifacts. Nuitka standalone 4.2
-remains the accepted fallback only if the documented PyInstaller failure gate is exhausted. The
-policy keeps `published` empty. Signing, notarization, checksummed release candidates, and
-clean-host lifecycle proof remain P4-W6 gates.
+The accepted P4-W5 subjects remain immutable inputs, not published release artifacts. P4-W6 uses
+separate exact-source builds with the `candidate_native-p4w6` identity. Linux media is a
+deterministic checksummed tarball. macOS media is a Developer ID Application-signed DMG whose
+nested Mach-O files are signed inside-out with hardened runtime and secure timestamps before the
+DMG is notarized, stapled, and assessed. The artifact-only clean-host harness covers install,
+schema upgrade, daemon supervision, backup and exact restore, V0-GATE-07, V0-GATE-13, Portable
+round trip, forced rollback, successful upgrade, uninstall, and residue without a source checkout
+or system Python.
+
+The final unpublished manifest binds six Python distributions, both native media files and their
+checksums, launchd and systemd resources, native-build and notarization evidence, SPDX and license
+evidence, and every required clean-host result. Linux runs the exact archive on Ubuntu 24.04,
+Ubuntu 26.04, and Debian 13. The signed DMG runs on the signing host. If an exact signed-candidate
+macOS 14 runner is unavailable, the manifest requires both a bounded unavailable-runner record and
+a separate source-equivalent macOS 14 lifecycle result. Nuitka standalone 4.2 remains the accepted
+fallback only if the documented PyInstaller failure gate is exhausted. The policy keeps
+`published` empty.
 
 ## Private-history audit
 

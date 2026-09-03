@@ -626,3 +626,33 @@ has become corrupt.
   must be unloaded before recovery can own the mutation lease. Exact resource
   and ownership sets prevent untracked input or unrelated install state from
   becoming deletion authority.
+
+## D-052: separate release assembly from the frozen native-build contract
+
+- Chosen: add a P4-W6 release-candidate module over bounded, parameterized
+  exact-source primitives whose P4-W5 defaults remain unchanged. Package
+  macOS ARM64 as a Developer ID Application-signed DMG. Sign every nested
+  Mach-O target inside-out with hardened runtime and a secure timestamp,
+  regenerate the native tree manifest after signing, sign the DMG, require an
+  accepted notarization log with zero issues, then staple and validate before
+  computing its final checksum. Package Linux x86_64 as a deterministic
+  checksummed tarball. Exercise unpacked artifacts through an artifact-only
+  black-box clean-host harness, and bind Python distributions, native media,
+  checksums, supervisor resources, SPDX/license evidence, supported hosts,
+  Portable compatibility, and bounded host results in one unpublished
+  release-candidate manifest.
+- Rejected: put Developer ID behavior in the PyInstaller specification, use
+  `codesign --deep` as the signing operation, notarize a ZIP that cannot be
+  stapled, require a Developer ID Installer certificate that is not currently
+  available, place credentials in CI, rebuild from a dirty working tree, or
+  infer minimum-macOS compatibility from the newer signing host. The exact
+  signed DMG must either run on macOS 14 or carry the plan-authorized bounded
+  unavailable-runner record while a source-equivalent macOS 14 candidate runs
+  separately.
+- Why: release assembly changes artifact bytes and has private authority that
+  does not belong in the accepted P4-W5 bundler contract. The separate layer
+  keeps exact-source construction reusable, makes secret-bearing effects
+  coordinator-only, preserves deterministic Linux media, and leaves one
+  auditable manifest as the closure boundary. Child 16 produced no verdict
+  before two consecutive waits timed out and was closed under the milestone
+  breaker, so D-052 still requires the final exact-source/artifact review.

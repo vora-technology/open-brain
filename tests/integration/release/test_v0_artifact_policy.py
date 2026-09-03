@@ -353,7 +353,7 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
             ],
         },
         "published": [],
-        "status": "p4w5-unpublished-build-subject",
+        "status": "p4w6-unpublished-release-candidate",
     }
 
 

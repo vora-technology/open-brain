@@ -173,8 +173,7 @@ def validate_native_build_runtime(configuration: NativeBuildConfiguration) -> st
         if sys.version_info[:2] != (3, 12):
             raise NativeBuildError(_FAILURE)
         if (
-            importlib.metadata.version("pyinstaller")
-            != configuration.pyinstaller_version
+            importlib.metadata.version("pyinstaller") != configuration.pyinstaller_version
             or importlib.metadata.version("pyinstaller-hooks-contrib")
             != configuration.hooks_version
         ):
@@ -227,9 +226,7 @@ def native_resource_members(root: Path) -> tuple[str, ...]:
         ):
             raise NativeBuildError(_FAILURE)
         tracked = tuple(
-            PurePosixPath(value.decode("utf-8"))
-            for value in result.stdout.split(b"\0")
-            if value
+            PurePosixPath(value.decode("utf-8")) for value in result.stdout.split(b"\0") if value
         )
         members: set[str] = set()
         for source_root, destination_root in _RESOURCE_SOURCE_TREES:
@@ -278,12 +275,9 @@ def audit_native_artifact(
         members = _artifact_members(selected)
         member_paths = frozenset(member.path for member in members)
         resource_members = native_resource_members(_REPOSITORY_ROOT)
-        if (
-            not set(resource_members) <= member_paths
-            or any(
-                not _native_member_allowed(member, resource_members=resource_members)
-                for member in members
-            )
+        if not set(resource_members) <= member_paths or any(
+            not _native_member_allowed(member, resource_members=resource_members)
+            for member in members
         ):
             raise NativeBuildError(_FAILURE)
         encoded = json.dumps(
@@ -313,9 +307,18 @@ def build_native_artifact(
     output_root: Path,
     *,
     source_sha: str,
+    candidate_id: str = "candidate_native-p4w5",
+    wave: str = "P4-W5",
 ) -> tuple[Path, Path, Path]:
     stage = "runtime"
     try:
+        ArtifactCandidate(
+            candidate_id=candidate_id,
+            version="0.1.0",
+            artifact_kind="native-onedir",
+        )
+        if wave not in {"P4-W5", "P4-W6"}:
+            raise NativeBuildError(_FAILURE)
         platform_tag = validate_native_build_runtime(configuration)
         stage = "source-binding"
         _validate_source_sha(source_sha)
@@ -352,13 +355,13 @@ def build_native_artifact(
         _validate_source_binding(configuration.root, source_sha)
         stage = "manifest"
         produced = selected_output / "dist" / NATIVE_EXECUTABLE_NAME
-        artifact = selected_output / "dist" / "candidate_native-p4w5"
+        artifact = selected_output / "dist" / candidate_id
         if artifact.exists():
             shutil.rmtree(artifact)
         produced.replace(artifact)
         NativeArtifactManifest.create(
             artifact,
-            candidate_id="candidate_native-p4w5",
+            candidate_id=candidate_id,
             version="0.1.0",
             platform_tag=platform_tag,
         ).write(artifact)
@@ -390,7 +393,7 @@ def build_native_artifact(
                 "runtime": None,
                 "schema_version": 1,
                 "source_sha": source_sha,
-                "wave": "P4-W5",
+                "wave": wave,
             },
         )
         return artifact, evidence_path, members_path
@@ -400,9 +403,16 @@ def build_native_artifact(
         raise NativeBuildStageError(stage) from error
 
 
-def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, object]:
+def smoke_native_artifact(
+    artifact: Path,
+    *,
+    evidence_path: Path,
+    expected_wave: str = "P4-W5",
+) -> dict[str, object]:
     stage = "artifact-audit"
     try:
+        if expected_wave not in {"P4-W5", "P4-W6"}:
+            raise NativeBuildError(_FAILURE)
         audit = audit_native_artifact(artifact, expected_platform=native_platform_tag())
         with TemporaryDirectory(prefix="ob-p4w5-", dir=_temporary_parent()) as raw:
             stage = "isolated-copy"
@@ -410,8 +420,8 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
             install_root = smoke_root / "install"
             candidates = install_root / "candidates"
             candidates.mkdir(parents=True)
-            prior_id = "candidate_native-p4w5-prior"
-            failed_id = "candidate_native-p4w5-failed"
+            prior_id = f"{audit.candidate_id}-prior"
+            failed_id = f"{audit.candidate_id}-failed"
             isolated_artifact = _copy_native_candidate(
                 artifact,
                 candidates / audit.candidate_id,
@@ -472,8 +482,7 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 brain_root=brain_root,
                 corruption_marker=corruption_marker,
                 corruption_target=(
-                    failed_artifact
-                    / "_internal/open_brain/resources/supervisors/launchd.json"
+                    failed_artifact / "_internal/open_brain/resources/supervisors/launchd.json"
                 ),
             )
             stage = "version"
@@ -562,10 +571,10 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 request_id="export_123e4567-e89b-42d3-a456-4266141745a1",
                 destination=portable_export,
             )
-            if (
-                exported.get("operation") != "portable-export"
-                or exported.get("status") not in {"scheduled", "completed"}
-            ):
+            if exported.get("operation") != "portable-export" or exported.get("status") not in {
+                "scheduled",
+                "completed",
+            }:
                 raise NativeBuildError(_FAILURE)
             _wait_for_path(portable_export / "portable-manifest.json")
             imported = _request_recovery_control(
@@ -575,14 +584,12 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 source=portable_export,
                 destination=portable_import,
             )
-            if (
-                imported.get("operation") != "portable-import"
-                or imported.get("status") not in {"scheduled", "completed"}
-            ):
+            if imported.get("operation") != "portable-import" or imported.get("status") not in {
+                "scheduled",
+                "completed",
+            }:
                 raise NativeBuildError(_FAILURE)
-            _wait_for_path(
-                portable_import / ".open-brain/state/appliance-owner-credential"
-            )
+            _wait_for_path(portable_import / ".open-brain/state/appliance-owner-credential")
             stage = "artifact-rollback"
             corruption_marker.write_text("corrupt once\n", encoding="utf-8")
             failed_disposable_root = smoke_root / "failed-upgrade-preflight"
@@ -611,8 +618,7 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
                 or rollback_value.get("failure_stage") != "activate"
                 or rollback_value.get("rollback_state") != "rolled_back"
                 or rollback_value.get("daemon_restore_state") != "restored"
-                or (install_root / "current").readlink()
-                != Path("candidates") / prior_id
+                or (install_root / "current").readlink() != Path("candidates") / prior_id
             ):
                 raise NativeBuildError(_FAILURE)
             _wait_for_daemon(executable, brain_root, smoke_root, appliance_environment)
@@ -678,7 +684,12 @@ def smoke_native_artifact(artifact: Path, *, evidence_path: Path) -> dict[str, o
             "system_python_required": False,
         }
         stage = "evidence"
-        _merge_runtime_evidence(evidence_path, audit, runtime)
+        _merge_runtime_evidence(
+            evidence_path,
+            audit,
+            runtime,
+            expected_wave=expected_wave,
+        )
         return runtime
     except NativeSmokeError:
         raise
@@ -753,12 +764,10 @@ def _native_member_allowed(
         allowed_resource_roots = _policy_strings(policy, "allowed_resource_roots")
         allowed_trees = _policy_strings(policy, "allowed_trees")
         forbidden_components = frozenset(
-            component.casefold()
-            for component in _policy_strings(policy, "forbidden_components")
+            component.casefold() for component in _policy_strings(policy, "forbidden_components")
         )
         forbidden_suffixes = tuple(
-            suffix.casefold()
-            for suffix in _policy_strings(policy, "forbidden_suffixes")
+            suffix.casefold() for suffix in _policy_strings(policy, "forbidden_suffixes")
         )
         library_pattern = policy.get("allowed_internal_library_pattern")
         if not isinstance(library_pattern, str):
@@ -791,8 +800,7 @@ def _native_member_allowed(
     if any(resource.startswith(member.path + "/") for resource in resource_members):
         return member.kind == "directory"
     if any(
-        member.path == root or member.path.startswith(root + "/")
-        for root in allowed_resource_roots
+        member.path == root or member.path.startswith(root + "/") for root in allowed_resource_roots
     ):
         return False
     if member.path in allowed_exact:
@@ -980,8 +988,7 @@ def _build_environment(*, source_root: Path) -> dict[str, str]:
     environment["PYTHONNOUSERSITE"] = "1"
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     environment["PYTHONPATH"] = os.pathsep.join(
-        str(source_root / relative)
-        for relative in ("packages/app/src", "packages/engine/src")
+        str(source_root / relative) for relative in ("packages/app/src", "packages/engine/src")
     )
     return environment
 
@@ -1118,16 +1125,17 @@ def _merge_runtime_evidence(
     evidence_path: Path,
     audit: NativeArtifactAudit,
     runtime: Mapping[str, object],
+    *,
+    expected_wave: str = "P4-W5",
 ) -> None:
     try:
         evidence = _json_object(evidence_path.read_text(encoding="utf-8"))
         artifact = evidence.get("artifact")
         if (
             evidence.get("schema_version") != 1
-            or evidence.get("wave") != "P4-W5"
+            or evidence.get("wave") != expected_wave
             or type(artifact) is not dict
-            or cast(dict[str, object], artifact).get("tree_sha256")
-            != audit.tree_sha256
+            or cast(dict[str, object], artifact).get("tree_sha256") != audit.tree_sha256
             or evidence.get("runtime") is not None
         ):
             raise NativeBuildError(_FAILURE)
@@ -1203,6 +1211,11 @@ def _materialize_source_tree(root: Path, source_sha: str, destination: Path) -> 
                 archive.unlink()
 
 
+def materialize_exact_source_tree(root: Path, source_sha: str, destination: Path) -> str:
+    """Expose the accepted D-051 exact-source materialization to P4-W6."""
+    return _materialize_source_tree(root, source_sha, destination)
+
+
 def _source_tree_sha256(root: Path) -> str:
     try:
         selected_root = root.resolve(strict=True)
@@ -1241,15 +1254,19 @@ def _source_tree_sha256(root: Path) -> str:
                     raise NativeBuildError(_FAILURE)
                 if len(entries) > _MAXIMUM_SOURCE_MEMBERS:
                     raise NativeBuildError(_FAILURE)
+
         visit(selected_root)
-        encoded = json.dumps(entries, sort_keys=True, separators=(",", ":")).encode(
-            "utf-8"
-        )
+        encoded = json.dumps(entries, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return sha256(encoded).hexdigest()
     except NativeBuildError:
         raise
     except (OSError, UnicodeError, ValueError) as error:
         raise NativeBuildError(_FAILURE) from error
+
+
+def exact_source_tree_sha256(root: Path) -> str:
+    """Return the deterministic D-051 digest for a materialized source tree."""
+    return _source_tree_sha256(root)
 
 
 def _git_command(*arguments: str) -> tuple[str, ...]:
@@ -1320,13 +1337,17 @@ def _validate_repository_git_inputs(root: Path) -> None:
     if replacements:
         raise NativeBuildError(_FAILURE)
     try:
-        attributes_value = _run_git(
-            root,
-            "rev-parse",
-            "--path-format=absolute",
-            "--git-path",
-            "info/attributes",
-        ).decode("utf-8").strip()
+        attributes_value = (
+            _run_git(
+                root,
+                "rev-parse",
+                "--path-format=absolute",
+                "--git-path",
+                "info/attributes",
+            )
+            .decode("utf-8")
+            .strip()
+        )
         attributes = Path(attributes_value)
         try:
             metadata = attributes.lstat()
@@ -1345,9 +1366,7 @@ def _raw_git_tree_manifest(
     source_sha: str,
 ) -> tuple[str, tuple[_GitTreeMember, ...]]:
     try:
-        object_format = _run_git(root, "rev-parse", "--show-object-format").decode(
-            "ascii"
-        ).strip()
+        object_format = _run_git(root, "rev-parse", "--show-object-format").decode("ascii").strip()
         if object_format not in {"sha1", "sha256"}:
             raise NativeBuildError(_FAILURE)
         output = _run_git(root, "ls-tree", "-rz", "--full-tree", source_sha)
@@ -1465,6 +1484,11 @@ def _validate_source_binding(root: Path, source_sha: str) -> None:
         raise NativeBuildError(_FAILURE)
 
 
+def validate_exact_source_binding(root: Path, source_sha: str) -> None:
+    """Require one clean exact HEAD without changing the P4-W5 default path."""
+    _validate_source_binding(root, source_sha)
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m tools.phase4.native_build")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -1474,9 +1498,16 @@ def _parser() -> argparse.ArgumentParser:
     build.add_argument("--root", type=Path, required=True)
     build.add_argument("--output", type=Path, required=True)
     build.add_argument("--source-sha", required=True)
+    build.add_argument("--candidate-id", default="candidate_native-p4w5")
+    build.add_argument("--wave", choices=("P4-W5", "P4-W6"), default="P4-W5")
     smoke = commands.add_parser("smoke")
     smoke.add_argument("--artifact", type=Path, required=True)
     smoke.add_argument("--evidence", type=Path, required=True)
+    smoke.add_argument(
+        "--expected-wave",
+        choices=("P4-W5", "P4-W6"),
+        default="P4-W5",
+    )
     audit = commands.add_parser("audit")
     audit.add_argument("--artifact", type=Path, required=True)
     audit.add_argument("--expected-platform")
@@ -1495,6 +1526,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 load_native_build_configuration(namespace.root),
                 namespace.output,
                 source_sha=namespace.source_sha,
+                candidate_id=namespace.candidate_id,
+                wave=namespace.wave,
             )
             audit = audit_native_artifact(artifact)
             result = {
@@ -1508,6 +1541,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             runtime = smoke_native_artifact(
                 namespace.artifact,
                 evidence_path=namespace.evidence,
+                expected_wave=namespace.expected_wave,
             )
             result = {"runtime": runtime, "status": "passed"}
         else:

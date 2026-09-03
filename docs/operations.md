@@ -32,6 +32,32 @@ temporary shim that models launchd KeepAlive: process termination relaunches the
 installing a host service, writes bounded ignored evidence under `build/p4w5-native`, and performs no
 signing, notarization, publication, deployment, or host service installation.
 
+## P4-W6 unpublished release candidate
+
+Run `make p4w6-preflight` before freezing a P4-W6 source commit. It checks the release, signing,
+notarization, deterministic archive, clean-host, CI, and manifest contracts without invoking the
+P4-W5 native build targets or the readiness probes.
+
+All artifact builds require `P4W6_SOURCE_SHA` to name the clean current `HEAD`. Build the six Python
+distributions with `make p4w6-python`. Build the Linux x86_64 archive on Ubuntu 24.04 with `make
+p4w6-linux`; the same exact archive must then pass the artifact-only lifecycle harness on Ubuntu
+24.04, Ubuntu 26.04, and Debian 13. Build the source-equivalent compatibility archive and run it on
+the macOS 14 ARM64 CI host with `make p4w6-macos-compatibility` and `make p4w6-clean-host`.
+
+On the private macOS ARM64 coordinator, place the validated Keychain selector only in the process
+environment as `OPEN_BRAIN_NOTARY_PROFILE`, then run `make p4w6-macos`. Do not print the selector or
+persist it in shell history, files, CI, logs, evidence, or the candidate. The command discovers one
+Developer ID Application identity, signs nested code inside-out, creates and signs the DMG,
+requires an accepted zero-issue notary log, staples and validates the ticket, assesses the media,
+and emits only bounded evidence.
+
+Collect the five passed host files as `ubuntu-24.04.json`, `ubuntu-26.04.json`, `debian-13.json`,
+`macos-signed.json`, and `macos-14-source-equivalent.json` under `P4W6_CLEAN_HOST_INPUT`. Run `make
+p4w6-assemble`, then `make p4w6-verify`. Assembly adds the bounded macOS 14 exact-signed-candidate
+runner record, closes all 23 required coordinates, rehashes every file, verifies checksum and
+evidence relationships, and writes `release-candidate.json`. These commands do not tag, publish,
+deploy, or alter production state.
+
 ## Capture publication
 
 `JOB-010` publishes only after raw persistence, a redacted extraction event, and durable

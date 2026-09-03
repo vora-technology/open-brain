@@ -2,12 +2,12 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `631`
+- Total subjects: `637`
 - app: `81`
 - connectors: `18`
 - engine: `104`
 - legacy: `333`
-- workspace: `95`
+- workspace: `101`
 
 | Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |
 |---|---|---|---|---|---|---|
@@ -563,6 +563,9 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/phase4/test_move_manifest.py` | `tests/phase4/test_move_manifest.py` | `moved` | `test` | `workspace` | `tests/phase4/test_move_manifest.py` | `excluded` |
 | `tests/phase4/test_native_build.py` | `tests/phase4/test_native_build.py` | `moved` | `test` | `workspace` | `tests/phase4/test_native_build.py` | `excluded` |
 | `tests/phase4/test_p4w5_contracts.py` | `tests/phase4/test_p4w5_contracts.py` | `moved` | `test` | `workspace` | `tests/phase4/test_p4w5_contracts.py` | `excluded` |
+| `tests/phase4/test_p4w6_assembly.py` | `tests/phase4/test_p4w6_assembly.py` | `moved` | `test` | `workspace` | `tests/phase4/test_p4w6_assembly.py` | `excluded` |
+| `tests/phase4/test_p4w6_contracts.py` | `tests/phase4/test_p4w6_contracts.py` | `moved` | `test` | `workspace` | `tests/phase4/test_p4w6_contracts.py` | `excluded` |
+| `tests/phase4/test_p4w6_release.py` | `tests/phase4/test_p4w6_release.py` | `moved` | `test` | `workspace` | `tests/phase4/test_p4w6_release.py` | `excluded` |
 | `tests/phase4/test_readiness_preflight.py` | `tests/phase4/test_readiness_preflight.py` | `moved` | `test` | `workspace` | `tests/phase4/test_readiness_preflight.py` | `excluded` |
 | `tests/phase4/test_rewrite_imports.py` | `tests/phase4/test_rewrite_imports.py` | `moved` | `test` | `workspace` | `tests/phase4/test_rewrite_imports.py` | `excluded` |
 | `tests/security/test_appliance_auth.py` | `tests/security/test_appliance_auth.py` | `moved` | `test` | `workspace` | `tests/security/test_appliance_auth.py` | `excluded` |
@@ -637,8 +640,11 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `tests/unit/test_writer_effect_parameters.py` | `packages/legacy/tests/unit/test_writer_effect_parameters.py` | `moved` | `test` | `legacy` | `packages/legacy/tests/unit/test_writer_effect_parameters.py` | `excluded` |
 | `tools/phase4/__init__.py` | `tools/phase4/__init__.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/__init__.py` | `excluded` |
 | `tools/phase4/acceptance_harness.py` | `tools/phase4/acceptance_harness.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/acceptance_harness.py` | `excluded` |
+| `tools/phase4/clean_host_fixture.py` | `tools/phase4/clean_host_fixture.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/clean_host_fixture.py` | `excluded` |
 | `tools/phase4/move_manifest.py` | `tools/phase4/move_manifest.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/move_manifest.py` | `excluded` |
 | `tools/phase4/native_build.py` | `tools/phase4/native_build.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/native_build.py` | `excluded` |
 | `tools/phase4/readiness_preflight.py` | `tools/phase4/readiness_preflight.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/readiness_preflight.py` | `excluded` |
+| `tools/phase4/release_assembly.py` | `tools/phase4/release_assembly.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/release_assembly.py` | `excluded` |
+| `tools/phase4/release_candidate.py` | `tools/phase4/release_candidate.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/release_candidate.py` | `excluded` |
 | `tools/phase4/rewrite_imports.py` | `tools/phase4/rewrite_imports.py` | `moved` | `release-tool` | `workspace` | `tools/phase4/rewrite_imports.py` | `excluded` |
 | `uv.lock` | `uv.lock` | `moved` | `release-tool` | `workspace` | `uv.lock` | `excluded` |

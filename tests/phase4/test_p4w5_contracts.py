@@ -65,7 +65,7 @@ def test_review_binding_separates_source_candidate_from_evidence_closure() -> No
     assert "independent reviewer accepts its exact source candidate" in decisions
 
 
-def test_p4w5_native_toolchain_and_runner_images_are_exact() -> None:
+def test_p4w5_native_toolchain_stays_exact_while_ci_check_names_delegate_to_p4w6() -> None:
     toolchain = json.loads((ROOT / "release/phase4-toolchain.json").read_text(encoding="utf-8"))
     primary = toolchain["native"]["primary"]
     fallback = toolchain["native"]["fallback"]
@@ -98,19 +98,16 @@ def test_p4w5_native_toolchain_and_runner_images_are_exact() -> None:
     }
 
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    exact_source = "${{ github.event.pull_request.head.sha || github.sha }}"
-    macos_job = workflow.split("\n  native-build-macos:\n", maxsplit=1)[1].split(
-        "\n  native-build-linux:\n", maxsplit=1
+    linux_summary = workflow.split("\n  native-build-linux:\n", maxsplit=1)[1].split(
+        "\n  native-build-macos:\n", maxsplit=1
     )[0]
-    linux_job = workflow.split("\n  native-build-linux:\n", maxsplit=1)[1].split(
+    macos_summary = workflow.split("\n  native-build-macos:\n", maxsplit=1)[1].split(
         "\n  connector-isolation:\n", maxsplit=1
     )[0]
-    assert "\n  native-build-macos:\n    runs-on: macos-14\n" in workflow
-    assert "\n  native-build-linux:\n    runs-on: ubuntu-24.04\n" in workflow
-    for job in (macos_job, linux_job):
-        assert f"ref: {exact_source}" in job
-        assert f"P4W5_SOURCE_SHA={exact_source}" in job
-    assert "native-build-linux:\n    runs-on: ubuntu-latest" not in workflow
+    assert "needs: [p4w6-linux-build, p4w6-linux-clean-host]" in linux_summary
+    assert "needs: p4w6-macos-14-compatibility" in macos_summary
+    assert "make p4w5-native" not in workflow
+    assert "P4W5_SOURCE_SHA" not in workflow
 
 
 def test_p4w5_preflight_is_focused_and_compositional() -> None:

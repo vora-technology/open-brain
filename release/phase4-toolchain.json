@@ -54,9 +54,14 @@
     }
   },
   "signing": {
-    "developer_id_application": "available-on-laptop",
-    "notary_credentials": "required-not-ready",
-    "notarytool": "available"
+    "developer_id_application": "available-on-coordinator",
+    "hardened_runtime": "required",
+    "identity_output": "prohibited",
+    "notary_credentials": "ready-private",
+    "notary_output": "bounded-result-only",
+    "notarytool": "available",
+    "secure_timestamp": "required",
+    "stapling": "required"
   },
   "audits": [
     "artifact-policy",

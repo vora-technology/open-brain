@@ -374,3 +374,36 @@ coordinator-owned.
 - Final result: `READY`; P0/P1/P2 `0/0/0`. D-050 and D-051 are accepted,
   `P4W5-001` through `P4W5-008` are closed, and no finding remains. P4-W5 is
   complete; the reviewer lineage is closed.
+
+## P4-W6 milestone budget
+
+- Status: active
+- Active children: 0 of 6 reserved
+- Total children: 1 of 12
+- Identical failures: 0 of 2
+- Consecutive timeouts: 2 of 2; breaker applied to child 16
+- Implementation writer: coordinator only; child 16 is read-only
+- Review lineage: child 16 pre-implementation architecture review; final
+  exact-source/artifact acceptance review remains unreserved
+- Reset authority: P4-W5 child 15 is closed; the validated private
+  notarization receipt and the rendered P4-W6 phase contract start a fresh
+  milestone budget without changing P4-W5 or the immutable readiness snapshot
+
+## Child 16: P4-W6 pre-implementation architecture review
+
+- Status: closed without verdict after timeout breaker
+- Agent ID: `01a064fc-4f72-7bb1-bc45-11d4a8535957`
+- Nickname: Fermat
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `xhigh`
+- Role: read-only adversarial architecture reviewer
+- Write scope: none
+- Source scope: public repository at
+  `6d8ce32d2e5fcca187b28ae7b3a740d356fe220c`, the reviewed Phase 4 plan,
+  accepted D-047 through D-051, and current official Apple documentation
+- Required result: `READY` or bounded P0/P1/P2 findings plus the recommended
+  module, CLI, tests-first, CI artifact-flow, and clean-host matrix shape
+- Result: no result was returned after one 60-second wait and one 30-second
+  wait. The agent remained running when closed. No finding or approval is
+  inferred. D-052 records the coordinator's bounded architecture decision;
+  the final exact-source/artifact acceptance review remains mandatory.

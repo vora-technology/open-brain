@@ -10782,6 +10782,54 @@
         "target_path": "tests/phase4/test_p4w5_contracts.py",
         "test_owner": "workspace"
       },
+      "tests/phase4/test_p4w6_assembly.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tests/phase4/test_p4w6_assembly.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tests/phase4/test_p4w6_assembly.py",
+        "test_owner": "workspace"
+      },
+      "tests/phase4/test_p4w6_contracts.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tests/phase4/test_p4w6_contracts.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tests/phase4/test_p4w6_contracts.py",
+        "test_owner": "workspace"
+      },
+      "tests/phase4/test_p4w6_release.py": {
+        "api_status": "test-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tests/phase4/test_p4w6_release.py",
+        "import_rewrite": null,
+        "kind": "test",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tests/phase4/test_p4w6_release.py",
+        "test_owner": "workspace"
+      },
       "tests/phase4/test_readiness_preflight.py": {
         "api_status": "test-only",
         "artifact_disposition": [
@@ -11966,6 +12014,22 @@
         "target_path": "tools/phase4/acceptance_harness.py",
         "test_owner": "workspace"
       },
+      "tools/phase4/clean_host_fixture.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tools/phase4/clean_host_fixture.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tools/phase4/clean_host_fixture.py",
+        "test_owner": "workspace"
+      },
       "tools/phase4/move_manifest.py": {
         "api_status": "workspace-only",
         "artifact_disposition": [
@@ -12014,6 +12078,40 @@
         "runtime_namespace": null,
         "target_distribution": "workspace",
         "target_path": "tools/phase4/readiness_preflight.py",
+        "test_owner": "workspace"
+      },
+      "tools/phase4/release_assembly.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tools/phase4/release_assembly.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "native-build"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tools/phase4/release_assembly.py",
+        "test_owner": "workspace"
+      },
+      "tools/phase4/release_candidate.py": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "excluded"
+        ],
+        "current_path": "tools/phase4/release_candidate.py",
+        "import_rewrite": null,
+        "kind": "release-tool",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "tools/phase4/release_candidate.py",
         "test_owner": "workspace"
       },
       "tools/phase4/rewrite_imports.py": {

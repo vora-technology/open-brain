@@ -10,22 +10,22 @@
 
 ## Current milestone
 
-- Milestone: P4-W5 bundler spike and native lifecycle adapter
-- Status: complete at accepted source
-  `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. P4A remains complete. All
-  local and target-native gates passed, and child 15 returned `READY`,
-  P0/P1/P2 `0/0/0`, against the exact source plus local macOS, CI macOS, and
-  literal Ubuntu 24.04 artifact/member digests. P4-W6 has not started.
-- Allowed scope: app-owned native lifecycle and frozen entrypoint behavior;
-  PyInstaller configuration and pinned dependencies; native build, membership,
-  smoke, lifecycle, recovery, Portable, supervisor, and residue tests; exact
-  target-native CI; release policy and operator documentation; canonical
-  manifest/reports; and bounded workstream evidence.
-- Stop condition: any readiness probe rerun, source-path masking, system-Python
-  runtime dependency, hidden package/resource loss, unsafe artifact links or
-  deletion, missing target-native execution, a weakened matrix or gate,
-  evidence that changes frozen source, P4-W6 action, publication, signing,
-  notarization, deployment, production/private-state access, or cutover.
+- Milestone: P4-W6 signed/checksummed clean-host artifact matrix
+- Status: active from clean evidence checkpoint
+  `6d8ce32d2e5fcca187b28ae7b3a740d356fe220c`. P4-W5 remains complete at
+  accepted source `c7c4fad1b109ac7d7c55d55cdfa57b64a9c910db`. Private
+  notarization authentication is ready through a bounded receipt; the
+  immutable public readiness snapshot remains historical and unchanged.
+- Allowed scope: P4-W6-specific release/signing/checksum/manifest tooling and
+  tests; bounded shared exact-source native primitives that preserve P4-W5
+  behavior; Makefile and clean-host CI; release policy/toolchain/compatibility;
+  operator documentation; and bounded public/private workstream evidence.
+- Stop condition: any P4-W5 accepted-evidence or readiness-snapshot change,
+  credential/account metadata exposure, source-path or system-Python runtime
+  dependency, invalid signing/hardened-runtime/timestamp/notarization/stapling,
+  unsafe nested code or archive, non-exact source/artifact binding, weakened
+  host/lifecycle/privacy/recovery gates, publication, production/private-content
+  access, cutover, or P4-W7 work.
 - Base: freshly fetched `origin/main` at
   `3b89a4ba4787a378e6040ff042bd117da881918d`
 - Launch commit: reviewed planning commit cherry-picked as
@@ -86,10 +86,12 @@
 
 ## Next action
 
-P4-W5 is complete. Do not start P4-W6 while notarization readiness remains
-false. Resolve the authorized private readiness blocker without changing or
-rerunning the immutable six-probe snapshot. Recovery readiness remains a
-separate blocker for the later recovery/rehearsal gates.
+Implement D-052 against the recorded red
+`tests/phase4/test_p4w6_release.py` contract, then add the artifact-only
+clean-host harness and CI matrix. Child 16 returned no verdict before the
+two-timeout breaker; retain a fresh final exact-source/artifact review. Keep
+P4-W5 and the immutable six-probe snapshot unchanged. Recovery readiness
+remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
 
 ## P4-W0 complete
 
@@ -609,3 +611,22 @@ separate blocker for the later recovery/rehearsal gates.
 - This D-031/D-048 closure changes evidence documents only. Accepted source,
   tests, policy, workflows, and native artifacts remain those reviewed at
   `c7c4fad`.
+
+## P4-W6 active
+
+- Private notarization readiness is owner-validated. Bounded coordinator checks confirm one
+  Developer ID Application identity and the required third-party license inputs without exposing
+  private metadata.
+- The source implementation now has separate P4-W6 build, signing, deterministic packaging,
+  clean-host, manifest, SBOM, license, Make, and CI surfaces. P4-W5 native defaults and accepted
+  evidence remain unchanged; no P4-W5 target or readiness probe reran.
+- The black-box lifecycle harness passed once against a disposable package made from accepted
+  native bytes. The implemented final assembler requires all 23 coordinates and both the bounded
+  exact-signed macOS 14 runner limitation and a passed source-equivalent macOS 14 result.
+- Pre-commit verification is green: 26 focused P4-W6 tests, 10 release-policy tests, 145 Phase 4
+  contracts, strict MyPy on 549 files, all 3,247 repository tests, six source-free artifacts,
+  Actionlint, ShellCheck, Perl syntax, artifact policy, manifest validation, and diff integrity.
+- Next: freeze the P4-W6 source commit, run exact-source Python and signed/notarized macOS builds,
+  push for the Linux and macOS 14 CI matrix, then assemble and independently review the exact
+  unpublished candidate. The snapshot hash remains
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`.

@@ -824,3 +824,38 @@
   blocks the later recovery/rehearsal gates. No signing, notarization,
   publication, tag, release, deployment, production/private-state mutation,
   recovery action, or cutover occurred.
+
+## P4-W6 implementation candidate
+
+- The owner completed the private credential remediation outside public state. A bounded local
+  check confirms exactly one usable Developer ID Application identity, and the native-build
+  environment can resolve the required CPython and PyInstaller license files. No account, team,
+  certificate subject, profile selector, password, or raw notary output entered the repository or
+  public evidence.
+- D-052 separates release assembly from the accepted P4-W5 path. P4-W5 defaults remain
+  `candidate_native-p4w5` and `P4-W5`. No P4-W5 build, smoke target, readiness probe, publication,
+  tag, release, deployment, production access, or cutover ran during this implementation pass.
+- Red-first P4-W6 contracts initially failed because the release modules and CI/Make targets did
+  not exist. The implemented layer signs nested macOS code inside-out with hardened runtime and
+  secure timestamps, creates and signs a DMG, requires accepted zero-issue notarization, staples
+  and assesses the DMG, and packages Linux as a deterministic checksummed tarball.
+- The artifact-only clean-host harness covers install, prior-schema migration, supervised daemon
+  health, exact backup/restore bytes, V0-GATE-07, V0-GATE-13, Portable round trip, forced rollback,
+  successful upgrade, uninstall, and residue with no source checkout or system Python. A
+  disposable rehearsal using already accepted P4-W5 native bytes and only P4-W6 packaging/test
+  surfaces passed the complete harness on macOS in about 20 seconds; it did not rebuild or mutate
+  P4-W5 evidence.
+- The final assembler closes 23 exact coordinates, emits bounded macOS 14 unavailable-runner
+  evidence alongside a separate source-equivalent result, writes SPDX 2.3 and license evidence,
+  rejects untracked output residue, and revalidates all hashes, checksums, native-build evidence,
+  notarization evidence, clean-host records, supported hosts, Portable range, and unpublished
+  publication state.
+- Current pre-commit gates pass: `make p4w6-preflight` with 26 focused tests and pinned native
+  configuration; the 10-test release-policy suite; `make phase4-contracts` with 145 tests, Ruff,
+  strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,247 repository
+  tests plus all six source-free distribution builds and artifact policy. Actionlint, ShellCheck,
+  Perl syntax, diff integrity, and the immutable readiness hash also pass.
+- The immutable snapshot remains exactly
+  `753a1635aa2be81f3ebe6b3723dbc8e46a6d6aa46f1b39003b9d9c39da769d1b`. Exact-source native media,
+  notarization, the CI host matrix, final manifest, exact-head audits, and independent review remain
+  pending until this source candidate is committed.

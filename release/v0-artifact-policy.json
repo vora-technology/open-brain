@@ -423,6 +423,51 @@
       ]
     },
     "published": [],
-    "status": "p4w5-unpublished-build-subject"
+    "status": "p4w6-unpublished-release-candidate"
+  },
+  "release_candidate": {
+    "candidate_id": "candidate_native-p4w6",
+    "manifest_schema_version": 1,
+    "native_media": {
+      "linux-x86_64": {
+        "checksum": "sha256",
+        "format": "tar.gz",
+        "signed": false
+      },
+      "macos-arm64": {
+        "format": "dmg",
+        "hardened_runtime": true,
+        "notarized": true,
+        "secure_timestamp": true,
+        "stapled": true
+      }
+    },
+    "required_coordinates": [
+      "python.app.sdist",
+      "python.app.wheel",
+      "python.connectors.sdist",
+      "python.connectors.wheel",
+      "python.engine.sdist",
+      "python.engine.wheel",
+      "native.linux-x86_64",
+      "native.macos-arm64",
+      "checksums.linux-x86_64",
+      "checksums.macos-arm64",
+      "supervisor.launchd",
+      "supervisor.systemd",
+      "sbom.spdx",
+      "evidence.licenses",
+      "evidence.native-build.linux-x86_64",
+      "evidence.native-build.macos-arm64",
+      "evidence.notarization.macos-arm64",
+      "evidence.clean-host.ubuntu-24.04",
+      "evidence.clean-host.ubuntu-26.04",
+      "evidence.clean-host.debian-13",
+      "evidence.clean-host.macos-signed",
+      "evidence.clean-host.macos-14-unavailable",
+      "evidence.clean-host.macos-14-source-equivalent"
+    ],
+    "status": "unpublished",
+    "version": "0.1.0"
   }
 }
