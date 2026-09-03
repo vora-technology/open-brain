@@ -99,6 +99,11 @@ copy_tree() {
     fi
 }
 
+copy_private_tree_as_current_user() {
+    mkdir "$2"
+    cp -RP "$1"/. "$2"/
+}
+
 wait_file() {
     count=0
     while [ "$count" -lt 400 ]; do
@@ -138,7 +143,7 @@ esac
 
 stage='artifact-install'
 brain=$sandbox/brain
-copy_tree "$fixture_root/runtime-root" "$brain"
+copy_private_tree_as_current_user "$fixture_root/runtime-root" "$brain"
 controller=$sandbox/controller.json
 cp -p "$fixture_root/controller.json" "$controller"
 chmod 600 "$controller"

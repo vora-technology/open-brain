@@ -637,6 +637,14 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   lifecycle passed, but all three Linux host jobs exposed GNU `cp` preserving `current` as a
   symlink. The controller now copies the validated enrolled directory explicitly; the downloaded
   exact archive passes the corrected full lifecycle in a local Ubuntu 24.04 x86_64 container.
+- Source `25a785a` moved all three Linux hosts past that symlink defect but failed during
+  prior-schema initialization. Diagnostic source `5e2bbb2` narrowed every native CI failure to
+  `prior-schema-init`. Reproduction with a UID-1001 fixture proved that preservation of the host
+  runner's ownership, rather than artifact or fixture content, caused the owner-only state check to
+  fail. Fixture copying now preserves content and modes without preserving a foreign UID.
+- The ownership regression passes the complete lifecycle on local Ubuntu 24.04 and Debian 13.
+  Ubuntu 26.04 remains assigned to native CI because QEMU cannot extract the archive on that local
+  image. Fresh exact-head CI is required before rebuilding final signed media.
 - Pre-commit verification is green: 28 focused P4-W6 tests, 10 release-policy tests, 147 Phase 4
   contracts, strict MyPy on 549 files, all 3,249 repository tests, six source-free artifacts,
   Actionlint, ShellCheck, Perl syntax, artifact policy, manifest validation, and diff integrity.

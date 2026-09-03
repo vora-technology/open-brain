@@ -879,6 +879,20 @@
   controller now validates and copies the explicit enrolled candidate directory. The downloaded
   exact Linux archive passed the corrected full lifecycle inside a local Ubuntu 24.04 x86_64
   container. Fresh exact-head CI remains required; no failed-only job was rerun.
+- Source `25a785a3bee982e136e3fd5189ffd87057ac5a4b` advanced all three exact-head Linux
+  jobs past artifact installation, then failed inside the broad prior-schema stage. Exact-head CI
+  `33713739975` still passed the Python and Linux builds, macOS 14 source-equivalent lifecycle,
+  Phase 4 contracts, and broad Python matrix; Release audit `33713739976` passed.
+- Diagnostic source `5e2bbb25da8673803f4abdd8b3c4b8d3bfc0473f` split that stage into bounded
+  operations. CI `33714301547` reproduced `prior-schema-init` on Ubuntu 24.04, Ubuntu 26.04, and
+  Debian 13. A local Linux reproduction with the fixture tree forced to host-runner UID 1001
+  failed at the same operation: GNU `cp -p` preserved that foreign owner inside the root
+  container, and the product correctly rejected its owner-only initialization files.
+- The fixture copy now uses `cp -RP` into a newly created private destination. This preserves
+  bytes, modes, and symlinks while making the lifecycle user the owner. The synthetic foreign-owner
+  regression passes the complete artifact-only lifecycle on Ubuntu 24.04 and Debian 13. Local
+  Ubuntu 26.04 QEMU extraction is unavailable because its tar/filesystem combination returns
+  `Function not implemented`; native exact-head CI remains the acceptance subject for that host.
 - Current pre-commit gates pass: `make p4w6-preflight` with 28 focused tests and pinned native
   configuration; the 10-test release-policy suite; `make phase4-contracts` with 147 tests, Ruff,
   strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,249 repository

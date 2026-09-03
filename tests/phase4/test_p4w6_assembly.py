@@ -167,6 +167,11 @@ def test_clean_host_harness_uses_only_artifact_surfaces_and_covers_full_lifecycl
         assert f'{contract}:"passed"' in harness
     assert "__native-self-check" in installer
     assert "python" not in installer.casefold()
+    assert (
+        'copy_private_tree_as_current_user "$fixture_root/runtime-root" "$brain"'
+        in harness
+    )
+    assert 'cp -RP "$1"/. "$2"/' in harness
     assert 'copy_tree "$installed_candidate" "$destination"' in harness
     assert 'copy_tree "$install_root/current" "$destination"' not in harness
 
