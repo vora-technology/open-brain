@@ -153,11 +153,14 @@ OPEN_BRAIN_INSTALL_ROOT=$install_root "$payload/install.sh" > "$sandbox/install.
 jq -e '.status == "installed"' "$sandbox/install.json" >/dev/null || fail
 executable=$install_root/current/open-brain
 [ -x "$executable" ] || fail
+installed_candidate=$install_root/candidates/candidate_native-p4w6
+[ -d "$installed_candidate" ] && [ ! -L "$installed_candidate" ] || fail
+[ "$(readlink "$install_root/current")" = "candidates/candidate_native-p4w6" ] || fail
 
 copy_candidate() {
     identifier=$1
     destination=$install_root/candidates/$identifier
-    copy_tree "$install_root/current" "$destination"
+    copy_tree "$installed_candidate" "$destination"
     jq -S --arg identifier "$identifier" '.candidate_id = $identifier' \
         "$destination/open-brain-native.json" > "$destination/.manifest.next"
     mv "$destination/.manifest.next" "$destination/open-brain-native.json"

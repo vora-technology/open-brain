@@ -632,6 +632,11 @@ remains a separate blocker for the later P4-W8 recovery/rehearsal gates.
   Gatekeeper-approved DMG whose full artifact-only lifecycle passed in 19 seconds. It is superseded
   because the Make recipe echoed local absolute paths before the bounded result; command echo is
   now suppressed and covered.
+- Source `dda22d7` passed fresh local Python and signed macOS artifact construction plus the
+  path-silent macOS lifecycle. Its exact-head audit, Linux build, and source-equivalent macOS 14
+  lifecycle passed, but all three Linux host jobs exposed GNU `cp` preserving `current` as a
+  symlink. The controller now copies the validated enrolled directory explicitly; the downloaded
+  exact archive passes the corrected full lifecycle in a local Ubuntu 24.04 x86_64 container.
 - Pre-commit verification is green: 28 focused P4-W6 tests, 10 release-policy tests, 147 Phase 4
   contracts, strict MyPy on 549 files, all 3,249 repository tests, six source-free artifacts,
   Actionlint, ShellCheck, Perl syntax, artifact policy, manifest validation, and diff integrity.

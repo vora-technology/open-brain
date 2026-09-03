@@ -869,6 +869,16 @@
   input paths before the bounded harness result. The recipe is now silent and a static contract
   prevents path-bearing command echo. Exact source binding requires fresh artifacts after this
   source-only hygiene repair.
+- Source `dda22d761f2019b3ccff82462d72203e25a39851` produced fresh exact Python artifacts
+  and a signed, accepted, stapled, validated DMG at SHA-256
+  `294698fdfcb029cd97e7d34e75ced47d3792ce8ed45c1c4f21e96b9778321c03`; its path-silent
+  macOS lifecycle passed. Exact-head Release audit `33713364009`, Linux native build, Python
+  artifact build, and the source-equivalent macOS 14 build/lifecycle passed.
+- CI run `33713363991` then reproduced one Linux-only harness defect on all three hosts: GNU
+  `cp -R` preserved the managed `current` symlink where macOS `ditto` copied its target. The
+  controller now validates and copies the explicit enrolled candidate directory. The downloaded
+  exact Linux archive passed the corrected full lifecycle inside a local Ubuntu 24.04 x86_64
+  container. Fresh exact-head CI remains required; no failed-only job was rerun.
 - Current pre-commit gates pass: `make p4w6-preflight` with 28 focused tests and pinned native
   configuration; the 10-test release-policy suite; `make phase4-contracts` with 147 tests, Ruff,
   strict MyPy on 549 files, and manifest validation; and `make verify` with all 3,249 repository
