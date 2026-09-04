@@ -762,3 +762,20 @@ coordinator-owned.
   candidate launch, rehearsal, postflight, production mutation, or Child 29
   receipt review ran. Resume requires separate owner-authorized reconciliation
   of the unexpected registration followed by a fresh P4-W8 transaction.
+
+## P4-W8 separate reconciliation review
+
+- Separate workstream status: blocked pending bounded seven-root helper
+  authority. Its child budget is independent from P4-W8: `0` active and `1`
+  total lineage.
+- Child 1 role: independent read-only adversarial architecture reviewer; no
+  write or live-command scope.
+- Result: `NOT_READY`, P0/P1/P2 `3/0/0`. REC-AR-001 requires a complete
+  two-generation writer/root/lease model and two-lease fence. REC-AR-002
+  requires encrypted recovery of all seven roots rather than helper v18's five.
+  REC-AR-003 requires seven-root staging, isolation, receipts, and exact
+  two-generation rollback.
+- Next gate: explicit owner authority for a versioned helper successor whose
+  full profile reads exactly seven roots, followed by implementation and fresh
+  pre-execution review. No service/content change, backup, restore, rehearsal,
+  final receipt review, publication, deployment, or P4-W9 action occurred.

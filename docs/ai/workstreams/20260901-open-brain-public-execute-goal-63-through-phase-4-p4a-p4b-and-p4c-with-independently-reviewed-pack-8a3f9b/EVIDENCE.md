@@ -1184,3 +1184,24 @@
   Exact-profile and preflight did not complete; backup-access repair, dual
   backup, restore, rehearsal, postflight, and final receipt review did not
   start. Production services, ownership, and content were not changed.
+
+## P4-W8 separate reconciliation evidence
+
+- Retained provenance and fresh read-only metadata agree: the extra loaded
+  registration is the intentional scheduled canonical writer. It previously
+  completed stabilized empty-queue runs and was deliberately restored in two
+  governed writer windows. It is not stale merely because no process exists
+  between scheduled runs.
+- Role-by-role comparison proves two configuration generations with seven
+  unique roots and two separate writer leases. Three roots are identical; the
+  divergent capture and state roots have materially different inventories.
+- Immutable helper v18's full profile is generated from and restricted to the
+  candidate configuration's five roots. It cannot create a complete encrypted
+  recovery point for seven roots.
+- Independent Child 1 returned `NOT_READY`, P0/P1/P2 `3/0/0`. Findings require
+  complete two-generation writer/root/lease inventory, seven-root dual recovery,
+  and seven-root rehearsal/isolation/rollback evidence. No implementation or
+  remote P4-W8 action is eligible before bounded helper authority and a fresh
+  independent pre-execution review.
+- No service, manifest, production content, helper, backup, restore, candidate,
+  publication, deployment, P4-W9, P4-W5, or readiness state changed.

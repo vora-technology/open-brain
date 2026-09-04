@@ -11,16 +11,17 @@
 ## Current milestone
 
 - Milestone: P4-W8 disposable rehearsal and rollback proof
-- Status: stopped at the fresh writer/service inventory gate with a precise
-  blocker. The 20-test private implementation, static gates, exact stage, and
-  Child 28 pre-execution review are complete; Child 28 returned `READY` with
-  P0/P1/P2 `0/0/0`. On the canonical macOS ARM64 host, read-only inventory
-  found one unexpected loaded Open Brain registration with a known job-class
-  identity. It has no running process, but configuration discovery proves that
-  three of its five roots overlap the governed production roots. The complete
-  writer map therefore cannot be proven closed. Exact-profile, preflight,
-  backup, restore, candidate launch, rehearsal, postflight, and final receipt
-  review did not run. Production ownership and content remain unchanged.
+- Status: stopped at the two-generation recovery authority gate. Separate
+  read-only reconciliation proved the unexpected registration is the
+  intentional scheduled canonical writer, not a stale duplicate. The live and
+  candidate configurations resolve to seven unique production roots and two
+  distinct writer leases; three roots are shared, while capture and state roots
+  are disjoint and materially divergent. Immutable helper v18 protects only
+  the candidate generation's five roots. Independent reconciliation Child 1
+  returned `NOT_READY`, P0/P1/P2 `3/0/0`: static inventory inclusion cannot
+  prove complete fencing, dual recovery, isolation, or rollback. Exact-profile,
+  preflight, backup, restore, candidate launch, rehearsal, postflight, and final
+  receipt review remain stopped. Production ownership and content are unchanged.
 - Allowed scope: the rendered P4-W8 contract and bounded public records; a new
   private Goal 63 controller, stager, verifier, manifests, tests, and receipts;
   metadata-only live inventory; narrowly scoped backup-access repair if
@@ -94,10 +95,10 @@
 
 ## Next action
 
-Reconcile the unexpected loaded Open Brain registration outside P4-W8 under
-separate owner authority, then rerun the fresh writer/service inventory from a
-new transaction. Do not resume exact-profile, backup, restore, or rehearsal
-work until the inventory proves one closed writer map.
+Authorize a versioned helper successor whose full profile can read exactly the
+deduplicated seven-root union. Preserve helper v18, hold both writer leases,
+and require fresh implementation review before any profile, backup, restore,
+or rehearsal work resumes.
 
 ## P4-W0 complete
 
@@ -764,3 +765,26 @@ work until the inventory proves one closed writer map.
   No backup-access repair, backup, restore, candidate launch, rehearsal,
   postflight, production service/content mutation, publication, deployment,
   irreversible cleanup, or P4-W9 action occurred.
+
+## P4-W8 separate reconciliation result
+
+- Exact retained provenance proves the loaded registration was deliberately
+  installed as the canonical scheduled writer, stabilized to an empty queue,
+  and restored in two prior governed writer windows. Process absence between
+  calendar runs does not remove its authority. Removal or quarantine is
+  rejected.
+- The two configurations have seven unique roots and two separate writer
+  leases. Three roots match exactly. The two divergent role pairs contain
+  materially different inventories, so neither can stand in for the other.
+- Helper v18's immutable full profile covers exactly five candidate-generation
+  roots. A five-root encrypted snapshot cannot recover the complete seven-root
+  generation, and one held lease cannot fence both writers.
+- Independent reconciliation Child 1 returned `NOT_READY`, P0/P1/P2 `3/0/0`.
+  The minimum correct architecture is a two-generation manifest, deterministic
+  two-lease fence, exact seven-root encrypted backup/restore, generation-qualified
+  disposable staging, seven-root isolation, and exact two-generation rollback.
+- Continuing requires explicit authority to build and install a versioned
+  seven-root helper successor and use it for one encrypted snapshot in each
+  existing repository plus two disposable restores. Helper v18 remains an
+  unchanged rollback asset. Service state, production content, publication,
+  deployment, P4-W9, and irreversible cleanup remain excluded.

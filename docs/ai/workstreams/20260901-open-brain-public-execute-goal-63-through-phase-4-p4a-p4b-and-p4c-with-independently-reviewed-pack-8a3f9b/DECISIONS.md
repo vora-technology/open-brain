@@ -835,3 +835,21 @@ has become corrupt.
   authority even while inactive. Continuing would violate the exact closed
   writer-map requirement, while unloading it would violate P4-W8's immutable
   production-service boundary.
+
+## D-064: retain the canonical writer and require seven-root recovery
+
+- Chosen: classify the loaded registration as the intentional transitional
+  canonical writer, preserve it unchanged, and keep P4-W8 stopped until a
+  versioned helper successor can recover the deduplicated seven-root union
+  under both writer leases. Require generation-qualified staging, seven-root
+  isolation and postflight evidence, exact two-generation rollback, and fresh
+  independent review.
+- Rejected: quarantine the registration, infer staleness from an idle scheduled
+  process, add only its manifest to the static inventory, treat five-root
+  helper snapshots as complete, or copy divergent roots into covered roots.
+- Why: retained provenance proves deliberate production ownership. Fresh
+  comparison proves two divergent role pairs and two independent leases.
+  Removing the writer changes production service state; ignoring its roots or
+  lease invalidates recoverability and zero-overlap; copying them mutates
+  production content. A narrowly expanded immutable backup helper is the
+  smallest architecture that preserves all existing service and content state.
