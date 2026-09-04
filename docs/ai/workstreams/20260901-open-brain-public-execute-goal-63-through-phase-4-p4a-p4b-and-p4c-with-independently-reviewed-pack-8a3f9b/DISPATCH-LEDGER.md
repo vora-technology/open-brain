@@ -447,7 +447,7 @@ coordinator-owned.
 
 - Status: complete
 - Active children: 0 of 6
-- Total children: 4 of 12
+- Total children: 5 of 12
 - Identical failures: 0 of 2 for Codex CLI 0.153.0; children 19 and 20 closed
   the unchanged 0.152.1 CLI path at 2 of 2
 - Consecutive timeouts: 0 of 2
@@ -547,18 +547,25 @@ coordinator-owned.
 
 ## P4-W8 milestone budget
 
-- Status: active
+- Status: stopped at fresh-machine inventory gate
 - Active children: 0 of 6
-- Total children: 3 of 12
+- Total children: 6 of 12
 - Identical failures: 0 of 2
 - Consecutive timeouts: 2 of 2 for the closed CLI path; 0 of 2 on the in-app
   path
 - Implementation writer: coordinator only; no child write scope is reserved
-- Review lineage: Children 23 and 24 closed without verdict after bounded
-  timeouts. The equivalent CLI dispatch path is closed. Child 25 returned final
-  architecture `READY`, P0/P1/P2 `0/0/0`, and its slot is released. A separate
-  pre-execution implementation review and final receipt review remain
-  mandatory.
+- Review lineage: Children 23, 24, and 27 closed without verdict after bounded
+  timeouts or stalls. Child 25 returned final architecture `READY`,
+  P0/P1/P2 `0/0/0`. Child 26 returned the initial implementation findings but
+  stalled on rereview. Child 28 closed IR-004 on its second pass and returned
+  one P0 mapping-contract finding before the remaining questions were reached.
+  Its third pass closed that mapping finding and found one P1 in the
+  descriptor-missing orphan transport before the remaining questions were
+  reached. Its fourth pass closed the orphan protocol and found one P0 in
+  unsupported launch-manifest handling before the remaining questions were
+  reached. Its fifth pass closed the manifest inventory and every deferred
+  question, returning final pre-execution `READY`, P0/P1/P2 `0/0/0`. Its slot
+  is released. A final receipt review remains mandatory.
 - Reset authority: P4-W7 Child 22 is closed. The validated P4-W7 handoff,
   protected P4A/P4B merge, rendered P4-W8 contract, and D-057 start a fresh
   milestone budget.
@@ -653,3 +660,105 @@ coordinator-owned.
   red-first implementation only. Live inventory, helper, backup, restore,
   service, and rehearsal work remain gated on populated hashes, tests, and
   independent pre-execution review.
+
+## Child 26: P4-W8 populated pre-execution implementation review
+
+- Status: closed after stalled rereview; slot released
+- Dispatch ID: `p4w8-preexecution-review-01`
+- Agent ID: `01a06929-aae0-7c50-9d04-eb8f4711ce22`
+- Nickname: Tesla
+- Model: `gpt-5.6-sol`
+- Reasoning effort: `high`
+- Role: read-only adversarial implementation and safety reviewer
+- Write scope: none
+- Source scope: exact named public/private implementation, generated stage,
+  candidate, tests, schemas, profiles, and accepted-source regions in the
+  private review prompt; broad search and live commands are forbidden
+- Required result: explicitly adjudicate implementation deltas ID-001 through
+  ID-007 and return `READY`, P0/P1/P2 `0/0/0`, before any live metadata,
+  helper, backup, restore, candidate-daemon, or rehearsal action; otherwise
+  return a closed `P4W8-IR-*` finding set
+- Result: `NOT_READY`; P0/P1/P2 `3/4/1`. ID-002 and the corrected portions
+  of ID-001, ID-003, and ID-004 were accepted. Findings require preserving
+  record locks across recapture, candidate execution on migrated state, closed
+  writer-to-root-to-lease inventory, operational reattachment, measured
+  surface/writer evidence, a presealed independent verifier contract,
+  descriptor-relative copy/migration, and the full exact-profile V2 probe.
+  Metadata-only preflight is the sole authorized live action; no repair,
+  backup, restore, candidate launch, or rehearsal is authorized yet.
+- Rereview result: no terminal verdict after the original bound, an extended
+  wait, and a forced-verdict interrupt. The agent was closed while still
+  running. No approval or additional finding is inferred.
+
+## Child 27: P4-W8 bounded pre-execution rereview
+
+- Status: closed without verdict after bounded stall; slot released
+- Dispatch ID: `p4w8-preexecution-review-02`
+- Agent ID: `01a06986-7add-7fd3-9892-3d7a7a0dfed8`
+- Nickname: Fermat
+- Role: read-only adversarial implementation and safety reviewer
+- Write scope: none
+- Source scope: the same closed named-file set as Child 26, updated to the
+  repaired transaction and all eight implementation deltas
+- Retry strategy: fresh bounded in-app context after the retained Child 26
+  lineage failed to emit a terminal rereview verdict
+- Required result: explicitly close or retain IR-001 through IR-008 and return
+  `READY`, P0/P1/P2 `0/0/0`, before any remote stage, helper, backup, restore,
+  candidate, or rehearsal action; otherwise return one closed finding set
+- Result: no terminal verdict after the bounded review interval. The lineage
+  was closed without approval or a new finding.
+
+## Child 28: P4-W8 compact delta rereview
+
+- Status: final pre-execution review complete; slot released, lineage closed
+- Dispatch ID: `p4w8-preexecution-review-03`
+- Agent ID: `01a06992-e518-7e52-a22a-85445605e731`
+- Nickname: Parfit
+- Role: read-only adversarial implementation and safety reviewer
+- Write scope: none
+- Source scope: closed named implementation, test, schema, transaction, and
+  bounded receipt set in `P4-W8-DELTA-REREVIEW-PROMPT.md`
+- Retry strategy: compact eight-question review after Child 27 did not emit a
+  terminal verdict
+- Initial result: `NOT_READY`; P0/P1/P2 `0/1/0`. IR-001 is closed. IR-004
+  remains open because rollback accepted an empty journal and the SIGKILL test
+  did not exercise the real operational reattachment path. IR-002, IR-003, and
+  IR-005 through IR-008 were not reached, so no approval is inferred.
+- Required rereview result: verify the real `OperationalRehearsal` SIGKILL and
+  nonempty-journal repair, complete the six deferred questions, and return
+  `READY`, P0/P1/P2 `0/0/0`, before any remote write, recovery, or rehearsal
+  action; otherwise return one closed finding set
+- Second result: `NOT_READY`; P0/P1/P2 `1/0/0`. IR-001 and IR-004 are closed.
+  IR-002 is open because the sealed mapping declared `legacy/slot-*` while
+  runtime independently used `.open-brain/retained/<role>`. IR-003 and IR-005
+  through IR-008 were not reached, so no approval is inferred.
+- Third result: `NOT_READY`; P0/P1/P2 `0/1/0`. IR-001 and IR-002 are closed.
+  IR-004 remains open because descriptor-missing orphan shutdown used a
+  one-shot response read without retry or lost-response handling. IR-003 and
+  IR-005 through IR-008 were not reached, so no approval is inferred.
+- Fourth result: `NOT_READY`; P0/P1/P2 `1/0/0`. IR-001, IR-002, and IR-004 are
+  closed. IR-003 remains open because unsupported `.plist` identities were
+  silently skipped before classification. IR-005 through IR-008 were not
+  reached, so no approval is inferred.
+- Final result: `READY`; P0/P1/P2 `0/0/0`. IR-001 through IR-008 are closed.
+  The exact reviewed implementation may proceed through owner-only remote
+  staging, bounded metadata/preflight, dual recovery, and the disposable
+  full-stop/forced-rollback rehearsal. Production ownership and content remain
+  immutable; final receipt review is still mandatory.
+
+## P4-W8 fresh-machine inventory gate
+
+- Status: blocked before exact-profile and preflight; active children remain
+  `0`, total child lineages remain `6`, and final receipt review has not begun.
+- Completed gate: the private 20-test suite, Ruff, strict MyPy, seven schema
+  checks, Child 28 final pre-execution `READY`, owner-only transfer, and all 16
+  remote stage-coordinate validations passed.
+- Fresh result: read-only inventory found one unexpected inactive but loaded
+  Open Brain registration with a known job-class identity. Its five discovered
+  roots overlap three governed production roots, so the writer map is not
+  closed. The bounded blocker receipt SHA-256 is
+  `3af46ad50b9e61207e080ce203f887c744dc82fdc7043e955852cac5d036b9f8`.
+- Stop action: no exact-profile, backup-access repair, backup, restore,
+  candidate launch, rehearsal, postflight, production mutation, or Child 29
+  receipt review ran. Resume requires separate owner-authorized reconciliation
+  of the unexpected registration followed by a fresh P4-W8 transaction.

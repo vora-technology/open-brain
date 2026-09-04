@@ -819,3 +819,19 @@ has become corrupt.
 - Why: the reviewer explicitly closed AR-002 and AR-003, reconfirmed all seven
   prior closures, and retained no finding. Its stated permission ends at
   implementation and preserves the final pre-execution review boundary.
+
+## D-063: stop P4-W8 on overlapping unexpected writer authority
+
+- Chosen: preserve the fresh-machine inventory failure as a precise blocker
+  and stop before exact-profile, preflight, backup, restore, candidate launch,
+  or rehearsal. Require the unexpected loaded registration to be reconciled
+  outside P4-W8 under separate owner authority, then begin a fresh transaction
+  and rerun the complete inventory.
+- Rejected: add the unexpected manifest digest to a static allowlist, classify
+  the registration as unrelated because its process is currently absent,
+  unload or disable it within P4-W8, or continue using a partial writer map.
+- Why: bounded configuration discovery proves that three of its five roots
+  overlap governed production roots. A loaded registration can regain writer
+  authority even while inactive. Continuing would violate the exact closed
+  writer-map requirement, while unloading it would violate P4-W8's immutable
+  production-service boundary.

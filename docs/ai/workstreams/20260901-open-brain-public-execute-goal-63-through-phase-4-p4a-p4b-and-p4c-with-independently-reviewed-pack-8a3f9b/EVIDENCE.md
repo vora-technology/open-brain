@@ -1161,3 +1161,26 @@
 - Product source, the 23-coordinate P4B candidate, P4-W5, readiness, production
   ownership, and release/publication state remain unchanged. P4-W9 has not
   started.
+
+## P4-W8 implementation, pre-execution review, and inventory blocker
+
+- The private implementation contains 18 source modules, seven schemas, and
+  exactly 20 tests. Pytest passed all 20 tests; Ruff, strict MyPy on the 36
+  implementation/test files, and all seven schema metaschema checks passed.
+- Child 28 iteratively reviewed the populated implementation. Its final pass
+  closed IR-001 through IR-008 and returned `READY`, P0/P1/P2 `0/0/0`, with no
+  file change. This authorized owner-only staging and fresh live metadata, not
+  a waiver of the fresh-machine stop conditions.
+- Owner-only transfer and staging on the canonical macOS ARM64 host preserved
+  the accepted source and exact candidate. The remote stage validated all 16
+  coordinates before any backup, restore, candidate launch, or rehearsal.
+- Fresh read-only inventory found one unexpected inactive but loaded Open Brain
+  registration with a known job-class identity. Bounded configuration
+  discovery returned five roots, three overlapping the governed production
+  roots. This prevents proof of a closed writer map even though no process was
+  present at observation time.
+- The inventory stop receipt has SHA-256
+  `3af46ad50b9e61207e080ce203f887c744dc82fdc7043e955852cac5d036b9f8`.
+  Exact-profile and preflight did not complete; backup-access repair, dual
+  backup, restore, rehearsal, postflight, and final receipt review did not
+  start. Production services, ownership, and content were not changed.

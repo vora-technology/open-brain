@@ -11,16 +11,16 @@
 ## Current milestone
 
 - Milestone: P4-W8 disposable rehearsal and rollback proof
-- Status: architecture `READY` before red-first implementation. Child 25's
-  final same-lineage verdict is P0/P1/P2 `0/0/0`; all nine findings are closed.
-  P4A/P4B remain merged at commit
-  `10769806361e7ed419b653534e1303b623d84673`. Its tree exactly matches
-  reviewed PR head `7e269219b340335f8567ca7bc13f07b1ee9323f0`.
-  The P4-W8 phase contract is rendered, the exact 23-coordinate candidate
-  revalidates. The expanded signal/network/socket, production-root, and
-  service-control denial proof passes. The write-ahead crash-recovery contract
-  is accepted. Red-first private implementation is eligible; no live inventory,
-  helper, backup, restore, service, or rehearsal action has started.
+- Status: stopped at the fresh writer/service inventory gate with a precise
+  blocker. The 20-test private implementation, static gates, exact stage, and
+  Child 28 pre-execution review are complete; Child 28 returned `READY` with
+  P0/P1/P2 `0/0/0`. On the canonical macOS ARM64 host, read-only inventory
+  found one unexpected loaded Open Brain registration with a known job-class
+  identity. It has no running process, but configuration discovery proves that
+  three of its five roots overlap the governed production roots. The complete
+  writer map therefore cannot be proven closed. Exact-profile, preflight,
+  backup, restore, candidate launch, rehearsal, postflight, and final receipt
+  review did not run. Production ownership and content remain unchanged.
 - Allowed scope: the rendered P4-W8 contract and bounded public records; a new
   private Goal 63 controller, stager, verifier, manifests, tests, and receipts;
   metadata-only live inventory; narrowly scoped backup-access repair if
@@ -94,10 +94,10 @@
 
 ## Next action
 
-Create the private P4-W8 source, schemas, and 20 red-first tests under the
-accepted module boundaries. Bring tests, lint, type checks, exact stage hashes,
-isolation, and crash recovery to green, then obtain independent pre-execution
-review before any live rehearsal work.
+Reconcile the unexpected loaded Open Brain registration outside P4-W8 under
+separate owner authority, then rerun the fresh writer/service inventory from a
+new transaction. Do not resume exact-profile, backup, restore, or rehearsal
+work until the inventory proves one closed writer map.
 
 ## P4-W0 complete
 
@@ -742,3 +742,25 @@ review before any live rehearsal work.
   through the distinct in-app runtime and returned final architecture `READY`,
   P0/P1/P2 `0/0/0`; its slot is released. Red-first private implementation is
   eligible, while live work and P4-W9 remain prohibited.
+
+## P4-W8 pre-execution READY and fresh-inventory stop
+
+- The private controller contains 18 source modules, seven schemas, and 20
+  tests. Pytest, Ruff, strict MyPy, and all seven schema checks passed. Child
+  28's fifth bounded pass closed IR-001 through IR-008 and returned final
+  pre-execution `READY`, P0/P1/P2 `0/0/0`.
+- The exact 23-coordinate P4B candidate was transferred owner-only and staged
+  on the canonical macOS ARM64 host. All 16 stage coordinates validated; the
+  accepted source and protected candidate bytes remained exact.
+- Fresh read-only writer/service inventory stopped before the exact-profile
+  probe. It found one unexpected loaded registration with a known Open Brain
+  job-class identity. No process was running, but configuration discovery
+  proved five roots with three overlaps against the governed production root
+  set. An inactive loaded registration can still gain authority, so adding its
+  digest to an allowlist or treating it as unrelated would weaken the closed
+  writer-map guarantee.
+- The bounded private blocker receipt hashes to
+  `3af46ad50b9e61207e080ce203f887c744dc82fdc7043e955852cac5d036b9f8`.
+  No backup-access repair, backup, restore, candidate launch, rehearsal,
+  postflight, production service/content mutation, publication, deployment,
+  irreversible cleanup, or P4-W9 action occurred.
