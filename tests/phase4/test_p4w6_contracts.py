@@ -53,8 +53,8 @@ def test_release_ci_runs_linux_archive_and_macos_source_wheel_paths() -> None:
     assert "p4w6-linux-build:" in workflow
     assert "p4w6-linux-clean-host:" in workflow
     assert "appliance-source-checkout-macos:" in workflow
-    assert "name: macOS source/wheel (${{ matrix.python-version }})" in workflow
-    assert 'python-version: ["3.12", "3.13", "3.14"]' in workflow
+    assert "name: macOS source/wheel (Python 3.14)" in workflow
+    assert 'python-version: "3.14"' in workflow
     assert "tests/phase4/test_app_distribution.py" in workflow
     assert "needs: appliance-source-checkout-macos" in workflow
     assert "p4w6-macos-14-compatibility:" in workflow

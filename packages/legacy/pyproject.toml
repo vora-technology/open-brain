@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "open-brain-legacy"
 version = "0.1.0"
 description = "Private migration-only compatibility code for Open Brain."
+# The lower bound preserves frozen P4 replay; the supported v0 runtime is Python 3.14.
 requires-python = ">=3.12,<3.15"
 license = "Apache-2.0"
 authors = [{ name = "Open Brain contributors" }]

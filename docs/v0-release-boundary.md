@@ -2,7 +2,7 @@
 
 Status: accepted Phase 0 evidence
 
-Authority: [v0 product contract](v0-product-contract.md), version 0.4, revised
+Authority: [v0 product contract](v0-product-contract.md), version 0.5, revised
 2026-09-04. The [Option C architecture plan](plans/option-c-architecture.md) and
 [proposed v0 system architecture](architecture/proposed-v0-system-architecture.md)
 interpret that contract; they do not replace it.

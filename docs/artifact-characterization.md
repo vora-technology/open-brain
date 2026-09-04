@@ -30,7 +30,8 @@ from only the app and engine wheels and runs the app tests from a separate test 
 The machine policy derives required members from every classified artifact member. Missing files,
 new unaccounted-for files, private resources, and duplicate distribution/kind coordinates fail
 verification. The wheel statuses are `engine-isolated-unpublished` and
-`app-isolated-unpublished`.
+`app-isolated-unpublished`. Python 3.14 is the supported v0 source/wheel runtime. The broader
+package metadata remains only for reproducibility of historical P4 artifact evidence.
 
 ## Source distribution
 

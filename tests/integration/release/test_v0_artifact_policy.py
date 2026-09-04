@@ -102,7 +102,7 @@ def test_phase_four_policy_declares_all_python_artifact_coordinates() -> None:
     policy = _policy()
     distributions = policy["python_distributions"]
 
-    assert policy["policy_version"] == 4
+    assert policy["policy_version"] == 5
     assert policy["phase"] == "4-connector-isolation"
     assert isinstance(distributions, dict)
     assert set(distributions) == {"app", "connector", "engine"}
@@ -143,6 +143,27 @@ def test_phase_four_policy_matches_each_explicit_hatch_configuration() -> None:
         assert wheel["status"] == sdist["status"] == status
         assert (ROOT / project_root / "LICENSE").read_bytes() == (ROOT / "LICENSE").read_bytes()
         assert (ROOT / project_root / "NOTICE").read_bytes() == (ROOT / "NOTICE").read_bytes()
+
+
+def test_supported_v0_python_runtime_is_314() -> None:
+    root_project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    compatibility = json.loads(
+        (ROOT / "release/phase4-compatibility.json").read_text(encoding="utf-8")
+    )
+
+    assert root_project["tool"]["ruff"]["target-version"] == "py314"
+    assert root_project["tool"]["mypy"]["python_version"] == "3.14"
+    assert compatibility["python"]["source_and_wheel"] == ["3.14"]
+    for project_root in ("packages/app", "packages/connectors", "packages/engine"):
+        project = tomllib.loads(
+            (ROOT / project_root / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        python_classifiers = [
+            value
+            for value in project["project"]["classifiers"]
+            if value.startswith("Programming Language :: Python :: 3.")
+        ]
+        assert python_classifiers == ["Programming Language :: Python :: 3.14"]
 
 
 def test_phase_four_policy_verifies_all_distributions_and_rejects_leaks(
@@ -308,13 +329,14 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
         "installations": {
             "macos-arm64": {
                 "methods": ["versioned-source-checkout", "wheel"],
-                "python_versions": ["3.12", "3.13", "3.14"],
+                "python_versions": ["3.14"],
                 "wheel_distributions": ["open-brain", "open-brain-engine"],
             },
             "linux-x86_64": {
                 "checksum": "sha256",
                 "format": "tar.gz",
                 "method": "native-archive",
+                "python": "3.14-bundled",
             },
         },
         "macos_dmg": {

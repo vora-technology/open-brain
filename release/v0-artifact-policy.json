@@ -1,5 +1,5 @@
 {
-  "policy_version": 4,
+  "policy_version": 5,
   "phase": "4-connector-isolation",
   "canonical_manifest": {
     "path": "docs/v0-package-classification.json"
@@ -67,6 +67,7 @@
             "../../docs/cli.md": "docs/cli.md",
             "../../docs/configuration.md": "docs/configuration.md",
             "../../docs/current-record-characterization.md": "docs/current-record-characterization.md",
+            "../../docs/install-macos.md": "docs/install-macos.md",
             "../../docs/operations.md": "docs/operations.md",
             "../../docs/portable-brain-v1.md": "docs/portable-brain-v1.md",
             "../../docs/privacy-model.md": "docs/privacy-model.md",
@@ -384,8 +385,6 @@
           "wheel"
         ],
         "python_versions": [
-          "3.12",
-          "3.13",
           "3.14"
         ],
         "wheel_distributions": [
@@ -396,7 +395,8 @@
       "linux-x86_64": {
         "checksum": "sha256",
         "format": "tar.gz",
-        "method": "native-archive"
+        "method": "native-archive",
+        "python": "3.14-bundled"
       }
     },
     "macos_dmg": {

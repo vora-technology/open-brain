@@ -1991,6 +1991,13 @@ def app_isolation_findings(root: Path, work: Path) -> list[Finding]:
         )
         if version.stdout.strip() != "open-brain 0.1.0":
             raise ValueError("installed app version is mismatched")
+        stage = "run installed CLI help"
+        help_output = run_checked(
+            (os.fspath(environment / "bin/open-brain"), "--help"),
+            cwd=run_root,
+        )
+        if "daemon" not in help_output.stdout.split():
+            raise ValueError("installed daemon command is absent")
         if not (environment / "bin/open-brain-mcp").is_file():
             raise OSError("installed MCP entry point is absent")
         contract = run_root / "app_contract.py"

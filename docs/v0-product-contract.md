@@ -1,7 +1,7 @@
 # Open Brain v0 product contract
 
 - Status: Approved
-- Contract version: `0.4`
+- Contract version: `0.5`
 - Revised: 2026-09-04
 - Approved: 2026-08-30
 - Selected direction: Option C
@@ -45,7 +45,7 @@ The v0 user is a single owner who:
 - wants local, inspectable storage rather than a required hosted account;
 - wants to capture across several parts of life without learning a rigid taxonomy;
 - may use Obsidian or another Markdown editor, but does not need either;
-- can use Python 3.12–3.14 and `uv` for the supported macOS source/wheel path, or install a
+- can use Python 3.14 and `uv` for the supported macOS source/wheel path, or install a
   checksummed native archive on Linux, then run a setup command;
 - expects the product to explain missing prerequisites and safe recovery steps.
 
@@ -105,7 +105,7 @@ The quickstart must use no cloud account. Model download time is excluded from t
 
 | ID | Requirement |
 |---|---|
-| `V0-INSTALL-01` | The project MUST publish versioned source and the `open-brain` and `open-brain-engine` wheels for macOS 14 or newer on Apple Silicon, and a checksummed native archive for supported Linux x86_64 hosts. A native macOS DMG and Apple notarization are deferred to a later release and MUST NOT block v0. |
+| `V0-INSTALL-01` | The project MUST publish versioned source and the `open-brain` and `open-brain-engine` wheels for Python 3.14 on macOS 14 or newer on Apple Silicon, and a checksummed native archive bundling Python 3.14 for supported Linux x86_64 hosts. A native macOS DMG and Apple notarization are deferred to a later release and MUST NOT block v0. |
 | `V0-INSTALL-02` | Initialization MUST accept one Brain root and create the default layout, configuration, stable local tenant and owner identities, generated local credential, permissions, schema, and empty indexes. |
 | `V0-INSTALL-03` | Initialization MUST be idempotent. Re-running it against the same compatible root MUST not replace user content, stable identities, space definitions, or credentials. |
 | `V0-INSTALL-04` | The default profile MUST require no manual TOML editing. The owner MAY start with no named spaces or select optional starter templates such as Personal, Work, Projects, Health, and Learning. Advanced root and capability overrides MAY use explicit configuration after initialization. |
@@ -272,12 +272,13 @@ The public alpha supports these release targets:
 
 | Installation | Supported hosts | Release baseline |
 |---|---|---|
-| Versioned source checkout or app and engine wheels | macOS 14 or newer on Apple Silicon | Test source and isolated wheel installation on macOS 14 with Python 3.12–3.14 compatibility |
-| Linux `x86_64` | Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13 | Build on Ubuntu 24.04 and run clean-host tests on every listed distribution |
+| Versioned source checkout or app and engine wheels | macOS 14 or newer on Apple Silicon | Test source and isolated wheel installation on macOS 14 with Python 3.14 |
+| Linux `x86_64` | Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13 | Bundle Python 3.14, build on Ubuntu 24.04, and run clean-host tests on every listed distribution |
 
 Intel macOS, Linux `arm64`, and Windows are outside the v0 support promise. Community reports may inform later expansion, but an untested artifact is not labeled supported.
 
-PyInstaller 6 in one-folder mode is the Linux self-contained bundler. Its clean-host evidence must
+PyInstaller 6 in one-folder mode is the Linux self-contained bundler and uses Python 3.14 for the
+current release. Its clean-host evidence must
 cover installation, daemon startup, package and resource discovery, upgrade, recovery, and
 uninstall on the supported Linux matrix. A failing Linux build moves to Nuitka standalone. macOS
 uses the versioned source/wheel path and may require supported Python and `uv`. A native macOS DMG,
@@ -312,7 +313,7 @@ Provider mode `none` is a complete operating mode. It preserves captures, expose
 
 | Gate | Pass condition |
 |---|---|
-| `V0-GATE-01` Clean install | On macOS, a clean versioned source checkout and an isolated app/engine wheel installation initialize without hand-edited TOML. On Linux, the checksummed native archive installs on each supported host without a source checkout or system Python. Each path meets the provisional 15-minute target, excluding model download time. |
+| `V0-GATE-01` Clean install | On macOS, a clean versioned source checkout and an isolated app/engine wheel installation initialize and start the foreground daemon without hand-edited TOML. On Linux, the checksummed native archive bundles Python 3.14 and installs on each supported host without a source checkout or system Python. Each path meets the provisional 15-minute target, excluding model download time. |
 | `V0-GATE-02` Generic first value | Text, reference or bounded file, event, and measurement fixtures can each be captured, found in the inbox, and retrieved without a model. Explicit canonical-note owner text publishes immediately, while the same text submitted through quick capture remains in the inbox. |
 | `V0-GATE-03` Third-party safety | A third-party reference remains a labeled, retrievable source record or proposal until approval; rejection never promotes it. |
 | `V0-GATE-04` Provider degradation | A provider outage leaves a durable pending item; later retry enriches it without a duplicate capture, output, or page. |
@@ -384,8 +385,8 @@ The owner approved the complete contract on 2026-08-30, including:
 4. the four built-in payload families and optional source-specific connector boundary;
 5. the Portable Brain foundation, release gates, non-goals, and accepted evidence conditions above.
 
-On 2026-09-04, the owner amended the release packaging decision: v0 supports source/wheel
-installation on macOS, retains the checksummed native archive on Linux, and defers the signed and
-notarized macOS DMG to a later release.
+On 2026-09-04, the owner amended the release packaging and runtime decisions: v0 supports Python
+3.14 source/wheel installation on macOS, retains the checksummed native archive on Linux, and
+defers the signed and notarized macOS DMG to a later release.
 
 Architecture work may refine implementation details but cannot weaken these outcomes without a new product decision.

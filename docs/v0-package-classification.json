@@ -6337,6 +6337,24 @@
         "target_path": "docs/current-record-characterization.md",
         "test_owner": "workspace"
       },
+      "docs/install-macos.md": {
+        "api_status": "workspace-only",
+        "artifact_disposition": [
+          "app-sdist"
+        ],
+        "current_path": "docs/install-macos.md",
+        "import_rewrite": null,
+        "kind": "package-resource",
+        "movement_state": "moved",
+        "old_import_disposition": "not-applicable",
+        "resource_requirements": [
+          "build-metadata"
+        ],
+        "runtime_namespace": null,
+        "target_distribution": "workspace",
+        "target_path": "docs/install-macos.md",
+        "test_owner": "workspace"
+      },
       "docs/operations.md": {
         "api_status": "workspace-only",
         "artifact_disposition": [

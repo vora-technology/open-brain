@@ -2,12 +2,12 @@
 
 Generated from `docs/v0-package-classification.json`; do not edit by hand.
 
-- Total subjects: `637`
+- Total subjects: `638`
 - app: `81`
 - connectors: `18`
 - engine: `104`
 - legacy: `333`
-- workspace: `101`
+- workspace: `102`
 
 | Source identity | Current subject | State | Kind | Distribution | Target | Artifacts |
 |---|---|---|---|---|---|---|
@@ -29,6 +29,7 @@ Generated from `docs/v0-package-classification.json`; do not edit by hand.
 | `docs/cli.md` | `docs/cli.md` | `moved` | `package-resource` | `workspace` | `docs/cli.md` | `app-sdist` |
 | `docs/configuration.md` | `docs/configuration.md` | `moved` | `package-resource` | `workspace` | `docs/configuration.md` | `app-sdist` |
 | `docs/current-record-characterization.md` | `docs/current-record-characterization.md` | `moved` | `package-resource` | `workspace` | `docs/current-record-characterization.md` | `app-sdist` |
+| `docs/install-macos.md` | `docs/install-macos.md` | `moved` | `package-resource` | `workspace` | `docs/install-macos.md` | `app-sdist` |
 | `docs/operations.md` | `docs/operations.md` | `moved` | `package-resource` | `workspace` | `docs/operations.md` | `app-sdist` |
 | `docs/portable-brain-v1.md` | `docs/portable-brain-v1.md` | `moved` | `package-resource` | `workspace` | `docs/portable-brain-v1.md` | `app-sdist` |
 | `docs/privacy-model.md` | `docs/privacy-model.md` | `moved` | `package-resource` | `workspace` | `docs/privacy-model.md` | `app-sdist` |

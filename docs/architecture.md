@@ -63,7 +63,8 @@ binding, serves bounded canonical Unix-domain control requests through the owner
 recurring `engine-recover` and `markdown-reconcile`
 scheduler inventory under `.open-brain/state/appliance-scheduler/`, and renders deterministic
 launchd/systemd units that enter the daemon through the source-checkout-safe
-`open_brain.services.appliance_daemon` module with an explicit absolute root. Mutating Phase 1 CLI
+`open_brain.services.appliance_daemon` module with an explicit absolute root. Source and wheel
+users launch the same process with `open-brain daemon`. Mutating Phase 1 CLI
 families never fall back to local writes; active reads prefer control and offline inspection stays
 on the read-only engine view.
 Phase 3 W3 keeps that ownership model for browser traffic. The appliance daemon composes and owns
@@ -153,7 +154,7 @@ connector interface is provisional v1. Parent discovery reads entry-point metada
 connector code; explicit allow-list and capability checks precede a bounded child process. The
 reference conformance run proves capture-only execution and replay through synthetic host-mediated
 transport. A stable Connector SDK promise remains blocked until reference, event, and measurement
-proofs all pass. The current v0 release path is source/wheels on macOS and a checksummed native
-archive on Linux. The P4 macOS native subjects remain unpublished evidence; DMG signing and
-notarization are deferred to a later release. Public package publication, tags, releases, and
-owner-gated deployment remain separate work.
+proofs all pass. The current v0 release path is Python 3.14 source/wheels on macOS and a checksummed
+native archive bundling Python 3.14 on Linux. The P4 macOS native subjects remain unpublished
+evidence; DMG signing and notarization are deferred to a later release. Public package publication,
+tags, releases, and owner-gated deployment remain separate work.

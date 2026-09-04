@@ -568,6 +568,20 @@ the production factory from the installed wheel, not only constructors with `che
 
 Discovered: 2026-09-01.
 
+### PACKAGING-003: An installed CLI does not imply an installed daemon launcher
+
+Symptom: The app and engine wheels install and `open-brain init` succeeds, but a user cannot start
+the required daemon without discovering uv's private environment interpreter and invoking an
+internal module path.
+
+Cause: Wheel acceptance exercised daemon behavior in-process and checked console scripts, but the
+documented daemon command existed only for a source checkout.
+
+Fix: Expose the foreground daemon through `open-brain daemon`. Verify that command through the CLI
+contract, isolated wheel help, and a clean installed-wheel journey.
+
+Discovered: 2026-09-04.
+
 ### TESTING-001: An inner fixed interpreter can falsify a CI version matrix
 
 Symptom: Python 3.13 and 3.14 jobs pass even though their wheel-isolation subprocesses run on

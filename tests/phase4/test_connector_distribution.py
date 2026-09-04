@@ -32,7 +32,7 @@ def test_connector_isolation_runs_on_every_supported_python_in_ci() -> None:
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert "connector-isolation:" in workflow
-    assert 'python-version: ["3.12", "3.13", "3.14"]' in workflow
+    assert 'python-version: "3.14"' in workflow
     assert "pytest -q tests/phase4/test_connector_distribution.py" in workflow
     setup_uv_pins = re.findall(r"uses: astral-sh/setup-uv@([0-9a-f]{40})", workflow)
     checkout_pins = re.findall(r"uses: actions/checkout@([0-9a-f]{40})", workflow)

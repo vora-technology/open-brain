@@ -1,7 +1,7 @@
 # Open Brain
 
 **GitHub:** `vora-technology/open-brain`
-**Stack:** Python 3.12–3.14, Hatch/uv workspace packages, filesystem/SQLite/Markdown persistence
+**Stack:** Python 3.14, Hatch/uv workspace packages, filesystem/SQLite/Markdown persistence
 
 ## Quick reference
 
@@ -14,7 +14,10 @@
 | P4-W5 candidate preflight | `make p4w5-preflight` runs focused native/lifecycle contracts, pinned configuration, static checks, manifest validation, and diff integrity |
 | Native spike | `make p4w5-native P4W5_SOURCE_SHA=<exact-clean-HEAD>` builds, audits, and smokes one target-native PyInstaller onedir subject |
 | Python artifacts | `make verify-artifacts` builds and audits engine+app+connector wheels/sdists |
-| Release state | Python artifacts and native P4-W5 build subjects are unpublished; v0 uses source/wheels on macOS and a native archive on Linux; DMG/notarization is deferred |
+| Release state | Python 3.14 source/wheel artifacts and native P4-W5 build subjects are unpublished; v0 uses source/wheels on macOS and a native archive on Linux; DMG/notarization is deferred |
+
+The active v0 runtime and ordinary CI use Python 3.14. Python 3.12 remains only in frozen P4 native
+tooling and replay lanes so those historical artifacts and their readiness snapshot stay unchanged.
 
 ## Architecture
 

@@ -680,7 +680,7 @@ The repository remains a monorepo while the generic no-model slice is proven. Ph
 |---|---|
 | Owner and isolation | One generated local tenant and one owner actor |
 | Writer topology | One local canonical writer |
-| Installation | Versioned source checkout or app/engine wheels on macOS 14+ `arm64`; PyInstaller one-folder archive on Linux `x86_64`; native macOS DMG deferred |
+| Installation | Python 3.14 versioned source checkout or app/engine wheels on macOS 14+ `arm64`; PyInstaller one-folder archive bundling Python 3.14 on Linux `x86_64`; native macOS DMG deferred |
 | Configuration | One Brain root and the `single-user-local` profile |
 | Organization | User-created spaces, optional templates, and an unassigned inbox |
 | Built-in payloads | Text, reference or bounded file, event, and measurement |
@@ -723,7 +723,7 @@ The current production path can publish owner text under `work_root/inbox/open-b
 13. Open Brain uses a hybrid open format: Markdown for canonical human knowledge, structured records for typed and historical data, content-addressed blobs for preserved files, and SQLite only for operational state and disposable indexes.
 14. Brain-root layout version `1` uses the readable, date-partitioned paths shown above, with operational state isolated under `.open-brain/`.
 15. Individual captures and portable history use canonical JSON. Referenced JSONL sidecars handle high-volume event and measurement batches. Versioned schemas and conformance fixtures are mandatory.
-16. v0 supports source/wheel installation on macOS 14 or newer on Apple Silicon and a native archive on Linux `x86_64` on Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13. Intel macOS, Linux `arm64`, and Windows are deferred.
+16. v0 supports Python 3.14 source/wheel installation on macOS 14 or newer on Apple Silicon and a native archive bundling Python 3.14 on Linux `x86_64` on Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13. Intel macOS, Linux `arm64`, and Windows are deferred.
 17. PyInstaller 6 one-folder mode is the Linux bundler candidate, with Nuitka standalone as its accepted fallback. A signed and notarized macOS DMG is deferred to a later release.
 
 ## Approved boundaries awaiting evidence
@@ -731,7 +731,7 @@ The current production path can publish owner text under `work_root/inbox/open-b
 No further owner choice remains for storage layout, serialization policy, supported hosts, or the bundler path. Two implementation artifacts remain:
 
 1. Reviewable versioned JSON Schemas plus canonical JSON, JSONL batch, checksum, correction, and Portable Brain round-trip fixtures.
-2. macOS 14 ARM64 source and isolated-wheel installation evidence, plus Linux PyInstaller
+2. macOS 14 ARM64 Python 3.14 source and isolated-wheel installation evidence, plus Linux PyInstaller
    clean-host evidence or recorded failure evidence followed by the accepted Nuitka spike.
 
 The hosted implementation stack can be selected later. That decision should not change the common envelope, engine, spaces, Portable Brain contract, connector authority separation, or approval boundaries.
