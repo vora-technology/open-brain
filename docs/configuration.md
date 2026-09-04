@@ -40,8 +40,9 @@ rollback, and removal receipts. Its default effect boundary is fail-closed, and 
 tree ships only injected fake or disposable adapters. The unpublished P4-W5 frozen entry point adds
 the first native-artifact adapter. Its ownership inventory starts empty unless an explicit current
 link identifies the one trusted installed candidate; later candidates enroll only after validated
-lifecycle operations. Clean-host package proofs, signing, notarization, publication, and
-prior-release upgrade evidence remain later Phase 4 work. Upgrade and uninstall CLI commands still
+lifecycle operations. The current v0 macOS release path is source/wheel installation; native DMG
+signing and notarization are deferred to a later release. Clean-host package proofs, publication,
+and prior-release upgrade evidence remain separate work. Upgrade and uninstall CLI commands still
 fail closed unless composition injects a lifecycle port. Accepted owner requests use one root-scoped
 lifecycle lease and bounded journals below `.open-brain/state/appliance-lifecycle/`; retries replay
 terminal receipts, conflicting identities fail, and interrupted forward work rolls back before the

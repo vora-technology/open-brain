@@ -440,7 +440,7 @@ The operating system supervises one service, not one job per task. Slow optional
 
 ```mermaid
 flowchart TD
-    Artifact["Signed or checksummed release artifact"]
+    Artifact["Versioned source/wheels on macOS<br/>or checksummed native archive on Linux"]
     Preflight["Host, architecture, permissions,<br/>disk, provider, and supervisor preflight"]
     Init["Idempotent init with one Brain root<br/>create identities, optional spaces,<br/>schemas, indexes, and local credential"]
     Initialized["Initialized Brain root<br/>no background service yet"]
@@ -680,7 +680,7 @@ The repository remains a monorepo while the generic no-model slice is proven. Ph
 |---|---|
 | Owner and isolation | One generated local tenant and one owner actor |
 | Writer topology | One local canonical writer |
-| Installation | PyInstaller one-folder candidate; macOS 14+ `arm64` and Linux `x86_64` artifacts; no source checkout or system Python |
+| Installation | Versioned source checkout or app/engine wheels on macOS 14+ `arm64`; PyInstaller one-folder archive on Linux `x86_64`; native macOS DMG deferred |
 | Configuration | One Brain root and the `single-user-local` profile |
 | Organization | User-created spaces, optional templates, and an unassigned inbox |
 | Built-in payloads | Text, reference or bounded file, event, and measurement |
@@ -702,7 +702,7 @@ Provider mode `none` is a complete operating mode. It supports durable typed cap
 
 | Already present in the codebase | Still required for this target |
 |---|---|
-| Capture identity, provenance, privacy policy, durable queues, review receipts, atomic Markdown writes, SQLite safety, writer locks, backup primitives, bounded HTTP, and read-only MCP | Common typed envelopes, tenant/actor/role identities, user-created spaces, unassigned routing, sibling proposals, portable source/history schemas, export/import conformance, one-root provider-none composition, shared CLI/UI tasks, one daemon, lifecycle controls, native artifacts, hosted-safe ports, and enforced package boundaries |
+| Capture identity, provenance, privacy policy, durable queues, review receipts, atomic Markdown writes, SQLite safety, writer locks, backup primitives, bounded HTTP, and read-only MCP | Common typed envelopes, tenant/actor/role identities, user-created spaces, unassigned routing, sibling proposals, portable source/history schemas, export/import conformance, one-root provider-none composition, shared CLI/UI tasks, one daemon, lifecycle controls, macOS source/wheel and Linux native release paths, hosted-safe ports, and enforced package boundaries |
 
 The current production path can publish owner text under `work_root/inbox/open-brain/` while the active retriever scans `work_root/pages/`. That mismatch remains the immediate warning: prove a black-box capture-to-retrieval journey before moving packages or building hosting.
 
@@ -723,14 +723,15 @@ The current production path can publish owner text under `work_root/inbox/open-b
 13. Open Brain uses a hybrid open format: Markdown for canonical human knowledge, structured records for typed and historical data, content-addressed blobs for preserved files, and SQLite only for operational state and disposable indexes.
 14. Brain-root layout version `1` uses the readable, date-partitioned paths shown above, with operational state isolated under `.open-brain/`.
 15. Individual captures and portable history use canonical JSON. Referenced JSONL sidecars handle high-volume event and measurement batches. Versioned schemas and conformance fixtures are mandatory.
-16. v0 supports macOS 14 or newer on Apple Silicon and Linux `x86_64` on Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13. Intel macOS, Linux `arm64`, and Windows are deferred.
-17. PyInstaller 6 one-folder mode receives the first one-working-day clean-host spike. Nuitka standalone is the accepted fallback if it fails.
+16. v0 supports source/wheel installation on macOS 14 or newer on Apple Silicon and a native archive on Linux `x86_64` on Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13. Intel macOS, Linux `arm64`, and Windows are deferred.
+17. PyInstaller 6 one-folder mode is the Linux bundler candidate, with Nuitka standalone as its accepted fallback. A signed and notarized macOS DMG is deferred to a later release.
 
 ## Approved boundaries awaiting evidence
 
 No further owner choice remains for storage layout, serialization policy, supported hosts, or the bundler path. Two implementation artifacts remain:
 
 1. Reviewable versioned JSON Schemas plus canonical JSON, JSONL batch, checksum, correction, and Portable Brain round-trip fixtures.
-2. PyInstaller clean-host spike evidence for the accepted matrix, or recorded failure evidence followed by the accepted Nuitka spike.
+2. macOS 14 ARM64 source and isolated-wheel installation evidence, plus Linux PyInstaller
+   clean-host evidence or recorded failure evidence followed by the accepted Nuitka spike.
 
 The hosted implementation stack can be selected later. That decision should not change the common envelope, engine, spaces, Portable Brain contract, connector authority separation, or approval boundaries.

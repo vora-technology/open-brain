@@ -34,18 +34,24 @@ jobs:
       - run: make verify-artifacts
 
   appliance-source-checkout-macos:
+    name: macOS source/wheel (${{ matrix.python-version }})
     runs-on: macos-14
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           version: "0.12.8"
           enable-cache: true
       - run: uv sync --frozen --group dev
       - run: >
           uv run pytest -q
+          tests/phase4/test_app_distribution.py
           packages/app/tests/integration/services/test_appliance_upgrade.py
           packages/app/tests/integration/services/test_appliance_uninstall.py
           packages/app/tests/integration/services/test_appliance_supervisors.py
@@ -181,45 +187,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  p4w6-macos-14-compatibility:
-    runs-on: macos-14
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-        with:
-          python-version: "3.12"
-          version: "0.12.8"
-          enable-cache: true
-      - run: uv sync --frozen --group dev --group native-build
-      - run: make p4w6-focused
-      - run: >
-          make p4w6-macos-compatibility
-          P4W6_SOURCE_SHA=${{ github.event.pull_request.head.sha || github.sha }}
-      - run: uv run python -m tools.phase4.clean_host_fixture --output build/p4w6-fixture
-      - run: >
-          make p4w6-clean-host
-          P4W6_PACKAGE=build/p4w6-macos-compatibility/artifacts/open-brain-0.1.0-macos-arm64-compatibility.tar.gz
-          P4W6_CHECKSUM=build/p4w6-macos-compatibility/artifacts/open-brain-0.1.0-macos-arm64-compatibility.tar.gz.sha256
-          P4W6_FIXTURE=build/p4w6-fixture
-          P4W6_EVIDENCE=build/p4w6-macos-14-source-equivalent.json
-          P4W6_SOURCE_SHA=${{ github.event.pull_request.head.sha || github.sha }}
-          P4W6_HOST=macos-14
-          P4W6_ARCHITECTURE=arm64
-          P4W6_EXACT_SIGNED=false
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: p4w6-macos-14-${{ github.event.pull_request.head.sha || github.sha }}
-          path: |
-            build/p4w6-macos-14-source-equivalent.json
-            build/p4w6-macos-compatibility/artifacts
-            build/p4w6-macos-compatibility/native-build/artifact-members.json
-            build/p4w6-macos-compatibility/native-build/build-evidence.json
-          if-no-files-found: error
-          retention-days: 7
-
   native-build-linux:
     needs: [p4w6-linux-build, p4w6-linux-clean-host]
     if: always()
@@ -229,7 +196,16 @@ jobs:
           test "${{ needs.p4w6-linux-build.result }}" = success &&
           test "${{ needs.p4w6-linux-clean-host.result }}" = success
 
+  p4w6-macos-14-compatibility:
+    name: macOS source/wheel compatibility
+    needs: appliance-source-checkout-macos
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - run: test "${{ needs.appliance-source-checkout-macos.result }}" = success
+
   native-build-macos:
+    name: macOS source/wheel
     needs: p4w6-macos-14-compatibility
     if: always()
     runs-on: ubuntu-24.04

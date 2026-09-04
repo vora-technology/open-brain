@@ -153,5 +153,7 @@ connector interface is provisional v1. Parent discovery reads entry-point metada
 connector code; explicit allow-list and capability checks precede a bounded child process. The
 reference conformance run proves capture-only execution and replay through synthetic host-mediated
 transport. A stable Connector SDK promise remains blocked until reference, event, and measurement
-proofs all pass. Native artifacts, signing, clean-host lifecycle proof, and owner-gated deployment
-remain later Phase 4 gates. Public package publication, tags, and releases remain Phase 5.
+proofs all pass. The current v0 release path is source/wheels on macOS and a checksummed native
+archive on Linux. The P4 macOS native subjects remain unpublished evidence; DMG signing and
+notarization are deferred to a later release. Public package publication, tags, releases, and
+owner-gated deployment remain separate work.

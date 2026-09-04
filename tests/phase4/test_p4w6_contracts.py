@@ -46,18 +46,25 @@ def test_p4w6_make_targets_are_separate_from_frozen_p4w5_targets() -> None:
     assert "tools.phase4.release_assembly verify" in p4w6_section
 
 
-def test_p4w6_ci_builds_once_then_runs_exact_linux_archive_on_three_hosts() -> None:
+def test_release_ci_runs_linux_archive_and_macos_source_wheel_paths() -> None:
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert "p4w6-python-artifacts:" in workflow
     assert "p4w6-linux-build:" in workflow
     assert "p4w6-linux-clean-host:" in workflow
+    assert "appliance-source-checkout-macos:" in workflow
+    assert "name: macOS source/wheel (${{ matrix.python-version }})" in workflow
+    assert 'python-version: ["3.12", "3.13", "3.14"]' in workflow
+    assert "tests/phase4/test_app_distribution.py" in workflow
+    assert "needs: appliance-source-checkout-macos" in workflow
     assert "p4w6-macos-14-compatibility:" in workflow
+    assert "name: macOS source/wheel compatibility" in workflow
+    assert "p4w6-macos-compatibility" not in workflow
     assert "container-image: [ubuntu:24.04, ubuntu:26.04, debian:13]" in workflow
     assert f"actions/upload-artifact@{UPLOAD_ARTIFACT_V7} # v7.0.1" in workflow
     assert f"actions/download-artifact@{DOWNLOAD_ARTIFACT_V8} # v8.0.1" in workflow
     assert "open-brain-0.1.0-linux-x86_64.tar.gz" in workflow
-    assert "open-brain-0.1.0-macos-arm64-compatibility.tar.gz" in workflow
+    assert "open-brain-0.1.0-macos-arm64-compatibility.tar.gz" not in workflow
     assert "runs-on: macos-14" in workflow
     assert "P4W6_SOURCE_SHA=${{ github.event.pull_request.head.sha || github.sha }}" in workflow
     assert "p4w6-clean-host-${{ strategy.job-index }}-" in workflow
@@ -72,6 +79,7 @@ def test_release_policy_declares_unpublished_media_manifest_and_exact_evidence_s
     assert release["candidate_id"] == "candidate_native-p4w6"
     assert release["version"] == "0.1.0"
     assert release["status"] == "unpublished"
+    assert release["publication_scope"] == "historical-unpublished-p4w6"
     assert release["required_coordinates"] == list(EXPECTED_RELEASE_ARTIFACT_COORDINATES)
     assert release["native_media"] == {
         "linux-x86_64": {

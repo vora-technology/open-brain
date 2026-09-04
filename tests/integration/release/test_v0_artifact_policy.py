@@ -102,7 +102,7 @@ def test_phase_four_policy_declares_all_python_artifact_coordinates() -> None:
     policy = _policy()
     distributions = policy["python_distributions"]
 
-    assert policy["policy_version"] == 3
+    assert policy["policy_version"] == 4
     assert policy["phase"] == "4-connector-isolation"
     assert isinstance(distributions, dict)
     assert set(distributions) == {"app", "connector", "engine"}
@@ -283,7 +283,7 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
     assert isinstance(hosts, dict)
     assert hosts["supported"] == [
         {
-            "artifact": "macos-arm64",
+            "artifact": "python-source-or-wheel",
             "architecture": "arm64",
             "operating_system": "macOS",
             "versions": ">=14",
@@ -302,6 +302,26 @@ def test_phase_zero_artifact_policy_has_exact_supported_and_unsupported_hosts() 
         },
     ]
     assert hosts["unsupported"] == ["macos-x86_64", "linux-arm64", "windows"]
+    assert policy["publication_scope"] == {
+        "version": "0.1.0",
+        "status": "unpublished",
+        "installations": {
+            "macos-arm64": {
+                "methods": ["versioned-source-checkout", "wheel"],
+                "python_versions": ["3.12", "3.13", "3.14"],
+                "wheel_distributions": ["open-brain", "open-brain-engine"],
+            },
+            "linux-x86_64": {
+                "checksum": "sha256",
+                "format": "tar.gz",
+                "method": "native-archive",
+            },
+        },
+        "macos_dmg": {
+            "notarization": "required-when-shipped",
+            "status": "deferred-to-later-release",
+        },
+    }
     assert policy["native_artifacts"] == {
         "bundler_candidate": "PyInstaller 6 onedir",
         "fallback": "Nuitka standalone",

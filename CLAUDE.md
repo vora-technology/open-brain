@@ -14,7 +14,7 @@
 | P4-W5 candidate preflight | `make p4w5-preflight` runs focused native/lifecycle contracts, pinned configuration, static checks, manifest validation, and diff integrity |
 | Native spike | `make p4w5-native P4W5_SOURCE_SHA=<exact-clean-HEAD>` builds, audits, and smokes one target-native PyInstaller onedir subject |
 | Python artifacts | `make verify-artifacts` builds and audits engine+app+connector wheels/sdists |
-| Release state | Python artifacts and native P4-W5 build subjects are unpublished; signing, clean-host proof, deployment, and publication remain pending |
+| Release state | Python artifacts and native P4-W5 build subjects are unpublished; v0 uses source/wheels on macOS and a native archive on Linux; DMG/notarization is deferred |
 
 ## Architecture
 
@@ -27,7 +27,7 @@
 | `tools/open_brain_dev` | Workspace-only artifact and release-safety tooling |
 | `tools/phase4` | Canonical move-manifest validation and isolated built-artifact acceptance harnesses |
 | `docs/v0-package-classification.json` | Source of truth for ownership, API status, movement, imports, tests, resources, and artifact membership |
-| `release/v0-artifact-policy.json` | One unpublished release contract keyed by Python distribution and artifact kind |
+| `release/v0-artifact-policy.json` | Current v0 installation scope plus unpublished Python-artifact and historical P4-W6 candidate contracts |
 
 The engine cannot import app, connector, legacy, or workspace modules. The app depends on exactly
 `open-brain-engine==0.1.0` and may import only engine modules marked public in the canonical
@@ -114,9 +114,10 @@ an explicit environment mapping.
 
 No public deployment or package publication exists. The app wheel contains generic launchd/systemd
 templates for installed-mode rendering without a checkout `PYTHONPATH`. The connector wheel is
-optional, provisional, and absent from default app acceptance. P4-W5 has a pinned native build and
-smoke subject, but signing, notarization, clean-host lifecycle proof, and production cutover remain
-separate gated work.
+optional, provisional, and absent from default app acceptance. The v0 macOS path is a versioned
+source checkout or the app and engine wheels; Linux retains the checksummed native archive path.
+P4-W5 and P4-W6 native macOS work remains unpublished historical evidence. A signed and notarized
+DMG is deferred to a later release. Deployment and publication remain separate gated work.
 
 ## Gotchas
 

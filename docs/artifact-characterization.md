@@ -8,6 +8,11 @@ P4-W6 assembly and verification contract. It does not claim that a native v0 rel
 that any artifact is ready to publish. A P4-W6 candidate remains unpublished even after every
 manifest coordinate and host result passes.
 
+The current v0 publication scope supersedes the P4-W6 macOS media requirement: macOS 14 or newer
+on Apple Silicon uses versioned source or the app and engine wheels. Linux retains the checksummed
+native archive. The signed, unnotarized P4-W6 DMG is historical unpublished evidence; a public,
+signed, and notarized DMG is deferred to a later release.
+
 ## Wheel
 
 Hatch builds two wheels with workspace sources disabled:
@@ -50,7 +55,7 @@ The only supported v0 targets are macOS 14 or newer on Apple Silicon and Linux x
 24.04 LTS, Ubuntu 26.04 LTS, and Debian 13. Intel macOS, Linux arm64, and Windows are outside the
 v0 support promise.
 
-## Native artifact status
+## Historical native artifact status
 
 Native build subjects are present for PyInstaller 6.22.2 onedir with
 `pyinstaller-hooks-contrib` 2026.7 and Python 3.12. The same checked-in spec runs on native macOS
