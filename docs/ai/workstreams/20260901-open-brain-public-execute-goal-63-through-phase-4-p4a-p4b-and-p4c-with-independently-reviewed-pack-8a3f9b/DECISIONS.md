@@ -853,3 +853,45 @@ has become corrupt.
   lease invalidates recoverability and zero-overlap; copying them mutates
   production content. A narrowly expanded immutable backup helper is the
   smallest architecture that preserves all existing service and content state.
+
+## D-065: remove backup and private cutover from project scope
+
+- Chosen: accept the owner's 2026-09-04 scope correction. Stop all backup,
+  restore, recovery-repair, P4-W8, P4-W9, rehearsal, and private cutover work.
+  Retain the historical plans and evidence, and finish only the target-compatible
+  P4-W6/P4-W7 release-candidate path.
+- Rejected: continue the seven-root workflow because the earlier plan required
+  it, delete existing backup-related product code or evidence, or uninstall a
+  verified helper as incidental cleanup.
+- Why: current owner authority outranks the earlier Phase 4 plan. The public
+  release-candidate work and the owner's private backup/cutover operation are
+  separate concerns; the latter is not part of this project's scope.
+
+## D-066: stop local Apple-ID authentication retries
+
+- Chosen: treat the repeated HTTP 401 response as an external Apple account
+  authentication blocker. Preserve the signed candidate, collect at most one
+  bounded verbose request identifier for support, and require successful
+  Keychain profile validation before any Apple submission.
+- Rejected: another unchanged credential retry, bypassing validation, changing
+  the signed DMG, weakening the notarization gate, or resuming unrelated
+  backup/cutover work.
+- Why: the owner confirmed a fresh app-specific password, exact Apple Account,
+  active membership, and accepted agreements. Validation failed both with and
+  without Team ID, while the signed candidate independently proves the same
+  TeamIdentifier. The failure occurs before upload and requires Apple account
+  support for the owner's requested Apple-ID authentication method.
+
+## D-067: close P4 as source/CI complete and defer macOS distribution
+
+- Chosen: accept the owner's explicit `skip notarization` instruction. Close
+  the current project scope with P4A/P4B source and CI complete, preserve the
+  signed DMG as unpublished and unnotarized, and move any future public macOS
+  binary distribution into a separate owner-authorized workstream.
+- Rejected: continue Apple credential troubleshooting, claim the DMG is
+  notarized or public-release-ready, publish it, resume P4-W8/P4-W9, delete
+  historical evidence, or remove installed helper versions as cleanup.
+- Why: notarization is required for the deferred public binary distribution,
+  not for continued open-source source development. An exact cancellation
+  record supersedes the earlier submission authority while preserving every
+  reviewed byte and the failed authentication history.

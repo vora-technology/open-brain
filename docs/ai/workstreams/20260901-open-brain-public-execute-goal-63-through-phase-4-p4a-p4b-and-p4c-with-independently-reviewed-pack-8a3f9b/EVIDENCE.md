@@ -1205,3 +1205,14 @@
   independent pre-execution review.
 - No service, manifest, production content, helper, backup, restore, candidate,
   publication, deployment, P4-W9, P4-W5, or readiness state changed.
+## Owner-revised scope closure
+
+- Owner scope closure on 2026-09-04 removed Apple notarization and public
+  macOS binary distribution from the current source/CI completion boundary.
+  Private cancellation record SHA-256
+  `cafaf03468842560fbb8ab1e4405be1012ec27e8ca9020d46b7d55eb456eda71`
+  binds the prior authority, launcher, script, transaction, and pre-notary DMG.
+  The signed DMG remains unpublished and unnotarized. No Apple submission,
+  backup, restore, P4-W8, P4-W9, deployment, or production action occurred.
+- Final `make verify` passed Ruff, strict MyPy on 549 source files, all 3,249
+  tests in 176.31 seconds, six isolated wheel/sdist builds, and artifact policy.
