@@ -1,5 +1,5 @@
 {
-  "policy_version": 3,
+  "policy_version": 5,
   "phase": "4-connector-isolation",
   "canonical_manifest": {
     "path": "docs/v0-package-classification.json"
@@ -67,6 +67,7 @@
             "../../docs/cli.md": "docs/cli.md",
             "../../docs/configuration.md": "docs/configuration.md",
             "../../docs/current-record-characterization.md": "docs/current-record-characterization.md",
+            "../../docs/install-macos.md": "docs/install-macos.md",
             "../../docs/operations.md": "docs/operations.md",
             "../../docs/portable-brain-v1.md": "docs/portable-brain-v1.md",
             "../../docs/privacy-model.md": "docs/privacy-model.md",
@@ -345,7 +346,7 @@
   "hosts": {
     "supported": [
       {
-        "artifact": "macos-arm64",
+        "artifact": "python-source-or-wheel",
         "architecture": "arm64",
         "operating_system": "macOS",
         "versions": ">=14"
@@ -373,6 +374,35 @@
       "linux-arm64",
       "windows"
     ]
+  },
+  "publication_scope": {
+    "version": "0.1.0",
+    "status": "unpublished",
+    "installations": {
+      "macos-arm64": {
+        "methods": [
+          "versioned-source-checkout",
+          "wheel"
+        ],
+        "python_versions": [
+          "3.14"
+        ],
+        "wheel_distributions": [
+          "open-brain",
+          "open-brain-engine"
+        ]
+      },
+      "linux-x86_64": {
+        "checksum": "sha256",
+        "format": "tar.gz",
+        "method": "native-archive",
+        "python": "3.14-bundled"
+      }
+    },
+    "macos_dmg": {
+      "notarization": "required-when-shipped",
+      "status": "deferred-to-later-release"
+    }
   },
   "native_artifacts": {
     "bundler_candidate": "PyInstaller 6 onedir",
@@ -428,6 +458,7 @@
   "release_candidate": {
     "candidate_id": "candidate_native-p4w6",
     "manifest_schema_version": 1,
+    "publication_scope": "historical-unpublished-p4w6",
     "native_media": {
       "linux-x86_64": {
         "checksum": "sha256",

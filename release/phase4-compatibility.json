@@ -9,8 +9,6 @@
   "python": {
     "native_build": "3.12",
     "source_and_wheel": [
-      "3.12",
-      "3.13",
       "3.14"
     ]
   },

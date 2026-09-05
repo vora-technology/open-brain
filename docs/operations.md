@@ -34,6 +34,10 @@ signing, notarization, publication, deployment, or host service installation.
 
 ## P4-W6 unpublished release candidate
 
+This section preserves the historical P4-W6 candidate procedure. It is not the current v0
+publication path and must not be run as a v0 release gate. v0 uses source/wheels on macOS; a signed
+and notarized DMG is deferred to a later release.
+
 Run `make p4w6-preflight` before freezing a P4-W6 source commit. It checks the release, signing,
 notarization, deterministic archive, clean-host, CI, and manifest contracts without invoking the
 P4-W5 native build targets or the readiness probes.

@@ -28,9 +28,39 @@ def test_appliance_cli_help_and_version_are_root_free(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     assert run_cli(("--help",), environment={}) == 0
-    assert "init" in capsys.readouterr().out
+    help_output = capsys.readouterr().out
+    assert "daemon" in help_output
+    assert "init" in help_output
     assert run_cli(("--version",), environment={}) == 0
     assert capsys.readouterr().out == "open-brain 0.1.0\n"
+
+
+def test_appliance_daemon_command_launches_foreground_with_the_selected_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "brain"
+    environment = {
+        "OPEN_BRAIN_PROVIDER": "none",
+        "OPEN_BRAIN_ROOT": str(root),
+    }
+    observed: list[tuple[tuple[str, ...], dict[str, str]]] = []
+
+    def run_daemon(
+        argv: tuple[str, ...],
+        *,
+        environment: dict[str, str],
+    ) -> int:
+        observed.append((argv, environment))
+        return 0
+
+    monkeypatch.setattr(
+        "open_brain.services.appliance_entrypoints.run_appliance_daemon",
+        run_daemon,
+    )
+
+    assert run_cli(("daemon",), environment=environment) == 0
+    assert observed == [(("--root", str(root)), environment)]
 
 
 def test_appliance_status_reports_bounded_maintenance_without_leaking_root(

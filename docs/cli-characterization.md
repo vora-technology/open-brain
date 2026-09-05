@@ -80,8 +80,9 @@ These are exit classes, not a promise that every command currently reaches every
 
 ## Current appliance boundary
 
-The Phase 3 appliance CLI adds `init`, `status`, supervisor, `upgrade`, and `uninstall` commands
-around the six retained Phase 1 families. Upgrade and uninstall require explicit owner confirmation
+The appliance CLI adds `daemon`, `init`, `status`, supervisor, `upgrade`, and `uninstall` commands
+around the six retained Phase 1 families. `daemon` runs the source/wheel process in the foreground.
+Upgrade and uninstall require explicit owner confirmation
 and an injected source-checkout lifecycle port; the default native-artifact effect fails closed.
 Portable export/import remain distinct app/daemon recovery operations rather than aliases of backup
 or lifecycle commands. The retained Phase 0 parser is characterization data, not an installed

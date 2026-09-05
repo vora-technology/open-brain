@@ -15,7 +15,14 @@ The Phase 3 source-checkout boundary is one single-user local appliance rooted a
 
 ## Development
 
-Requirements: Python 3.12–3.14 and [uv](https://docs.astral.sh/uv/).
+Requirements: Python 3.14 and [uv](https://docs.astral.sh/uv/).
+
+### macOS v0 installation
+
+The v0 release supports macOS 14 or newer on Apple Silicon through a versioned source checkout
+or the published `open-brain` and `open-brain-engine` wheels. A native macOS DMG and Apple
+notarization are deferred to a later release and do not block v0. No package or release artifact
+has been published yet. Follow [the macOS installation guide](docs/install-macos.md) for both paths.
 
 ### Run the local single-user slice
 
@@ -30,7 +37,7 @@ uv run open-brain init --json
 Start the source-checkout daemon in one terminal:
 
 ```bash
-uv run python -m open_brain.services.appliance_daemon --root "$OPEN_BRAIN_ROOT"
+uv run open-brain daemon
 ```
 
 Then use the owner CLI from another terminal:
@@ -103,7 +110,9 @@ managed cleanup. The native build reads an isolated archive of the named Git tre
 replacement refs and external attributes, and compares every extracted blob and mode with the raw
 no-replace tree. It admits only tracked package resources and records the source-tree digest.
 Launchd upgrades unload the KeepAlive job before offline work and bootstrap it again afterward.
-Later Phase 4 waves still own clean-host and prior-artifact proofs, signing, and publishing.
+The current v0 release scope uses source/wheel installation on macOS and a checksummed native
+archive on Linux. Native macOS DMG distribution is deferred to a later release. Publishing remains
+a separate owner-authorized step.
 Predecessor modules remain retained legacy compatibility code and are excluded from the default
 application path.
 

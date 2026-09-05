@@ -31,6 +31,7 @@ from open_brain.services.appliance_daemon import (
     ApplianceControlProtocolError,
     ApplianceControlUnavailableError,
 )
+from open_brain.services.appliance_daemon import main as run_appliance_daemon
 from open_brain.services.appliance_init import ApplianceInitError, initialize_appliance
 from open_brain.services.appliance_lifecycle import (
     ApplianceLifecycleError,
@@ -106,6 +107,15 @@ def run_cli(
         _write_json(_configuration_failure())
         return ExitCode.CONFIGURATION
     try:
+        if command == "daemon":
+            if command_argv:
+                raise ValueError("invalid daemon arguments")
+            return int(
+                run_appliance_daemon(
+                    ("--root", str(root)),
+                    environment=_string_environment(env),
+                )
+            )
         if command == "init":
             receipt = initialize_appliance(root, starter_spaces=_starter_spaces(command_argv))
             _write_json(receipt.to_dict())
@@ -205,6 +215,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--json", action="store_true", help="Write JSON output.")
     subparsers = parser.add_subparsers(dest="command", metavar="COMMAND")
+    subparsers.add_parser("daemon", help="Run the appliance daemon in the foreground.")
     init_parser = subparsers.add_parser("init", help="Initialize one appliance root.")
     init_parser.add_argument(
         "--starter-space",
@@ -253,6 +264,15 @@ def _root_from_environment(environment: Mapping[str, object]) -> Path:
     if not isinstance(root, str) or not root or "\x00" in root or not Path(root).is_absolute():
         raise ValueError("invalid OPEN_BRAIN_ROOT")
     return Path(root)
+
+
+def _string_environment(environment: Mapping[str, object]) -> dict[str, str]:
+    selected: dict[str, str] = {}
+    for key, value in environment.items():
+        if not isinstance(value, str):
+            raise ValueError("invalid daemon environment")
+        selected[key] = value
+    return selected
 
 
 def _mcp_allowed_space_ids(environment: Mapping[str, object]) -> frozenset[str]:
